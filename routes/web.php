@@ -3,29 +3,29 @@
 use Illuminate\Support\Facades\Route;
 
 /*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+ * |--------------------------------------------------------------------------
+ * | Web Routes
+ * |--------------------------------------------------------------------------
+ * |
+ * | Here is where you can register web routes for your application. These
+ * | routes are loaded by the RouteServiceProvider and all of them will
+ * | be assigned to the "web" middleware group. Make something great!
+ * |
+ */
 
 Route::get('/', function () {
-    if(!(Session::get('login'))){
+    if (!(Session::get('login'))) {
         return redirect('/login');
     }
     return redirect('home.mbu');
 });
 
-//Login
+// Login
 Route::get('/logout', 'App\Http\Controllers\AuthController@logout')->name('auth.logout');
 Route::any('/forgot', 'App\Http\Controllers\AuthController@forgot')->name('auth.forgot');
 Route::get('/reset/{token}', 'App\Http\Controllers\AuthController@resetShow')->name('password.reset');
 Route::post('/reset', 'App\Http\Controllers\AuthController@reset')->name('auth.reset.send');
-Route::match(['get','post'], '/login', 'App\Http\Controllers\AuthController@login')->name('auth.login');
+Route::match(['get', 'post'], '/login', 'App\Http\Controllers\AuthController@login')->name('auth.login');
 Route::get('/sidebar-toggle', 'App\Http\Controllers\DashboardController@sidebarToggle')->name('sidebar-toggle');
 
 Route::middleware('auth')->group(function () {
@@ -34,9 +34,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/mbu', 'App\Http\Controllers\DashboardController@indexMbu')->name('dashboard.mbu.index')->middleware('permission:dashboard.mbu.index');
         Route::get('/lti', 'App\Http\Controllers\DashboardController@indexLti')->name('dashboard.lti.index')->middleware('permission:dashboard.lti.index');
         Route::get('/manbu', 'App\Http\Controllers\DashboardController@indexManbu')->name('dashboard.manbu.index')->middleware('permission:dashboard.manbu.index');
-
     });
-    
+
     Route::group(['prefix' => 'audit'], function () {
         Route::get('/', 'App\Http\Controllers\AuditController@index')->name('audit.index')->middleware('permission:audit.index');
         Route::any('/add', 'App\Http\Controllers\AuditController@add')->name('audit.add')->middleware('permission:audit.add');
@@ -72,6 +71,25 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    Route::group(['prefix' => 'marketing'], function () {
+        Route::group(['prefix' => 'list'], function () {
+            Route::get('/', 'App\Http\Controllers\Marketing\ListController@index')->name('marketing.list.index')->middleware('permission:marketing.list.index');
+            Route::any('/add', 'App\Http\Controllers\Marketing\ListController@add')->name('marketing.list.add')->middleware('permission:marketing.list.add');
+            Route::any('/edit/{id}', 'App\Http\Controllers\Marketing\ListController@edit')->name('marketing.list.edit')->middleware('permission:marketing.list.edit');
+            Route::any('/detail/{id}', 'App\Http\Controllers\Marketing\ListController@detail')->name('marketing.list.detail')->middleware('permission:marketing.list.detail');
+            Route::any('/delete/{id}', 'App\Http\Controllers\Marketing\ListController@delete')->name('marketing.list.delete')->middleware('permission:marketing.list.delete');
+            Route::any('/realization/{id}', 'App\Http\Controllers\Marketing\ListController@realization')->name('marketing.list.realization')->middleware('permission:marketing.list.realization');
+            Route::any('/payment/{id}', 'App\Http\Controllers\Marketing\ListController@payment')->name('marketing.list.payment')->middleware('permission:marketing.list.payment');
+        });
+        Route::group(['prefix' => 'retur'], function () {
+            Route::get('/', 'App\Http\Controllers\Marketing\ReturController@index')->name('marketing.retur.index')->middleware('permission:marketing.retur.index');
+            Route::any('/add', 'App\Http\Controllers\Marketing\ReturController@add')->name('marketing.retur.add')->middleware('permission:marketing.retur.add');
+            Route::any('/edit/{id}', 'App\Http\Controllers\Marketing\ReturController@edit')->name('marketing.retur.edit')->middleware('permission:marketing.retur.edit');
+            Route::any('/detail/{id}', 'App\Http\Controllers\Marketing\ReturController@detail')->name('marketing.retur.detail')->middleware('permission:marketing.retur.detail');
+            Route::any('/delete/{id}', 'App\Http\Controllers\Marketing\ReturController@delete')->name('marketing.retur.delete')->middleware('permission:marketing.retur.delete');
+        });
+    });
+
     Route::group(['prefix' => 'purchase'], function () {
         Route::get('/', 'App\Http\Controllers\Purchase\ListController@index')->name('purchase.index')->middleware('permission:purchase.index');
         Route::any('/add', 'App\Http\Controllers\Purchase\ListController@add')->name('purchase.add')->middleware('permission:purchase.add');
@@ -80,9 +98,9 @@ Route::middleware('auth')->group(function () {
         Route::any('/approve/{id}', 'App\Http\Controllers\Purchase\ListController@approve')->name('purchase.approve')->middleware('permission:purchase.approve');
         Route::any('/detail/{id}', 'App\Http\Controllers\Purchase\ListController@detail')->name('purchase.detail')->middleware('permission:purchase.detail');
         Route::any('/delete/{id}', 'App\Http\Controllers\Purchase\ListController@delete')->name('purchase.delete')->middleware('permission:purchase.delete');
-        Route::any('/payment/{id}', 'App\Http\Controllers\Purchase\ListController@payment')->name('purchase.payment');//->middleware('permission:purchase.delete');
+        Route::any('/payment/{id}', 'App\Http\Controllers\Purchase\ListController@payment')->name('purchase.payment');  // ->middleware('permission:purchase.delete');
     });
-    
+
     Route::group(['prefix' => 'ph'], function () {
         Route::group(['prefix' => 'performance'], function () {
             Route::get('/', 'App\Http\Controllers\Ph\PerformanceController@index')->name('ph.performance.index')->middleware('permission:ph.performance.index');
@@ -91,7 +109,6 @@ Route::middleware('auth')->group(function () {
             Route::any('/add', 'App\Http\Controllers\Ph\PerformanceController@add')->name('ph.performance.add')->middleware('permission:ph.performance.add');
             Route::any('/edit/{id}', 'App\Http\Controllers\Ph\PerformanceController@edit')->name('ph.performance.edit')->middleware('permission:ph.performance.edit');
             Route::any('/delete/{id}', 'App\Http\Controllers\Ph\PerformanceController@delete')->name('ph.performance.delete')->middleware('permission:ph.performance.delete');
-
         });
 
         Route::group(['prefix' => 'report-complaint'], function () {
@@ -125,7 +142,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/add', 'App\Http\Controllers\Inventory\AdjustmentController@add')->name('inventory.adjustment.add')->middleware('permission:inventory.adjustment.add');
         });
     });
-    
+
     Route::group(['prefix' => 'data-master'], function () {
         Route::group(['prefix' => 'product-category'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\ProductCategoryController@index')->name('data-master.product-category.index')->middleware('permission:data-master.product-category.index');
@@ -182,7 +199,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\AreaController@delete')->name('data-master.area.delete')->middleware('permission:data-master.area.delete');
             Route::get('/search', 'App\Http\Controllers\DataMaster\AreaController@searchArea')->name('data-master.area.search');
         });
-    
+
         Route::group(['prefix' => 'location'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\LocationController@index')->name('data-master.location.index')->middleware('permission:data-master.location.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\LocationController@add')->name('data-master.location.add')->middleware('permission:data-master.location.add');
@@ -190,7 +207,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\LocationController@delete')->name('data-master.location.delete')->middleware('permission:data-master.location.delete');
             Route::get('/search', 'App\Http\Controllers\DataMaster\LocationController@searchLocation')->name('data-master.location.search');
         });
-    
+
         Route::group(['prefix' => 'company'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\CompanyController@index')->name('data-master.company.index')->middleware('permission:data-master.company.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\CompanyController@add')->name('data-master.company.add')->middleware('permission:data-master.company.add');
@@ -198,7 +215,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\CompanyController@delete')->name('data-master.company.delete')->middleware('permission:data-master.company.delete');
             Route::get('/search', 'App\Http\Controllers\DataMaster\CompanyController@searchCompany')->name('data-master.company.search');
         });
-    
+
         Route::group(['prefix' => 'department'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\DepartmentController@index')->name('data-master.department.index')->middleware('permission:data-master.department.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\DepartmentController@add')->name('data-master.department.add')->middleware('permission:data-master.department.add');
@@ -206,7 +223,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\DepartmentController@delete')->name('data-master.department.delete')->middleware('permission:data-master.department.delete');
             Route::get('/search', 'App\Http\Controllers\DataMaster\DepartmentController@searchDepartment')->name('data-master.department.search');
         });
-    
+
         Route::group(['prefix' => 'supplier'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\SupplierController@index')->name('data-master.supplier.index')->middleware('permission:data-master.supplier.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\SupplierController@add')->name('data-master.supplier.add')->middleware('permission:data-master.supplier.add');
@@ -215,14 +232,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/search', 'App\Http\Controllers\DataMaster\SupplierController@searchSupplier')->name('data-master.supplier.search');
             Route::get('/hatchery/search', 'App\Http\Controllers\DataMaster\SupplierController@searchHatchery')->name('data-master.supplier.hatchery.search');
         });
-    
+
         Route::group(['prefix' => 'customer'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\CustomerController@index')->name('data-master.customer.index')->middleware('permission:data-master.customer.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\CustomerController@add')->name('data-master.customer.add')->middleware('permission:data-master.customer.add');
             Route::any('/edit/{id}', 'App\Http\Controllers\DataMaster\CustomerController@edit')->name('data-master.customer.edit')->middleware('permission:data-master.customer.edit');
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\CustomerController@delete')->name('data-master.customer.delete')->middleware('permission:data-master.customer.delete');
         });
-    
+
         Route::group(['prefix' => 'fcr'], function () {
             Route::get('/', 'App\Http\Controllers\DataMaster\FcrController@index')->name('data-master.fcr.index')->middleware('permission:data-master.fcr.index');
             Route::any('/add', 'App\Http\Controllers\DataMaster\FcrController@add')->name('data-master.fcr.add')->middleware('permission:data-master.fcr.add');
@@ -246,9 +263,8 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\UomController@delete')->name('data-master.uom.delete')->middleware('permission:data-master.uom.delete');
             Route::get('/search', 'App\Http\Controllers\DataMaster\UomController@searchUom')->name('data-master.uom.search');
         });
-    
     });
-    
+
     Route::group(['prefix' => 'user-management'], function () {
         Route::group(['prefix' => 'user'], function () {
             Route::get('/', 'App\Http\Controllers\UserManagement\UsersController@index')->name('user-management.user.index')->middleware('permission:user-management.user.index');
@@ -257,7 +273,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\UserManagement\UsersController@delete')->name('user-management.user.delete')->middleware('permission:user-management.user.delete');
             Route::get('/search', 'App\Http\Controllers\UserManagement\UsersController@searchUser')->name('user-management.user.search');
         });
-    
+
         Route::group(['prefix' => 'role'], function () {
             Route::get('/', 'App\Http\Controllers\UserManagement\RoleController@index')->name('user-management.role.index')->middleware('permission:user-management.role.index');
             Route::any('/add', 'App\Http\Controllers\UserManagement\RoleController@add')->name('user-management.role.add')->middleware('permission:user-management.role.add');
@@ -275,5 +291,3 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
-
-
