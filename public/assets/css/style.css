@@ -1,0 +1,29 @@
+@charset "UTF-8";
+html {
+  font-size: calc(100% - 4px); /* Decrease by 2 pixels */
+}
+
+body {
+  background-color: black;
+  font-family: 'Poppins';
+}
+
+table tr td {
+  padding: 3px 15px 3px 15px !important;
+}
+
+.select2-container--default .select2-selection--single.is-invalid {
+  border-color: #dc3545; /* Red border for invalid input */
+}
+
+@media (max-width: 576px) {
+  label.float-right {
+      float: none !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none; 
+  }
+}
