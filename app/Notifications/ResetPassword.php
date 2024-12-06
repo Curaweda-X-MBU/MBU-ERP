@@ -6,13 +6,13 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Notifications\ResetPassword;
-
 
 class ResetPassword extends Notification implements ShouldQueue
 {
     use Queueable;
+
     public $token;
+
     /**
      * Create a new notification instance.
      */
@@ -44,8 +44,8 @@ class ResetPassword extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('[MBU-ERP] Reset Password')
             ->markdown('templates.mail.reset-password', [
-                'url' => $resetUrl,
-                'notifiable' => $notifiable
+                'url'        => $resetUrl,
+                'notifiable' => $notifiable,
             ]);
     }
 

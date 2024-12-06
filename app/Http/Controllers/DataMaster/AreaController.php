@@ -3,36 +3,38 @@
 namespace App\Http\Controllers\DataMaster;
 
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Area;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use App\Models\DataMaster\Area;
-use DB;
 
 class AreaController extends Controller
 {
     private const VALIDATION_MESSAGES = [
         'name.required' => 'Nama area tidak boleh kosong',
-        'name.max' => 'Nama area melebihi 50 karakter',
-        'name.unique' => 'Nama area telah digunakan'
+        'name.max'      => 'Nama area melebihi 50 karakter',
+        'name.unique'   => 'Nama area telah digunakan',
     ];
 
-    public function index(Request $req) {
+    public function index(Request $req)
+    {
         try {
-            
+
             $param = [
                 'title' => 'Master Data > Area',
-                'data' => Area::get()
+                'data'  => Area::get(),
             ];
+
             return view('data-master.area.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }
 
-    public function add(Request $req) {
+    public function add(Request $req)
+    {
         try {
             $param = [
                 'title' => 'Master Data > Area > Tambah',
@@ -40,9 +42,9 @@ class AreaController extends Controller
 
             if ($req->isMethod('post')) {
                 $rules = ['name' => ['required', 'string', 'max:50',
-                    Rule::unique('areas')->where(function ($query) use ($req) {
+                    Rule::unique('areas')->where(function($query) {
                         return $query->whereNull('deleted_at');
-                    })]
+                    })],
                 ];
 
                 $validator = Validator::make($req->all(), $rules, self::VALIDATION_MESSAGES);
@@ -57,6 +59,7 @@ class AreaController extends Controller
                 ]);
 
                 $success = ['success' => 'Data Berhasil disimpan'];
+
                 return redirect()->route('data-master.area.index')->with($success);
             }
 
@@ -66,19 +69,20 @@ class AreaController extends Controller
         }
     }
 
-    public function edit(Request $req) {
+    public function edit(Request $req)
+    {
         try {
-            $area = Area::findOrFail($req->id);
+            $area  = Area::findOrFail($req->id);
             $param = [
                 'title' => 'Master Data > Area > Ubah',
-                'data' => $area,
+                'data'  => $area,
             ];
 
             if ($req->isMethod('post')) {
                 $rules = ['name' => ['required', 'string', 'max:50',
-                    Rule::unique('areas')->where(function ($query) use ($req) {
+                    Rule::unique('areas')->where(function($query) {
                         return $query->whereNull('deleted_at');
-                    })->ignore($area->area_id, 'area_id')]
+                    })->ignore($area->area_id, 'area_id')],
                 ];
                 $validator = Validator::make($req->all(), $rules, self::VALIDATION_MESSAGES);
                 if ($validator->fails()) {
@@ -89,10 +93,11 @@ class AreaController extends Controller
 
                 $area->update([
                     'name' => $req->input('name'),
-                    
+
                 ]);
 
                 $success = ['success' => 'Data berhasil dirubah'];
+
                 return redirect()->route('data-master.area.index')->with($success);
             }
 
@@ -102,23 +107,26 @@ class AreaController extends Controller
         }
     }
 
-    public function delete(Request $req) {
+    public function delete(Request $req)
+    {
         try {
             $area = Area::findOrFail($req->id);
             $area->delete();
 
             $success = ['success' => 'Data berhasil dihapus'];
+
             return redirect()->route('data-master.area.index')->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
 
-    public function searchArea(Request $request) {
+    public function searchArea(Request $request)
+    {
         $search = $request->input('q');
-        $areas = Area::where('name', 'like', "%{$search}%")->get();
+        $areas  = Area::where('name', 'like', "%{$search}%")->get();
 
-        return response()->json($areas->map(function ($area) {
+        return response()->json($areas->map(function($area) {
             return ['id' => $area->area_id, 'text' => $area->name];
         }));
     }

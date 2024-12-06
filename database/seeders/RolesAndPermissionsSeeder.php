@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\UserManagement\Permission;
 use App\Models\UserManagement\Role;
 use App\Models\UserManagement\User;
-/* use Illuminate\Database\Console\Seeds\WithoutModelEvents; */
 use Illuminate\Database\Seeder;
 
 class RolesAndPermissionsSeeder extends Seeder
@@ -37,19 +36,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'project.list.index',
             'project.list.add',
             'project.list.edit',
+            'project.list.detail',
+            'project.list.copy',
+            'project.list.approve',
             'project.list.delete',
             'project.chick-in.index',
             'project.chick-in.add',
             'project.chick-in.edit',
+            'project.chick-in.detail',
+            'project.chick-in.approve',
             'project.chick-in.delete',
             'project.recording.index',
-            'project.recording.add',
-            'project.recording.edit',
-            'project.recording.delete',
             'project.perparation.index',
-            'project.perparation.add',
-            'project.perparation.edit',
-            'project.perparation.delete',
             'ph.performance.index',
             'ph.performance.detail',
             'ph.performance.download',
@@ -81,16 +79,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'marketing.retur.delete',
             'purchase.index',
             'purchase.add',
+            'purchase.copy',
             'purchase.edit',
+            'purchase.approve',
+            'purchase.detail',
             'purchase.delete',
             'inventory.product.index',
-            'inventory.product.add',
             'inventory.product.edit',
-            'inventory.product.delete',
             'inventory.adjustment.index',
             'inventory.adjustment.add',
-            'inventory.adjustment.edit',
-            'inventory.adjustment.delete',
             'data-master.product-category.index',
             'data-master.product-category.add',
             'data-master.product-category.edit',

@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_items', function (Blueprint $table) {
+        Schema::table('purchase_items', function(Blueprint $table) {
             $table->integer('project_id')->index('project_id')->nullable()->after('warehouse_id');
-            $table->foreign(['project_id'], 'items_projects_project_id')->references(['project_id'])->on('projects')->onUpdate('no action')->onDelete('no action'); 
+            $table->foreign(['project_id'], 'items_projects_project_id')->references(['project_id'])->on('projects')->onUpdate('no action')->onDelete('no action');
         });
     }
 

@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('project_recordings', function (Blueprint $table) {
+        Schema::table('project_recordings', function(Blueprint $table) {
             $table->string('item', 50)->after('project_recording_id');
-        }); 
+        });
 
-        Schema::table('projects', function (Blueprint $table) {
+        Schema::table('projects', function(Blueprint $table) {
             $table->integer('total_budget')->after('target_depletion');
         });
     }
