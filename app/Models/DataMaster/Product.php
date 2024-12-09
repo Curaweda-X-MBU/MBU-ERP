@@ -3,6 +3,7 @@
 namespace App\Models\DataMaster;
 
 use App\Models\Inventory\ProductWarehouse;
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Ph\PhComplaint;
 use App\Models\Project\Project;
 use App\Models\Purchase\PurchaseItem;
@@ -85,5 +86,10 @@ class Product extends Model
     public function product_warehouse()
     {
         return $this->hasMany(ProductWarehouse::class, 'product_id');
+    }
+
+    public function marketing_product()
+    {
+        return $this->hasMany(MarketingProduct::class, 'product_id', 'product_id');
     }
 }

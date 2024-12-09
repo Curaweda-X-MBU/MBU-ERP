@@ -96,11 +96,11 @@
                 <li class=" nav-item has-sub {{ Request::segment(1)=='marketing'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather="dollar-sign"></i><span class="menu-title text-truncate" data-i18n="Marketing">Penjualan</span></a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('marketing.list.index'))
-                        <li id="list-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.list.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="List Penjualan">List Penjualan</span></a>
+                        <li id="list-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.list.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing List">List Penjualan</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('marketing.retur.index'))
-                        <li id="retur-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.retur.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Retur Penjualan">Retur Penjualan</span></a>
+                        <li id="retur-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.retur.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing Retur">Retur Penjualan</span></a>
                         </li>
                         @endif
                     </ul>

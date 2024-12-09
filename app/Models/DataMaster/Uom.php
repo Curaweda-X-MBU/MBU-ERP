@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Marketing\MarketingDeliveryVehicle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -34,5 +35,10 @@ class Uom extends Model
     public function fcr()
     {
         return $this->hasMany(fcr::class, 'uom_id');
+    }
+
+    public function marketing_delivery_vehicle()
+    {
+        return $this->hasMany(MarketingDeliveryVehicle::class, 'uom_id', 'uom_id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Ph\PhComplaint;
 use App\Models\Ph\PhPerformance;
 use App\Models\Project\Project;
@@ -63,5 +64,10 @@ class Kandang extends Model
     public function project()
     {
         return $this->hasMany(Project::class, 'kandang_id');
+    }
+
+    public function marketing_product()
+    {
+        return $this->hasMany(MarketingProduct::class, 'kandang_id', 'kandang_id');
     }
 }
