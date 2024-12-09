@@ -10,13 +10,14 @@ class PhSymptom extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'ph_symptoms';
+
     protected $primaryKey = 'ph_symptom_id';
 
     protected $fillable = [
         'name',
         'created_at',
-        'created_by'
+        'created_by',
     ];
-
 }

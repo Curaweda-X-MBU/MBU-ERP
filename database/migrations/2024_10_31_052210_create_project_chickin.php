@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('project_chickin', function (Blueprint $table) {
+        Schema::create('project_chickin', function(Blueprint $table) {
             $table->integer('project_chickin_id', true);
             $table->integer('project_id')->index('project_id');
             $table->string('travel_letter_number');

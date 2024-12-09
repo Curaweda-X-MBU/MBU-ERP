@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kandang', function (Blueprint $table) {
+        Schema::table('kandang', function(Blueprint $table) {
             $table->boolean('project_status')->default(false)->after('company_id');
         });
     }

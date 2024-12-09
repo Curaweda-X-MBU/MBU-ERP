@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ph_performances', function (Blueprint $table) {
+        Schema::create('ph_performances', function(Blueprint $table) {
             $table->integer('ph_performance_id', true);
             $table->integer('kandang_id')->index('kandang_id');
             $table->date('chick_in_date');
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('ph_performances', function (Blueprint $table) {
+        Schema::table('ph_performances', function(Blueprint $table) {
             $table->foreign(['kandang_id'], 'ph_performances_ibfk_1')->references(['kandang_id'])->on('kandang')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['supplier_id'], 'ph_performances_ibfk_2')->references(['supplier_id'])->on('suppliers')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'ph_performances_ibfk_3')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');

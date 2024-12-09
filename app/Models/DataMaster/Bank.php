@@ -10,7 +10,9 @@ class Bank extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'banks';
+
     protected $primaryKey = 'bank_id';
 
     protected $fillable = [
@@ -19,14 +21,16 @@ class Bank extends Model
         'account_number',
         'alias',
         'created_at',
-        'created_by'
+        'created_by',
     ];
 
-    public function purchase_payment_own() {
+    public function purchase_payment_own()
+    {
         return $this->hasMany(PurchaseItem::class, 'own_bank_id', 'bank_id');
     }
 
-    public function purchase_payment_recipient() {
+    public function purchase_payment_recipient()
+    {
         return $this->hasMany(PurchaseItem::class, 'recipient_bank_id', 'bank_id');
     }
 }

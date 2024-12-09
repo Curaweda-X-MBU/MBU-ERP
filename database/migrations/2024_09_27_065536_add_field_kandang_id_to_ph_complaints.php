@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('ph_complaints', function (Blueprint $table) {
+        Schema::table('ph_complaints', function(Blueprint $table) {
             $table->integer('kandang_id')->after('location_id');
         });
 
-        Schema::table('ph_complaints', function (Blueprint $table) {
+        Schema::table('ph_complaints', function(Blueprint $table) {
             $table->foreign(['kandang_id'], 'ph_complaints_ibfk_5')->references(['kandang_id'])->on('kandang')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ph_complaints', function (Blueprint $table) {
+        Schema::table('ph_complaints', function(Blueprint $table) {
             $table->dropForeign('ph_complaints_ibfk_5');
             $table->dropColumn('kandang_id');
         });

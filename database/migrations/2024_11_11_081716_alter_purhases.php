@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchases', function (Blueprint $table) {
+        Schema::table('purchases', function(Blueprint $table) {
             $table->bigInteger('total_after_tax')->nullable()->default(0)->after('total_before_tax');
             $table->bigInteger('total_discount')->nullable()->default(0)->after('total_after_tax');
         });

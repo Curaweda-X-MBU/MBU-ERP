@@ -10,21 +10,25 @@ class ProductCategory extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'product_categories';
+
     protected $primaryKey = 'product_category_id';
 
     protected $fillable = [
         'name',
         'category_code',
         'created_at',
-        'created_by'
+        'created_by',
     ];
 
-    public function product_sub_categories() {
+    public function product_sub_categories()
+    {
         return $this->hasMany(ProducSubCategory::class, 'product_category_id');
     }
 
-    public function products() {
+    public function products()
+    {
         return $this->hasMany(Product::class, 'product_category_id');
     }
 }

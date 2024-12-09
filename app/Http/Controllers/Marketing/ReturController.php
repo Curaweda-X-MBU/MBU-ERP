@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
-use App\Models\Marketing\MarketingRetur;
-use Illuminate\Http\Request;
 
 class ReturController extends Controller
 {
@@ -15,8 +13,9 @@ class ReturController extends Controller
     {
         try {
             $param = [
-                'title' => 'Penjualan > Retur'
+                'title' => 'Penjualan > Retur',
             ];
+
             return view('marketing.retur.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -30,8 +29,9 @@ class ReturController extends Controller
     {
         try {
             $param = [
-                'title' => 'Penjualan > Retur > Tambah'
+                'title' => 'Penjualan > Retur > Tambah',
             ];
+
             return view('marketing.retur.add', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -45,8 +45,9 @@ class ReturController extends Controller
     {
         try {
             $param = [
-                'title' => 'Penjualan > Retur > Detail'
+                'title' => 'Penjualan > Retur > Detail',
             ];
+
             return view('marketing.retur.detail', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -60,8 +61,9 @@ class ReturController extends Controller
     {
         try {
             $param = [
-                'title' => 'Penjualan > Retur > Edit'
+                'title' => 'Penjualan > Retur > Edit',
             ];
+
             return view('marketing.retur.edit', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
