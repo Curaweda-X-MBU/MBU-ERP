@@ -217,9 +217,18 @@ class ProductController extends Controller
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {
-            $query->where($key, $value);
+            $hasRelation = explode('-', $key);
+            if (count($hasRelation) > 1) {
+                $tblRelation = $hasRelation[0];
+                $column = $hasRelation[1];
+                $query->whereHas($tblRelation, function($q) use ($column, $value) {
+                    $q->where($column, $value);
+                });
+            } else {
+                $query->where($key, $value);
+            }
         }
-
+        $query->orderBy('name');
         $data = $query->get();
 
         return response()->json($data->map(function ($val) {

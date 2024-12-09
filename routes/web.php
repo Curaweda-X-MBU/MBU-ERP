@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::group(['prefix' => 'product-list'], function () {
             Route::get('/', 'App\Http\Controllers\Inventory\ProductController@index')->name('inventory.product.index')->middleware('permission:inventory.product.index');
             Route::any('/detail/{id}', 'App\Http\Controllers\Inventory\ProductController@detail')->name('inventory.product.detail')->middleware('permission:inventory.product.detail');
+            Route::any('/check-stock-by-warehouse', 'App\Http\Controllers\Inventory\ProductController@checkStockByWarehouse')->name('inventory.product.check-stock-by-warehouse');
         });
 
         Route::group(['prefix' => 'adjustment'], function () {

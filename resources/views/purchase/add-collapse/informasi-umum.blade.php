@@ -183,7 +183,7 @@
                     $productId.select2({
                         placeholder: "Pilih Produk",
                         ajax: {
-                            url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}`, 
+                            url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}&can_be_purchased=1`, 
                             ...select2Opt
                         }
                     });
@@ -239,8 +239,12 @@
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).append(`<option value="${dataPurchase[i].product.product_category_id}" selected>${dataPurchase[i].product.product_category.name}</option>`);
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataPurchase[i].product_id}" selected>${dataPurchase[i].product.name}</option>`);
                     $(`select[name="purchase_item[${i}][product_id]"]`).trigger('change');
+                    $(`select[name="purchase_item[${i}][project_id]"]`).append(`<option value="${dataPurchase[i].project_id}" selected>${dataPurchase[i].project.kandang.name}</option>`);
+                    $(`select[name="purchase_item[${i}][project_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][warehouse_id]"]`).append(`<option value="${dataPurchase[i].warehouse_id}" selected>${dataPurchase[i].warehouse.name}</option>`);
                     $(`select[name="purchase_item[${i}][warehouse_id]"]`).trigger('change');
                     $(`input[name="purchase_item[${i}][product_category]"]`).val(dataPurchase[i].product.product_category.name);

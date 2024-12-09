@@ -165,4 +165,7 @@ class Constants
         2 => 'damaged',
         3 => 'expired'
     ];
+
+    public const CATEGORY_PRODUCT_RECORDING = ['DOC', 'TLR'];
+
 }

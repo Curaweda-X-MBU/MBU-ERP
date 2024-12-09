@@ -62,4 +62,14 @@ class ProductController extends Controller
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
+
+    public function checkStockByWarehouse(Request $req) {
+        $data = ProductWarehouse::where([
+            'product_id' => $req->product_id,
+            'warehouse_id' => 3
+        ])->first();
+
+        $qty = $data->quantity??0;
+        return $qty;
+    }
 }

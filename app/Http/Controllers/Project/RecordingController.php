@@ -17,6 +17,7 @@ use App\Models\Project\RecordingDepletion;
 use App\Models\Project\RecordingEgg;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
+use DB;
 
 class RecordingController extends Controller
 {
@@ -38,6 +39,7 @@ class RecordingController extends Controller
             $param = [
                 'title' => 'Project > Recording > Tambah Baru',
             ];
+
             if ($req->isMethod('post')) {
                 $input = $req->all();
                 if (!$req->has('stock') ) return redirect()->back()->with('error', 'Persedian harus diisi');
@@ -45,7 +47,22 @@ class RecordingController extends Controller
                 if (!$req->has('bw') ) return redirect()->back()->with('error', 'Body Weight harus diisi');
 
                 DB::beginTransaction();
-                $project = Project::with('kandang')->find($input['project_id']);
+                $project = Project::with([
+                    'kandang',
+                    'purchase_item.product.product_category'
+                ])->find($input['project_id']);
+                $docProdId = false;
+                $eggProdId = false;
+                foreach ($a->purchase_item as $key => $value) {
+                    if ($value->product->product_category->category_code 
+                        && $value->product->product_category->category_code === 'DOC') {
+                        $docProdId = $value->product_id;
+                    }
+                    if ($value->product->product_category->category_code 
+                        && $value->product->product_category->category_code === 'TLR') {
+                        $eggProdId = $value->product_id;
+                    }
+                }
 
                 $recording = new Recording();
                 $recording->project_id = $input['project_id'];
@@ -58,19 +75,18 @@ class RecordingController extends Controller
                 $recording->on_time = $onTime;
                 $recording->status = array_search('Pengajuan', Constants::RECORDING_STATUS);
                 $recording->save();
-
-                $generalStock = ProductWarehouse::where([
-                    'product_id' => $input['product_id'],
-                    'warehouse_id' => $input['warehouse_id']
-                ])->first();
                     
                 $arrStocks = $input['stock'];
                 foreach ($arrStocks as $key => $value) {
-                    RecordingStock::create([
-                        'recording_id' => $recording->recording_id,
-                        'product_warehouse_id' => $generalStock->product_warehouse_id,
-                        'decrease_stock' => $value['decrease_stock'],
-                    ]);
+                    $generalStock = ProductWarehouse::where([
+                        'product_id' => $input['product_id'],
+                        'warehouse_id' => $input['warehouse_id']
+                    ])->first();
+
+                    if ($generalStock && $generalStock->quantity < $value['decrease_stock']) {
+                        DB::rollback();
+                        return redirect()->back()->withErrors($validator)->withInput();
+                    }
 
                     StockLog::triggerStock([
                         'product_id' => $input['product_id'],
@@ -79,6 +95,17 @@ class RecordingController extends Controller
                         'decrease' => $value['decrease_stock'],
                         'stocked_by' => 'Recording',
                         'notes' => 'Project '.$project->kandang->name,
+                    ]);
+
+                    $generalStock = ProductWarehouse::where([
+                        'product_id' => $input['product_id'],
+                        'warehouse_id' => $input['warehouse_id']
+                    ])->first();
+
+                    RecordingStock::create([
+                        'recording_id' => $recording->recording_id,
+                        'product_warehouse_id' => $generalStock->product_warehouse_id,
+                        'decrease_stock' => $value['decrease_stock'],
                     ]);
                 }
 
@@ -111,55 +138,13 @@ class RecordingController extends Controller
                     ]);
                 }
 
-                $docStock = ProductWarehouse::whereHas('product', function ($query) {
-                    $query->where('name', Constrants::RECORDING_DOC);
-                })->where('warehouse_id', $input['warehouse_id'])->first();
-                $depletionDecrease = $input['death'] + $input['culling'];
-                RecordingDepletion::create([
-                    'recording_id' => $recording->recording_id,
-                    'product_warehouse_id' => $docStock->product_warehouse_id,
-                    'decrease' => $depletionDecrease,
-                    'death' => $input['death'],
-                    'culling' => $input['culling'],
-                    'afkir' => $input['afkir'],
-                    'total_depletion' => $input['total_delpletion'],
-                ]);
-
-                StockLog::triggerStock([
-                    'product_id' => $docStock->product_id,
-                    'stock_date' => date('Y-m-d', $strtotime),
-                    'warehouse_id' => $input['warehouse_id'],
-                    'decrease' => $depletionDecrease,
-                    'stocked_by' => 'Recording',
-                    'notes' => 'Project '.$project->kandang->name,
-                ]);
-
-                $eggIncrease = (int) $input['increase']??0;
-                $eggDecrease = (int) $input['decrease']??0;
-                $eggTotal = $eggIncrease-$eggDecrease;
-                if ( $eggTotal !== 0  ) {
-                    RecordingEgg::create([
-                        'recording_id' => $recording->recording_id,
-                        'product_warehouse_id' => $generalStock->product_warehouse_id,
-                        'increase' => $eggIncrease,
-                        'decrease' => $eggDecrease,
-                        'big' => $input['big'],
-                        'small' => $input['small'],
-                        'crack' => $input['crack'],
-                        'dirty' => $input['dirty'],
-                        'broken' => $input['broken'],
-                        'total_egg' => $eggTotal,
-                    ]);
-    
-                    StockLog::triggerStock([
-                        'product_id' => $generalStock->product_id,
-                        'stock_date' => date('Y-m-d', $strtotime),
-                        'warehouse_id' => $input['warehouse_id'],
-                        'increase' => $eggIncrease,
-                        'decrease' => $eggDecrease,
-                        'stocked_by' => 'Recording',
-                        'notes' => 'Project '.$project->kandang->name,
-                    ]);
+                $recordDepletionAndEgg = [
+                    'depletions' => $docProdId, 
+                    'eggs' => $eggProdId
+                ];
+                
+                foreach ($recordDepletionAndEgg as $key => $value) {
+                    $this->insertRecordingDepletionAndEgg($input, $key, $value, $strtotime, $project);
                 }
                 
                 DB::commit();
@@ -171,6 +156,47 @@ class RecordingController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    function insertRecordingDepletionAndEgg($input, $recordName, $parentProduct, $strtotime, $project) {
+        $arrRecords = $input[$recordName];
+        foreach ($arrRecords as $key => $value) {  
+            $arrProdStockType = [
+                [
+                    'product_id' => $value['product_id'],
+                    'increase' => $value['total'],
+                    'decrease' => 0
+                ],
+                [
+                    'product_id' => $parentProduct,
+                    'increase' => 0,
+                    'decrease' => $value['total']
+                ]
+            ];
+
+            foreach ($arrProdStockType as $k => $v) {
+                StockLog::triggerStock([
+                    'product_id' => $v['product_id'],
+                    'stock_date' => date('Y-m-d', $strtotime),
+                    'warehouse_id' => $input['warehouse_id'],
+                    'increase' => $v['increase'],
+                    'decrease' => $v['decrease'],
+                    'stocked_by' => 'Recording',
+                    'notes' => 'Project '.$project->kandang->name,
+                ]);
+            }
+
+            $currentWhStock = ProductWarehouse::where([
+                'product_id' => $value['product_id'], 
+                'warehouse_id' => $input['warehouse_id']
+            ])->first();
+
+            RecordingDepletion::create([
+                'product_warehouse_id' => $currentWhStock->product_id, 
+                'total' => str_replace('.','', $input['total']),
+                'notes' => ''
+            ]);
         }
     }
 }

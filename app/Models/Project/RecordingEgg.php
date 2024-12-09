@@ -15,14 +15,7 @@ class RecordingEgg extends Model
     protected $fillable = [
         'recording_id',
         'product_warehouse_id',
-        'increase',
-        'decrease',
-        'big',
-        'small',
-        'crack',
-        'dirty',
-        'broken',
-        'total_egg',
+        'total',
         'notes'
     ];
 

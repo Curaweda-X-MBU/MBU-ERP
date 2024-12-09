@@ -15,12 +15,7 @@ class RecordingDepletion extends Model
     protected $fillable = [
         'recording_id',
         'product_warehouse_id',
-        'increase',
-        'decrease',
-        'death',
-        'culling',
-        'afkir',
-        'total_depletion',
+        'total',
         'notes'
     ];
 

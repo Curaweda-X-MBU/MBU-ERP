@@ -45,11 +45,11 @@
                                             <div class="col-md-6 mt-1">
                                                 <div class="row">
                                                     <div class="col-sm-3 col-form-label">
-                                                        <label for="product_id" class="float-right">Produk</label>
+                                                        <label for="product_category_id" class="float-right">Kategori Produk</label>
                                                     </div>
                                                     <div class="col-sm-9">
-                                                        <input type="text" class="form-control" placeholder="Produk" id="product_name" readonly>
-                                                        <input type="hidden" id="product_id" name="product_id">
+                                                        <input type="text" class="form-control" placeholder="Produk" id="product_category_name" readonly>
+                                                        <input type="hidden" id="product_category_id" name="product_category_id">
                                                     </div>
                                                 </div>
                                                 <div class="row mt-1">
@@ -181,8 +181,8 @@
                                 
                                 const selectedData = e.params.data.data;
                                 setEmpty($(this).val());
-                                $('#product_name').val(selectedData.product.name);
-                                $('#product_id').val(selectedData.product_id);
+                                $('#product_category_name').val(selectedData.product_category.name);
+                                $('#product_category_id').val(selectedData.product_category_id);
                                 const warehouses = selectedData.kandang.warehouse;
                                 if (warehouses.length > 0) {
                                     warehouses.forEach(val => {
@@ -201,8 +201,8 @@
                                 if (!projectId) {
                                     $('#project_id').val(null).trigger('change');
                                 }
-                                $('#product_name').val('');
-                                $('#product_id').val('');
+                                $('#product_category_name').val('');
+                                $('#product_category_id').val('');
                                 $('#warehouse_name').val('');
                                 $('#warehouse_id').val('');
                             }
