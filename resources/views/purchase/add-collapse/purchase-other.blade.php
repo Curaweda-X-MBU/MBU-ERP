@@ -119,8 +119,8 @@
                     let discount = parseFloat($(idDiscount).val());
 
                     if (price && qty) {
-                        price = parseInt(price.replace(/,/g, ''));
-                        qty = parseInt(qty.replace(/,/g, ''));
+                        price = parseInt(price.replace(/\./g, '').replace(/,/g, '.'));
+                        qty = parseInt(qty.replace(/\./g, '').replace(/,/g, '.'));
                         let totalPerQty = price*qty;
                         if (totalPerQty >= 0) {
                             const totalTax = tax*totalPerQty/100;
@@ -129,7 +129,7 @@
                             $(idTotalInput).val(total);
                             new Cleave($(idTotal), {
                                 numeral: true,
-                                numeralThousandsGroupStyle: 'thousand'
+                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                             }).setRawValue(total);
                         } else {
                             $(`${idTotal}, ${idTotalInput}`).val(0);

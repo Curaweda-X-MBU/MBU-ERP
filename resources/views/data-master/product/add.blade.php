@@ -269,7 +269,7 @@
                                 numeralMask.each(function() { 
                                 new Cleave(this, {
                                     numeral: true,
-                                    numeralThousandsGroupStyle: 'thousand'
+                                    numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                                 });
                                 })
                             }

@@ -34,7 +34,6 @@
                             </div>
                             <div class="col-sm-9">
                                 <select name="fcr_id" id="fcr_id" class="form-control {{$errors->has('fcr_id')?'is-invalid':''}}">
-                                    <option disabled selected>Pilih Produk terlebih dahulu</option>
                                     @if($fcr_id && $fcr_name)
                                         <option value="{{ $fcr_id }}" selected="selected">{{ $fcr_name }}</option>
                                     @endif
@@ -65,66 +64,30 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12">
-                <div class="table-responsive">
-                    <table class="table table-bordered w-100 no-wrap text-center" id="fase-repeater-1">
-                        <thead>
-                            <th>Fase</th>
-                            <th>Estimasi Tgl. Mulai</th>
-                            <th>Estimasi Tgl. Selesai</th>
-                            <th>Status Fase</th>
-                            <th colspan="2">
-                                <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Fase">
-                                    <i data-feather="plus"></i>
-                                </button>
-                            </th>
-                        </thead>
-                        <tbody data-repeater-list="phase">
-                            <tr data-repeater-item>
-                                <td><input type="text" name="name" class="form-control" aria-describedby="phase" placeholder="Fase" required/></td>
-                                <td><input type="text" name="start_date_estimate" class="form-control flatpickr-basic" aria-describedby="start_date_estimate" placeholder="Estimasi Tanggal Mulai" required/></td>
-                                <td><input type="text" name="end_date_estimate" class="form-control flatpickr-basic" aria-describedby="end_date_estimate" placeholder="Estimasi Tanggal Selesai" required/></td>
-                                <td><div class="badge badge-pill badge-warning">Belum Mulai</div></td>
-                                <td>
-                                    <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Fase">
-                                        <i data-feather="x"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <script>
     $(function () {
-        $('#product_id').change(function (e) { 
-            $('#fcr_id').val(null).trigger('change');
-            var productId = $('#product_id').val();
-            var qryParam = productId?`?product_id=${productId}`:'';
-
-            $('#fcr_id').select2({
-                placeholder: "Pilih FCR",
-                ajax: {
-                    url: `{{ route("data-master.fcr.search") }}${qryParam}`, 
-                    dataType: 'json',
-                    delay: 250, 
-                    data: function(params) {
-                        return {
-                            q: params.term 
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                }
-            });
+        $('#fcr_id').select2({
+            placeholder: "Pilih FCR",
+            ajax: {
+                url: `{{ route("data-master.fcr.search") }}`, 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        q: params.term 
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                cache: true
+            }
         });
         $('#product_id').trigger('change');
 
@@ -140,39 +103,5 @@
         @if ($errors->has('fcr_id'))
             $('#fcr_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
         @endif
-
-        const dateOpt = { dateFormat: 'd-M-Y' }
-        $('.flatpickr-basic').flatpickr(dateOpt);
-
-        const optFase = {
-            show: function () {
-                $(this).slideDown();
-                // Feather Icons
-                if (feather) {
-                    feather.replace({ width: 14, height: 14 });
-                }
-
-                const dateOpt = { dateFormat: 'd-M-Y' }
-                $('.flatpickr-basic').flatpickr(dateOpt);
-            },
-            hide: function (deleteElement) {
-                if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-                    $(this).slideUp(deleteElement);
-                }
-            }
-        };
-
-        const $faseRepeater = $('#fase-repeater-1').repeater(optFase);
-        const oldPhase = @json(old("phase"));
-        if (oldPhase) {
-            $faseRepeater.setList(oldPhase);
-        } 
-
-        if ('{{ $dataPhase }}'.length) {
-            const dataPhase = @json($dataPhase);
-            if (dataPhase) {
-                $faseRepeater.setList(dataPhase);
-            }
-        } 
     });
 </script>

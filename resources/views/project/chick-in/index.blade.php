@@ -14,14 +14,13 @@
                                                 <thead>
                                                         <th>ID</th>
                                                         <th>Unit Bisnis</th>
-                                                        <th>Produk</th>
+                                                        <th>Kategori Produk</th>
                                                         <th>Area</th>
                                                         <th>Lokasi</th>
                                                         <th>Kandang</th>
                                                         <th>Kapasitas</th>
                                                         <th>Periode</th>
                                                         <th>Status Chick-in</th>
-                                                        <th>Status Project</th>
                                                         <th>Aksi</th>
                                                 </thead>
                                                 <tbody>
@@ -29,7 +28,7 @@
                                                         <tr>
                                                             <td>{{ $item->project_id }}</td>
                                                             <td>{{ $item->kandang->company->name??'' }}</td>
-                                                            <td>{{ $item->product->name??'' }}</td>
+                                                            <td>{{ $item->product_category->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->area->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->name??'' }}</td>
                                                             <td>{{ $item->kandang->name??'' }}</td>
@@ -48,24 +47,6 @@
                                                                         @break
                                                                     @case(3)
                                                                         <div class="badge badge-pill badge-success">{{ $statusChickIn[$item->chickin_status] }}</div>
-                                                                        @break
-                                                                    @default
-                                                                        <div class="badge badge-pill badge-secondary">N/A</div>
-                                                                @endswitch
-                                                            </td>
-                                                            <td>
-                                                                @switch($item->project_status)
-                                                                    @case(1)
-                                                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
-                                                                        @break
-                                                                    @case(2)
-                                                                        <div class="badge badge-pill badge-primary">Aktif</div>
-                                                                        @break
-                                                                    @case(3)
-                                                                        <div class="badge badge-pill badge-info">Persiapan</div>
-                                                                        @break
-                                                                    @case(4)
-                                                                        <div class="badge badge-pill badge-success">Selesai</div>
                                                                         @break
                                                                     @default
                                                                         <div class="badge badge-pill badge-secondary">N/A</div>

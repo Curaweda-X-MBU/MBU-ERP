@@ -67,10 +67,6 @@ class Product extends Model
         return $query->where('is_active', true);
     }
 
-    public function project() {
-        return $this->hasMany(Project::class, 'kandang_id');
-    }
-
     public function product_warehouse() {
         return $this->hasMany(ProductWarehouse::class, 'product_id');
     }

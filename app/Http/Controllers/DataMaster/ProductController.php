@@ -82,10 +82,10 @@ class ProductController extends Controller
                 ];
 
                 $input = $req->all();
-                $productPrice = $req->input('product_price')?(int) str_replace(',', '', $req->input('product_price')):null;
+                $productPrice = $req->input('product_price')?(int) str_replace('.', '', $req->input('product_price')):null;
                 $input['product_price'] = $productPrice;
                 if ($req->input('selling_price')) {
-                    $sellingPrice = (int) str_replace(',', '', $req->input('selling_price'));
+                    $sellingPrice = (int) str_replace('.', '', $req->input('selling_price'));
                     $input['selling_price'] = $sellingPrice;
                 }
 
@@ -159,10 +159,10 @@ class ProductController extends Controller
                     })->ignore($product->product_id, 'product_id')
                 ];
                 $input = $req->all();
-                $productPrice = $req->input('product_price')?(int) str_replace(',', '', $req->input('product_price')):null;
+                $productPrice = $req->input('product_price')?(int) str_replace('.', '', $req->input('product_price')):null;
                 $input['product_price'] = $productPrice;
                 if ($req->input('selling_price')) {
-                    $sellingPrice = (int) str_replace(',', '', $req->input('selling_price'));
+                    $sellingPrice = (int) str_replace('.', '', $req->input('selling_price'));
                     $input['selling_price'] = $sellingPrice;
                 }
                 $validator = Validator::make($input, $rules, self::VALIDATION_MESSAGES);
@@ -216,11 +216,10 @@ class ProductController extends Controller
         $query = Product::with(['uom', 'product_category'])->where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
-        if (auth()->user()->role->name !== 'Super Admin') {
-            foreach ($queryParams as $key => $value) {
-                $query->where($key, $value);
-            }
+        foreach ($queryParams as $key => $value) {
+            $query->where($key, $value);
         }
+
         $data = $query->get();
 
         return response()->json($data->map(function ($val) {

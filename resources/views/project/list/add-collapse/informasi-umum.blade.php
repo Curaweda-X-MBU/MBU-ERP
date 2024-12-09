@@ -5,8 +5,8 @@
     $area_name = old('area_name');
     $location_id = old('location_id');
     $location_name = old('location_name');
-    $product_id = old('product_id');
-    $product_name = old('product_name');
+    $product_category_id = old('product_category_id');
+    $product_category_name = old('product_category_name');
 
     if (isset($data)) {
         $company_id = $data->kandang->company_id??'';
@@ -15,8 +15,8 @@
         $area_name = $data->kandang->location->area->name??'';
         $location_id = $data->kandang->location_id??'';
         $location_name = $data->kandang->location->name??'';
-        $product_id = $data->product_id??'';
-        $product_name = $data->product->name??'';
+        $product_category_id = $data->product_category_id??'';
+        $product_category_name = $data->product->name??'';
     } 
 
 @endphp
@@ -89,17 +89,17 @@
                     <div class="col-md-6">
                         <div class="row">
                             <div class="col-sm-3 col-form-label">
-                                <label for="product_id" class="float-right">Produk</label>
+                                <label for="product_category_id" class="float-right">Kategori Produk</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="product_id" id="product_id" class="form-control">
+                                <select name="product_category_id" id="product_category_id" class="form-control">
                                     <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
-                                    @if($product_id && $product_name)
-                                        <option value="{{ $product_id }}" selected="selected">{{ $product_name }}</option>
+                                    @if($product_category_id && $product_category_name)
+                                        <option value="{{ $product_category_id }}" selected="selected">{{ $product_category_name }}</option>
                                     @endif
                                 </select>
-                                @if ($errors->has('product_id'))
-                                    <span class="text-danger small">{{ $errors->first('product_id') }}</span>
+                                @if ($errors->has('product_category_id'))
+                                    <span class="text-danger small">{{ $errors->first('product_category_id') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -135,7 +135,7 @@
         $('#company_id').change(function (e) { 
             e.preventDefault();
             $('#area_id').val(null).trigger('change');
-            $('#product_id').val(null).trigger('change');
+            $('#product_category_id').val(null).trigger('change');
             var companyId = $('#company_id').val();
 
             $('#area_id').select2({
@@ -159,26 +159,6 @@
             });
 
             const qryProduct = companyId?`?company_id=${companyId}`:'';
-
-            $('#product_id').select2({
-                placeholder: "Pilih Produk",
-                ajax: {
-                    url: `{{ route("data-master.product.search") }}${qryProduct}`, 
-                    dataType: 'json',
-                    delay: 250, 
-                    data: function(params) {
-                        return {
-                            q: params.term 
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                }
-            });
 
             $('#area_id').change(function (e) { 
                 e.preventDefault();
@@ -209,6 +189,26 @@
 
         });
 
+        $('#product_category_id').select2({
+            placeholder: "Pilih Kategori Produk",
+            ajax: {
+                url: `{{ route("data-master.product-category.search") }}`, 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        q: params.term 
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                cache: true
+            }
+        });
+
         var oldValueCompany = "{{ $company_id }}";
         if (oldValueCompany) {
             var oldNameCopmany = "{{ $company_name }}";
@@ -236,17 +236,17 @@
             }
         }
 
-        var oldValueProduct = "{{ $product_id }}";
+        var oldValueProduct = "{{ $product_category_id }}";
         if (oldValueProduct) {
-            var oldNameProduct = "{{ $product_name }}";
+            var oldNameProduct = "{{ $product_category_name }}";
             if (oldNameProduct) {
                 var newOptionProduct = new Option(oldNameProduct, oldValueProduct, true, true);
-                $('#product_id').append(newOptionProduct).trigger('change');
+                $('#product_category_id').append(newOptionProduct).trigger('change');
             }
         }
 
-        @if ($errors->has('product_id'))
-            $('#product_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+        @if ($errors->has('product_category_id'))
+            $('#product_category_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
         @endif
 
         @if ($errors->has('company_id'))

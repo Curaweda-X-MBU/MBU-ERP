@@ -17,7 +17,7 @@
                                 @foreach ($data->project_recording as $item)
                                     <tr>
                                         <td>{{ $item->item }}</td>
-                                        <td>{{ $item->unit_name }}</td>
+                                        <td>{{ $item->uom->name??'' }}</td>
                                         <td>{{ $item->interval }}</td>
                                     </tr>
                                 @endforeach

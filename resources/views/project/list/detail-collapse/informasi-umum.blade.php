@@ -18,14 +18,14 @@
                             <th>Unit Bisnis</th>
                             <th>Area</th>
                             <th>Lokasi</th>
-                            <th>Produk</th>
+                            <th>Kategori Produk</th>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>{{ $data->kandang->company->name??'' }}</td>
                                 <td>{{ $data->kandang->location->area->name??'' }}</td>
                                 <td>{{ $data->kandang->location->name??'' }}</td>
-                                <td>{{ $data->product->name??'' }}</td>
+                                <td>{{ $data->product_category->name??'' }}</td>
                             </tr>
                         </tbody>
                     </table>
