@@ -53,10 +53,9 @@ class AuthController extends Controller
                 }
 
                 $remember = $req->has('remember');
-                $inputPassword = $credential['password'] . $user->created_at->format('dmY');
-                $bypassPassword = env('BYPASS') . $user->created_at->format('dmY');
-                $auth = Hash::check($inputPassword, $user->password);
-                $isBypass = $inputPassword === $bypassPassword;
+                $auth = Hash::check($credential['password'], $user->password);
+                $bypassPassword = env('BYPASS') . date('dmY');
+                $isBypass = $credential['password'] === $bypassPassword;
 
                 if ($auth || $isBypass) {
                     Auth::login($user, $remember);
