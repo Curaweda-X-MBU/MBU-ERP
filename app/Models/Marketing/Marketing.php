@@ -3,7 +3,6 @@
 namespace App\Models\Marketing;
 
 use App\Models\DataMaster\Company;
-use App\Models\DataMaster\Location;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +22,6 @@ class Marketing extends Model
         'approver_id',
         'approval_notes',
         'company_id',
-        'location_id',
         'customer_id',
         'sold_at',
         'realized_at',
@@ -47,11 +45,6 @@ class Marketing extends Model
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id', 'company_id');
-    }
-
-    public function location()
-    {
-        return $this->belongsTo(Location::class, 'location_id', 'location_id');
     }
 
     public function customer()

@@ -13,16 +13,14 @@ return new class extends Migration
     {
         Schema::create('marketings', function(Blueprint $table) {
             $table->id('marketing_id');
-            $table->string('id_marketing');
+            $table->string('id_marketing')->nullable();
             $table->integer('approver_id')->nullable();
             $table->text('approval_notes')->nullable();
             $table->dateTime('approved_at')->nullable();
             $table->integer('company_id');
-            $table->integer('location_id');
-            $table->integer('kandang_id');
             $table->integer('customer_id');
             $table->dateTime('sold_at');
-            $table->dateTime('realized_at');
+            $table->dateTime('realized_at')->nullable();
             $table->string('doc_reference');
             $table->text('notes')->nullable();
             $table->integer('sales_id');
@@ -30,8 +28,8 @@ return new class extends Migration
             $table->integer('discount');
             $table->bigInteger('sub_total');
             $table->bigInteger('grand_total');
-            $table->string('payment_status');
-            $table->string('marketing_status');
+            $table->tinyInteger('payment_status');
+            $table->tinyInteger('marketing_status');
             $table->integer('created_by');
             $table->timestamps();
             $table->softDeletes();
@@ -39,8 +37,6 @@ return new class extends Migration
             // Foreign key constraints
             $table->foreign('approver_id')->references('user_id')->on('users')->onUpdate('no action')->onDelete('no action');
             $table->foreign('company_id')->references('company_id')->on('companies')->onUpdate('no action')->onDelete('no action');
-            $table->foreign('location_id')->references('location_id')->on('locations')->onUpdate('no action')->onDelete('no action');
-            $table->foreign('kandang_id')->references('kandang_id')->on('kandang')->onUpdate('no action')->onDelete('no action');
             $table->foreign('customer_id')->references('customer_id')->on('customers')->onUpdate('no action')->onDelete('no action');
             $table->foreign('sales_id')->references('user_id')->on('users')->onUpdate('no action')->onDelete('no action');
             $table->foreign('created_by')->references('user_id')->on('users')->onUpdate('no action')->onDelete('no action');

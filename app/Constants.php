@@ -133,4 +133,18 @@ class Constants
         'Deplesi',
         'Recording',
     ];
+
+    public const MARKETING_PAYMENT_STATUS = [
+        1 => 'Belum Dibayar',
+        2 => 'Tempo',
+        3 => 'Dibayar Sebagian',
+        4 => 'Dibayar Penuh',
+    ];
+
+    public const MARKETING_STATUS = [
+        1 => 'Diajukan',
+        2 => 'Penawaran',
+        3 => 'Final',
+        4 => 'Realisasi',
+    ];
 }
