@@ -19,23 +19,23 @@ class UomSeeder extends Seeder
 
         Uom::insert([
             [
-                'name' => 'Butir',
+                'name'       => 'Butir',
                 'created_by' => 1,
             ],
             [
-                'name' => 'Ekor',
+                'name'       => 'Ekor',
                 'created_by' => 1,
             ],
             [
-                'name' => 'Kg',
+                'name'       => 'Kg',
                 'created_by' => 1,
             ],
             [
-                'name' => '%',
+                'name'       => '%',
                 'created_by' => 1,
             ],
             [
-                'name' => 'Ratio',
+                'name'       => 'Ratio',
                 'created_by' => 1,
             ],
         ]);
