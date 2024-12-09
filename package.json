@@ -5,7 +5,8 @@
         "dev": "vite",
         "build": "vite build",
         "prepare": "husky",
-        "lint": "./vendor/bin/pint"
+        "lint": "yarn pint",
+        "pint": "./vendor/bin/pint"
     },
     "devDependencies": {
         "axios": "^1.6.4",
@@ -13,6 +14,7 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
-        "husky": "^9.1.7"
+        "husky": "^9.1.7",
+        "yarn": "^1.22.22"
     }
 }
