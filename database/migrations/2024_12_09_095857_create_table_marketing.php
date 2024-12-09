@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('kandang_id');
             $table->integer('customer_id');
             $table->dateTime('sold_at');
+            $table->dateTime('realized_at');
             $table->string('doc_reference');
             $table->text('notes')->nullable();
             $table->integer('sales_id');
@@ -111,7 +112,6 @@ return new class extends Migration
             $table->foreign('uom_id')->references('uom_id')->on('uom')->onUpdate('no action')->onDelete('no action');
             $table->foreign('sender_id')->references('user_id')->on('users')->onUpdate('no action')->onDelete('no action');
         });
-
     }
 
     /**

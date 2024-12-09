@@ -26,6 +26,7 @@ class Marketing extends Model
         'location_id',
         'customer_id',
         'sold_at',
+        'realized_at',
         'doc_reference',
         'notes',
         'sales_id',
