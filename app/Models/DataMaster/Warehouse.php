@@ -2,18 +2,20 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Inventory\ProductWarehouse;
+use App\Models\Purchase\PurchaseItem;
+use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\UserManagement\User;
-use App\Models\Purchase\PurchaseItem;
-use App\Models\Inventory\ProductWarehouse;
 
 class Warehouse extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'warehouses';
+
     protected $primaryKey = 'warehouse_id';
 
     protected $fillable = [
@@ -21,26 +23,31 @@ class Warehouse extends Model
         'type',
         'location_id',
         'kandang_id',
-        'created_by'
+        'created_by',
     ];
 
-    public function location() {
+    public function location()
+    {
         return $this->belongsTo(Location::class, 'location_id');
     }
 
-    public function kandang() {
+    public function kandang()
+    {
         return $this->belongsTo(Kandang::class, 'kandang_id');
     }
 
-    public function createdby() {
+    public function createdby()
+    {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
 
-    public function purchase_item() {
+    public function purchase_item()
+    {
         return $this->hasMany(PurchaseItem::class, 'warehouse_id');
     }
 
-    public function product_warehouse() {
+    public function product_warehouse()
+    {
         return $this->hasMany(ProductWarehouse::class, 'warehouse_id');
     }
 }

@@ -2,28 +2,32 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 
-class Encryption {
+class Encryption
+{
     /**
      * Encrypt data using Laravel's Crypt facade.
      *
-     * @param string $data
+     * @param  string  $data
      * @return string
      */
-    public static function encryptData($data) {
+    public static function encryptData($data)
+    {
         return Crypt::encrypt($data);
     }
-    
+
     /**
      * Decrypt data using Laravel's Crypt facade.
      *
-     * @param string $encryptedData
+     * @param  string  $encryptedData
      * @return string
+     *
      * @throws DecryptException
      */
-    public static function decryptData($encryptedData) {
+    public static function decryptData($encryptedData)
+    {
         try {
             return Crypt::decrypt($encryptedData);
         } catch (DecryptException $e) {
