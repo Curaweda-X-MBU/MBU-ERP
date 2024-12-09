@@ -66,7 +66,7 @@ class Kandang extends Model
         return $this->hasMany(Project::class, 'kandang_id');
     }
 
-    public function marketing_product()
+    public function marketing_products()
     {
         return $this->hasMany(MarketingProduct::class, 'kandang_id', 'kandang_id');
     }
