@@ -5,6 +5,9 @@ namespace App\Models\UserManagement;
 use App\Models\DataMaster\Customer;
 use App\Models\DataMaster\Department;
 use App\Models\DataMaster\Kandang;
+use App\Models\Marketing\Marketing;
+use App\Models\Marketing\MarketingDeliveryVehicle;
+use App\Models\Marketing\MarketingPayment;
 use App\Models\Ph\PhComplaint;
 use App\Models\Project\Project;
 use App\Models\Purchase\Purchase;
@@ -88,6 +91,31 @@ class User extends Authenticatable implements CanResetPassword
     public function cullingpic()
     {
         return $this->hasMany(PhComplaint::class, 'culling_pic', 'user_id');
+    }
+
+    public function sender_marketing_delivery_vehicles()
+    {
+        return $this->hasMany(MarketingDeliveryVehicle::class, 'sender_id', 'user_id');
+    }
+
+    public function customer_marketings()
+    {
+        return $this->hasMany(Marketing::class, 'customer_id', 'user_id');
+    }
+
+    public function sales_marketings()
+    {
+        return $this->hasMany(Marketing::class, 'sales_id', 'sales_id');
+    }
+
+    public function approve_marketings()
+    {
+        return $this->hasMany(Marketing::class, 'approver_id', 'user_id');
+    }
+
+    public function approve_marketing_payments()
+    {
+        return $this->hasMany(MarketingPayment::class, 'approver_id', 'user_id');
     }
 
     public static function getData($all, $active, $whereClause = false)
