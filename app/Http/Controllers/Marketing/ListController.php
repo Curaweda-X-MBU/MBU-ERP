@@ -10,9 +10,9 @@ use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\UserManagement\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ListController extends Controller
@@ -187,7 +187,6 @@ class ListController extends Controller
             return redirect()->route('marketing.list.index')->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
-
         }
     }
 

@@ -1,6 +1,15 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
+<style>
+    #transparentFileUpload {
+        opacity: 0;
+        position:absolute;
+        inset: 0;
+    }
+</style>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -13,31 +22,36 @@
                     <div class="row row-cols-2 row-cols-md-4">
                         <!-- Nama Pelanggan -->
                         <div class="col-md-2 mt-1">
-                            <label for="namaPelanggan" class="form-label">Nama Pelanggan</label>
-                            <select name="namaPelanggan" id="namaPelanggan" class="form-control">
-                                <option value="1" selected="selected">Abd. Muis</option>
+                            <label for="customer_id" class="form-label">Nama Pelanggan</label>
+                            <select name="customer_id" id="customer_id" class="form-control">
+                                @if(old('customer_id') && old('customer_id'))
+                                    <option value="{{ old('customer_id') }}" selected="selected">{{ old('customer_name') }}</option>
+                                @endif
                             </select>
+                            @if ($errors->has('customer_id'))
+                                <span class="text-danger small">{{ $errors->first('customer_id') }}</span>
+                            @endif
                         </div>
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-2 mt-1">
-                            <label for="tanggalPenjualan" class="form-label">Tanggal Penjualan</label>
-                            <input id="tanggalPenjualan" name="tanggalPenjualan" type="date" class="form-control" required>
+                            <label for="sold_at" class="form-label">Tanggal Penjualan</label>
+                            <input id="sold_at" name="tanggalPenjualan" type="date" class="form-control" value="{{ old('sold_at', date('Y-m-d')) }}" required>
                         </div>
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
-                            <label for="status" class="form-label">Status</label>
-                            <input id="status" value="Diajukan" name="status" type="text" class="form-control" readonly>
+                            <label for="marketing_status" class="form-label">Status</label>
+                            <input id="marketing_status" value="Diajukan" name="status" type="text" class="form-control" readonly>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
-                            <label for="referensiDokumen" class="form-label">Referensi Dokumen</label>
+                            <label for="doc_reference" class="form-label">Referensi Dokumen</label>
                             <div class="input-group">
-                                <input type="text" id="fileName" class="form-control" readonly>
+                                <input id="fileName" class="form-control">
                                 <button type="button" class="btn btn-icon btn-light" id="uploadButton">
                                     <i data-feather="upload"></i>
                                 </button>
+                                <input type="file" id="transparentFileUpload" name="doc_reference">
                             </div>
-                            <input type="file" id="fileInput" class="d-none">
                         </div>
                     </div>
 
@@ -189,4 +203,50 @@
         </div>
     </div>
 </div>
+
+<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script>
+    $(document).ready(function() {
+        $('#transparentFileUpload').on('change', function() {
+            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
+        })
+    })
+
+    // FORM INPUT DATAS
+    // CUSTOMER ID
+    $('#customer_id').select2({
+        placeholder: "Pilih Pelanggan",
+        ajax: {
+            url: '{{ route("user-management.user.search") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                console.log(params);
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data
+                };
+            },
+            cache: true
+        }
+    });
+
+    var oldValueCustomer = "{{ old('customer_id') }}";
+    if (oldValueCustomer) {
+        var oldNameCustomer = "{{ old('customer_name') }}";
+        if (oldNameCustomer) {
+            var newOption = new Option(oldNameCustomer, oldValueCustomer, true, true);
+            $('#customer_id').append(newOption).trigger('change');
+        }
+    }
+
+    @if ($errors->has('customer_id'))
+        $('#customer_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+    @endif
+</script>
+
 @endsection
