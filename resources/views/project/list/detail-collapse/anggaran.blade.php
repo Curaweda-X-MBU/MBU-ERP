@@ -5,6 +5,20 @@
     <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
             <div class="col-12">
+                <table class="mb-2">
+                    <tr>
+                        <td>Target FCR</td>
+                        <td>:</td>
+                        <td>{{ $data->fcr?$data->fcr->name.' - '.$data->fcr->value.' '.$data->fcr->uom->name : 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Target Deplesi</td>
+                        <td>:</td>
+                        <td>{{ $data->target_depletion }} %</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered w-100">
                         <thead>

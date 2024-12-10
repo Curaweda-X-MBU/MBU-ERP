@@ -114,7 +114,7 @@
                 <li class=" nav-item has-sub {{ Request::segment(1)=='inventory'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='package'></i><span class="menu-title text-truncate" data-i18n="Sale">Persediaan</span></a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('inventory.product.index'))
-                        <li id="product"><a class="d-flex align-items-center" href="{{ route('inventory.product.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Produk">Produk</span></a>
+                        <li id="product-list"><a class="d-flex align-items-center" href="{{ route('inventory.product.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Produk">Produk</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('inventory.adjustment.index'))
@@ -185,6 +185,10 @@
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.uom.index'))
                         <li id="uom"><a class="d-flex align-items-center" href="{{route('data-master.uom.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="UOM">UOM</span></a>
+                        </li>
+                        @endif
+                        @if ($roleAccess->hasPermissionTo('data-master.nonstock.index'))
+                        <li id="nonstock"><a class="d-flex align-items-center" href="{{route('data-master.nonstock.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Non Stock">Non Stock</span></a>
                         </li>
                         @endif
                     </ul>

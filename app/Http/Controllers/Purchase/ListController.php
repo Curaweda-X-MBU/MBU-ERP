@@ -94,7 +94,7 @@ class ListController extends Controller
                                     "product_id" => $value['product_id'],
                                     "warehouse_id" => $value['warehouse_id'],
                                     "project_id" => $value['project_id']??null,
-                                    "qty" => str_replace(',', '', $value['qty'])
+                                    "qty" => str_replace('.', '', $value['qty'])
                                 ]);
                             }
                         }
@@ -119,7 +119,7 @@ class ListController extends Controller
                 'supplier', 'createdBy', 'purchase_item', 'purchase_other', 'purchase_payment'
             ])
             ->with('purchase_item', function ($query) use ($req) {
-                $query->with(['warehouse', 'project']);
+                $query->with(['warehouse', 'project', 'project.kandang']);
                 $query->with('product', function($query) {
                     $query->with('product_category');
                     $query->with('uom');
@@ -151,7 +151,7 @@ class ListController extends Controller
                                     "product_id" => $value['product_id'],
                                     "warehouse_id" => $value['warehouse_id'],
                                     "project_id" => $value['project_id']??null,
-                                    "qty" => str_replace(',', '', $value['qty']),
+                                    "qty" => str_replace('.', '', $value['qty']),
                                 ]);
                             }
                         }
@@ -376,8 +376,8 @@ class ListController extends Controller
                                     $travelDoc = $docUrl['url'];
                                 }
                             }
-                            $received = str_replace(',', '', $arrItemReception[$k]['total_received']);
-                            $retur = str_replace(',', '', $arrItemReception[$k]['total_retur']);
+                            $received = str_replace('.', '', $arrItemReception[$k]['total_received']);
+                            $retur = str_replace('.', '', $arrItemReception[$k]['total_retur']);
                             $receivedItem += $received;
                             $receivedItemAmount = $receivedItem*$value->price;
                             $totalRetur += $retur;
@@ -452,13 +452,13 @@ class ListController extends Controller
                 $dataApproval['total_tax'] = 0;
                 foreach ($arrPurchaseItem as $key => $value) {
                     $idPurchaseItem = $key;
-                    $itemPrice = str_replace(',', '', $value['price']);
-                    $itemQty = str_replace(',', '', $value['qty']);
+                    $itemPrice = str_replace('.', '', $value['price']);
+                    $itemQty = str_replace('.', '', $value['qty']);
                     $value['qty'] = $itemQty;
                     $dataApproval['total_before_tax'] += $itemPrice*$itemQty;
                     $dataApproval['total_tax'] += ($itemPrice*$itemQty)*$value['tax']/100;
                     $dataApproval['total_discount'] += ($itemPrice*$itemQty)*$value['discount']/100;
-                    $value['price'] = str_replace(',', '', $value['price']);
+                    $value['price'] = $itemPrice;
                     PurchaseItem::where('purchase_item_id', $idPurchaseItem)->update($value);
                 }
 
@@ -474,11 +474,12 @@ class ListController extends Controller
                 $dataApproval['total_other_amount'] = 0;
                 for ($i=0; $i < count($arrOtherAmount); $i++) { 
                     if ($arrOtherAmount[$i]['name'] && $arrOtherAmount[$i]['amount']) {
-                        $dataApproval['total_other_amount'] += str_replace(',', '', $arrOtherAmount[$i]['amount']);
+                        $otherAmount = str_replace('.', '', $arrOtherAmount[$i]['amount']);
+                        $dataApproval['total_other_amount'] += (int) $otherAmount;
                         PurchaseOther::create([
                             'purchase_id' => $req->id,
                             'name' => $arrOtherAmount[$i]['name'],
-                            'amount' =>  str_replace(',', '', $arrOtherAmount[$i]['amount']) 
+                            'amount' =>  (int) $otherAmount 
                         ]);
                     }
                 }
@@ -582,8 +583,8 @@ class ListController extends Controller
                         'recipient_bank_id' => $req->input('recipient_bank_id'),
                         'ref_number' => $req->input('ref_number'),
                         'transaction_number' => $req->input('transaction_number'),
-                        'bank_charge' => str_replace(',', '', $req->input('bank_charge')),
-                        'amount' => str_replace(',', '', $req->input('amount')),
+                        'bank_charge' => str_replace('.', '', $req->input('bank_charge')),
+                        'amount' => str_replace('.', '', $req->input('amount')),
                         'document' => $document,
                         'status' => array_search('Menunggu persetujuan', Constants::PAYMENT_STATUS)
                     ]);

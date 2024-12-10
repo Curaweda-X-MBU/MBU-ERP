@@ -49,9 +49,9 @@
                     <div class="collapse-default">
                         @include('project.list.detail-collapse.informasi-umum')
                         @include('project.list.detail-collapse.informasi-farm')
-                        @include('project.list.detail-collapse.fase')
+                        {{-- @include('project.list.detail-collapse.fase') --}}
                         @include('project.list.detail-collapse.anggaran')
-                        @include('project.list.detail-collapse.recording')
+                        {{-- @include('project.list.detail-collapse.recording') --}}
                     </div>
                 </div>
             </div>

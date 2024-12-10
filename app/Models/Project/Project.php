@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\DataMaster\ProductCategory;
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Kandang;
 use App\Models\Purchase\PurchaseItem;
@@ -21,7 +22,7 @@ class Project extends Model
     protected $primaryKey = 'project_id';
 
     protected $fillable = [
-        'product_id',
+        'product_category_id',
         'kandang_id',
         'capacity',
         'farm_type',
@@ -34,11 +35,12 @@ class Project extends Model
         'project_status',
         'approval_date',
         'chickin_approval_date',
+        'first_day_old_chick',
         'created_by'
     ];
 
-    public function product() {
-        return $this->belongsTo(Product::class, 'product_id');
+    public function product_category() {
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
     public function kandang() {

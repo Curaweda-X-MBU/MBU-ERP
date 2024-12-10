@@ -16,11 +16,13 @@ use App\Models\Project\ProjectRecording;
 use App\Models\Project\ProjectChickIn;
 
 use App\Models\DataMaster\Fcr;
+use App\Models\DataMaster\ProductCategory;
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Area;
 use App\Models\DataMaster\Location;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Kandang;
+use App\Models\DataMaster\Uom;
 use App\Models\UserManagement\User;
 
 use App\Constants;
@@ -29,7 +31,7 @@ use DB;
 class ListController extends Controller
 {
     private const VALIDATION_RULES = [
-        'product_id' => 'required',
+        'product_category_id' => 'required',
         'kandang_id' => 'required',
         'capacity' => 'required',
         'farm_type' => 'required',
@@ -40,7 +42,7 @@ class ListController extends Controller
     ];
 
     private const VALIDATION_MESSAGES = [
-        'product_id' => 'Produk tidak boleh kosong',
+        'product_category_id' => 'Kategori Produk tidak boleh kosong',
         'kandang_id' => 'Kandang tidak boleh kosong',
         'capacity' => 'Kapasitas tidak boleh kosong',
         'farm_type' => 'Tipe Kandang tidak boleh kosong',
@@ -52,7 +54,7 @@ class ListController extends Controller
 
     public function index(Request $req) {
         try {
-            $data = Project::with(['kandang', 'product'])->get();
+            $data = Project::with(['kandang', 'product_category'])->get();
             $param = [
                 'title' => 'Project > List',
                 'data' => $data,
@@ -88,8 +90,8 @@ class ListController extends Controller
                     if(isset($input['location_id'])) {
                         $input['location_name'] = Location::find($req->input('location_id'))->name;
                     }
-                    if(isset($input['product_id'])) {
-                        $input['product_name'] = Product::find($req->input('product_id'))->name;
+                    if(isset($input['product_category_id'])) {
+                        $input['product_category_name'] = ProductCategory::find($req->input('product_category_id'))->name;
                     }
                     if(isset($input['kandang_id'])) {
                         $input['kandang_name'] = Kandang::find($req->input('kandang_id'))->name;
@@ -98,24 +100,23 @@ class ListController extends Controller
                         $fcr = Fcr::with('uom')->find($req->input('fcr_id'));
                         $input['fcr_name'] = $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name;
                     }
+                    if(isset($input['recording'])) {
+                        foreach ($input['recording'] as $key => $value) {
+                            $input['recording'][$key]['uom_name'] = Uom::find($value['uom_id'])->name;
+                        }
+                    }
                     return redirect()->back()
                         ->withErrors($validator)
                         ->withInput($input);
                 }
 
-                if (!$req->has('phase')) {
-                    return redirect()->back()->with('error', 'Data Fase tidak boleh kosong')->withInput($input);
-                }
                 if (!$req->has('budget')) {
                     return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($input);
-                }
-                if (!$req->has('recording')) {
-                    return redirect()->back()->with('error', 'Data Recording tidak boleh kosong')->withInput($input);
                 }
 
                 DB::transaction(function () use ($req) {
                     $project = Project::create([
-                        "product_id" => $req->input('product_id'),
+                        "product_category_id" => $req->input('product_category_id'),
                         "kandang_id" => $req->input('kandang_id'),
                         "capacity" => $req->input('capacity'),
                         "farm_type" => $req->input('farm_type'),
@@ -135,32 +136,15 @@ class ListController extends Controller
                     ]);
 
                     $projectId = $project->project_id;
-                    if ($req->has('phase')) {
-                        $arrPhase = $req->input('phase'); 
-                        foreach ($arrPhase as $key => $value) {
-                            $arrPhase[$key]['start_date_estimate'] = date('Y-m-d', strtotime($value['start_date_estimate']));
-                            $arrPhase[$key]['end_date_estimate'] = date('Y-m-d', strtotime($value['end_date_estimate']));
-                            $arrPhase[$key]['project_id'] = $projectId;
-                        }
-                        ProjectPhase::insert($arrPhase);
-                    }
                     if ($req->has('budget')) {
                         $arrBudget = $req->input('budget'); 
                         foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty'] = str_replace(',', '', $value['qty']);
-                            $arrBudget[$key]['price'] = str_replace(',', '', $value['price']);
+                            $arrBudget[$key]['qty'] = str_replace('.', '', $value['qty']);
+                            $arrBudget[$key]['price'] = str_replace('.', '', $value['price']);
                             $arrBudget[$key]['project_id'] = $projectId;
                         }
                         ProjectBudget::insert($arrBudget);
                     }
-                    if ($req->has('recording')) {
-                        $arrRecording = $req->input('recording'); 
-                        foreach ($arrRecording as $key => $value) {
-                            $arrRecording[$key]['project_id'] = $projectId;
-                        }
-                        ProjectRecording::insert($arrRecording);
-                    }
-
                 });
 
                 $success = ['success' => 'Data Berhasil disimpan'];
@@ -175,7 +159,7 @@ class ListController extends Controller
 
     public function edit(Request $req) {
         try {
-            $project = Project::with(['kandang', 'product', 'fcr', 'project_phase', 'project_budget', 'project_recording'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param = [
                 'title' => 'Project > List > Ubah',
                 'data' => $project,
@@ -191,19 +175,13 @@ class ListController extends Controller
                         ->withInput();
                 }
 
-                if (!$req->has('phase')) {
-                    return redirect()->back()->with('error', 'Data Fase tidak boleh kosong')->withInput($input);
-                }
                 if (!$req->has('budget')) {
                     return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($input);
-                }
-                if (!$req->has('recording')) {
-                    return redirect()->back()->with('error', 'Data Recording tidak boleh kosong')->withInput($input);
                 }
 
                 DB::transaction(function () use ($req, $project) {
                     $project->update([
-                        "product_id" => $req->input('product_id'),
+                        "product_category_id" => $req->input('product_category_id'),
                         "kandang_id" => $req->input('kandang_id'),
                         "capacity" => $req->input('capacity'),
                         "farm_type" => $req->input('farm_type'),
@@ -215,39 +193,21 @@ class ListController extends Controller
                     ]);
     
                     $projectId = $project->project_id;
-                    if ($req->has('phase')) {
-                        ProjectPhase::where('project_id', $projectId)->delete();
-                        $arrPhase = $req->input('phase'); 
-                        foreach ($arrPhase as $key => $value) {
-                            $arrPhase[$key]['start_date_estimate'] = date('Y-m-d', strtotime($value['start_date_estimate']));
-                            $arrPhase[$key]['end_date_estimate'] = date('Y-m-d', strtotime($value['end_date_estimate']));
-                            $arrPhase[$key]['project_id'] = $projectId;
-                        }
-                        ProjectPhase::insert($arrPhase);
-                    }
                     if ($req->has('budget')) {
                         ProjectBudget::where('project_id', $projectId)->delete();
                         $arrBudget = $req->input('budget'); 
                         foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty'] = str_replace(',', '', $value['qty']);
-                            $arrBudget[$key]['price'] = str_replace(',', '', $value['price']);
+                            $arrBudget[$key]['qty'] = str_replace('.', '', $value['qty']);
+                            $arrBudget[$key]['price'] = str_replace('.', '', $value['price']);
                             $arrBudget[$key]['project_id'] = $projectId;
                         }
                         ProjectBudget::insert($arrBudget);
-                    }
-                    if ($req->has('recording')) {
-                        ProjectRecording::where('project_id', $projectId)->delete();
-                        $arrRecording = $req->input('recording'); 
-                        foreach ($arrRecording as $key => $value) {
-                            $arrRecording[$key]['project_id'] = $projectId;
-                        }
-                        ProjectRecording::insert($arrRecording);
                     }
                 });
 
 
                 $success = ['success' => 'Data berhasil dirubah'];
-                return redirect()->route('project.list.index')->with($success);
+                return redirect()->route('project.list.detail', $req->id)->with($success);
             }
 
             return view('project.list.edit', $param);
@@ -258,7 +218,7 @@ class ListController extends Controller
 
     public function copy(Request $req) {
         try {
-            $project = Project::with(['kandang', 'product', 'fcr', 'project_phase', 'project_budget', 'project_recording'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param = [
                 'title' => 'Project > List > Copy',
                 'data' => $project,
@@ -275,7 +235,7 @@ class ListController extends Controller
 
     public function detail(Request $req) {
         try {
-            $project = Project::with(['kandang', 'product', 'fcr', 'project_phase', 'project_budget', 'project_recording'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param = [
                 'title' => 'Project > List > Detail',
                 'data' => $project,
@@ -323,19 +283,28 @@ class ListController extends Controller
 
     public function searchProject(Request $request) {
         $search = $request->input('q');
-        $projects = Project::with('kandang')->where('created_at', 'like', "%{$search}%");
+        $projects = Project::with(['kandang', 'kandang.warehouse', 'product_category'])
+            ->whereHas('kandang', function($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%');
+            });
         $queryParams = $request->query();
         foreach ($queryParams as $key => $value) {
-            if ($key === 'project_status') {
-                $projects->whereNot($key, $value);
+            if ($key === 'project_status_not') {
+                $projects->whereNot('project_status', $value);
             } else {
-                $projects->where($key, $value);
+                if ($key === 'company_id') {
+                    $projects->whereHas('kandang', function ($query) use ($value) {
+                        $query->where('company_id', $value);
+                    });
+                } else if ($key !== 'q') {
+                    $projects->where($key, $value);
+                }
             }
         }
 
         $projects = $projects->get();
         return response()->json($projects->map(function ($project) {
-            return ['id' => $project->project_id, 'text' => $project->kandang->name];
+            return ['id' => $project->project_id, 'text' => $project->kandang->name, 'data' => $project];
         }));
     }
 }

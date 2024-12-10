@@ -7,6 +7,12 @@
         background: linear-gradient(118deg, #76A8D8, #c9e5ff);
     }
 </style>
+
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+
+<script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
+
 <div class="col-12">
     <div class="row">
         <div class="no-print pb-2">
@@ -75,7 +81,8 @@
                 <div class="modal-body">
                     <input type="hidden" name="id" id="id" value="">
                     <input type="hidden" name="act" id="act" value="">
-                    <p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
+                    <input type="text" class="form-control flatpickr-inline" name="first_day_old_chick" placeholder="Pilih tanggal umur ayam 1 hari" required>
+                    <br><p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-danger">Ya</button>
@@ -93,7 +100,14 @@
             var button = $(event.relatedTarget) 
             var id = button.data('id')
             var modal = $(this)
-            modal.find('.modal-body #id').val(id)
+            modal.find('.modal-body #id').val(id);
+            $('.flatpickr-inline').flatpickr({
+                inline: true,
+                dateFormat: "d-m-Y H:i",
+                enableTime: true,
+                time_24hr: true
+            });
+            $('.flatpickr-calendar').css('margin', 'auto');
         });
     });
 </script>
