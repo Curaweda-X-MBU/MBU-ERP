@@ -68,12 +68,12 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\Project\ChickinController@delete')->name('project.chick-in.delete')->middleware('permission:project.chick-in.delete');
         });
         Route::group(['prefix' => 'recording'], function () {
-            Route::get('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index');//->middleware('permission:project.recording.index');
-            Route::any('/add', 'App\Http\Controllers\Project\RecordingController@add')->name('project.recording.add');//->middleware('permission:project.recording.index');
-            Route::any('/edit/{id}', 'App\Http\Controllers\Project\RecordingController@edit')->name('project.recording.edit');//->middleware('permission:project.recording.index');
-            Route::any('/detail/{id}', 'App\Http\Controllers\Project\RecordingController@detail')->name('project.recording.detail');//->middleware('permission:project.recording.index');
+            Route::get('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index')->middleware('permission:project.recording.index');
+            Route::any('/add', 'App\Http\Controllers\Project\RecordingController@add')->name('project.recording.add')->middleware('permission:project.recording.add');
+            // Route::any('/edit/{id}', 'App\Http\Controllers\Project\RecordingController@edit')->name('project.recording.edit')->middleware('permission:project.recording.index');
+            Route::any('/detail/{id}', 'App\Http\Controllers\Project\RecordingController@detail')->name('project.recording.detail')->middleware('permission:project.recording.detail');
             Route::any('/delete/{id}', 'App\Http\Controllers\Project\RecordingController@delete')->name('project.recording.delete');//->middleware('permission:project.recording.index');
-            Route::any('/approve/{id}', 'App\Http\Controllers\Project\RecordingController@approve')->name('project.recording.approve');//->middleware('permission:project.recording.index');
+            // Route::any('/approve/{id}', 'App\Http\Controllers\Project\RecordingController@approve')->name('project.recording.approve');//->middleware('permission:project.recording.index');
         });
     });
 
