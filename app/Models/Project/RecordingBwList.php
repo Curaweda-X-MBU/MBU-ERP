@@ -11,6 +11,7 @@ class RecordingBwList extends Model
     protected $table = 'recording_bw_lists';
     protected $primaryKey = 'recording_bw_list_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_bw_id',
         'weight',

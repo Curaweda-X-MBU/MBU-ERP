@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index');//->middleware('permission:project.recording.index');
             Route::any('/add', 'App\Http\Controllers\Project\RecordingController@add')->name('project.recording.add');//->middleware('permission:project.recording.index');
             Route::any('/edit/{id}', 'App\Http\Controllers\Project\RecordingController@edit')->name('project.recording.edit');//->middleware('permission:project.recording.index');
+            Route::any('/detail/{id}', 'App\Http\Controllers\Project\RecordingController@detail')->name('project.recording.detail');//->middleware('permission:project.recording.index');
             Route::any('/delete/{id}', 'App\Http\Controllers\Project\RecordingController@delete')->name('project.recording.delete');//->middleware('permission:project.recording.index');
             Route::any('/approve/{id}', 'App\Http\Controllers\Project\RecordingController@approve')->name('project.recording.approve');//->middleware('permission:project.recording.index');
         });

@@ -13,6 +13,7 @@ class RecordingNonstock extends Model
     protected $primaryKey = 'recording_nonstock_id';
 
     protected $fillable = [
+        'recording_id',
         'nonstock_id',
         'value',
         'notes'
@@ -25,5 +26,14 @@ class RecordingNonstock extends Model
      */
     public function nonstock() {
         return $this->belongsTo(Nonstock::class, 'nonstock_id');
+    }
+
+    /**
+     * The recording that belong to the RecordingNonstock
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function recording() {
+        return $this->belongsTo(Recording::class, 'recording_id');
     }
 }

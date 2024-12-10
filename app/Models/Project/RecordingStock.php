@@ -12,6 +12,7 @@ class RecordingStock extends Model
     protected $table = 'recording_stocks';
     protected $primaryKey = 'recording_stock_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_id',
         'product_warehouse_id',

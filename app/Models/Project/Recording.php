@@ -22,22 +22,27 @@ class Recording extends Model
         'created_by'
     ];
 
-    /**
-     * Get all of the comments for the Recording
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function recording_stock() {
         return $this->hasMany(RecordingStock::class, 'recording_id');
     }
 
-    /**
-     * Get all of the recording_depletion for the Recording
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    public function recording_nonstock() {
+        return $this->hasMany(RecordingNonstock::class, 'recording_id');
+    }
+
     public function recording_depletion() {
         return $this->hasMany(RecordingDepletion::class, 'recording_id');
     }
 
+    public function recording_bw() {
+        return $this->hasMany(RecordingBw::class, 'recording_id');
+    }
+
+    public function recording_egg() {
+        return $this->hasMany(RecordingEgg::class, 'recording_id');
+    }
+
+    public function project() {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
 }

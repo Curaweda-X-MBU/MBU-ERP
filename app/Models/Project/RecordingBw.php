@@ -12,6 +12,7 @@ class RecordingBw extends Model
     protected $table = 'recording_bw';
     protected $primaryKey = 'recording_bw_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_id',
         'avg_weight',
@@ -23,5 +24,9 @@ class RecordingBw extends Model
 
     public function recording() {
         return $this->belongsTo(Recording::class, 'recording_id');
+    }
+
+    public function recordingBwList() {
+        return $this->hasMany(RecordingBwList::class, 'recording_bw_id');
     }
 }

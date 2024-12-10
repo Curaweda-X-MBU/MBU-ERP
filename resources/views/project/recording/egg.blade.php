@@ -17,7 +17,7 @@
                 <td><input type="text" name="culling" class="culling form-control numeral-mask" value="0" required/></td>
                 <td><input type="text" name="afkir" class="afkir form-control numeral-mask" value="0" required/></td> --}}
                 <td>
-                    <input type="text" name="total" class="form-control numeral-mask total" required/>
+                    <input type="text" name="total" class="form-control numeral-mask total_egg" required/>
                 </td>
                 <td><input type="text" class="form-control-plaintext uom" readonly/></td>
                 <td>

@@ -12,6 +12,7 @@ class RecordingDepletion extends Model
     protected $table = 'recording_depletions';
     protected $primaryKey = 'recording_depletion_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_id',
         'product_warehouse_id',

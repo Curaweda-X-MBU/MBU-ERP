@@ -12,6 +12,7 @@ class RecordingEgg extends Model
     protected $table = 'recording_eggs';
     protected $primaryKey = 'recording_egg_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_id',
         'product_warehouse_id',

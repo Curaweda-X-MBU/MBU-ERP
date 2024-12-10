@@ -23,7 +23,6 @@
                                                         <th>Nama Project</th>
                                                         <th>Periode</th>
                                                         <th>Waktu Recording</th>
-                                                        <th>status</th>
                                                         <th>Ketepatan Waktu</th>
                                                         <th>Aksi</th>
                                                     </tr>
@@ -35,13 +34,6 @@
                                                             <td>{{ $item->project->kandang->name??'' }}</td>
                                                             <td>{{ $item->project->period??'' }}</td>
                                                             <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
-                                                            <td>
-                                                                @if ($item->status === 2)
-                                                                <div class="badge badge-glow badge-success">Disetujui</div>
-                                                                @else
-                                                                <div class="badge badge-glow badge-warning">Pengajuan</div>
-                                                                @endif
-                                                            </td>
                                                             <td>
                                                                 @php
                                                                     $createdAt = Carbon::parse($item->created_at);
@@ -60,9 +52,9 @@
                                                                         <i data-feather="more-vertical"></i>
                                                                     </button>
                                                                     <div class="dropdown-menu">
-                                                                        <a class="dropdown-item" href="{{ route('project.recording.edit', $item->recording_id) }}">
-                                                                            <i data-feather="edit-2" class="mr-50"></i>
-                                                                            <span>Edit</span>
+                                                                        <a class="dropdown-item" href="{{ route('project.recording.detail', $item->recording_id) }}">
+                                                                            <i data-feather="info" class="mr-50"></i>
+                                                                            <span>Detail</span>
                                                                         </a>
                                                                         <a class="dropdown-item text-danger" href="javascript:void(0);" data-id="{{ $item->recording_id }}" data-toggle="modal" data-target="#delete">
                                                                             <i data-feather="trash" class="mr-50"></i>
