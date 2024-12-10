@@ -12,6 +12,7 @@ class RecordingNonstock extends Model
     protected $table = 'recording_nonstocks';
     protected $primaryKey = 'recording_nonstock_id';
 
+    public $timestamps = false;
     protected $fillable = [
         'recording_id',
         'nonstock_id',
