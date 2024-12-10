@@ -9,9 +9,11 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">{{ $title }}</h4>
+                                    @if (Auth::user()->role->hasPermissionTo('project.recording.add'))
                                     <div class="float-right">
                                         <a href="{{ route('project.recording.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah Baru</a>
                                     </div>
+                                    @endif
                                 </div>
                                 <div class="card-body">
                                     <div class="card-datatable">
@@ -52,14 +54,16 @@
                                                                         <i data-feather="more-vertical"></i>
                                                                     </button>
                                                                     <div class="dropdown-menu">
+                                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.detail'))
                                                                         <a class="dropdown-item" href="{{ route('project.recording.detail', $item->recording_id) }}">
                                                                             <i data-feather="info" class="mr-50"></i>
                                                                             <span>Detail</span>
                                                                         </a>
-                                                                        <a class="dropdown-item text-danger" href="javascript:void(0);" data-id="{{ $item->recording_id }}" data-toggle="modal" data-target="#delete">
+                                                                        @endif
+                                                                        {{-- <a class="dropdown-item text-danger" href="javascript:void(0);" data-id="{{ $item->recording_id }}" data-toggle="modal" data-target="#delete">
                                                                             <i data-feather="trash" class="mr-50"></i>
                                                                             <span>Hapus</span>
-                                                                        </a>
+                                                                        </a> --}}
                                                                     </div>
                                                                 </div>
                                                             </td>
