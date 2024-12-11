@@ -60,13 +60,15 @@ class ProductController extends Controller
         }
     }
 
-    public function checkStockByWarehouse(Request $req) {
+    public function checkStockByWarehouse(Request $req)
+    {
         $data = ProductWarehouse::where([
-            'product_id' => $req->product_id,
-            'warehouse_id' => $req->warehouse_id
+            'product_id'   => $req->product_id,
+            'warehouse_id' => $req->warehouse_id,
         ])->first();
 
-        $qty = $data->quantity??0;
+        $qty = $data->quantity ?? 0;
+
         return $qty;
     }
 }
