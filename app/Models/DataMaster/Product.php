@@ -5,7 +5,6 @@ namespace App\Models\DataMaster;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Ph\PhComplaint;
-use App\Models\Project\Project;
 use App\Models\Purchase\PurchaseItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -76,11 +75,6 @@ class Product extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    public function project()
-    {
-        return $this->hasMany(Project::class, 'kandang_id');
     }
 
     public function product_warehouse()

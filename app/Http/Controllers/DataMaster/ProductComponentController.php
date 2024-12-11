@@ -122,7 +122,7 @@ class ProductComponentController extends Controller
                         return $query;
                     })->ignore($productComponent->product_component_id, 'product_component_id'),
                 ];
-                $plainNumber    = $req->input('price') ? (int) str_replace(',', '', $req->input('price')) : null;
+                $plainNumber    = $req->input('price') ? (int) str_replace('.', '', $req->input('price')) : null;
                 $input          = $req->all();
                 $input['price'] = $plainNumber;
                 $validator      = Validator::make($input, $rules, self::VALIDATION_MESSAGES);

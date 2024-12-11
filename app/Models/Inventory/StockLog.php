@@ -25,6 +25,9 @@ class StockLog extends Model
         'stocked_by',
         'notes',
         'purchase_item_id',
+        // 'project_id',
+        // egg_recording,
+        // chick_recording
         'created_by',
     ];
 
@@ -53,6 +56,14 @@ class StockLog extends Model
             $increase       = str_replace(',', '', $input['increase'] ?? 0);
             $decrease       = str_replace(',', '', $input['decrease'] ?? 0);
             $stock          = new ProductWarehouse;
+
+            dd([
+                'productId'      => $productId,
+                'warehouseId'    => $warehouseId,
+                'currentWhStock' => $currentWhStock,
+                'increase'       => $increase,
+                'stock'          => $stock,
+            ]);
 
             if ($currentWhStock) {
                 $currentQty = $currentWhStock->quantity;

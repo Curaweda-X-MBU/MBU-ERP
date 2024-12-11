@@ -147,4 +147,39 @@ class Constants
         3 => 'Final',
         4 => 'Realisasi',
     ];
+
+    public const RECORDING_STATUS = [
+        1 => 'Pengajuan',
+        2 => 'Disetujui',
+    ];
+
+    public const RECORDING_DOC = 'DOC';
+
+    public const STOCK_EGG_CATEGORIES = [
+        1 => 'good',
+        2 => 'big',
+        3 => 'small',
+        4 => 'crack',
+        5 => 'dirty',
+        6 => 'white',
+        7 => 'broken',
+        8 => 'broken_good',
+        9 => 'sold',
+    ];
+
+    public const STOCK_CHICKEN_CATEGORIES = [
+        1 => 'good',
+        2 => 'death',
+        3 => 'culling',
+        4 => 'afkir',
+        5 => 'sold',
+    ];
+
+    public const STOCK_GENERAL_CATEGORIES = [
+        1 => 'good',
+        2 => 'damaged',
+        3 => 'expired',
+    ];
+
+    public const CATEGORY_PRODUCT_RECORDING = ['DOC', 'TLR'];
 }

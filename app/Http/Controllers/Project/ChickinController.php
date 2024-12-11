@@ -5,29 +5,17 @@ namespace App\Http\Controllers\Project;
 use App\Constants;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
-use App\Models\DataMaster\Supplier;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectChickIn;
 use DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ChickinController extends Controller
 {
-    private const VALIDATION_RULES = [
-        'chick_in.*.travel_letter_document' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
-    ];
-
-    private const VALIDATION_MESSAGES = [
-        'chick_in.*.travel_letter_document.file'  => 'File tidak valid',
-        'chick_in.*.travel_letter_document.mimes' => 'File hanya boleh pdf,jpeg,png,jpg',
-        'chick_in.*.travel_letter_document.max'   => 'File melebihi kapasitas 5 MB',
-    ];
-
     public function index(Request $req)
     {
         try {
-            $data  = Project::with(['project_chick_in', 'kandang', 'product'])->get();
+            $data  = Project::with(['project_chick_in', 'kandang', 'product_category'])->get();
             $param = [
                 'title' => 'Project > Chick-In',
                 'data'  => $data,
@@ -42,7 +30,7 @@ class ChickinController extends Controller
     public function detail(Request $req)
     {
         try {
-            $data  = Project::with(['project_chick_in', 'kandang', 'product'])->findOrFail($req->id);
+            $data  = Project::with(['project_chick_in', 'kandang', 'product_category'])->findOrFail($req->id);
             $param = [
                 'title' => 'Project > Chick-In > Detail',
                 'data'  => $data,
@@ -57,7 +45,7 @@ class ChickinController extends Controller
     public function add(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product', 'project_chick_in'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_chick_in'])->findOrFail($req->id);
             if (! $project->approval_date) {
                 return redirect()->back()->with('error', 'Project ini belum disetujui');
             }
@@ -67,28 +55,15 @@ class ChickinController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $input     = $req->all();
-                $validator = Validator::make($input, self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
-                if ($validator->fails()) {
-                    if (isset($input['chick_in'])) {
-                        foreach ($input['chick_in'] as $key => $value) {
-                            $input['chick_in'][$key]['supplier_name'] = Supplier::find($value['supplier_id'])->name;
-                        }
-                    }
-
-                    return redirect()->back()
-                        ->with('error', 'File gagal diupload')
-                        ->withInput($input);
-                }
-
+                $input      = $req->all();
                 $dataInsert = $input['chick_in'] ?? [];
                 if (count($dataInsert) > 0) {
                     foreach ($dataInsert as $key => $value) {
                         $dataInsert[$key]['project_id']    = $req->id;
-                        $dataInsert[$key]['total_chickin'] = str_replace(',', '', $value['total_chickin']);
+                        $dataInsert[$key]['total_chickin'] = str_replace('.', '', $value['total_chickin']);
                         $dataInsert[$key]['chickin_date']  = date('Y-m-d', strtotime($value['chickin_date']));
                         $document                          = '';
-                        if ($value['travel_letter_document']) {
+                        if (isset($value['travel_letter_document'])) {
                             $docUrl = FileHelper::upload($value['travel_letter_document'], constants::CHICKIN_DOC_PATH);
                             if (! $docUrl['status']) {
                                 return redirect()->back()->with('error', $docUrl['message'].' '.$value['travel_letter_document'])->withInput();
@@ -120,7 +95,7 @@ class ChickinController extends Controller
     public function edit(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product'])
+            $project = Project::with(['kandang', 'product_category'])
                 ->with('project_chick_in', function($query) {
                     $query->with('supplier');
                 })
@@ -132,32 +107,23 @@ class ChickinController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $input = $req->all();
-                if ($req->isMethod('post')) {
-                    $validator = Validator::make($input, self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
-                    if ($validator->fails()) {
-                        return redirect()->back()->with('error', 'File gagal diupload');
-                    }
-                }
+                $input      = $req->all();
                 $dataInsert = $input['chick_in'] ?? [];
                 if (count($dataInsert) > 0) {
                     foreach ($dataInsert as $key => $value) {
                         $dataInsert[$key]['project_id']    = $req->id;
-                        $dataInsert[$key]['total_chickin'] = str_replace(',', '', $value['total_chickin']);
+                        $dataInsert[$key]['total_chickin'] = str_replace('.', '', $value['total_chickin']);
                         $dataInsert[$key]['chickin_date']  = date('Y-m-d', strtotime($value['chickin_date']));
                         $document                          = '';
                         $existingDoc                       = $project->project_chick_in[$key]->travel_letter_document ?? null;
-                        if (isset($value['travel_letter_document'])) {
-                            if ($existingDoc) {
-                                FileHelper::delete($existingDoc);
-                            }
+                        if ($existingDoc && is_string($value['travel_letter_document'] ?? false)) {
+                            $document = $existingDoc;
+                        } elseif (isset($value['travel_letter_document'])) {
                             $docUrl = FileHelper::upload($value['travel_letter_document'], constants::CHICKIN_DOC_PATH);
                             if (! $docUrl['status']) {
                                 return redirect()->back()->with('error', $docUrl['message'].' '.$value['travel_letter_document'])->withInput();
                             }
                             $document = $docUrl['url'];
-                        } else {
-                            $document = $existingDoc;
                         }
                         $dataInsert[$key]['travel_letter_document'] = $document;
                     }
@@ -189,9 +155,13 @@ class ChickinController extends Controller
             if (count($project->project_chick_in) === 0) {
                 return redirect()->back()->with('error', 'Data chick in belum diisi');
             }
+            if (! $req->first_day_old_chick) {
+                return redirect()->back()->with('error', 'Tanggal umur 1 hari ayam harus diisi');
+            }
             $project->update([
                 'chickin_status'        => array_search('Sudah', Constants::PROJECT_CHICKIN_STATUS),
                 'chickin_approval_date' => date('Y-m-d H:i:s'),
+                'first_day_old_chick'   => date('Y-m-d H:i:s', strtotime($req->first_day_old_chick)),
             ]);
 
             $success = ['success' => 'Data berhasil disetujui'];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Product;
+use App\Models\DataMaster\ProductCategory;
 use App\Models\DataMaster\Warehouse;
 use App\Models\Inventory\StockLog;
 use Illuminate\Http\Request;
@@ -12,19 +13,21 @@ use Illuminate\Support\Facades\Validator;
 class AdjustmentController extends Controller
 {
     private const VALIDATION_MESSAGES = [
-        'product_id.required'   => 'Produk tidak boleh kosong',
-        'warehouse_id.required' => 'Gudang / tempat penyimpanan tidak boleh kosong',
-        'increase.required'     => 'Penambahan stok harus diisi',
-        'increase.min'          => 'Penambahan stok minimal 0',
-        'decrease.required'     => 'Pengurangan stok harus diisi',
-        'decrease.min'          => 'Pengurangan stok minimal 0',
+        'product_category_id.required' => 'Kategori Produk tidak boleh kosong',
+        'product_id.required'          => 'Produk tidak boleh kosong',
+        'warehouse_id.required'        => 'Gudang / tempat penyimpanan tidak boleh kosong',
+        'increase.required'            => 'Penambahan stok harus diisi',
+        'increase.min'                 => 'Penambahan stok minimal 0',
+        'decrease.required'            => 'Pengurangan stok harus diisi',
+        'decrease.min'                 => 'Pengurangan stok minimal 0',
     ];
 
     private const VALIDATION_RULES = [
-        'product_id'   => 'required',
-        'warehouse_id' => 'required',
-        'increase'     => 'required|min:0',
-        'decrease'     => 'required|min:0',
+        'product_category_id' => 'required',
+        'product_id'          => 'required',
+        'warehouse_id'        => 'required',
+        'increase'            => 'required|min:0',
+        'decrease'            => 'required|min:0',
     ];
 
     public function index(Request $req)
@@ -61,6 +64,9 @@ class AdjustmentController extends Controller
                 $input     = $req->all();
                 $validator = Validator::make($input, self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
                 if ($validator->fails()) {
+                    if (isset($input['product_category_id'])) {
+                        $input['product_category_name'] = ProductCategory::find($input['product_category_id'])->name;
+                    }
                     if (isset($input['product_id'])) {
                         $input['product_name'] = Product::find($input['product_id'])->name;
                     }

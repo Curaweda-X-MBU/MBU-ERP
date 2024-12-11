@@ -71,8 +71,8 @@
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
+                            <th>Kategori<br>Produk</th>
                             <th>Produk</th>
-                            <th>Jenis Produk</th>
                             <th>Project Aktif</th>
                             <th>Gudang/Tempat<br>Pengiriman</th>
                             <th width="30">Jumlah</th>
@@ -85,8 +85,8 @@
                         </thead>
                         <tbody data-repeater-list="purchase_item">
                             <tr data-repeater-item>
+                                <td><select name="product_category_id" class="product_category_id form-control" required></select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
-                                <td><input type="text" name="product_category" class="form-control-plaintext jenis_produk" readonly/></td>
                                 <td><select name="project_id" class="project_id form-control"></select></td>
                                 <td><select name="warehouse_id" class="warehouse_id form-control" required></select></td>
                                 <td><input type="text" name="qty" class="qty form-control numeral-mask" placeholder="Qty" required/></td>
@@ -160,32 +160,48 @@
                     numeralMask.each(function() { 
                         new Cleave(this, {
                             numeral: true,
-                            numeralThousandsGroupStyle: 'thousand'
+                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                         });
                     })
                 }
 
-                $this.find('.product_id').select2({
-                    placeholder: "Pilih Produk",
+                $this.find('.product_id').html(`<option selected disabled>Pilih Kategori Produk terlebih dahulu</option>`);
+                $this.find('.product_category_id').select2({
+                    placeholder: "Pilih Kategori Produk",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}${qryProduct}`, 
+                        url: `{{ route("data-master.product-category.search") }}${qryProduct}`, 
                         ...select2Opt
                     }
                 });
+
+                $this.find('.product_category_id').change(function (e) { 
+                    e.preventDefault();
+                    const prodCatId = $(this).val();
+                    $productId = $(this).closest('td').next().find('.product_id');
+                    $productId.val(null).trigger('change');
+
+                    $productId.select2({
+                        placeholder: "Pilih Produk",
+                        ajax: {
+                            url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}&can_be_purchased=1`, 
+                            ...select2Opt
+                        }
+                    });
+
+                    $productId.on('select2:select', function (e) { 
+                        e.preventDefault();
+                        const selectedData = e.params.data.data;
+                        $(this).closest('td').next().next().next().next().find('.satuan').val(selectedData.uom.name)
+                    });
+                });
+
 
                 $this.find('.project_id').select2({
                     placeholder: "Pilih Project",
                     ajax: {
-                        url: `{{ route("project.list.search") }}?project_status=4`, 
+                        url: `{{ route("project.list.search") }}?project_status_not=4`, 
                         ...select2Opt
                     }
-                });
-
-                $this.find('.product_id').on('select2:select', function (e) { 
-                    e.preventDefault();
-                    const selectedData = e.params.data.data;
-                    $(this).closest('td').next().find('.jenis_produk').val(selectedData.product_category.name)
-                    $(this).closest('td').next().next().next().next().next().find('.satuan').val(selectedData.uom.name)
                 });
 
                 $this.find('.warehouse_id').select2({
@@ -223,8 +239,12 @@
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).append(`<option value="${dataPurchase[i].product.product_category_id}" selected>${dataPurchase[i].product.product_category.name}</option>`);
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataPurchase[i].product_id}" selected>${dataPurchase[i].product.name}</option>`);
                     $(`select[name="purchase_item[${i}][product_id]"]`).trigger('change');
+                    $(`select[name="purchase_item[${i}][project_id]"]`).append(`<option value="${dataPurchase[i].project_id}" selected>${dataPurchase[i].project.kandang.name}</option>`);
+                    $(`select[name="purchase_item[${i}][project_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][warehouse_id]"]`).append(`<option value="${dataPurchase[i].warehouse_id}" selected>${dataPurchase[i].warehouse.name}</option>`);
                     $(`select[name="purchase_item[${i}][warehouse_id]"]`).trigger('change');
                     $(`input[name="purchase_item[${i}][product_category]"]`).val(dataPurchase[i].product.product_category.name);
@@ -237,14 +257,14 @@
             let price = set.find('.price').val();
             let qty = set.find('.qty').val();
             if (price && qty) {
-                price = parseInt(price.replace(/,/g, ''));
-                qty = parseInt(qty.replace(/,/g, ''));
+                price = parseInt(price.replace(/\./g, '').replace(/,/g, '.'));
+                qty = parseInt(qty.replace(/\./g, '').replace(/,/g, '.'));
                 const total = price*qty;
                 if (total >= 0) {
                     set.find('.total-input').val(total);
                     new Cleave(set.find('.total'), {
                         numeral: true,
-                        numeralThousandsGroupStyle: 'thousand'
+                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                     }).setRawValue(total);
 
                     calculateTotal();
@@ -268,7 +288,7 @@
 
             new Cleave($('.grand-total'), {
                 numeral: true,
-                numeralThousandsGroupStyle: 'thousand'
+                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
             }).setRawValue(grandTotal);
             $('.grand-total-input').val(grandTotal);
         }

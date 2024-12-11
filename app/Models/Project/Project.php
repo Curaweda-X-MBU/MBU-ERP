@@ -4,7 +4,7 @@ namespace App\Models\Project;
 
 use App\Models\DataMaster\Fcr;
 use App\Models\DataMaster\Kandang;
-use App\Models\DataMaster\Product;
+use App\Models\DataMaster\ProductCategory;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +21,7 @@ class Project extends Model
     protected $primaryKey = 'project_id';
 
     protected $fillable = [
-        'product_id',
+        'product_category_id',
         'kandang_id',
         'capacity',
         'farm_type',
@@ -34,12 +34,13 @@ class Project extends Model
         'project_status',
         'approval_date',
         'chickin_approval_date',
+        'first_day_old_chick',
         'created_by',
     ];
 
-    public function product()
+    public function product_category()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
     public function kandang()

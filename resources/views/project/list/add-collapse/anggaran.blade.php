@@ -1,4 +1,7 @@
 @php
+    $fcr_id = old('fcr_id');
+    $fcr_name = old('fcr_name');
+    $target_depletion = old('target_depletion');
     $dataBudget = '';
     if (isset($data) && isset($data->project_budget)) {
         $dataBudget = $data->project_budget;
@@ -11,6 +14,45 @@
     </div>
     <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
+            <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="fcr_id" class="float-right">Target FCR</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="fcr_id" id="fcr_id" class="form-control {{$errors->has('fcr_id')?'is-invalid':''}}">
+                                    @if($fcr_id && $fcr_name)
+                                        <option value="{{ $fcr_id }}" selected="selected">{{ $fcr_name }}</option>
+                                    @endif
+                                </select>
+                                @if ($errors->has('fcr_id'))
+                                    <span class="text-danger small">{{ $errors->first('fcr_id') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="target_depletion" class="float-right">Target Deplesi</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <input type="number" id="target_depletion" class="{{$errors->has('target_depletion')?'is-invalid':''}} form-control" name="target_depletion" placeholder="Target Deplesi" value="{{ $target_depletion }}">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">%</span>
+                                    </div>
+                                </div>
+                                @if ($errors->has('target_depletion'))
+                                    <span class="text-danger small">{{ $errors->first('target_depletion') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 text-center" id="anggaran-repeater-1">
@@ -63,12 +105,44 @@
 
 <script>
     $(function () {
+        $('#fcr_id').select2({
+            placeholder: "Pilih FCR",
+            ajax: {
+                url: `{{ route("data-master.fcr.search") }}`, 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        q: params.term 
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                cache: true
+            }
+        });
+        var oldValueFcr = "{{ $fcr_id }}";
+        if (oldValueFcr) {
+            var oldNameFcr = "{{ $fcr_name }}";
+            if (oldNameFcr) {
+                var newOption = new Option(oldNameFcr, oldValueFcr, true, true);
+                $('#fcr_id').append(newOption).trigger('change');
+            }
+        }
+
+        @if ($errors->has('fcr_id'))
+            $('#fcr_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+        @endif
+
         var numeralMask = $('.numeral-mask');
         if (numeralMask.length) {
             numeralMask.each(function() { 
                 new Cleave(this, {
                     numeral: true,
-                    numeralThousandsGroupStyle: 'thousand'
+                    numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                 });
             })
         }
@@ -86,7 +160,7 @@
                     numeralMask.each(function() { 
                         new Cleave(this, {
                             numeral: true,
-                            numeralThousandsGroupStyle: 'thousand'
+                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                         });
                     })
                 }
@@ -117,14 +191,14 @@
             let price = set.find('.budget-price').val();
             let qty = set.find('.budget-qty').val();
             if (price && qty) {
-                price = parseInt(price.replace(/,/g, ''));
-                qty = parseInt(qty.replace(/,/g, ''));
+                price = parseInt(price.replace(/\./g, '').replace(/,/g, '.'));
+                qty = parseInt(qty.replace(/\./g, '').replace(/,/g, '.'));
                 const total = price*qty;
                 if (total >= 0) {
                     set.find('.budget-total-input').val(total);
                     new Cleave(set.find('.budget-total'), {
                         numeral: true,
-                        numeralThousandsGroupStyle: 'thousand'
+                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                     }).setRawValue(total);
 
                     calculateTotal();
@@ -148,7 +222,7 @@
 
             new Cleave($('.grand-total'), {
                 numeral: true,
-                numeralThousandsGroupStyle: 'thousand'
+                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
             }).setRawValue(grandTotal);
             $('.grand-total-input').val(grandTotal);
         }

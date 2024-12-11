@@ -36,7 +36,9 @@
                             <div class="col-md-4 col-12">
                                 <div class="form-group">
                                     <label for="travel_letter_number">Dokumen Surat Jalan (Max. 2 MB)</label>
-                                    <input type="file" class="form-control" name="travel_letter_document" placeholder="Dokumen Surat Jalan" {{ count($dataChick)==0?'required':'' }}  />
+                                    <div class="file-div">
+                                        <input type="file" class="form-control" name="travel_letter_document" placeholder="Dokumen Surat Jalan" />
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4 col-12">
@@ -102,7 +104,7 @@
             numeralMask.each(function() { 
                 new Cleave(this, {
                     numeral: true,
-                    numeralThousandsGroupStyle: 'thousand'
+                    numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                 });
             })
         }
@@ -123,11 +125,12 @@
                     numeralMask.each(function() { 
                         new Cleave(this, {
                             numeral: true,
-                            numeralThousandsGroupStyle: 'thousand'
+                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                         });
                     })
                 }
                 
+                validationFile();
                 $(this).find('.supplier_id').select2({
                     placeholder: "Pilih Supplier",
                     ajax: {
@@ -205,10 +208,14 @@
         
         if ('{{ $dataChick }}'.length) {
             let dataChickIn = @json($dataChick);
+            let arrFile = [];
             dataChickIn.forEach(item => {
                 const date = new Date(item.chickin_date);
                 const options = { day: '2-digit', year: 'numeric', month: 'short' };
-                item.chickin_date = date.toLocaleDateString('en-GB', options).replace(/ /g, '-');;
+                item.chickin_date = date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
+                arrFile.push({ 
+                    file_name: item.travel_letter_document??null
+                });
                 delete item.travel_letter_document;
             });
             
@@ -218,13 +225,54 @@
                     $(`select[name="chick_in[${i}][supplier_id]"]`).append(`<option value="${dataChickIn[i].supplier_id}" selected>${dataChickIn[i].supplier.name}</option>`);
                     $(`select[name="chick_in[${i}][supplier_id]"]`).trigger('change');
                     $(`select[name="chick_in[${i}][hatchery]"]`).append(`<option value="${dataChickIn[i].hatchery}" selected>${dataChickIn[i].hatchery}</option>`);
+
+                    if (arrFile[i].file_name) {
+                        const fileName = arrFile[i].file_name;
+                        $(`input[name="chick_in[${i}][travel_letter_document]"]`)
+                            .closest('.file-div').html(`
+                                <a href="{{ route('file.show', ['filename' => '__FILE_NAME__']) }}" target="_blank">
+                                    <i data-feather='download' class="mr-50"></i>
+                                    <span>Download</span>
+                                </a>
+                                <input type="hidden" class="hidden-name" name="chick_in[${i}][travel_letter_document]" value="${fileName}">
+                                <div class="float-right">
+                                    <a href="javascript:void(0)" class="delete-file text-danger" title="Hapus File">
+                                        <i data-feather="trash"></i>
+                                    </a>
+                                </div>
+                            `.replace('__FILE_NAME__', fileName));
+                    }
                 }
             }
         } 
+
+        $('.delete-file').on('click', function () { 
+            const inputName = $(this).closest('.file-div').find('input[type="hidden"]').attr('name');
+            $(this).closest('.file-div').html(`<input type="file" class="form-control" name="${inputName}" accept=".pdf, image/jpeg">`)
+            validationFile();
+        });
 
         if (!oldChickIn && @json($dataChick).length === 0) {
             $('#add-btn').trigger('click');
         }
 
+        function validationFile() {
+            $('input[type="file"]').on('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const fileType = file.type;
+                    const maxSize = 2 * 1024 * 1024;
+                    const fileSize = file.size;
+                    const allowedTypes = /^(application\/pdf|image\/(jpeg|jpg))$/;
+                    if (!allowedTypes.test(fileType)) {
+                        alert('Mohon upload file berformat PDF atau JPEG/JPG.');
+                        $(this).val('');
+                    } else if (fileSize > maxSize) {
+                        alert('Ukuran file harus kurang dari 2 MB');
+                        $(this).val('');
+                    } 
+                }
+            });
+        }
     });
 </script>

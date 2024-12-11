@@ -19,7 +19,7 @@
                                                 <thead>
                                                         <th>ID</th>
                                                         <th>Unit Bisnis</th>
-                                                        <th>Produk</th>
+                                                        <th>Kategori Produk</th>
                                                         <th>Area</th>
                                                         <th>Lokasi</th>
                                                         <th>Kandang</th>
@@ -34,7 +34,7 @@
                                                         <tr>
                                                             <td>{{ $item->project_id }}</td>
                                                             <td>{{ $item->kandang->company->name??'' }}</td>
-                                                            <td>{{ $item->product->name??'' }}</td>
+                                                            <td>{{ $item->product_category->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->area->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->name??'' }}</td>
                                                             <td>{{ $item->kandang->name??'' }}</td>
