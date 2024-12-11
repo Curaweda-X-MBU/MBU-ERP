@@ -26,13 +26,13 @@
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
                             <label for="status" class="form-label">Status</label>
-                            <input id="status" value="Diajukan" name="status" type="text" class="form-control" readonly>
+                            <input id="status" value="Diajukan" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
                             <label for="referensiDokumen" class="form-label">Referensi Dokumen</label>
                             <div class="input-group">
-                                <input type="text" id="fileName" class="form-control" readonly>
+                                <input type="text" id="fileName" class="form-control" disabled>
                                 <button type="button" class="btn btn-icon btn-light" id="uploadButton">
                                     <i data-feather="upload"></i>
                                 </button>
@@ -48,7 +48,7 @@
                                 <tr class="text-center">
                                     <th>No</th>
                                     <th>Kandang/Hatchery*</th>
-                                    <th>Nama Produk*</th>
+                                    <th class="col-2">Nama Produk*</th>
                                     <th>Harga Satuan (Rp)*</th>
                                     <th>Bobot Avg (Kg)*</th>
                                     <th>Qty*</th>
@@ -84,10 +84,10 @@
                                         <input type="text" class="form-control" placeholder="Qty">
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control text-center" value="5,000.00" readonly>
+                                        <input type="text" class="form-control text-center" value="5,000.00" disabled>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control text-right" value="35,000,000.00" readonly>
+                                        <input type="text" class="form-control text-right" value="35,000,000.00" disabled>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Kandang">
