@@ -48,7 +48,10 @@ class ListController extends Controller
 
             return view('marketing.list.index', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -63,20 +66,31 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $validator = Validator::make($req->all(), self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
-                $input     = $req->all();
+                $validator = Validator::make(
+                    $req->all(),
+                    self::VALIDATION_RULES,
+                    self::VALIDATION_MESSAGES
+                );
+                $input = $req->all();
                 if ($validator->fails()) {
                     if (isset($input['customer_id'])) {
-                        $input['customer_name'] = Customer::find($req->input('customer_id'))->name;
+                        $input['customer_name'] = Customer::find(
+                            $req->input('customer_id')
+                        )->name;
                     }
                     if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find($req->input('company_id'))->name;
+                        $input['company_name'] = Company::find(
+                            $req->input('company_id')
+                        )->name;
                     }
                     if (isset($input['sales_id'])) {
-                        $input['sales_name'] = User::find($req->input('sales_id'))->name;
+                        $input['sales_name'] = User::find(
+                            $req->input('sales_id')
+                        )->name;
                     }
 
-                    return redirect()->back()
+                    return redirect()
+                        ->back()
                         ->withErrors($validator)
                         ->withInput($input);
                 }
@@ -86,31 +100,45 @@ class ListController extends Controller
                     $company = Auth::user()->department->company;
 
                     $createdMarketing = Marketing::create([
-                        'company_id'       => $company->company_id,
-                        'customer_id'      => $input['customer_id'],
-                        'sold_at'          => $input['sold_at'],
-                        'doc_reference'    => $input['doc_reference'],
-                        'notes'            => $input['notes'],
-                        'tax'              => $input['tax'],
-                        'discount'         => $input['discount'],
-                        'sub_total'        => $input['sub_total'],
-                        'grand_total'      => $input['grand_total'],
-                        'payment_status'   => array_search('Belum Dibayar', Constants::MARKETING_PAYMENT_STATUS),
-                        'marketing_status' => array_search('Diajukan', Constants::MARKETING_STATUS),
-                        'created_by'       => Auth::id(),
+                        'company_id'     => $company->company_id,
+                        'customer_id'    => $input['customer_id'],
+                        'sold_at'        => $input['sold_at'],
+                        'doc_reference'  => $input['doc_reference'],
+                        'notes'          => $input['notes'],
+                        'tax'            => $input['tax'],
+                        'discount'       => $input['discount'],
+                        'sub_total'      => $input['sub_total'],
+                        'grand_total'    => $input['grand_total'],
+                        'payment_status' => array_search(
+                            'Belum Dibayar',
+                            Constants::MARKETING_PAYMENT_STATUS
+                        ),
+                        'marketing_status' => array_search(
+                            'Diajukan',
+                            Constants::MARKETING_STATUS
+                        ),
+                        'created_by' => Auth::id(),
                     ]);
 
                     if ($req->has('marketing_products')) {
                         $arrProduct = $req->input('marketing_products');
                         foreach ($arrProduct as $key => $value) {
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
-                            $arrProduct[$key]['kandang_id']   = $input['kandang_id'];
-                            $arrProduct[$key]['product_id']   = $input['product_id'];
-                            $arrProduct[$key]['price']        = str_replace(',', '', $value['price']);
-                            $arrProduct[$key]['weight_avg']   = $input['weight_avg'];
-                            $arrProduct[$key]['qty']          = str_replace(',', '', $value['qty']);
-                            $arrProduct[$key]['weight_total'] = $input['weight_avg'] * $input['qty'];
-                            $arrProduct[$key]['total_price']  = $input['price']      * $input['qty'];
+                            $arrProduct[$key]['kandang_id']   = $input['marketing_kandang_id'];
+                            $arrProduct[$key]['product_id']   = $input['marketing_product_id'];
+                            $arrProduct[$key]['price']        = str_replace(
+                                ',',
+                                '',
+                                $value['marketing_price']
+                            );
+                            $arrProduct[$key]['weight_avg'] = $input['marketing_weight_avg'];
+                            $arrProduct[$key]['qty']        = str_replace(
+                                ',',
+                                '',
+                                $value['marketing_qty']
+                            );
+                            $arrProduct[$key]['weight_total'] = $input['marketing_weight_avg'] * $input['marketing_qty'];
+                            $arrProduct[$key]['total_price']  = $input['marketing_price']      * $input['marketing_qty'];
                         }
                         MarketingProduct::insert($arrProduct);
                     }
@@ -132,12 +160,17 @@ class ListController extends Controller
 
                 $success = ['success' => 'Data Berhasil disimpan'];
 
-                return redirect()->route('marketing.list.index')->with($success);
+                return redirect()
+                    ->route('marketing.list.index')
+                    ->with($success);
             }
 
             return view('marketing.list.add', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -147,7 +180,9 @@ class ListController extends Controller
     public function detail(Marketing $marketing)
     {
         try {
-            $data  = Marketing::findOrFail($marketing->marketing_id)->with(['customer', 'company'])->get();
+            $data = Marketing::findOrFail($marketing->marketing_id)
+                ->with(['customer', 'company'])
+                ->get();
             $param = [
                 'title' => 'Penjualan > Detail',
                 'data'  => $data,
@@ -155,7 +190,10 @@ class ListController extends Controller
 
             return view('marketing.list.detail', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -171,7 +209,10 @@ class ListController extends Controller
 
             return view('marketing.list.edit', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -186,7 +227,10 @@ class ListController extends Controller
 
             return redirect()->route('marketing.list.index')->with($success);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -202,7 +246,10 @@ class ListController extends Controller
 
             return view('marketing.list.realization', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -218,7 +265,10 @@ class ListController extends Controller
 
             return view('marketing.list.payment', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
