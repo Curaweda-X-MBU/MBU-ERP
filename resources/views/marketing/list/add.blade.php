@@ -45,7 +45,7 @@
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
                             <label for="marketing_status" class="form-label">Status</label>
-                            <input id="marketing_status" value="Diajukan" name="status" type="text" class="form-control" readonly>
+                            <input id="marketing_status" value="Diajukan" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
@@ -66,7 +66,7 @@
                             <thead>
                                 <tr class="text-center">
                                     <th>Kandang/Hatchery*</th>
-                                    <th>Nama Produk*</th>
+                                    <th class="col-2">Nama Produk*</th>
                                     <th>Harga Satuan (Rp)*</th>
                                     <th>Bobot Avg (Kg)*</th>
                                     <th>Qty*</th>
@@ -113,10 +113,10 @@
                                         <input type="text" name="qty" class="form-control numeral-mask" placeholder="Qty">
                                     </td>
                                     <td class="py-2">
-                                        <input type="text" name="weight_total" class="form-control text-center" value="5,000.00" readonly>
+                                        <input type="text" name="weight_total" class="form-control text-center" value="5,000.00" disabled>
                                     </td>
                                     <td class="py-2">
-                                        <input type="text" name="price_total" class="form-control text-right" value="35,000,000.00" readonly>
+                                        <input type="text" name="price_total" class="form-control text-right" value="35,000,000.00" disabled>
                                     </td>
                                     <td class="py-2">
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
