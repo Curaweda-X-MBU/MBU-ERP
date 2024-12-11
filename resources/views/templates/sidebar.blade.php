@@ -99,8 +99,8 @@
                         <li id="list-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.list.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing List">List Penjualan</span></a>
                         </li>
                         @endif
-                        @if ($roleAccess->hasPermissionTo('marketing.retur.index'))
-                        <li id="retur-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.retur.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing Retur">Retur Penjualan</span></a>
+                        @if ($roleAccess->hasPermissionTo('marketing.return.index'))
+                        <li id="return-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.return.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing Retur">Retur Penjualan</span></a>
                         </li>
                         @endif
                     </ul>
