@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('doc_reference');
             $table->text('notes')->nullable();
             $table->integer('sales_id');
-            $table->integer('tax');
-            $table->integer('discount');
+            $table->integer('tax')->nullable();
+            $table->integer('discount')->nullable();
             $table->bigInteger('sub_total');
             $table->bigInteger('grand_total');
             $table->tinyInteger('payment_status');
@@ -81,6 +81,7 @@ return new class extends Migration
             $table->integer('product_id');
             $table->bigInteger('price');
             $table->integer('weight_avg');
+            $table->integer('uom_id');
             $table->integer('qty');
             $table->integer('weight_total');
             $table->bigInteger('total_price');
@@ -90,6 +91,8 @@ return new class extends Migration
             $table->foreign('marketing_id')->references('marketing_id')->on('marketings')->onUpdate('no action')->onDelete('no action');
             $table->foreign('kandang_id')->references('kandang_id')->on('kandang')->onUpdate('no action')->onDelete('no action');
             $table->foreign('product_id')->references('product_id')->on('products')->onUpdate('no action')->onDelete('no action');
+            $table->foreign('uom_id')->references('uom_id')->on('uom')->onUpdate('no action')->onDelete('no action');
+
         });
 
         Schema::create('marketing_delivery_vehicles', function(Blueprint $table) {

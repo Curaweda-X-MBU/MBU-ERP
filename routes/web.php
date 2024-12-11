@@ -81,14 +81,22 @@ Route::middleware('auth')->group(function() {
             Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ListController::class, 'detail'])->name('marketing.list.detail')->middleware('permission:marketing.list.detail');
             Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ListController::class, 'delete'])->name('marketing.list.delete')->middleware('permission:marketing.list.delete');
             Route::any('/realization/{id}', [App\Http\Controllers\Marketing\ListController::class, 'realization'])->name('marketing.list.realization')->middleware('permission:marketing.list.realization');
-            Route::any('/payment/{id}', [App\Http\Controllers\Marketing\ListController::class, 'payment'])->name('marketing.list.payment')->middleware('permission:marketing.list.payment');
+            Route::get('/search', [App\Http\Controllers\Marketing\ListController::class, 'searchMarketing'])->name('marketing.list.search');
         });
-        Route::group(['prefix' => 'retur'], function() {
-            Route::get('/', [App\Http\Controllers\Marketing\ReturController::class, 'index'])->name('marketing.retur.index')->middleware('permission:marketing.retur.index');
-            Route::any('/add', [App\Http\Controllers\Marketing\ReturController::class, 'add'])->name('marketing.retur.add')->middleware('permission:marketing.retur.add');
-            Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ReturController::class, 'edit'])->name('marketing.retur.edit')->middleware('permission:marketing.retur.edit');
-            Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ReturController::class, 'detail'])->name('marketing.retur.detail')->middleware('permission:marketing.retur.detail');
-            Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ReturController::class, 'delete'])->name('marketing.retur.delete')->middleware('permission:marketing.retur.delete');
+        Route::group(['prefix' => 'payment'], function() {
+            Route::get('/', [App\Http\Controllers\Marketing\PaymentController::class, 'index'])->name('marketing.payment.index')->middleware('permission:marketing.payment.index');
+            Route::any('/add', [App\Http\Controllers\Marketing\PaymentController::class, 'add'])->name('marketing.payment.add')->middleware('permission:marketing.payment.add');
+            Route::any('/edit/{id}', [App\Http\Controllers\Marketing\PaymentController::class, 'edit'])->name('marketing.payment.edit')->middleware('permission:marketing.payment.edit');
+            Route::any('/detail/{id}', [App\Http\Controllers\Marketing\PaymentController::class, 'detail'])->name('marketing.payment.detail')->middleware('permission:marketing.payment.detail');
+            Route::any('/delete/{id}', [App\Http\Controllers\Marketing\PaymentController::class, 'delete'])->name('marketing.payment.delete')->middleware('permission:marketing.payment.delete');
+            Route::get('/search', [App\Http\Controllers\Marketing\PaymentController::class, 'searchPayment'])->name('marketing.payment.search');
+        });
+        Route::group(['prefix' => 'return'], function() {
+            Route::get('/', [App\Http\Controllers\Marketing\ReturnController::class, 'index'])->name('marketing.return.index')->middleware('permission:marketing.return.index');
+            Route::any('/add', [App\Http\Controllers\Marketing\ReturnController::class, 'add'])->name('marketing.return.add')->middleware('permission:marketing.return.add');
+            Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
+            Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
+            Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
         });
     });
 

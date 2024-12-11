@@ -19,6 +19,7 @@ class Marketing extends Model
 
     protected $fillable = [
         'id_marketing',
+        'marketing_return_id',
         'approver_id',
         'approval_notes',
         'company_id',
@@ -36,6 +37,11 @@ class Marketing extends Model
         'marketing_status',
         'created_by',
     ];
+
+    public function marketing_return()
+    {
+        return $this->hasOne(MarketingReturn::class, 'marketing_id', 'marketing_id');
+    }
 
     public function approver()
     {
@@ -57,7 +63,7 @@ class Marketing extends Model
         return $this->belongsTo(User::class, 'sales_id', 'user_id');
     }
 
-    public function addit_prices()
+    public function marketing_addit_prices()
     {
         return $this->hasMany(MarketingAdditPrice::class, 'marketing_id', 'marketing_id');
     }
@@ -65,5 +71,9 @@ class Marketing extends Model
     public function marketing_products()
     {
         return $this->hasMany(MarketingProduct::class, 'marketing_id', 'marketing_id');
+    }
+    public function marketing_delivery_vehicles()
+    {
+        return $this->hasMany(MarketingDeliveryVehicle::class, 'marketing_id', 'marketing_id');
     }
 }
