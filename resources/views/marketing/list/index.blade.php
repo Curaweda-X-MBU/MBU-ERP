@@ -66,7 +66,7 @@
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Lihat Detail</span>
                                                 </a>
-                                                <a class="dropdown-item" href="">
+                                                <a class="dropdown-item" href="{{ route('marketing.list.realization', ['id' => 1]) }}">
                                                     <i data-feather='package' class="mr-50"></i>
                                                     <span>Tambah Realisasi</span>
                                                 </a>
