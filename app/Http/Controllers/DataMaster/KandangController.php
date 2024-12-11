@@ -21,7 +21,6 @@ class KandangController extends Controller
         'pic'         => 'required',
         'location_id' => 'required',
         'company_id'  => 'required',
-
     ];
 
     private const VALIDATION_MESSAGES = [
@@ -49,7 +48,10 @@ class KandangController extends Controller
 
             return view('data-master.kandang.index', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -62,8 +64,13 @@ class KandangController extends Controller
             ];
             if ($req->isMethod('post')) {
                 $rules         = self::VALIDATION_RULES;
-                $rules['name'] = ['required', 'string', 'max:50',
-                    Rule::unique('kandang')->where(function($query) use ($req) {
+                $rules['name'] = [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('kandang')->where(function($query) use (
+                        $req
+                    ) {
                         $query->where('location_id', $req->location_id);
                         $query->whereNull('deleted_at');
 
@@ -71,20 +78,31 @@ class KandangController extends Controller
                     }),
                 ];
 
-                $validator = Validator::make($req->all(), $rules, self::VALIDATION_MESSAGES);
+                $validator = Validator::make(
+                    $req->all(),
+                    $rules,
+                    self::VALIDATION_MESSAGES
+                );
                 if ($validator->fails()) {
                     $input = $req->all();
                     if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find($req->input('company_id'))->name;
+                        $input['company_name'] = Company::find(
+                            $req->input('company_id')
+                        )->name;
                     }
                     if (isset($input['location_id'])) {
-                        $input['location_name'] = Location::find($req->input('location_id'))->name;
+                        $input['location_name'] = Location::find(
+                            $req->input('location_id')
+                        )->name;
                     }
                     if (isset($input['pic'])) {
-                        $input['pic_name'] = User::find($req->input('pic'))->name;
+                        $input['pic_name'] = User::find(
+                            $req->input('pic')
+                        )->name;
                     }
 
-                    return redirect()->back()
+                    return redirect()
+                        ->back()
                         ->withErrors($validator)
                         ->withInput($input);
                 }
@@ -100,20 +118,29 @@ class KandangController extends Controller
 
                 $success = ['success' => 'Data Berhasil disimpan'];
 
-                return redirect()->route('data-master.kandang.index')->with($success);
+                return redirect()
+                    ->route('data-master.kandang.index')
+                    ->with($success);
             }
 
             return view('data-master.kandang.add', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
     public function edit(Request $req)
     {
         try {
-            $kandang = Kandang::with(['location', 'company', 'user'])->findOrFail($req->id);
-            $param   = [
+            $kandang = Kandang::with([
+                'location',
+                'company',
+                'user',
+            ])->findOrFail($req->id);
+            $param = [
                 'title' => 'Master Data > Ubah',
                 'data'  => $kandang,
                 'type'  => Constants::KANDANG_TYPE,
@@ -130,18 +157,28 @@ class KandangController extends Controller
                 ];
 
                 $rules         = self::VALIDATION_RULES;
-                $rules['name'] = ['required', 'string', 'max:50',
-                    Rule::unique('kandang')->where(function($query) use ($req) {
-                        $query->where('location_id', $req->location_id);
-                        $query->whereNull('deleted_at');
+                $rules['name'] = [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('kandang')
+                        ->where(function($query) use ($req) {
+                            $query->where('location_id', $req->location_id);
+                            $query->whereNull('deleted_at');
 
-                        return $query;
-                    })->ignore($kandang->kandang_id, 'kandang_id'),
+                            return $query;
+                        })
+                        ->ignore($kandang->kandang_id, 'kandang_id'),
                 ];
 
-                $validator = Validator::make($req->all(), $rules, self::VALIDATION_MESSAGES);
+                $validator = Validator::make(
+                    $req->all(),
+                    $rules,
+                    self::VALIDATION_MESSAGES
+                );
                 if ($validator->fails()) {
-                    return redirect()->back()
+                    return redirect()
+                        ->back()
                         ->withErrors($validator)
                         ->withInput();
                 }
@@ -150,12 +187,17 @@ class KandangController extends Controller
 
                 $success = ['success' => 'Data berhasil dirubah'];
 
-                return redirect()->route('data-master.kandang.index')->with($success);
+                return redirect()
+                    ->route('data-master.kandang.index')
+                    ->with($success);
             }
 
             return view('data-master.kandang.edit', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -167,9 +209,14 @@ class KandangController extends Controller
 
             $success = ['success' => 'Data berhasil dihapus'];
 
-            return redirect()->route('data-master.kandang.index')->with($success);
+            return redirect()
+                ->route('data-master.kandang.index')
+                ->with($success);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -185,10 +232,16 @@ class KandangController extends Controller
 
         $data = $query->get();
 
-        return response()->json($data->map(function($val) {
-            $active = $val->project_status ? ' ( Aktif )' : '';
+        return response()->json(
+            $data->map(function($val) {
+                $active = $val->project_status ? ' ( Aktif )' : '';
 
-            return ['id' => $val->kandang_id, 'text' => $val->name.$active, 'data' => $val];
-        }));
+                return [
+                    'id'   => $val->kandang_id,
+                    'text' => $val->name.$active,
+                    'data' => $val,
+                ];
+            })
+        );
     }
 }
