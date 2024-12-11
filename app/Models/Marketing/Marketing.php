@@ -72,6 +72,7 @@ class Marketing extends Model
     {
         return $this->hasMany(MarketingProduct::class, 'marketing_id', 'marketing_id');
     }
+
     public function marketing_delivery_vehicles()
     {
         return $this->hasMany(MarketingDeliveryVehicle::class, 'marketing_id', 'marketing_id');

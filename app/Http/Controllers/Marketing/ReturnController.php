@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
-use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingReturn;
 use Illuminate\Http\Request;
 
@@ -15,10 +14,10 @@ class ReturnController extends Controller
     public function index()
     {
         try {
-            $data = MarketingReturn::with(['marketing'])->get();
+            $data  = MarketingReturn::with(['marketing'])->get();
             $param = [
                 'title' => 'Penjualan > Retur',
-                'data' => $data
+                'data'  => $data,
             ];
 
             return view('marketing.return.index', $param);
@@ -52,7 +51,7 @@ class ReturnController extends Controller
         try {
             $param = [
                 'title' => 'Penjualan > Retur > Detail',
-                'data'=> $data
+                'data'  => $data,
             ];
 
             return view('marketing.return.detail', $param);
@@ -67,10 +66,10 @@ class ReturnController extends Controller
     public function edit(Request $req, MarketingReturn $marketingReturn)
     {
         try {
-            $data = $marketingReturn->with(['marketing'])->get();
+            $data  = $marketingReturn->with(['marketing'])->get();
             $param = [
                 'title' => 'Penjualan > Retur > Edit',
-                'data' => $data
+                'data'  => $data,
             ];
 
             return view('marketing.return.edit', $param);
@@ -82,7 +81,7 @@ class ReturnController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete( MarketingReturn $marketingReturn)
+    public function delete(MarketingReturn $marketingReturn)
     {
         try {
             $marketingReturn->delete();

@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-use function PHPUnit\Framework\isEmpty;
-
 class ListController extends Controller
 {
     private const VALIDATION_RULES_ADD = [
@@ -35,7 +33,7 @@ class ListController extends Controller
         'marketing_products.*.product_id' => 'required',
         'marketing_products.*.price'      => 'required',
         'marketing_products.*.weight_avg' => 'required',
-        'marketing_products.*.uom_id' => 'required',
+        'marketing_products.*.uom_id'     => 'required',
         'marketing_products.*.qty'        => 'required',
     ];
 
@@ -65,7 +63,7 @@ class ListController extends Controller
         'marketing_products.*.product_id.required' => 'Nama Produk tidak boleh kosong',
         'marketing_products.*.price.required'      => 'Harga Satuan tidak boleh kosong',
         'marketing_products.*.weight_avg.required' => 'Weight Avg tidak boleh kosong',
-        'marketing_products.*.uom_id.required' => 'Uom tidak boleh kosong',
+        'marketing_products.*.uom_id.required'     => 'Uom tidak boleh kosong',
         'marketing_products.*.qty.required'        => 'Qty tidak boleh kosong',
     ];
 
@@ -165,7 +163,7 @@ class ListController extends Controller
                                 'product_id'   => $input['product_id'],
                                 'price'        => $price,
                                 'weight_avg'   => $weightAvg,
-                                'uom_id'   => $input['uom_id'],
+                                'uom_id'       => $input['uom_id'],
                                 'qty'          => $qty,
                                 'weight_total' => $weightTotal,
                                 'total_price'  => $totalPrice,
@@ -232,8 +230,8 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
-            $param     = [
+            $data  = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
+            $param = [
                 'title' => 'Penjualan > Edit',
                 'data'  => $data,
             ];
@@ -295,7 +293,7 @@ class ListController extends Controller
                                 'product_id'   => $value['product_id'],
                                 'price'        => $price,
                                 'weight_avg'   => $weightAvg,
-                                'uom_id'   => $input['uom_id'],
+                                'uom_id'       => $input['uom_id'],
                                 'qty'          => $qty,
                                 'weight_total' => $weightTotal,
                                 'total_price'  => $totalPrice,
@@ -358,7 +356,7 @@ class ListController extends Controller
     public function realization(Request $req, Marketing $marketing)
     {
         try {
-            $data = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
+            $data  = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
             $param = [
                 'title' => 'Penjualan > Realisasi',
                 'data'  => $data,
@@ -390,21 +388,21 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty       = str_replace(',', '', $value['qty'] ?? 0);
+                            $qty = str_replace(',', '', $value['qty'] ?? 0);
 
                             $arrVehicle[$key] = [
                                 'marketing_id' => $marketing->marketing_id,
-                                'plat_number' => $value['plat_number'],
-                                'qty' => $qty,
-                                'exit_at' => date('Y-m-d H:i', strtotime($value['exit_at'])),
-                                'driver_name' => $value['driver_name'],
+                                'plat_number'  => $value['plat_number'],
+                                'qty'          => $qty,
+                                'exit_at'      => date('Y-m-d H:i', strtotime($value['exit_at'])),
+                                'driver_name'  => $value['driver_name'],
                             ];
                         }
 
                         MarketingDeliveryVehicle::insert($arrVehicle);
                     }
                 });
-                $success = !empty($marketing->realized_at)
+                $success = ! empty($marketing->realized_at)
                     ? ['success' => 'Data Berhasil direalisasikan']
                     : ['success' => 'Data Berhasil disimpan sebagai draft'];
 
@@ -434,9 +432,9 @@ class ListController extends Controller
 
         return response()->json($data->map(function($marketing) {
             return [
-                'id' => $marketing->marketing_id,
+                'id'   => $marketing->marketing_id,
                 'text' => $marketing->id_marketing,
-                'data' => $marketing
+                'data' => $marketing,
             ];
         }));
     }

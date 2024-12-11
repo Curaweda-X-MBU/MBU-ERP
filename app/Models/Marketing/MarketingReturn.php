@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class MarketingReturn extends Model
 {
     use HasFactory;
+
     protected $table = 'marketing_returns';
 
     protected $primaryKey = 'marketing_return_id';
@@ -17,7 +18,7 @@ class MarketingReturn extends Model
         'invoice_number',
         'payment_return_status',
         'return_status',
-        'total_return'
+        'total_return',
     ];
 
     public function marketing()

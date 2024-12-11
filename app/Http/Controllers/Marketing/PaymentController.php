@@ -18,10 +18,10 @@ class PaymentController extends Controller
     public function index()
     {
         try {
-            $data = MarketingPayment::with(['approver', 'bank', 'marketing'])->get();
+            $data  = MarketingPayment::with(['approver', 'bank', 'marketing'])->get();
             $param = [
                 'title' => 'Penjualan > Payment',
-                'data' => $data,
+                'data'  => $data,
             ];
 
             return view('marketing.payment.index', $param);
@@ -52,10 +52,10 @@ class PaymentController extends Controller
     public function detail(MarketingPayment $payment)
     {
         try {
-            $data = $payment->with(['approver', 'marketing', 'bank'])->get();
+            $data  = $payment->with(['approver', 'marketing', 'bank'])->get();
             $param = [
                 'title' => 'Penjualan > Payment > Detail',
-                'data' => $data,
+                'data'  => $data,
             ];
 
             return view('marketing.payment.detail', $param);
@@ -70,10 +70,10 @@ class PaymentController extends Controller
     public function edit(Request $req, MarketingPayment $payment)
     {
         try {
-            $data = $payment->with(['approver', 'marketing', 'bank']);
+            $data  = $payment->with(['approver', 'marketing', 'bank']);
             $param = [
                 'title' => 'Penjualan > Payment > Edit',
-                'data' => $data,
+                'data'  => $data,
             ];
 
             return view('marketing.payment.edit', $param);
