@@ -185,7 +185,7 @@
                             {{-- button --}}
                             <div class="col-12 mt-1">
                                 <center>
-                                    <a href="{{ route('marketing.retur.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
+                                    <a href="{{ route('marketing.return.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
                                     <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>
                                 </center>
                             </div>

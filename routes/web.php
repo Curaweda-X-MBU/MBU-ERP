@@ -105,6 +105,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
             Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
             Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
+            Route::any('/payment', [App\Http\Controllers\Marketing\ReturnController::class, 'payment'])->name('marketing.return.payment');
         });
     });
 
