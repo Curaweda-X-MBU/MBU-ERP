@@ -37,7 +37,7 @@ class KandangSeeder extends Seeder
                 'created_by'  => 1,
             ],
             [
-                'name'        => 'Singaparna 2',
+                'name'        => 'Singaparna 3',
                 'capacity'    => 50_000,
                 'type'        => 1,
                 'pic'         => 1,
