@@ -27,8 +27,8 @@ return new class extends Migration
             $table->integer('sales_id');
             $table->integer('tax')->nullable();
             $table->integer('discount')->nullable();
-            $table->bigInteger('sub_total');
-            $table->bigInteger('grand_total');
+            $table->bigInteger('sub_total')->default(0);
+            $table->bigInteger('grand_total')->default(0);
             $table->tinyInteger('payment_status');
             $table->tinyInteger('marketing_status');
             $table->integer('created_by');

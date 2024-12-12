@@ -140,6 +140,8 @@ class ListController extends Controller
                 DB::transaction(function() use ($req) {
                     $input = $req->all();
 
+                    $totalPrices = 0;
+
                     $company = Auth::user()->department->company;
 
                     $docReferencePath = '';
@@ -160,8 +162,6 @@ class ListController extends Controller
                         'saled_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
                         'discount'       => $input['discount'],
-                        'sub_total'      => $input['sub_total'],
-                        'grand_total'    => $input['grand_total'],
                         'payment_status' => array_search(
                             'Belum Dibayar',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -184,6 +184,8 @@ class ListController extends Controller
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
 
+                            $totalPrices += $totalPrice;
+
                             $arrProduct[$key] = [
                                 'marketing_id' => $createdMarketing->marketing_id,
                                 'kandang_id'   => $input['kandang_id'],
@@ -199,6 +201,13 @@ class ListController extends Controller
 
                         MarketingProduct::insert($arrProduct);
                     }
+
+                    $createdMarketing->update([
+                        'sub_total'   => $totalPrices,
+                        'grand_total' => isset($input['tax'])
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
+                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
+                    ]);
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
@@ -303,6 +312,8 @@ class ListController extends Controller
                 DB::transaction(function() use ($req, $marketing) {
                     $input = $req->all();
 
+                    $totalPrices = 0;
+
                     $existingDoc      = $marketing->doc_reference ?? null;
                     $docReferencePath = '';
                     if ($req->hasFile('doc_reference')) {
@@ -343,6 +354,7 @@ class ListController extends Controller
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
+                            $totalPrices += $totalPrice;
 
                             $arrProduct[$key] = [
                                 'marketing_id' => $marketing->marketing_id,
@@ -359,6 +371,13 @@ class ListController extends Controller
 
                         MarketingProduct::insert($arrProduct);
                     }
+
+                    $marketing->update([
+                        'sub_total'   => $totalPrices,
+                        'grand_total' => isset($input['tax'])
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
+                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
+                    ]);
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
