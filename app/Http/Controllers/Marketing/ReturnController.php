@@ -101,4 +101,19 @@ class ReturnController extends Controller
     {
         //
     }
+
+    public function payment(MarketingReturn $marketingReturn)
+    {
+        $data = $marketingReturn->with(['marketing'])->get();
+        try {
+            $param = [
+                'title' => 'Penjualan > Retur > Pembayaran Retur Penjualan',
+                'data'  => $data,
+            ];
+
+            return view('marketing.return.payment', $param);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
 }

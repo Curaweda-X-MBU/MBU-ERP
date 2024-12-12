@@ -88,7 +88,7 @@
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Lihat Detail</span>
                                                 </a>
-                                                <a class="dropdown-item" href="">
+                                                <a class="dropdown-item" href="{{ route('marketing.return.payment') }}">
                                                     <i data-feather="credit-card" class="mr-50"></i>
                                                     <span>Pembayaran Retur</span>
                                                 </a>
