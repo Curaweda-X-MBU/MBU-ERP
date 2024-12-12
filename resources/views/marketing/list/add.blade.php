@@ -11,6 +11,8 @@
 </style>
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/animate/animate.css')}}" />
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
 
 <div class="row">
     <div class="col-12">
@@ -81,7 +83,7 @@
                             </thead>
                             <tbody data-repeater-list="marketing_products">
                                 <tr class="text-center" data-repeater-item>
-                                    <td class="py-2">
+                                    <td class="pt-2 pb-3">
                                         <select name="marketing_kandang_id" class="form-control marketing_kandang_select">
                                             @if(old('marketing_kandang_id') && old('marketing_kandang_id'))
                                                 <option value="{{ old('marketing_kandang_id') }}" selected="selected">{{ old('marketing_kandang_name') }}</option>
@@ -91,34 +93,34 @@
                                             <span class="text-danger small">{{ $errors->first('marketing_kandang_id') }}</span>
                                         @endif
                                     </td>
-                                    <td class="py-2 position-relative">
+                                    <td class="pt-2 pb-3 position-relative">
                                         <select name="marketing_product_id" class="form-control marketing_product_select">
-                                            <option disabled selected>Pilih kandang terlebih dahulu</option>
                                             @if(old('marketing_product_id') && old('marketing_product_id'))
                                                 <option value="{{ old('marketing_product_id') }}" selected="selected">{{ old('marketing_product_name') }}</option>
                                             @endif
                                         </select>
-                                        <small class="form-text text-muted position-absolute pr-1" style="right: 0; font-size: 65%;">Current Stock: 0000</small>
+                                        <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 65%;">Current Stock: 0000</small>
                                         @if ($errors->has('marketing_product_id'))
                                             <span class="text-danger small">{{ $errors->first('marketing_product_id') }}</span>
                                         @endif
                                     </td>
-                                    <td class="py-2">
+                                    <td class="pt-2 pb-3 position-relative">
                                         <input type="text" name="price" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)">
+                                        <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 65%;">Actual Price: 0000</small>
                                     </td>
-                                    <td class="py-2">
+                                    <td class="pt-2 pb-3">
                                         <input type="text" name="weight_avg" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)">
                                     </td>
-                                    <td class="py-2">
+                                    <td class="pt-2 pb-3">
                                         <input type="text" name="qty" class="form-control numeral-mask" placeholder="Qty">
                                     </td>
-                                    <td class="py-2">
-                                        <input type="text" name="weight_total" class="form-control text-center" value="5,000.00" disabled>
+                                    <td class="pt-2 pb-3">
+                                        <input type="text" name="weight_total" class="form-control text-center" value="" disabled>
                                     </td>
-                                    <td class="py-2">
-                                        <input type="text" name="price_total" class="form-control text-right" value="35,000,000.00" disabled>
+                                    <td class="pt-2 pb-3">
+                                        <input type="text" name="price_total" class="form-control text-right" value="" disabled>
                                     </td>
-                                    <td class="py-2">
+                                    <td class="pt-2 pb-3">
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                                             <i data-feather="x"></i>
                                         </button>
@@ -224,6 +226,7 @@
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
+<script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
     $(document).ready(function() {
         $('#transparentFileUpload').on('change', function() {
@@ -231,15 +234,45 @@
         })
     })
 
-    $(function() {
-        /*
-        ----- FORM INPUT DATAS -----
-        */
-        // ? START :: SELECT2 :: CUSTOMER ID
-        $('#customer_id').select2({
-            placeholder: "Pilih Pelanggan",
+    // ? START :: SWAL2 ::  DELETE CONFIRMATION
+    function confirmDelete($this, deleteElement) {
+        Swal.fire({
+            title: 'Hapus data ini?',
+            text: 'Data tidak bisa dikembalikan.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            customClass: {
+                confirmButton: 'btn btn-danger mr-1',
+                cancelButton: 'btn btn-secondary',
+            },
+            buttonsStyling: false,
+        }).then(function(result) {
+            if (result.value) {
+                $(this).slideUp(deleteElement);
+            }
+        });
+    }
+    // ? END :: SWAL2 ::  DELETE CONFIRMATION
+
+    // ? START :: NUMERAL MASK :: INITIALIZE
+    function initNumeralMask() {
+        $('.numeral-mask').each(function() {
+            new Cleave(this, {
+                numeral: true,
+                numeralDecimalMark: ',', delimiter: '.',
+            });
+        });
+    }
+    initNumeralMask();
+    // ? END :: NUMERAL MASK :: INITIALIZE
+
+    // ? START :: SELECT2 :: INITIALIZE
+    function initSelect2($component, placeholder, routePath) {
+        $component.select2({
+            placeholder: placeholder,
             ajax: {
-                url: '{{ route("user-management.user.search") }}',
+                url: routePath,
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
@@ -255,6 +288,44 @@
                 cache: true
             }
         });
+    }
+    // ? END :: SELECT2 :: INITIALIZE
+
+    $(function() {
+        // ? START :: CALCULATION ::  PRODUCT ROWS
+        $('[data-repeater-list]').on('input', '[data-repeater-item] input[name*="qty"], [data-repeater-item] input[name*="weight_avg"], [data-repeater-item] input[name*="price"]', function () {
+            // Get the current row
+            const $row = $(this).closest('tr');
+
+            // Get the input fields within the current row
+            const $qtyInput = $row.find('input[name*="qty"]');
+            const $weightAvgInput = $row.find('input[name*="weight_avg"]');
+            const $priceInput = $row.find('input[name*="price"]');
+            const $weightTotalInput = $row.find('input[name*="weight_total"]');
+            const $priceTotalInput = $row.find('input[name*="price_total"]');
+
+            // Parse the values (strip commas or formatting if necessary)
+            function parseValue(value) { return parseFloat(value.replace(/\./g, '').replace(',', '.') || 0); }
+            const qty = parseValue($qtyInput.val());
+            const weightAvg = parseValue($weightAvgInput.val());
+            const price = parseValue($priceInput.val());
+
+            // Perform calculations
+            const weightTotal = qty * weightAvg;
+            const priceTotal = weightTotal * price;
+
+            // Update the disabled input fields with localized formatting
+            $weightTotalInput.val(weightTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $priceTotalInput.val(priceTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        });
+        // ? END :: CALCULATION ::  PRODUCT ROWS
+
+        /*
+        ----- FORM INPUT DATAS -----
+        */
+        // ? START :: SELECT2 :: CUSTOMER ID
+        const customerIdRoute = '{{ route("user-management.user.search") }}';
+        initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
 
         var oldValueCustomer = "{{ old('customer_id') }}";
         if (oldValueCustomer) {
@@ -271,25 +342,8 @@
         // ? END :: SELECT2 :: CUSTOMER ID
 
         // ? START :: SELECT2 :: SALES ID
-        $('#sales_id').select2({
-            placeholder: "Pilih Sales",
-            ajax: {
-                url: '{{ route("user-management.user.search") }}',
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data
-                    };
-                },
-                cache: true
-            }
-        });
+        const salesIdRoute = '{{ route("user-management.user.search") }}';
+        initSelect2($('#sales_id'), 'Pilih Sales', salesIdRoute);
 
         var oldValueSales = "{{ old('sales_id') }}";
         if (oldValueSales) {
@@ -315,101 +369,49 @@
         */
 
         // ? START :: SELECT2 ::  MARKETING KANDANG
-        $('.marketing_kandang_select').select2({
-            placeholder: 'Pilih Kandang',
-            ajax: {
-                url: '{{ route("data-master.kandang.search") }}',
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data
-                    };
-                },
-                cache: true
-            }
-        });
+        var kandangIdRoute = '{{ route("data-master.kandang.search") }}';
+        initSelect2($('.marketing_kandang_select'), 'Pilih Kandang', kandangIdRoute);
         // ? END :: SELECT2 ::  MARKETING KANDANG
 
         // ? START :: SELECT2 :: MARKETING PRODUCT
-        $('.marketing_kandang_select').on('change', function(e) {
-            e.preventDefault();
-            $('.marketing_product_select').val(null).trigger(change);
+        $('.marketing_kandang_select').on('change', function() {
+            const marketingKandangId = $(this).val();
+            const qryParam = marketingKandangId ? `?product_category_id=${marketingKandangId}` : '';
 
-            var marketingKandangId = $(this).val();
-            var qryParam = marketingKandangId ? `?product_category_id=${marketingKandangId}` : '';
-
-            $('.marketing_product_select').select2({
-                placeholder: 'Pilih Produk',
-                ajax: {
-                    url: `{{ route("data-master.product.search") }}$qryParam`,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return { q: params.term };
-                    },
-                    processResults: function(data) {
-                        return { results: data };
-                    },
-                    cache: true,
-                }
-            });
+            const productIdRoute = '{{ route("data-master.product.search") }}';
+            initSelect2($('.marketing_product_select'), 'Pilih Produk', productIdRoute + qryParam);
         });
         // ? END :: SELECT2 :: MARKETING PRODUCT
 
         // ? START :: REPEATER :: PRODUCTS
         const optMarketingProduct = {
             show: function() {
-                $(this).slideDown();
+                const $rowScope = $(this);
+                $rowScope.slideDown();
 
-                // ? START :: SELECT2 :: PRODUCTS
-                $('#marketing-product-repeater-1 .select2-container').remove();
-                $newSelect = $('.marketing_kandang_select');
-                $newSelect.each(function() {
-                    $dropdown = $(this);
+                // ? START :: SELECT2 :: MARKETING KANDANG
+                $rowScope.find('.select2-container').remove();
+                initSelect2($('.marketing_kandang_select'), 'Pilih Kandang', kandangIdRoute);
+                    // ? START :: SELECT2 :: MARKETING PRODUCT
+                    $(this).find('.marketing_kandang_select').on('change', function() {
+                        const marketingKandangId = $(this).val();
+                        const qryParam = marketingKandangId ? `?product_category_id=${marketingKandangId}` : '';
 
-                    if ($dropdown.data('select2')) {
-                        $dropdown.select2('destroy');
-                    }
-
-                    $dropdown.select2({
-                        placeholder: "Pilih Kandang",
-                        ajax: {
-                            url: '{{ route("data-master.kandang.search") }}',
-                            dataType: 'json',
-                            delay: 250,
-                            data: function(params) {
-                                return {
-                                    q: params.term
-                                };
-                            },
-                            processResults: function(data) {
-                                return {
-                                    results: data
-                                };
-                            },
-                            cache: true
-                        }
+                        const productIdRoute = '{{ route("data-master.product.search") }}';
+                        initSelect2($rowScope.find('.marketing_product_select'), 'Pilih Produk', productIdRoute + qryParam);
                     });
-                });
-                // ? END :: SELECT2 :: PRODUCTS
-
-                $('.select2-container').css('width', '100%');
+                    // ? END :: SELECT2 :: MARKETING PRODUCT
+                // ? END :: SELECT2 :: MARKETING KANDANG
 
                 // FEATHER ICON
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
+
+                initNumeralMask();
             },
             hide: function(deleteElement) {
-                if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-                    $(this).slideUp(deleteElement);
-                }
+                confirmDelete(this, deleteElement);
             },
         };
 
@@ -431,10 +433,7 @@
             show: function() {
                 $(this).slideDown();
 
-                new Cleave ($(this).find('.numeral-mask'), {
-                    numeral: true,
-                    numeralThousandGropuStyle: 'thousand'
-                });
+                initNumeralMask();
 
                 // FEATHER ICONS
                 if (feather) {
@@ -442,22 +441,12 @@
                 }
             },
             hide: function(deleteElement) {
-                if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-                    $(this).slideUp(deleteElement);
-                }
+                confirmDelete(this, deleteElement);
             },
         };
 
         const $marketingAdditPricesRepeater = $('#marketing-addit-prices-repeater-1').repeater(optMarketingAdditPrices);
         // ? END :: REPEATER :: MARKETING ADDIT PRICES
-        // ? START :: NUMERAL MASK
-            $('.numeral-mask').each(function() {
-                new Cleave(this, {
-                    numeral: true,
-                    numeralThousandsGroupStyle: 'thousand'
-                });
-            });
-        // ? END :: NUMERAL MASK
     });
 </script>
 
