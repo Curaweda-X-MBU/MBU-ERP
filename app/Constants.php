@@ -148,6 +148,15 @@ class Constants
         4 => 'Realisasi',
     ];
 
+    public const MARKETING_DOC_REFERENCE_PATH = 'marketing-doc-reference';
+
+    public const MARKETING_PAYMENT_DOC_PATH = 'marketing-payment-doc';
+
+    public const MARKETING_APPROVAL = [
+        0 => 'Tidak Disetujui',
+        1 => 'Disetujui',
+    ];
+
     public const RECORDING_STATUS = [
         1 => 'Pengajuan',
         2 => 'Disetujui',
