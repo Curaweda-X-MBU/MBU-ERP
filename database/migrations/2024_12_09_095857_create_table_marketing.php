@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('marketings', function(Blueprint $table) {
             $table->id('marketing_id');
             $table->string('id_marketing')->nullable();
+            $table->tinyInteger('is_approved')->nullable();
             $table->integer('approver_id')->nullable();
             $table->text('approval_notes')->nullable();
             $table->dateTime('approved_at')->nullable();
@@ -21,7 +22,7 @@ return new class extends Migration
             $table->integer('customer_id');
             $table->dateTime('sold_at');
             $table->dateTime('realized_at')->nullable();
-            $table->string('doc_reference');
+            $table->string('doc_reference')->nullable();
             $table->text('notes')->nullable();
             $table->integer('sales_id');
             $table->integer('tax')->nullable();
@@ -56,15 +57,17 @@ return new class extends Migration
         Schema::create('marketing_payments', function(Blueprint $table) {
             $table->bigIncrements('marketing_payment_id');
             $table->unsignedBigInteger('marketing_id');
+            $table->tinyInteger('is_approved')->nullable();
             $table->integer('approver_id')->nullable();
             $table->text('approval_notes')->nullable();
             $table->dateTime('approved_at')->nullable();
             $table->string('payment_method', 50);
             $table->integer('bank_id');
+            $table->string('payment_reference')->nullable();
+            $table->string('transaction_number')->nullable();
             $table->bigInteger('payment_nominal');
-            $table->string('payment_reference');
-            $table->string('transaction_number');
-            $table->string('document_path');
+            $table->datetime('payment_at');
+            $table->string('document_path')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 
