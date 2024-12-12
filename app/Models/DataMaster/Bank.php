@@ -3,6 +3,7 @@
 namespace App\Models\DataMaster;
 
 use App\Models\Marketing\MarketingPayment;
+use App\Models\Purchase\PurchaseItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

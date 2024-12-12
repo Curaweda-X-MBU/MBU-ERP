@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Constants;
+use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Customer;
@@ -23,7 +24,7 @@ class ListController extends Controller
     private const VALIDATION_RULES_ADD = [
         'customer_id'   => 'required',
         'sold_at'       => 'required',
-        'doc_reference' => 'required|file|mimes:pdf,jpeg,png,jpg|max:5120',
+        'doc_reference' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
         'sales_id'      => 'required',
         'sub_total'     => 'required',
         'grand_total'   => 'required',
@@ -108,22 +109,22 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $validator = Validator::make($req->all(), self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input     = $req->all();
+                $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 if ($validator->fails()) {
                     if (isset($input['customer_id'])) {
                         $input['customer_name'] = Customer::find(
-                            $req->input('customer_id')
+                            $input['customer_id']
                         )->name;
                     }
                     if (isset($input['company_id'])) {
                         $input['company_name'] = Company::find(
-                            $req->input('company_id')
+                            $input['company_id']
                         )->name;
                     }
                     if (isset($input['sales_id'])) {
                         $input['sales_name'] = User::find(
-                            $req->input('sales_id')
+                            $input['sales_id']
                         )->name;
                     }
 
@@ -141,12 +142,22 @@ class ListController extends Controller
 
                     $company = Auth::user()->department->company;
 
+                    $docReferencePath = '';
+                    if ($req->hasFile('doc_reference')) {
+                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
+                        if (! $docUrl['status']) {
+                            return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
+                        }
+                        $docReferencePath = $docUrl['url'];
+                    }
+
                     $createdMarketing = Marketing::create([
                         'company_id'     => $company->company_id,
                         'customer_id'    => $input['customer_id'],
-                        'sold_at'        => $input['sold_at'],
-                        'doc_reference'  => $input['doc_reference'],
+                        'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference'  => $docReferencePath,
                         'notes'          => $input['notes'],
+                        'saled_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
                         'discount'       => $input['discount'],
                         'sub_total'      => $input['sub_total'],
@@ -193,12 +204,11 @@ class ListController extends Controller
                         $arrPrice = $req->input('marketing_addit_prices');
 
                         foreach ($arrPrice as $key => $value) {
-                            $item  = $value['item'];
                             $price = str_replace(',', '', $value['price']);
 
                             $arrPrice[$key] = [
                                 'marketing_id' => $createdMarketing->marketing_id,
-                                'item'         => $item,
+                                'item'         => $value['item'],
                                 'price'        => $price,
                             ];
                         }
@@ -261,21 +271,27 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $validator = Validator::make($req->all(), self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input     = $req->all();
-
+                $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 if ($validator->fails()) {
                     if (isset($input['customer_id'])) {
-                        $input['customer_name'] = Customer::find($req->input('customer_id'))->name;
+                        $input['customer_name'] = Customer::find(
+                            $input['customer_id']
+                        )->name;
                     }
                     if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find($req->input('company_id'))->name;
+                        $input['company_name'] = Company::find(
+                            $input['company_id']
+                        )->name;
                     }
                     if (isset($input['sales_id'])) {
-                        $input['sales_name'] = User::find($req->input('sales_id'))->name;
+                        $input['sales_name'] = User::find(
+                            $input['sales_id']
+                        )->name;
                     }
 
-                    return redirect()->back()
+                    return redirect()
+                        ->back()
                         ->withErrors($validator)
                         ->withInput($input);
                 }
@@ -287,11 +303,28 @@ class ListController extends Controller
                 DB::transaction(function() use ($req, $marketing) {
                     $input = $req->all();
 
+                    $existingDoc      = $marketing->doc_reference ?? null;
+                    $docReferencePath = '';
+                    if ($req->hasFile('doc_reference')) {
+                        if ($existingDoc) {
+                            FileHelper::delete($existingDoc);
+                        }
+
+                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
+                        if (! $docUrl['status']) {
+                            return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
+                        }
+                        $docReferencePath = $docUrl['url'];
+                    } else {
+                        $docReferencePath = $existingDoc;
+                    }
+
                     $marketing->update([
                         'customer_id'   => $input['customer_id'],
-                        'sold_at'       => $input['sold_at'],
-                        'doc_reference' => $input['doc_reference'],
+                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference' => $docReferencePath,
                         'notes'         => $input['notes'],
+                        'saled_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
                         'discount'      => $input['discount'],
                         'sub_total'     => $input['sub_total'],
@@ -397,10 +430,10 @@ class ListController extends Controller
 
                 if ($validator->fails()) {
                     if (isset($input['uom_id'])) {
-                        $input['uom_name'] = Uom::find($req->input('uom_id'))->name;
+                        $input['uom_name'] = Uom::find($input['uom_id'])->name;
                     }
                     if (isset($input['sender_id'])) {
-                        $input['sender_name'] = User::find($req->input('sender_id'))->name;
+                        $input['sender_name'] = User::find($input['sender_id'])->name;
                     }
 
                     return redirect()->back()
@@ -469,5 +502,40 @@ class ListController extends Controller
                 'data' => $marketing,
             ];
         }));
+    }
+
+    /**
+     * Search the specified resource from storage.
+     */
+    public function approve(Request $req, Marketing $marketing)
+    {
+        try {
+            $input         = $req->all();
+            $marketingData = $marketing->get();
+
+            $success = [];
+
+            if ($input['is_approved'] === 0) {
+                $marketingData->update([
+                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'    => Auth::id(),
+                    'approval_notes' => $input['approval_notes'],
+                ]);
+
+                $success = ['success' => 'Data berhasil ditolak'];
+            } else {
+                $marketingData->update([
+                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id' => Auth::id(),
+                    'approved_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $success = ['success' => 'Data berhasil disetujui'];
+            }
+
+            return redirect()->route('marketing.list.index')->with($success);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
     }
 }
