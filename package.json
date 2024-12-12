@@ -6,7 +6,8 @@
         "build": "vite build",
         "prepare": "husky",
         "lint": "yarn pint",
-        "pint": "./vendor/bin/pint"
+        "pint": "./vendor/bin/pint",
+        "db:dev": "php artisan migrate:fresh && php artisan db:seed --class=DevelopmentSeeder"
     },
     "devDependencies": {
         "axios": "^1.6.4",
