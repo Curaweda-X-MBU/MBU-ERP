@@ -16,6 +16,8 @@ class DevelopmentSeeder extends Seeder
             UomSeeder::class,
             ProductSeeder::class,
             FcrSeeder::class,
+            KandangSeeder::class,
+            WarehouseSeeder::class,
         ]);
     }
 }
