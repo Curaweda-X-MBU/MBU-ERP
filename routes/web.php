@@ -259,6 +259,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/add', [App\Http\Controllers\DataMaster\CustomerController::class, 'add'])->name('data-master.customer.add')->middleware('permission:data-master.customer.add');
             Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\CustomerController::class, 'edit'])->name('data-master.customer.edit')->middleware('permission:data-master.customer.edit');
             Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\CustomerController::class, 'delete'])->name('data-master.customer.delete')->middleware('permission:data-master.customer.delete');
+            Route::get('/search', [App\Http\Controllers\DataMaster\CustomerController::class, 'searchCustomer'])->name('data-master.customer.search');
         });
 
         Route::group(['prefix' => 'fcr'], function() {

@@ -6,6 +6,7 @@ use App\Constants;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -155,5 +156,18 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
+    }
+
+    public function searchCustomer(Request $req)
+    {
+        $search    = $req->input('q');
+        $customers = Customer::where('name', 'like', "%{$search}%")->get();
+
+        $queryParams = $req->query();
+        $queryParams = Arr::except($queryParams, ['q']);
+
+        return response()->json($customers->map(function($customer) {
+            return ['id' => $customer->customer_id, 'text' => $customer->name];
+        }));
     }
 }
