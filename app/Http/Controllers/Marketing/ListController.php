@@ -119,53 +119,6 @@ class ListController extends Controller
 
             if ($req->isMethod('post')) {
                 $input = $req->all();
-                // dd([
-                //     'marketing_products' => $input['marketing_products'],
-                //     'marketing' => [
-                //         'company_id'     => 1,
-                //         'customer_id'    => $input['customer_id'],
-                //         'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
-                //         'doc_reference'  => $input['doc_reference'],
-                //         'notes'          => $input['notes'],
-                //         'sales_id'       => $input['sales_id'],
-                //         'tax'            => $input['tax'],
-                //         'discount'       => $input['discount'],
-                //         'payment_status' => array_search(
-                //             'Belum Dibayar',
-                //             Constants::MARKETING_PAYMENT_STATUS
-                //         ),
-                //         'marketing_status' => array_search(
-                //             'Diajukan',
-                //             Constants::MARKETING_STATUS
-                //         ),
-                //         'created_by' => Auth::id()
-                //     ],
-                //     'marketing_addit_prices' => $input['marketing_addit_prices']
-                // ]);
-                $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
-                if ($validator->fails()) {
-                    if (isset($input['customer_id'])) {
-                        $input['customer_name'] = Customer::find(
-                            $input['customer_id']
-                        )->name;
-                    }
-                    if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find(
-                            $input['company_id']
-                        )->name;
-                    }
-                    if (isset($input['sales_id'])) {
-                        $input['sales_name'] = User::find(
-                            $input['sales_id']
-                        )->name;
-                    }
-
-                    return redirect()
-                        ->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
-                }
-
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
@@ -178,7 +131,7 @@ class ListController extends Controller
 
                     $docReferencePath = '';
                     if ($req->hasFile('doc_reference')) {
-                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
+                        $docUrl = FileHelper::upload($input['doc_reference'], Constants::MARKETING_DOC_REFERENCE_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
                         }
@@ -193,7 +146,7 @@ class ListController extends Controller
                         'notes'          => $input['notes'],
                         'sales_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
-                        'discount'       => $input['discount'],
+                        'discount'       => self::parseValue($input['discount']),
                         'payment_status' => array_search(
                             'Belum Dibayar',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -219,8 +172,8 @@ class ListController extends Controller
                             $totalPrices += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
-                            $arrProduct[$key]['kandang_id']   = $input['kandang_id'];
-                            $arrProduct[$key]['product_id']   = $input['product_id'];
+                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
                             $arrProduct[$key]['uom_id']       = 1;
@@ -245,9 +198,9 @@ class ListController extends Controller
                         foreach ($arrPrice as $key => $value) {
                             $price = self::parseValue($value['price']);
 
-                            $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
-                            $arrProduct[$key]['item']         = $value['item'];
-                            $arrProduct[$key]['price']        = $price;
+                            $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                            $arrPrice[$key]['item']         = $value['item'];
+                            $arrPrice[$key]['price']        = $price;
                         }
 
                         MarketingAdditPrice::insert($arrPrice);
@@ -267,8 +220,6 @@ class ListController extends Controller
 
             return view('marketing.list.add', $param);
         } catch (\Exception $e) {
-            dd('error', $e);
-
             return redirect()
                 ->back()
                 ->with('error', $e->getMessage())
