@@ -7,6 +7,7 @@ use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Customer;
+use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Uom;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
@@ -338,8 +339,6 @@ class ListController extends Controller
                         'saled_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
                         'discount'      => $input['discount'],
-                        'sub_total'     => $input['sub_total'],
-                        'grand_total'   => $input['grand_total'],
                     ]);
 
                     if ($req->has('marketing_products')) {
@@ -556,5 +555,27 @@ class ListController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
+    }
+
+    public function searchProductByKandang(Request $req)
+    {
+        $kandangId = $req->id;
+
+        $products = Product::whereHas('product_warehouse.warehouse.kandang', function($q) use ($kandangId) {
+            $q->where('kandang_id', $kandangId);
+        })->with(['product_warehouse' => function($q) {
+            $q->select('product_id', 'quantity');
+        }])->get();
+
+        $val = $products->map(function($product) {
+            return [
+                'id'   => $product->product_id,
+                'text' => $product->name,
+                'qty'  => $product->product_warehouse->sum('quantity'),
+                'data' => $product,
+            ];
+        });
+
+        return response()->json($val);
     }
 }

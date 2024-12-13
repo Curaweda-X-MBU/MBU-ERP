@@ -35,7 +35,7 @@
                     <div class="row row-cols-3 row-cols-md-4 justify-content-end">
                         <!-- Button Tambah Pembayaran -->
                         <div class="col-md-2 mt-2">
-                            <button type="button" class="btn btn-icon btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#paymentDetail">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#paymentDetail">
                                 Tambah Pembayaran <i data-feather="plus"></i>
                             </button>
                         </div>
