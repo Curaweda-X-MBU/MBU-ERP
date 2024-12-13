@@ -78,6 +78,14 @@ class ListController extends Controller
         'driver_name.required' => 'Nama Driver tidak boleh kosong',
     ];
 
+    private static function parseValue(string $value): float
+    {
+        $value = str_replace('.', '', $value);
+        $value = str_replace(',', '.', $value);
+
+        return floatval($value) ?: 0;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -110,7 +118,30 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $input     = $req->all();
+                $input = $req->all();
+                // dd([
+                //     'marketing_products' => $input['marketing_products'],
+                //     'marketing' => [
+                //         'company_id'     => 1,
+                //         'customer_id'    => $input['customer_id'],
+                //         'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
+                //         'doc_reference'  => $input['doc_reference'],
+                //         'notes'          => $input['notes'],
+                //         'sales_id'       => $input['sales_id'],
+                //         'tax'            => $input['tax'],
+                //         'discount'       => $input['discount'],
+                //         'payment_status' => array_search(
+                //             'Belum Dibayar',
+                //             Constants::MARKETING_PAYMENT_STATUS
+                //         ),
+                //         'marketing_status' => array_search(
+                //             'Diajukan',
+                //             Constants::MARKETING_STATUS
+                //         ),
+                //         'created_by' => Auth::id()
+                //     ],
+                //     'marketing_addit_prices' => $input['marketing_addit_prices']
+                // ]);
                 $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 if ($validator->fails()) {
                     if (isset($input['customer_id'])) {
@@ -160,7 +191,7 @@ class ListController extends Controller
                         'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference'  => $docReferencePath,
                         'notes'          => $input['notes'],
-                        'saled_id'       => $input['sales_id'],
+                        'sales_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
                         'discount'       => $input['discount'],
                         'payment_status' => array_search(
@@ -178,26 +209,24 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = str_replace(',', '', $value['price'] ?? 0);
-                            $weightAvg = str_replace(',', '', $value['weight_avg'] ?? 0);
-                            $qty       = str_replace(',', '', $value['qty'] ?? 0);
+                            $price     = self::parseValue($value['price']);
+                            $weightAvg = self::parseValue($value['weight_avg']);
+                            $qty       = self::parseValue($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice  = $price     * $weightTotal;
 
                             $totalPrices += $totalPrice;
 
-                            $arrProduct[$key] = [
-                                'marketing_id' => $createdMarketing->marketing_id,
-                                'kandang_id'   => $input['kandang_id'],
-                                'product_id'   => $input['product_id'],
-                                'price'        => $price,
-                                'weight_avg'   => $weightAvg,
-                                'uom_id'       => $input['uom_id'],
-                                'qty'          => $qty,
-                                'weight_total' => $weightTotal,
-                                'total_price'  => $totalPrice,
-                            ];
+                            $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                            $arrProduct[$key]['kandang_id']   = $input['kandang_id'];
+                            $arrProduct[$key]['product_id']   = $input['product_id'];
+                            $arrProduct[$key]['price']        = $price;
+                            $arrProduct[$key]['weight_avg']   = $weightAvg;
+                            $arrProduct[$key]['uom_id']       = 1;
+                            $arrProduct[$key]['qty']          = $qty;
+                            $arrProduct[$key]['weight_total'] = $weightTotal;
+                            $arrProduct[$key]['total_price']  = $totalPrice;
                         }
 
                         MarketingProduct::insert($arrProduct);
@@ -206,21 +235,19 @@ class ListController extends Controller
                     $createdMarketing->update([
                         'sub_total'   => $totalPrices,
                         'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
-                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
+                            : $totalPrices                                          - self::parseValue($input['discount']),
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
 
                         foreach ($arrPrice as $key => $value) {
-                            $price = str_replace(',', '', $value['price']);
+                            $price = self::parseValue($value['price']);
 
-                            $arrPrice[$key] = [
-                                'marketing_id' => $createdMarketing->marketing_id,
-                                'item'         => $value['item'],
-                                'price'        => $price,
-                            ];
+                            $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                            $arrProduct[$key]['item']         = $value['item'];
+                            $arrProduct[$key]['price']        = $price;
                         }
 
                         MarketingAdditPrice::insert($arrPrice);
@@ -240,6 +267,8 @@ class ListController extends Controller
 
             return view('marketing.list.add', $param);
         } catch (\Exception $e) {
+            dd('error', $e);
+
             return redirect()
                 ->back()
                 ->with('error', $e->getMessage())
@@ -336,7 +365,7 @@ class ListController extends Controller
                         'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference' => $docReferencePath,
                         'notes'         => $input['notes'],
-                        'saled_id'      => $input['sales_id'],
+                        'sales_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
                         'discount'      => $input['discount'],
                     ]);
@@ -347,9 +376,9 @@ class ListController extends Controller
                         $marketing->marketing_products()->delete();
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = str_replace(',', '', $value['price'] ?? 0);
-                            $weightAvg = str_replace(',', '', $value['weight_avg'] ?? 0);
-                            $qty       = str_replace(',', '', $value['qty'] ?? 0);
+                            $price     = self::parseValue($value['price']);
+                            $weightAvg = self::parseValue($value['weight_avg']);
+                            $qty       = self::parseValue($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
@@ -374,8 +403,8 @@ class ListController extends Controller
                     $marketing->update([
                         'sub_total'   => $totalPrices,
                         'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
-                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
+                            : $totalPrices                                          - self::parseValue($input['discount']),
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
@@ -385,7 +414,7 @@ class ListController extends Controller
 
                         foreach ($arrPrice as $key => $value) {
                             $item  = $value['item'];
-                            $price = str_replace(',', '', $value['price']);
+                            $price = self::parseValue($value['price']);
 
                             $arrPrice[$key] = [
                                 'marketing_id' => $marketing->marketing_id,
@@ -468,7 +497,7 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty = str_replace(',', '', $value['qty'] ?? 0);
+                            $qty = self::parseValue($value['qty']);
 
                             $arrVehicle[$key] = [
                                 'marketing_id' => $marketing->marketing_id,

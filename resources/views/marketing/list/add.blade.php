@@ -39,7 +39,7 @@
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-2 mt-1">
                             <label for="sold_at" class="form-label">Tanggal Penjualan</label>
-                            <input id="sold_at" name="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" required>
+                            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" required>
                             @if ($errors->has('sold_at'))
                                 <span class="text-danger small">{{ $errors->first('sold_at') }}</span>
                             @endif
@@ -47,7 +47,7 @@
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
                             <label for="marketing_status" class="form-label">Status</label>
-                            <input id="marketing_status" value="Diajukan" name="status" type="text" class="form-control" disabled>
+                            <input id="marketing_status" value="Diajukan" name="marketing_status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
@@ -84,42 +84,51 @@
                             <tbody data-repeater-list="marketing_products">
                                 <tr class="text-center" data-repeater-item>
                                     <td class="pt-2 pb-3">
-                                        <select name="marketing_kandang_id" class="form-control marketing_kandang_select">
+                                        <select name="kandang_id" class="form-control marketing_kandang_select">
                                             @if(old('marketing_kandang_id') && old('marketing_kandang_id'))
                                                 <option value="{{ old('marketing_kandang_id') }}" selected="selected">{{ old('marketing_kandang_name') }}</option>
                                             @endif
                                         </select>
-                                        @if ($errors->has('marketing_kandang_id'))
-                                            <span class="text-danger small">{{ $errors->first('marketing_kandang_id') }}</span>
+                                        @if ($errors->has('marketing_products.*.kandang_id'))
+                                            <span class="text-danger small">{{ $errors->first('marketing_products.*.kandang_id') }}</span>
                                         @endif
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
-                                        <select name="marketing_product_id" class="form-control marketing_product_select">
+                                        <select name="product_id" class="form-control marketing_product_select">
                                             @if(old('marketing_product_id') && old('marketing_product_id'))
                                                 <option value="{{ old('marketing_product_id') }}" selected="selected">{{ old('marketing_product_name') }}</option>
                                             @endif
                                         </select>
                                         <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0000</span></small>
-                                        @if ($errors->has('marketing_product_id'))
-                                            <span class="text-danger small">{{ $errors->first('marketing_product_id') }}</span>
+                                        @if ($errors->has('marketing_products.*.product_id'))
+                                        <span class="text-danger small">{{ $errors->first('marketing_products.*.product_id') }}</span>
                                         @endif
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
-                                        <input type="text" name="price" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)">
+                                        <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)">
+                                        @if ($errors->has('marketing_products.*.price'))
+                                            <span class="text-danger small">{{ $errors->first('marketing_products.*.price') }}</span>
+                                        @endif
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="weight_avg" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)">
+                                        <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)">
+                                        @if ($errors->has('marketing_products.*.weight_avg'))
+                                        <span class="text-danger small">{{ $errors->first('marketing_products.*.weight_avg') }}</span>
+                                        @endif
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
                                         <input type="number" name="qty" id="qty" max="5000" hidden>
                                         <input type="text" name="qty_mask" id="qty_mask" class="form-control numeral-mask" placeholder="Qty">
                                         <span id="invalid_qty" class="text-danger text-right small position-absolute pr-1" style="right: 0; font-size: 80%; opacity: 0;">Melebihi stock</span>
+                                        @if ($errors->has('marketing_products.*.qty'))
+                                        <span class="text-danger small">{{ $errors->first('marketing_products.*.qty') }}</span>
+                                        @endif
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="weight_total" class="form-control text-center" value="0,00" disabled>
+                                        <input type="text" class="form-control text-center" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="price_total" id="price_total" class="form-control text-right" value="0,00" disabled>
+                                        <input type="text" id="price_total" class="form-control text-right" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -140,7 +149,7 @@
                                 <div class="row">
                                     <div class="col-md-8 mt-1">
                                         <label for="catatan" class="form-label">Catatan :</label>
-                                        <textarea id="catatan" class="form-control" rows="3"></textarea>
+                                        <textarea id="catatan" name="notes" class="form-control" rows="3"></textarea>
                                     </div>
 
                                     <div class="col-md-4 mt-1">
@@ -165,13 +174,13 @@
                                     <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
                                     <div class="col-5"> <span>Pajak:</span> </div>
                                     <div class="col-5 input-group">
-                                        <input type="number" min="0" max="100" class="form-control" value="0">
+                                        <input name="tax" type="number" min="0" max="100" class="form-control" value="0">
                                         <div class="input-group-append"><span class="input-group-text">%</span></div>
                                     </div>
                                     <div class="col-5"> <span>Diskon:</span> </div>
                                     <div class="col-5 input-group">
                                         <div class="input-group-prepend"><span class="input-group-text">Rp.</span></div>
-                                        <input type="text" class="form-control numeral-mask" value="0">
+                                        <input name="discount" type="text" class="form-control numeral-mask" value="0">
                                     </div>
                                     <div class="offset-5 col-5"> <hr class="border-bottom"> </div>
                                     <div class="col-5"> <span>Total Setelah Pajak dan Diskon:</span> </div>
@@ -186,10 +195,10 @@
                                         </button>
                                     </div>
                                     <div class="row align-items-center" data-repeater-item>
-                                        <div class="col-5"> <input type="text" class="form-control" placeholder="Item"> </div>
+                                        <div class="col-5"> <input name="item" type="text" class="form-control" placeholder="Item"> </div>
                                         <div class="col-5 input-group">
                                             <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
-                                            <input type="text" class="form-control numeral-mask" placeholder="Harga">
+                                            <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga">
                                         </div>
                                         <div class="col-2 text-left">
                                             <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -349,7 +358,7 @@
         ----- FORM INPUT DATAS -----
         */
         // ? START :: SELECT2 :: CUSTOMER ID
-        const customerIdRoute = '{{ route("user-management.user.search") }}';
+        const customerIdRoute = '{{ route("data-master.customer.search") }}';
         initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
 
         var oldValueCustomer = "{{ old('customer_id') }}";
@@ -464,16 +473,16 @@
         };
 
         const $marketingProductRepeater = $('#marketing-product-repeater-1').repeater(optMarketingProduct);
-        const oldMarketingProducts = @json(old('marketing_products'));
-        if (oldMarketingProducts) {
-            $marketingProductRepeater.setList(oldMarketingProduct);
-
-            $.each(oldMarketingProducts, function(index, product) {
-                const $select = $(`.marketing_kandang_select:eq(${index})`);
-                const newOption = new Option(product.marketing_kandang_name, product.marketing_kandang_id, true, true);
-                $select.append(newOption).trigger('change');
-            })
-        }
+        // const oldMarketingProducts = @json(old('marketing_products'));
+        // if (oldMarketingProducts) {
+        //     $marketingProductRepeater.setList(oldMarketingProduct);
+        //
+        //     $.each(oldMarketingProducts, function(index, product) {
+        //         const $select = $(`.marketing_kandang_select:eq(${index})`);
+        //         const newOption = new Option(product.marketing_kandang_name, product.marketing_kandang_id, true, true);
+        //         $select.append(newOption).trigger('change');
+        //     })
+        // }
         // ? END :: REPEATER :: PRODUCTS
 
         // ? START :: REPEATER :: MARKETING ADDIT PRICES
