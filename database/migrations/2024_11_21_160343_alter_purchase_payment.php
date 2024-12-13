@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_payments', function (Blueprint $table) {
+        Schema::table('purchase_payments', function(Blueprint $table) {
             $table->dropColumn('own_account_number');
             $table->dropColumn('recipient_account_number');
         });

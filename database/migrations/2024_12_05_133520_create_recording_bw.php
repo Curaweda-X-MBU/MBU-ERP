@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('recording_bw', function (Blueprint $table) {
+        Schema::table('recording_bw', function(Blueprint $table) {
             $table->dropForeign('recbw_prdwh_id');
             $table->dropColumn('product_warehouse_id');
         });

@@ -10,16 +10,19 @@ class Area extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'areas';
+
     protected $primaryKey = 'area_id';
 
     protected $fillable = [
         'name',
         'created_at',
-        'created_by'
+        'created_by',
     ];
 
-    public function locations() {
+    public function locations()
+    {
         return $this->hasMany(Location::class, 'area_id');
     }
 }

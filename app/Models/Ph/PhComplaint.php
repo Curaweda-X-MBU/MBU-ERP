@@ -2,20 +2,21 @@
 
 namespace App\Models\Ph;
 
+use App\Models\DataMaster\Kandang;
+use App\Models\DataMaster\Product;
+use App\Models\DataMaster\Supplier;
+use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\UserManagement\User;
-use App\Models\DataMaster\Kandang;
-use App\Models\DataMaster\Supplier;
-use App\Models\DataMaster\Product;
 
 class PhComplaint extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'ph_complaints';
+
     protected $primaryKey = 'ph_complaint_id';
 
     protected $fillable = [
@@ -32,34 +33,41 @@ class PhComplaint extends Model
         'kandang_id',
         'supplier_id',
         'hatchery',
-        'created_by'
+        'created_by',
     ];
 
-    public function ph_chick_in() {
+    public function ph_chick_in()
+    {
         return $this->hasMany(PhChickIn::class, 'ph_complaint_id');
     }
 
-    public function ph_mortality() {
+    public function ph_mortality()
+    {
         return $this->hasMany(PhMortality::class, 'ph_complaint_id');
     }
 
-    public function cullingpic() {
+    public function cullingpic()
+    {
         return $this->belongsTo(User::class, 'culling_pic', 'user_id');
     }
 
-    public function createdby() {
+    public function createdby()
+    {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
-    
-    public function product() {
+
+    public function product()
+    {
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    public function kandang() {
+    public function kandang()
+    {
         return $this->belongsTo(Kandang::class, 'kandang_id');
     }
 
-    public function supplier() {
+    public function supplier()
+    {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

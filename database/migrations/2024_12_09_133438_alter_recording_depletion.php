@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('recording_depletions', function (Blueprint $table) {
+        Schema::table('recording_depletions', function(Blueprint $table) {
             $table->dropColumn('increase');
             $table->dropColumn('decrease');
             $table->dropColumn('death');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->bigInteger('total')->default(0)->after('product_warehouse_id');
         });
 
-        Schema::table('recording_eggs', function (Blueprint $table) {
+        Schema::table('recording_eggs', function(Blueprint $table) {
             $table->dropColumn('increase');
             $table->dropColumn('decrease');
             $table->dropColumn('big');
