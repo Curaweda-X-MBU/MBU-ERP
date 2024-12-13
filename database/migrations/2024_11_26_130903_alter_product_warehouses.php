@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_warehouses', function(Blueprint $table) {
+        Schema::table('product_warehouses', function (Blueprint $table) {
             $table->timestamp('updated_at')->useCurrentOnUpdate()->nullable()->useCurrent();
             $table->integer('created_by')->nullable()->index('created_by');
             $table->softDeletes();

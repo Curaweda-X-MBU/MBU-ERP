@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('projects', function(Blueprint $table) {
+        Schema::table('projects', function (Blueprint $table) {
             $table->boolean('approved')->default(false)->after('project_status');
         });
     }

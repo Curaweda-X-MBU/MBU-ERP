@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fcr', function(Blueprint $table) {
+        Schema::create('fcr', function (Blueprint $table) {
             $table->integer('fcr_id', true);
             $table->string('name', 50);
             $table->integer('product_id')->index('product_id');
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('fcr', function(Blueprint $table) {
+        Schema::table('fcr', function (Blueprint $table) {
             $table->foreign(['product_id'], 'fcr_products_product_id')->references(['product_id'])->on('products')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['uom_id'], 'fcr_uom_uom_id')->references(['uom_id'])->on('uom')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'fcr_users_created_by')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');

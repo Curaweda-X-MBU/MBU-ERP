@@ -6,14 +6,14 @@
 
             function hasAccess($data, $modul, $role) {
                 return $data->filter(function ($item) use ($modul, $role) {
-                    return
-                        str_contains($item, $modul)
-                        && str_contains($item, 'index')
+                    return 
+                        str_contains($item, $modul) 
+                        && str_contains($item, 'index') 
                         && collect($item)->contains(fn($val) => $role->hasPermissionTo($val));
                 })->all();
             }
         @endphp
-
+        
         <div class="navbar-header">
             <ul class="nav navbar-nav flex-row">
                 <li class="nav-item mr-auto"><a class="navbar-brand" href="javascript:void(0)" style="margin-top: 0.35rem;"><span class="brand-logo">
@@ -24,23 +24,23 @@
             </ul>
         </div>
         <div class="shadow-bottom"></div>
-
+        
         <input type="hidden" id="url" value="{{ Request::path() }}">
         <div class="main-menu-content mt-1">
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 @if (hasAccess($collection, 'dashboard', $roleAccess))
-                <li class=" nav-item has-sub {{ Request::segment(1)=='dashboard'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather="home"></i><span class="menu-title text-truncate" data-i18n="Dashboard">Dashboard</span></a>
+                <li class=" nav-item has-sub {{ Request::segment(1)=='dashboard'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather="home"></i><span class="menu-title text-truncate" data-i18n="Sale">Dashboard</span></a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('dashboard.mbu.index'))
-                        <li id="mbu"><a class="d-flex align-items-center" href="{{ route('dashboard.mbu.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="MBU">MBU</span></a>
+                        <li id="mbu"><a class="d-flex align-items-center" href="{{route('dashboard.mbu.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="MBU">MBU</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('dashboard.lti.index'))
-                        <li id="lti"><a class="d-flex align-items-center" href="{{ route('dashboard.lti.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="LTI">LTI</span></a>
+                        <li id="lti"><a class="d-flex align-items-center" href="{{route('dashboard.lti.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="LTI">LTI</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('dashboard.manbu.index'))
-                        <li id="manbu"><a class="d-flex align-items-center" href="{{ route('dashboard.manbu.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="MANBU">MANBU</span></a>
+                        <li id="manbu"><a class="d-flex align-items-center" href="{{route('dashboard.manbu.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="MANBU">MANBU</span></a>
                         </li>
                         @endif
                     </ul>
@@ -92,15 +92,15 @@
                     </ul>
                 </li>
                 @endif
-                @if (hasAccess($collection, 'marketing', $roleAccess))
-                <li class=" nav-item has-sub {{ Request::segment(1)=='marketing'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather="dollar-sign"></i><span class="menu-title text-truncate" data-i18n="Marketing">Penjualan</span></a>
+                @if (hasAccess($collection, 'sales', $roleAccess))
+                <li class=" nav-item has-sub {{ Request::segment(1)=='sales'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather="dollar-sign"></i><span class="menu-title text-truncate" data-i18n="Sale">Penjualan</span></a>
                     <ul class="menu-content">
-                        @if ($roleAccess->hasPermissionTo('marketing.list.index'))
-                        <li id="list-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.list.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing List">List Penjualan</span></a>
+                        @if ($roleAccess->hasPermissionTo('sales.index'))
+                        <li id="list-sale"><a class="d-flex align-items-center" href="javascript:void(0)"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="List Penjualan">List Penjualan</span></a>
                         </li>
                         @endif
-                        @if ($roleAccess->hasPermissionTo('marketing.return.index'))
-                        <li id="return-marketing"><a class="d-flex align-items-center" href="{{ route('marketing.return.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Marketing Retur">Retur Penjualan</span></a>
+                        @if ($roleAccess->hasPermissionTo('sales.retur'))
+                        <li id="retur-sale"><a class="d-flex align-items-center" href="javascript:void(0)"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Retur Penjualan">Retur Penjualan</span></a>
                         </li>
                         @endif
                     </ul>
@@ -111,7 +111,7 @@
                 </li>
                 @endif
                 @if (hasAccess($collection, 'inventory', $roleAccess))
-                <li class=" nav-item has-sub {{ Request::segment(1)=='inventory'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='package'></i><span class="menu-title text-truncate" data-i18n="Inventory">Persediaan</span></a>
+                <li class=" nav-item has-sub {{ Request::segment(1)=='inventory'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='package'></i><span class="menu-title text-truncate" data-i18n="Sale">Persediaan</span></a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('inventory.product.index'))
                         <li id="product-list"><a class="d-flex align-items-center" href="{{ route('inventory.product.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Produk">Produk</span></a>
@@ -128,63 +128,63 @@
                 <li class=" nav-item has-sub {{ Request::segment(1)=='data-master'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='database'></i><span class="menu-title text-truncate" data-i18n="Data Master">Master Data</span></a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('data-master.product.index'))
-                        <li id="product"><a class="d-flex align-items-center" href="{{ route('data-master.product.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product">Produk</span></a>
+                        <li id="product"><a class="d-flex align-items-center" href="{{route('data-master.product.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product">Produk</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.product-category.index'))
-                        <li id="product-category"><a class="d-flex align-items-center" href="{{ route('data-master.product-category.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product">Kategori Produk</span></a>
+                        <li id="product-category"><a class="d-flex align-items-center" href="{{route('data-master.product-category.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product">Kategori Produk</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.product-sub-category.index'))
-                        <li id="product-sub-category"><a class="d-flex align-items-center" href="{{ route('data-master.product-sub-category.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product Category">Sub Kategori Produk</span></a>
+                        <li id="product-sub-category"><a class="d-flex align-items-center" href="{{route('data-master.product-sub-category.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product Category">Sub Kategori Produk</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.product-component.index'))
-                        <li id="product-component"><a class="d-flex align-items-center" href="{{ route('data-master.product-component.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product Componet">Bahan Baku</span></a>
+                        <li id="product-component"><a class="d-flex align-items-center" href="{{route('data-master.product-component.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Product Componet">Bahan Baku</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.bank.index'))
-                        <li id="bank"><a class="d-flex align-items-center" href="{{ route('data-master.bank.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Bank">Bank</span></a>
+                        <li id="bank"><a class="d-flex align-items-center" href="{{route('data-master.bank.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Bank">Bank</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.kandang.index'))
-                        <li id="kandang"><a class="d-flex align-items-center" href="{{ route('data-master.kandang.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Kandang">Kandang</span></a>
+                        <li id="kandang"><a class="d-flex align-items-center" href="{{route('data-master.kandang.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Kandang">Kandang</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.warehouse.index'))
-                        <li id="warehouse"><a class="d-flex align-items-center" href="{{ route('data-master.warehouse.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Gudang">Gudang</span></a>
+                        <li id="warehouse"><a class="d-flex align-items-center" href="{{route('data-master.warehouse.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Gudang">Gudang</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.area.index'))
-                        <li id="area"><a class="d-flex align-items-center" href="{{ route('data-master.area.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Area">Area</span></a>
+                        <li id="area"><a class="d-flex align-items-center" href="{{route('data-master.area.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Area">Area</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.location.index'))
-                        <li id="location"><a class="d-flex align-items-center" href="{{ route('data-master.location.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Location">Lokasi</span></a>
+                        <li id="location"><a class="d-flex align-items-center" href="{{route('data-master.location.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Location">Lokasi</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.company.index'))
-                        <li id="company"><a class="d-flex align-items-center" href="{{ route('data-master.company.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Location">Unit Bisnis</span></a>
+                        <li id="company"><a class="d-flex align-items-center" href="{{route('data-master.company.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Location">Unit Bisnis</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.department.index'))
-                        <li id="department"><a class="d-flex align-items-center" href="{{ route('data-master.department.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Department">Departemen</span></a>
+                        <li id="department"><a class="d-flex align-items-center" href="{{route('data-master.department.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Department">Departemen</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.customer.index'))
-                        <li id="customer"><a class="d-flex align-items-center" href="{{ route('data-master.customer.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Customer">Pelanggan</span></a>
+                        <li id="customer"><a class="d-flex align-items-center" href="{{route('data-master.customer.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Customer">Pelanggan</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.supplier.index'))
-                        <li id="supplier"><a class="d-flex align-items-center" href="{{ route('data-master.supplier.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Supplier">Pemasok</span></a>
+                        <li id="supplier"><a class="d-flex align-items-center" href="{{route('data-master.supplier.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Supplier">Pemasok</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.fcr.index'))
-                        <li id="fcr"><a class="d-flex align-items-center" href="{{ route('data-master.fcr.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="FCR">FCR</span></a>
+                        <li id="fcr"><a class="d-flex align-items-center" href="{{route('data-master.fcr.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="FCR">FCR</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.uom.index'))
-                        <li id="uom"><a class="d-flex align-items-center" href="{{ route('data-master.uom.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="UOM">UOM</span></a>
+                        <li id="uom"><a class="d-flex align-items-center" href="{{route('data-master.uom.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="UOM">UOM</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('data-master.nonstock.index'))
@@ -202,11 +202,11 @@
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('user-management.role.index'))
-                        <li id="role"><a class="d-flex align-items-center" href="{{ route('user-management.role.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Role">Role</span></a>
+                        <li id="role"><a class="d-flex align-items-center" href="{{route('user-management.role.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Role">Role</span></a>
                         </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('user-management.permission.index'))
-                        <li id="permission"><a class="d-flex align-items-center" href="{{ route('user-management.permission.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Permission">Permission</span></a>
+                        <li id="permission"><a class="d-flex align-items-center" href="{{route('user-management.permission.index')}}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Permission">Permission</span></a>
                         </li>
                         @endif
                     </ul>
@@ -217,12 +217,12 @@
 
         <script>
             $(function () {
-                var urlPath = $('#url').val();
+                var urlPath = $('#url').val(); 
                 var arrPath = urlPath.split('/');
                 $('#'+arrPath[0]).addClass('active');
                 $('#'+arrPath[1]).addClass('active');
 
-                $('#toggleSidebar').click(function (e) {
+                $('#toggleSidebar').click(function (e) { 
                     e.preventDefault();
                     $.ajax({
                         type: "get",

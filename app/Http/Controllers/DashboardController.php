@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use DB;
 
 class DashboardController extends Controller
 {
-    public function indexMbu(Request $req)
-    {
+    public function indexMbu(Request $req) {
         try {
             $data = [
                 'title' => 'Home',
@@ -20,8 +20,7 @@ class DashboardController extends Controller
         }
     }
 
-    public function indexLti(Request $req)
-    {
+    public function indexLti(Request $req) {
         try {
             $data = [
                 'title' => 'Home',
@@ -33,8 +32,7 @@ class DashboardController extends Controller
         }
     }
 
-    public function indexManbu(Request $req)
-    {
+    public function indexManbu(Request $req) {
         try {
             $data = [
                 'title' => 'Home',
@@ -46,9 +44,8 @@ class DashboardController extends Controller
         }
     }
 
-    public function sidebarToggle(Request $req): void
-    {
-        $currentSessionToggle = Session::get('sidebar-toggle', 'menu-expanded');
+    public function sidebarToggle(Request $req) : void {
+        $currentSessionToggle = Session::get('sidebar-toggle', 'menu-expanded'); 
 
         if ($currentSessionToggle === 'menu-expanded') {
             Session::put('sidebar-toggle', 'menu-collapsed');

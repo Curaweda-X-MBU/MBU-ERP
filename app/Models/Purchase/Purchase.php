@@ -2,19 +2,17 @@
 
 namespace App\Models\Purchase;
 
-use App\Models\DataMaster\Supplier;
-use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\DataMaster\Supplier;
+use App\Models\UserManagement\User;
 
 class Purchase extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
     protected $table = 'purchases';
-
     protected $primaryKey = 'purchase_id';
 
     protected $fillable = [
@@ -41,31 +39,26 @@ class Purchase extends Model
         'total_amount_received',
         'total_amount_not_received',
         'total_amount_retur',
-        'created_by',
+        'created_by'
     ];
 
-    public function createdby()
-    {
+    public function createdby() {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
 
-    public function supplier()
-    {
+    public function supplier() {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
-    public function purchase_item()
-    {
+    public function purchase_item() {
         return $this->hasMany(PurchaseItem::class, 'purchase_id');
     }
 
-    public function purchase_other()
-    {
+    public function purchase_other() {
         return $this->hasMany(PurchaseOther::class, 'purchase_id');
     }
 
-    public function purchase_payment()
-    {
+    public function purchase_payment() {
         return $this->hasMany(PurchasePayment::class, 'purchase_id');
     }
 }

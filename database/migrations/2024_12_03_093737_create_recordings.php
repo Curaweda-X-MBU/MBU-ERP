@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recordings', function(Blueprint $table) {
+        Schema::create('recordings', function (Blueprint $table) {
             $table->integer('recording_id', true);
             $table->integer('project_id')->index('project_id');
             $table->dateTime('record_datetime');
@@ -23,12 +23,12 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('recordings', function(Blueprint $table) {
+        Schema::table('recordings', function (Blueprint $table) {
             $table->foreign(['project_id'], 'recordings_projects_project_id')->references(['project_id'])->on('projects')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'recordings_users_created_by')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('recording_stocks', function(Blueprint $table) {
+        Schema::create('recording_stocks', function (Blueprint $table) {
             $table->integer('recording_stock_id', true);
             $table->integer('recording_id')->index('recording_id');
             $table->integer('product_warehouse_id')->index('product_warehouse_id');
@@ -37,12 +37,12 @@ return new class extends Migration
             $table->string('notes')->nullable();
         });
 
-        Schema::table('recording_stocks', function(Blueprint $table) {
+        Schema::table('recording_stocks', function (Blueprint $table) {
             $table->foreign(['recording_id'], 'recstock_recordings_id')->references(['recording_id'])->on('recordings')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['product_warehouse_id'], 'recstock_product_warehouses_id')->references(['product_warehouse_id'])->on('product_warehouses')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('nonstocks', function(Blueprint $table) {
+        Schema::create('nonstocks', function (Blueprint $table) {
             $table->integer('nonstock_id', true);
             $table->string('name');
             $table->integer('uom_id')->index('uom_id');
@@ -52,12 +52,12 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('nonstocks', function(Blueprint $table) {
+        Schema::table('nonstocks', function (Blueprint $table) {
             $table->foreign(['uom_id'], 'nonstock_uom_id')->references(['uom_id'])->on('uom')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'nonstock_users_created_by')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('recording_nonstocks', function(Blueprint $table) {
+        Schema::create('recording_nonstocks', function (Blueprint $table) {
             $table->integer('recording_nonstock_id', true);
             $table->integer('nonstock_id')->index('nonstock_id');
             $table->decimal('avg_weight', 8, 2)->nullable();
@@ -67,11 +67,11 @@ return new class extends Migration
             $table->string('notes')->nullable();
         });
 
-        Schema::table('recording_nonstocks', function(Blueprint $table) {
+        Schema::table('recording_nonstocks', function (Blueprint $table) {
             $table->foreign(['nonstock_id'], 'recnonstock_nonstock_id')->references(['nonstock_id'])->on('nonstocks')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('recording_bw', function(Blueprint $table) {
+        Schema::create('recording_bw', function (Blueprint $table) {
             $table->integer('recording_bw_id', true);
             $table->integer('recording_nonstock_id')->index('recording_nonstock_id');
             $table->decimal('weight', 8, 2);
@@ -79,11 +79,11 @@ return new class extends Migration
             $table->bigInteger('weight_calc');
         });
 
-        Schema::table('recording_bw', function(Blueprint $table) {
+        Schema::table('recording_bw', function (Blueprint $table) {
             $table->foreign(['recording_nonstock_id'], 'recbw_recording_nonstock_id')->references(['recording_nonstock_id'])->on('recording_nonstocks')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('recording_depletions', function(Blueprint $table) {
+        Schema::create('recording_depletions', function (Blueprint $table) {
             $table->integer('recording_depletion_id', true);
             $table->integer('recording_id')->index('recording_id');
             $table->integer('product_warehouse_id')->index('product_warehouse_id');
@@ -96,7 +96,7 @@ return new class extends Migration
             $table->string('notes')->nullable();
         });
 
-        Schema::table('recording_depletions', function(Blueprint $table) {
+        Schema::table('recording_depletions', function (Blueprint $table) {
             $table->foreign(['recording_id'], 'recdepletion_recordings_id')->references(['recording_id'])->on('recordings')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['product_warehouse_id'], 'recdepletion_prdwh_id')->references(['product_warehouse_id'])->on('product_warehouses')->onUpdate('no action')->onDelete('no action');
         });

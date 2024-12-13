@@ -4,33 +4,29 @@ namespace App\Models\Project;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Inventory\ProductWarehouse;
 
 class RecordingBw extends Model
 {
     use HasFactory;
-
     protected $table = 'recording_bw';
-
     protected $primaryKey = 'recording_bw_id';
 
     public $timestamps = false;
-
     protected $fillable = [
         'recording_id',
         'avg_weight',
         'total_chick',
         'total_calc',
         'value',
-        'notes',
+        'notes'
     ];
 
-    public function recording()
-    {
+    public function recording() {
         return $this->belongsTo(Recording::class, 'recording_id');
     }
 
-    public function recordingBwList()
-    {
+    public function recordingBwList() {
         return $this->hasMany(RecordingBwList::class, 'recording_bw_id');
     }
 }

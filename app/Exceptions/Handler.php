@@ -3,7 +3,6 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Session\TokenMismatchException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -24,7 +23,7 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function(Throwable $e) {
+        $this->reportable(function (Throwable $e) {
             //
         });
     }
@@ -32,7 +31,7 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if ($exception instanceof TokenMismatchException) {
-            return redirect()->route('auth.login')
+            return redirect()->route('auth.login') 
                 ->with('error', 'Sesi telah berakhir, silahkan login kembali');
         }
 

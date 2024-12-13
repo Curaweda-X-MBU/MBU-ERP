@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('locations', function(Blueprint $table) {
+        Schema::table('locations', function (Blueprint $table) {
             $table->integer('company_id')->nullable()->after('address');
         });
-        Schema::table('locations', function(Blueprint $table) {
+        Schema::table('locations', function (Blueprint $table) {
             $table->foreign(['company_id'], 'locations_ibfk_3')->references(['company_id'])->on('companies')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('locations', function(Blueprint $table) {
+        Schema::table('locations', function (Blueprint $table) {
             $table->dropForeign('locations_ibfk_3');
             $table->dropColumn('company_id');
         });

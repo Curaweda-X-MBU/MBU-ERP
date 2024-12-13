@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('recording_nonstocks', function(Blueprint $table) {
+        Schema::table('recording_nonstocks', function (Blueprint $table) {
             $table->integer('recording_id')->index('recording_id')->nullable()->after('recording_nonstock_id');
             $table->foreign(['recording_id'], 'recnonstock_recording_recording_id')->references(['recording_id'])->on('recordings')->onUpdate('no action')->onDelete('no action');
         });
@@ -20,5 +20,8 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void {}
+    public function down(): void
+    {
+        
+    }
 };

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('fcr', function(Blueprint $table) {
+        Schema::table('fcr', function (Blueprint $table) {
             $table->decimal('value', 5, 2)->change();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('fcr', function(Blueprint $table) {
+        Schema::table('fcr', function (Blueprint $table) {
             //
         });
     }

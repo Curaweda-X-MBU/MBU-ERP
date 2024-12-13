@@ -10,9 +10,7 @@ class ProductComponent extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
     protected $table = 'product_components';
-
     protected $primaryKey = 'product_component_id';
 
     protected $fillable = [
@@ -23,16 +21,14 @@ class ProductComponent extends Model
         'price',
         'tax',
         'expiry_period',
-        'created_by',
+        'created_by'
     ];
 
-    public function supplier()
-    {
+    public function supplier() {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
-    public function uom()
-    {
+    public function uom() {
         return $this->belongsTo(Uom::class, 'uom_id');
     }
 }

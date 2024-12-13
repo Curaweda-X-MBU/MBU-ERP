@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('warehouses', function(Blueprint $table) {
+        Schema::create('warehouses', function (Blueprint $table) {
             $table->integer('warehouse_id', true);
             $table->string('name', 50);
             $table->tinyInteger('type');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('warehouses', function(Blueprint $table) {
+        Schema::table('warehouses', function (Blueprint $table) {
             $table->foreign(['location_id'], 'warehouses_locations_location_id')->references(['location_id'])->on('locations')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'warehouses_users_created_by')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });

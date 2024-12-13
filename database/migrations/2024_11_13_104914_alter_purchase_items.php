@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_items', function(Blueprint $table) {
+        Schema::table('purchase_items', function (Blueprint $table) {
             $table->dropForeign('items_uom_uom_id');
             $table->dropColumn('uom_id');
             $table->bigInteger('qty')->default(0)->change();

@@ -2,16 +2,14 @@
 
 namespace App\Models\Project;
 
-use App\Models\DataMaster\Supplier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\DataMaster\Supplier;
 
 class ProjectChickIn extends Model
 {
     use HasFactory;
-
     protected $table = 'project_chickin';
-
     protected $primaryKey = 'project_chickin_id';
 
     protected $fillable = [
@@ -22,16 +20,14 @@ class ProjectChickIn extends Model
         'chickin_date',
         'supplier_id',
         'hatchery',
-        'total_chickin',
+        'total_chickin'
     ];
 
-    public function project()
-    {
+    public function project() {
         return $this->belongsTo(Project::class, 'project_id');
     }
 
-    public function supplier()
-    {
+    public function supplier() {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

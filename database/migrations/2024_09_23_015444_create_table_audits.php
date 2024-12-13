@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('audits', function(Blueprint $table) {
+        Schema::create('audits', function (Blueprint $table) {
             $table->integer('audit_id', true);
             $table->string('title', 100);
             $table->text('description');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('audits', function(Blueprint $table) {
+        Schema::table('audits', function (Blueprint $table) {
             $table->foreign(['department_id'], 'audits_ibfk_1')->references(['department_id'])->on('departments')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -31,7 +31,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('audits', function(Blueprint $table) {
+        Schema::table('audits', function (Blueprint $table) {
             $table->dropForeign('audits_ibfk_1');
         });
         Schema::dropIfExists('audits');

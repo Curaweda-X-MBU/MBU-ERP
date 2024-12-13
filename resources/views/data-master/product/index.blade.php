@@ -43,7 +43,7 @@
                                                             <td>
                                                                 @if ($item->is_active)
                                                                     <div class="badge badge-pill badge-success">Ya</div>
-                                                                    @else
+                                                                    @else 
                                                                     <div class="badge badge-pill badge-secondary">Tidak</div>
                                                                 @endif
                                                             </td>
@@ -114,7 +114,7 @@
                                 order: [[0, 'desc']],
                             });
                             $('#delete').on('show.bs.modal', function (event) {
-                                var button = $(event.relatedTarget)
+                                var button = $(event.relatedTarget) 
                                 var id = button.data('id')
                                 var modal = $(this)
                                 modal.find('.modal-body #id').val(id)

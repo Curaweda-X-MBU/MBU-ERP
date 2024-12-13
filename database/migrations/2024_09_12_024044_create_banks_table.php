@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banks', function(Blueprint $table) {
+        Schema::create('banks', function (Blueprint $table) {
             $table->integer('bank_id', true);
             $table->string('code', 5);
             $table->string('short_name', 5)->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('banks', function(Blueprint $table) {
+        Schema::table('banks', function (Blueprint $table) {
             $table->foreign(['created_by'], 'banks_ibfk_1')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -32,7 +32,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('banks', function(Blueprint $table) {
+        Schema::table('banks', function (Blueprint $table) {
             $table->dropForeign('banks_ibfk_1');
         });
 

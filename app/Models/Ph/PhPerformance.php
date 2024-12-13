@@ -2,20 +2,19 @@
 
 namespace App\Models\Ph;
 
-use App\Models\DataMaster\Kandang;
-use App\Models\DataMaster\Supplier;
-use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\UserManagement\User;
+use App\Models\DataMaster\Kandang;
+use App\Models\DataMaster\Supplier;
 
 class PhPerformance extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
     protected $table = 'ph_performances';
-
     protected $primaryKey = 'ph_performance_id';
 
     protected $fillable = [
@@ -32,18 +31,15 @@ class PhPerformance extends Model
         'created_by',
     ];
 
-    public function createdby()
-    {
+    public function createdby() {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
-
-    public function kandang()
-    {
+    
+    public function kandang() {
         return $this->belongsTo(Kandang::class, 'kandang_id');
     }
 
-    public function supplier()
-    {
+    public function supplier() {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

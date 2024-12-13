@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 /**
  * Encrypt data using Laravel's Crypt facade.
  *
- * @param  string  $data
+ * @param string $data
  * @return string
  */
 function encryptData($data)
@@ -17,9 +17,8 @@ function encryptData($data)
 /**
  * Decrypt data using Laravel's Crypt facade.
  *
- * @param  string  $encryptedData
+ * @param string $encryptedData
  * @return string
- *
  * @throws DecryptException
  */
 function decryptData($encryptedData)

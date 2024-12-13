@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ph_complaints', function(Blueprint $table) {
+        Schema::create('ph_complaints', function (Blueprint $table) {
             $table->integer('ph_complaint_id', true);
             $table->string('product', 50);
             $table->tinyInteger('type');
@@ -30,14 +30,14 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('ph_complaints', function(Blueprint $table) {
+        Schema::table('ph_complaints', function (Blueprint $table) {
             $table->foreign(['company_id'], 'ph_complaints_ibfk_1')->references(['company_id'])->on('companies')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['location_id'], 'ph_complaints_ibfk_2')->references(['location_id'])->on('locations')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['supplier_id'], 'ph_complaints_ibfk_3')->references(['supplier_id'])->on('suppliers')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['created_by'], 'ph_complaints_ibfk_4')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('ph_chick_in', function(Blueprint $table) {
+        Schema::create('ph_chick_in', function (Blueprint $table) {
             $table->integer('ph_chick_in_id', true);
             $table->integer('ph_complaint_id')->index('ph_complaint_id');
             $table->date('date');
@@ -52,11 +52,11 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('ph_chick_in', function(Blueprint $table) {
+        Schema::table('ph_chick_in', function (Blueprint $table) {
             $table->foreign(['ph_complaint_id'], 'ph_chick_in_ibfk_1')->references(['ph_complaint_id'])->on('ph_complaints')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('ph_mortalities', function(Blueprint $table) {
+        Schema::create('ph_mortalities', function (Blueprint $table) {
             $table->integer('ph_mortality_id', true);
             $table->integer('ph_complaint_id')->index('ph_complaint_id');
             $table->integer('day');
@@ -65,7 +65,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('ph_mortalities', function(Blueprint $table) {
+        Schema::table('ph_mortalities', function (Blueprint $table) {
             $table->foreign(['ph_complaint_id'], 'ph_mortalities_ibfk_1')->references(['ph_complaint_id'])->on('ph_complaints')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -75,16 +75,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ph_complaints', function(Blueprint $table) {
+        Schema::table('ph_complaints', function (Blueprint $table) {
             $table->dropForeign('ph_complaints_ibfk_1');
             $table->dropForeign('ph_complaints_ibfk_2');
             $table->dropForeign('ph_complaints_ibfk_3');
             $table->dropForeign('ph_complaints_ibfk_4');
         });
-        Schema::table('ph_chick_in', function(Blueprint $table) {
+        Schema::table('ph_chick_in', function (Blueprint $table) {
             $table->dropForeign('ph_chick_in_ibfk_1');
         });
-        Schema::table('ph_mortalities', function(Blueprint $table) {
+        Schema::table('ph_mortalities', function (Blueprint $table) {
             $table->dropForeign('ph_mortalities_ibfk_1');
         });
         Schema::dropIfExists('ph_complaints');
