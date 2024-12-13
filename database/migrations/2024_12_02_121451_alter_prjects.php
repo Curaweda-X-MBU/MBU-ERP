@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('projects', function (Blueprint $table) {
+        Schema::table('projects', function(Blueprint $table) {
             $table->dateTime('first_day_old_chick')->nullable()->after('chickin_approval_date');
         });
     }

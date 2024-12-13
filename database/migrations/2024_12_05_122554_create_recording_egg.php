@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recording_eggs', function (Blueprint $table) {
+        Schema::create('recording_eggs', function(Blueprint $table) {
             $table->integer('recording_egg_id', true);
             $table->integer('recording_id')->index('recording_id');
             $table->integer('product_warehouse_id')->index('product_warehouse_id');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('notes')->nullable();
         });
 
-        Schema::table('recording_eggs', function (Blueprint $table) {
+        Schema::table('recording_eggs', function(Blueprint $table) {
             $table->foreign(['recording_id'], 'recegg_recordings_id')->references(['recording_id'])->on('recordings')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['product_warehouse_id'], 'recegg_prdwh_id')->references(['product_warehouse_id'])->on('product_warehouses')->onUpdate('no action')->onDelete('no action');
         });

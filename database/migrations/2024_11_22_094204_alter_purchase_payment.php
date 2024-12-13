@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_payments', function (Blueprint $table) {
+        Schema::table('purchase_payments', function(Blueprint $table) {
             $table->integer('approved_by')->index('approved_by')->nullable()->after('status');
             $table->string('reason')->nullable()->after('approved_by');
             $table->foreign(['approved_by'], 'payments_users_approved_by')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');

@@ -2,16 +2,18 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\UserManagement\User;
 
 class Customer extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'customers';
+
     protected $primaryKey = 'customer_id';
 
     protected $fillable = [
@@ -23,10 +25,11 @@ class Customer extends Model
         'address',
         'tax_num',
         'created_at',
-        'created_by'
+        'created_by',
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class, 'assign_to', 'user_id');
     }
 }

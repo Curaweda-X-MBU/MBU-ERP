@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('banks', function (Blueprint $table) {
+        Schema::table('banks', function(Blueprint $table) {
             $table->string('owner')->nullable()->after('name');
             $table->string('account_number')->nullable()->after('owner');
             $table->string('alias')->nullable()->after('account_number');

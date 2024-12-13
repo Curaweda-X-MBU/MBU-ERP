@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('ph_performances', function (Blueprint $table) {
+        Schema::table('ph_performances', function(Blueprint $table) {
             $table->decimal('percentage_depletion', 10, 2)->change();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ph_performances', function (Blueprint $table) {
+        Schema::table('ph_performances', function(Blueprint $table) {
             //
         });
     }

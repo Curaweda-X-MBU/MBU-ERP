@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('recording_nonstocks', function (Blueprint $table) {
+        Schema::table('recording_nonstocks', function(Blueprint $table) {
             $table->dropColumn('avg_weight');
             $table->dropColumn('total_chick');
             $table->dropColumn('total_calc');
         });
 
-        Schema::table('recording_bw', function (Blueprint $table) {
+        Schema::table('recording_bw', function(Blueprint $table) {
             $table->dropForeign('recbw_recording_nonstock_id');
         });
 
         Schema::dropIfExists('recording_bw');
-        Schema::create('recording_bw', function (Blueprint $table) {
+        Schema::create('recording_bw', function(Blueprint $table) {
             $table->integer('recording_bw_id', true);
             $table->integer('recording_id')->index('recording_id');
             $table->integer('product_warehouse_id')->index('product_warehouse_id');
@@ -33,12 +33,12 @@ return new class extends Migration
             $table->string('notes')->nullable();
         });
 
-        Schema::table('recording_bw', function (Blueprint $table) {
+        Schema::table('recording_bw', function(Blueprint $table) {
             $table->foreign(['recording_id'], 'recbw_recordings_id')->references(['recording_id'])->on('recordings')->onUpdate('no action')->onDelete('no action');
             $table->foreign(['product_warehouse_id'], 'recbw_prdwh_id')->references(['product_warehouse_id'])->on('product_warehouses')->onUpdate('no action')->onDelete('no action');
         });
 
-        Schema::create('recording_bw_lists', function (Blueprint $table) {
+        Schema::create('recording_bw_lists', function(Blueprint $table) {
             $table->integer('recording_bw_list_id', true);
             $table->integer('recording_bw_id')->index('recording_bw_id');
             $table->decimal('weight', 8, 2);
@@ -46,7 +46,7 @@ return new class extends Migration
             $table->bigInteger('weight_calc');
         });
 
-        Schema::table('recording_bw_lists', function (Blueprint $table) {
+        Schema::table('recording_bw_lists', function(Blueprint $table) {
             $table->foreign(['recording_bw_id'], 'recbwlist_recording_bw_id')->references(['recording_bw_id'])->on('recording_bw')->onUpdate('no action')->onDelete('no action');
         });
     }
