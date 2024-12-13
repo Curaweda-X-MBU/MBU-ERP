@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/approve/{id}', 'App\Http\Controllers\Project\ListController@approve')->name('project.list.approve')->middleware('permission:project.list.approve');
             Route::any('/delete/{id}', 'App\Http\Controllers\Project\ListController@delete')->name('project.list.delete')->middleware('permission:project.list.delete');
             Route::get('/search', 'App\Http\Controllers\Project\ListController@searchProject')->name('project.list.search');
+            Route::get('/search-period', 'App\Http\Controllers\Project\ListController@searchPeriod')->name('project.list.search-period');
         });
         Route::group(['prefix' => 'perparation'], function () {
             Route::get('/', 'App\Http\Controllers\Project\PreparationController@index')->name('project.perparation.index')->middleware('permission:project.perparation.index');
@@ -68,7 +69,7 @@ Route::middleware('auth')->group(function () {
             Route::any('/delete/{id}', 'App\Http\Controllers\Project\ChickinController@delete')->name('project.chick-in.delete')->middleware('permission:project.chick-in.delete');
         });
         Route::group(['prefix' => 'recording'], function () {
-            Route::get('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index')->middleware('permission:project.recording.index');
+            Route::any('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index')->middleware('permission:project.recording.index');
             Route::any('/add', 'App\Http\Controllers\Project\RecordingController@add')->name('project.recording.add')->middleware('permission:project.recording.add');
             // Route::any('/edit/{id}', 'App\Http\Controllers\Project\RecordingController@edit')->name('project.recording.edit')->middleware('permission:project.recording.index');
             Route::any('/detail/{id}', 'App\Http\Controllers\Project\RecordingController@detail')->name('project.recording.detail')->middleware('permission:project.recording.detail');

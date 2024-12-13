@@ -23,11 +23,26 @@ class RecordingController extends Controller
 {
     public function index(Request $req) {
         try {
-            $param = [
-                'title' => 'Project > Recording',
-                'data' => Recording::with(['project'])->get()
-            ];
-
+            $param = [ 'title' => 'Project > Recording' ];
+            $data = Recording::with('project');
+            if ($req->isMethod('post')) {
+                $projectId = $req->project_id;
+                $period = $req->period;
+                $whereClause = [];
+                if ($projectId != 0) {
+                    $whereClause['project_id'] = $projectId;
+                    $whereClause['project'] = Project::with('kandang')->find($projectId);
+                } 
+                if ($period != 0) {
+                    $whereClause['period'] = $period;
+                } 
+                $param['param'] = $whereClause;
+                $data->whereHas('project', function($query) use ($whereClause) {
+                    unset($whereClause['project']);
+                    $query->where($whereClause);
+                });
+            }
+            $param['data'] = $data->get();
             return view('project.recording.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
