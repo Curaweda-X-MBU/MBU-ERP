@@ -339,8 +339,6 @@ class ListController extends Controller
                         'saled_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
                         'discount'      => $input['discount'],
-                        'sub_total'     => $input['sub_total'],
-                        'grand_total'   => $input['grand_total'],
                     ]);
 
                     if ($req->has('marketing_products')) {

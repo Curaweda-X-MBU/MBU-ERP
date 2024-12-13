@@ -116,10 +116,10 @@
                                         <span id="invalid_qty" class="text-danger text-right small position-absolute pr-1" style="right: 0; font-size: 80%; opacity: 0;">Melebihi stock</span>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="weight_total" class="form-control text-center" value="" disabled>
+                                        <input type="text" name="weight_total" class="form-control text-center" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="price_total" id="price_total" class="form-control text-right" value="" disabled>
+                                        <input type="text" name="price_total" id="price_total" class="form-control text-right" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -162,7 +162,7 @@
                             <div class="row col-md-6 my-1" id="marketing-addit-prices-repeater-1" style="row-gap: 1em;">
                                 <div class="row col-12 text-right align-items-center" style="row-gap: 0.5em;">
                                     <div class="col-5"> <span>Total Sebelum Pajak:</span> </div>
-                                    <div class="col-5"> <span id="total_sebelum_pajak">Rp. 70,000,000.00</span> </div>
+                                    <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
                                     <div class="col-5"> <span>Pajak:</span> </div>
                                     <div class="col-5 input-group">
                                         <input type="number" min="0" max="100" class="form-control" value="0">
@@ -338,6 +338,12 @@
         }
         calculateTotalPerRow();
         // ? END :: CALCULATION ::  PRODUCT ROWS
+
+        // ? START :: CALCULATION ::  TOTALS
+        $('#total_sebelum_pajak').on('change', function() {
+            console.log('TOTAL CHANGED');
+        });
+        // ? END :: CALCULATION ::  TOTALS
 
         /*
         ----- FORM INPUT DATAS -----
