@@ -395,10 +395,10 @@ class ListController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Marketing $marketing)
+    public function delete(Marketing $id)
     {
         try {
-            $marketing->delete();
+            $id->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->route('marketing.list.index')->with($success);
