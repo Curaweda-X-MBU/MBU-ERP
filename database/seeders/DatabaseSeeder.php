@@ -32,14 +32,17 @@ class DatabaseSeeder extends Seeder
         Company::insert([
             [
                 'name'       => 'PT MITRA BERLIAN UNGGAS',
+                'alias'      => 'MBU',
                 'created_at' => date('Y-m-d H:i:s'),
             ],
             [
                 'name'       => 'PT MANDIRI BERLIAN UNGGAS',
+                'alias'      => 'Manbu',
                 'created_at' => date('Y-m-d H:i:s'),
             ],
             [
                 'name'       => 'PT LUMBUNG TELUR INDONESIA',
+                'alias'      => 'LTI',
                 'created_at' => date('Y-m-d H:i:s'),
             ],
         ]);

@@ -3,6 +3,7 @@
 namespace App\Models\Marketing;
 
 use App\Models\DataMaster\Company;
+use App\Models\DataMaster\Customer;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,7 +56,7 @@ class Marketing extends Model
 
     public function customer()
     {
-        return $this->belongsTo(User::class, 'customer_id', 'user_id');
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 
     public function sales()

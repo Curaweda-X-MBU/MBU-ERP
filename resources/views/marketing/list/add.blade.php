@@ -64,7 +64,7 @@
                                     <th>Bobot Avg<i class="text-danger">*</i></th>
                                     <th>UOM<i class="text-danger">*</i></th>
                                     <th>Qty<i class="text-danger">*</i></th>
-                                    <th>Total Bobot (Kg)</th>
+                                    <th>Total Bobot</th>
                                     <th>Total Penjualan (Rp)</th>
                                     <th>
                                         <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
@@ -343,7 +343,6 @@
         // ? START :: CALCULATION ::  GRAND TOTAL
         function calculateGrandTotal() {
             $(document).on('change input', '#addit_price, #total_setelah_pajak', function () {
-                console.count('triggered');
                 const totalSetelahPajak = parseValue($('#total_setelah_pajak').text());
                 const $totalPiutang = $('#total_piutang');
                 setTimeout(function(){
