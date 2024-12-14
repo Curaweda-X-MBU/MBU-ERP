@@ -45,12 +45,9 @@
                                             @endphp
                                             @switch($item->payment_status)
                                                 @case(1)
-                                                    <div class="badge badge-pill badge-secondary">{{ $statusPayment[$item->payment_status] }}</div>
+                                                    <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->payment_status] }}</div>
-                                                    @break
-                                                @case(3)
                                                     <div class="badge badge-pill badge-success">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
                                                 @default

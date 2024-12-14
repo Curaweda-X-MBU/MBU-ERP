@@ -148,7 +148,7 @@ class ListController extends Controller
                         'tax'            => $input['tax'],
                         'discount'       => self::parseValue($input['discount']),
                         'payment_status' => array_search(
-                            'Belum Dibayar',
+                            'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
                         ),
                         'marketing_status' => array_search(

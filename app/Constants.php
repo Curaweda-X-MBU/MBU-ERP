@@ -135,10 +135,9 @@ class Constants
     ];
 
     public const MARKETING_PAYMENT_STATUS = [
-        1 => 'Belum Dibayar',
-        2 => 'Tempo',
-        3 => 'Dibayar Sebagian',
-        4 => 'Dibayar Penuh',
+        1 => 'Tempo',
+        2 => 'Dibayar Sebagian',
+        3 => 'Dibayar Penuh',
     ];
 
     public const MARKETING_STATUS = [
