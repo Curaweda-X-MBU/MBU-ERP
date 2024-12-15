@@ -46,14 +46,6 @@ class StockLog extends Model
         return $this->belongsTo(PurchaseItem::class, 'purchase_item_id');
     }
 
-    private static function parseValue(string $value): float
-    {
-        $value = str_replace('.', '', $value);
-        $value = str_replace(',', '.', $value);
-
-        return floatval($value) ?: 0;
-    }
-
     public static function triggerStock($input)
     {
         try {
@@ -61,8 +53,8 @@ class StockLog extends Model
             $productId      = $input['product_id'];
             $warehouseId    = $input['warehouse_id'];
             $currentWhStock = ProductWarehouse::where(['product_id' => $productId, 'warehouse_id' => $warehouseId])->first();
-            $increase       = self::parseValue($input['increase']);
-            $decrease       = self::parseValue($input['decrease']);
+            $increase       = parseLocale($input['increase']);
+            $decrease       = parseLocale($input['decrease']);
             $stock          = new ProductWarehouse;
 
             if ($currentWhStock) {
