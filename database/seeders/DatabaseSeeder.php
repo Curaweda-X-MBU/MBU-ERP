@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name'       => 'PT MANDIRI BERLIAN UNGGAS',
-                'alias'      => 'Manbu',
+                'alias'      => 'MAN',
                 'created_at' => date('Y-m-d H:i:s'),
             ],
             [

@@ -78,8 +78,12 @@ class ListController extends Controller
         'driver_name.required' => 'Nama Driver tidak boleh kosong',
     ];
 
-    private static function parseValue(string $value): float
+    private static function parseValue(?string $value): float
     {
+        if (is_null($value)) {
+            return 0;
+        }
+
         $value = str_replace('.', '', $value);
         $value = str_replace(',', '.', $value);
 
@@ -176,7 +180,7 @@ class ListController extends Controller
                             $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
-                            $arrProduct[$key]['uom_id']       = 1;
+                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
                             $arrProduct[$key]['qty']          = $qty;
                             $arrProduct[$key]['weight_total'] = $weightTotal;
                             $arrProduct[$key]['total_price']  = $totalPrice;
@@ -185,25 +189,28 @@ class ListController extends Controller
                         MarketingProduct::insert($arrProduct);
                     }
 
-                    $createdMarketing->update([
-                        'sub_total'   => $totalPrices,
-                        'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
-                            : $totalPrices                                          - self::parseValue($input['discount']),
-                    ]);
+                    if ($req->has('marketing_products')) {
+                        $createdMarketing->update([
+                            'sub_total'   => $totalPrices,
+                            'grand_total' => isset($input['tax'])
+                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
+                                : $totalPrices                                          - self::parseValue($input['discount']),
+                        ]);
+                    }
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
+                        $item     = $value['item'] ?? null;
+                        $price    = self::parseValue($value['price']);
 
-                        foreach ($arrPrice as $key => $value) {
-                            $price = self::parseValue($value['price']);
-
-                            $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
-                            $arrPrice[$key]['item']         = $value['item'];
-                            $arrPrice[$key]['price']        = $price;
+                        if ($item && $price) {
+                            foreach ($arrPrice as $key => $value) {
+                                $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                                $arrPrice[$key]['item']         = $item;
+                                $arrPrice[$key]['price']        = $price;
+                            }
+                            MarketingAdditPrice::insert($arrPrice);
                         }
-
-                        MarketingAdditPrice::insert($arrPrice);
                     }
 
                     $createdMarketing->update([
@@ -359,22 +366,20 @@ class ListController extends Controller
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
-                        $arrPrice = $req->input('marketing_addit_prices');
-
                         $marketing->marketing_addit_prices()->delete();
 
-                        foreach ($arrPrice as $key => $value) {
-                            $item  = $value['item'];
-                            $price = self::parseValue($value['price']);
+                        $arrPrice = $req->input('marketing_addit_prices');
+                        $item     = $value['item'] ?? null;
+                        $price    = self::parseValue($value['price']);
 
-                            $arrPrice[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'item'         => $item,
-                                'price'        => $price,
-                            ];
+                        if ($item && $price) {
+                            foreach ($arrPrice as $key => $value) {
+                                $arrPrice[$key]['marketing_id'] = $marketing->marketing_id;
+                                $arrPrice[$key]['item']         = $item;
+                                $arrPrice[$key]['price']        = $price;
+                            }
+                            MarketingAdditPrice::insert($arrPrice);
                         }
-
-                        MarketingAdditPrice::insert($arrPrice);
                     }
                 });
 
