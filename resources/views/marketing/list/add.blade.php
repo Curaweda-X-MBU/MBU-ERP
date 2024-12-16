@@ -23,37 +23,28 @@
             <div class="card-body">
                 <form class="form-horizontal" method="post" action="{{ route('marketing.list.add') }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
-                    <div class="row row-cols-2 row-cols-md-4">
+                    <div class="row row-cols-2 row-cols-md-4 align-items-baseline">
                         <!-- Nama Pelanggan -->
                         <div class="col-md-2 mt-1">
-                            <label for="customer_id" class="form-label">Nama Pelanggan</label>
-                            <select name="customer_id" id="customer_id" class="form-control">
-                                @if(old('customer_id') && old('customer_id'))
-                                    <option value="{{ old('customer_id') }}" selected="selected">{{ old('customer_name') }}</option>
-                                @endif
+                            <label for="customer_id" class="form-label">Nama Pelanggan<i class="text-danger">*</i></label>
+                            <select name="customer_id" id="customer_id" class="form-control" required>
                             </select>
-                            @if ($errors->has('customer_id'))
-                                <span class="text-danger small">{{ $errors->first('customer_id') }}</span>
-                            @endif
                         </div>
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-2 mt-1">
-                            <label for="sold_at" class="form-label">Tanggal Penjualan</label>
-                            <input id="sold_at" name="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" required>
-                            @if ($errors->has('sold_at'))
-                                <span class="text-danger small">{{ $errors->first('sold_at') }}</span>
-                            @endif
+                            <label for="sold_at" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
+                            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now()->format('d-M-Y') }}" required>
                         </div>
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
                             <label for="marketing_status" class="form-label">Status</label>
-                            <input id="marketing_status" value="Diajukan" name="status" type="text" class="form-control" disabled>
+                            <input id="marketing_status" value="Diajukan" name="marketing_status" type="text" class="form-control" disabled required>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
                             <label for="doc_reference" class="form-label">Referensi Dokumen</label>
                             <div class="input-group">
-                                <input type="text" id="fileName" placeholder="Upload" class="form-control">
+                                <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1">
                                 <input type="file" id="transparentFileUpload" name="doc_reference">
                                 <div class="input-group-append">
                                     <span class="input-group-text"> <i data-feather="upload"></i> </span>
@@ -67,13 +58,14 @@
                         <table id="marketing-product-repeater-1" class="table w-100">
                             <thead>
                                 <tr class="text-center">
-                                    <th>Kandang/Hatchery*</th>
-                                    <th class="col-2">Nama Produk*</th>
-                                    <th>Harga Satuan (Rp)*</th>
-                                    <th>Bobot Avg (Kg)*</th>
-                                    <th>Qty*</th>
-                                    <th>Total Bobot (Kg)*</th>
-                                    <th>Total Penjualan (Rp)*</th>
+                                    <th>Kandang/Hatchery<i class="text-danger">*</i></th>
+                                    <th class="col-2">Nama Produk<i class="text-danger">*</i></th>
+                                    <th>Harga Satuan (Rp)<i class="text-danger">*</i></th>
+                                    <th>Bobot Avg<i class="text-danger">*</i></th>
+                                    <th>UOM<i class="text-danger">*</i></th>
+                                    <th>Qty<i class="text-danger">*</i></th>
+                                    <th>Total Bobot</th>
+                                    <th>Total Penjualan (Rp)</th>
                                     <th>
                                         <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
                                             <i data-feather="plus"></i>
@@ -84,42 +76,35 @@
                             <tbody data-repeater-list="marketing_products">
                                 <tr class="text-center" data-repeater-item>
                                     <td class="pt-2 pb-3">
-                                        <select name="marketing_kandang_id" class="form-control marketing_kandang_select">
-                                            @if(old('marketing_kandang_id') && old('marketing_kandang_id'))
-                                                <option value="{{ old('marketing_kandang_id') }}" selected="selected">{{ old('marketing_kandang_name') }}</option>
-                                            @endif
+                                        <select name="kandang_id" class="form-control marketing_kandang_select" required>
                                         </select>
-                                        @if ($errors->has('marketing_kandang_id'))
-                                            <span class="text-danger small">{{ $errors->first('marketing_kandang_id') }}</span>
-                                        @endif
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
-                                        <select name="marketing_product_id" class="form-control marketing_product_select">
-                                            @if(old('marketing_product_id') && old('marketing_product_id'))
-                                                <option value="{{ old('marketing_product_id') }}" selected="selected">{{ old('marketing_product_name') }}</option>
-                                            @endif
+                                        <select name="product_id" class="form-control marketing_product_select" required>
+                                            <option disabled selected>Pilih Kandang terlebih dahulu</option>
                                         </select>
-                                        <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0000</span></small>
-                                        @if ($errors->has('marketing_product_id'))
-                                            <span class="text-danger small">{{ $errors->first('marketing_product_id') }}</span>
-                                        @endif
+                                        <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0</span></small>
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
-                                        <input type="text" name="price" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)">
+                                        <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" required>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="weight_avg" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)">
+                                        <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" required>
+                                    </td>
+                                    <td class="pt-2 pb-3">
+                                        <select name="uom_id" class="form-control uom_select" required>
+                                        </select>
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
-                                        <input type="number" name="qty" id="qty" max="5000" hidden>
-                                        <input type="text" name="qty_mask" id="qty_mask" class="form-control numeral-mask" placeholder="Qty">
+                                        <input type="number" name="qty" id="qty" max="0" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                                        <input type="text" id="qty_mask" class="form-control numeral-mask" placeholder="Qty" required>
                                         <span id="invalid_qty" class="text-danger text-right small position-absolute pr-1" style="right: 0; font-size: 80%; opacity: 0;">Melebihi stock</span>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="weight_total" class="form-control text-center" value="0,00" disabled>
+                                        <input type="text" id="weight_total" class="form-control" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
-                                        <input type="text" name="price_total" id="price_total" class="form-control text-right" value="0,00" disabled>
+                                        <input type="text" id="price_total" class="form-control" value="0,00" disabled>
                                     </td>
                                     <td class="pt-2 pb-3">
                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -140,7 +125,7 @@
                                 <div class="row">
                                     <div class="col-md-8 mt-1">
                                         <label for="catatan" class="form-label">Catatan :</label>
-                                        <textarea id="catatan" class="form-control" rows="3"></textarea>
+                                        <textarea id="catatan" name="notes" class="form-control" rows="3"></textarea>
                                     </div>
 
                                     <div class="col-md-4 mt-1">
@@ -165,17 +150,17 @@
                                     <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
                                     <div class="col-5"> <span>Pajak:</span> </div>
                                     <div class="col-5 input-group">
-                                        <input type="number" min="0" max="100" class="form-control" value="0">
+                                        <input name="tax" type="number" min="0" max="100" class="form-control" value="0">
                                         <div class="input-group-append"><span class="input-group-text">%</span></div>
                                     </div>
                                     <div class="col-5"> <span>Diskon:</span> </div>
                                     <div class="col-5 input-group">
                                         <div class="input-group-prepend"><span class="input-group-text">Rp.</span></div>
-                                        <input type="text" class="form-control numeral-mask" value="0">
+                                        <input name="discount" type="text" class="form-control numeral-mask" value="0">
                                     </div>
                                     <div class="offset-5 col-5"> <hr class="border-bottom"> </div>
                                     <div class="col-5"> <span>Total Setelah Pajak dan Diskon:</span> </div>
-                                    <div class="col-5"> <span class="font-weight-bolder">Rp. 70,000,000.00</span> </div>
+                                    <div class="col-5"> Rp. <span id="total_setelah_pajak" class="font-weight-bolder">0,00</span> </div>
                                 </div>
                                 {{-- BEGIN: Tambah biaya lainnya --}}
                                 <div class="row col-12 text-right align-items-center" data-repeater-list="marketing_addit_prices" style="row-gap: 0.5em;">
@@ -186,10 +171,10 @@
                                         </button>
                                     </div>
                                     <div class="row align-items-center" data-repeater-item>
-                                        <div class="col-5"> <input type="text" class="form-control" placeholder="Item"> </div>
+                                        <div class="col-5"> <input name="item" type="text" class="form-control" placeholder="Item"> </div>
                                         <div class="col-5 input-group">
                                             <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
-                                            <input type="text" class="form-control numeral-mask" placeholder="Harga">
+                                            <input type="text" name="price" id ="addit_price" class="form-control numeral-mask" placeholder="Harga">
                                         </div>
                                         <div class="col-2 text-left">
                                             <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -201,7 +186,7 @@
                                 <div class="row col-12 text-right align-items-center" data-repeater-list="marketing_addit_prices" style="row-gap: 0.5em;">
                                     <div class="offset-5 col-5"> <hr class="border-bottom" style="border-color: black;"> </div>
                                     <div class="col-5"> <span>Total Piutang Penjualan:</span> </div>
-                                    <div class="col-5"> <span class="font-weight-bolder" style="font-size: 1.2em;">Rp. 120,000,000.00</span> </div>
+                                    <div class="col-5"> Rp. <span id="total_piutang" class="font-weight-bolder" style="font-size: 1.2em;">0,00</span> </div>
                                 </div>
                                 {{-- START: Grand Total --}}
                                 {{-- END: Grand Total --}}
@@ -233,8 +218,11 @@
         $('#transparentFileUpload').on('change', function() {
             $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
         })
-    })
+    });
 
+    /* NOTE :
+    ----- HELPER FUNCTIONS -----
+    */
     function parseValue(value) { return parseFloat(value.replace(/\./g, '').replace(',', '.') || 0); }
 
     // ? START :: SWAL2 ::  DELETE CONFIRMATION
@@ -267,7 +255,6 @@
             });
         });
     }
-    initNumeralMask();
     // ? END :: NUMERAL MASK :: INITIALIZE
 
     // ? START :: SELECT2 :: INITIALIZE
@@ -296,159 +283,161 @@
             },
        });
     }
-
     // ? END :: SELECT2 :: INITIALIZE
 
+    // ? START :: SET VALUE :: QTY & CURRENT STOCK
+    function setQtyStock($this, reset) {
+        let qty;
+        if (reset) {
+            qty = 0;
+        } else {
+            const data = $this.select2('data')[0];
+            qty = data && data.qty ? data.qty : 0;
+        }
+        const value = qty.toLocaleString('id-ID');
+        const $rowScope = $this.closest('tr');
+
+        $rowScope.find('#current_stock').text(value);
+        $rowScope.find('#qty').attr('max', qty);
+    }
+    // ? END :: SET VALUE :: QTY & CURRENT STOCK
+
     $(function() {
+        /* NOTE :
+        ----- CALCULATIONS -----
+        */
         // ? START :: CALCULATION ::  PRODUCT ROWS
         function calculateTotalPerRow() {
-            $('[data-repeater-list]').on('input', '[data-repeater-item] input[name*="qty_mask"], [data-repeater-item] input[name*="weight_avg"], [data-repeater-item] input[name*="price"]', function () {
-                // Get the current row
+            $('#marketing-product-repeater-1').on('input', '[data-repeater-item] #qty_mask, [data-repeater-item] input[name*="weight_avg"], [data-repeater-item] input[name*="price"]', function () {
                 const $row = $(this).closest('tr');
 
-                // Get the input fields within the current row
-                const $qtyInput = $row.find('input[name*="qty_mask"]');
+                const $qtyInput = $row.find('#qty_mask');
                 const $weightAvgInput = $row.find('input[name*="weight_avg"]');
                 const $priceInput = $row.find('input[name*="price"]');
-                const $weightTotalInput = $row.find('input[name*="weight_total"]');
-                const $priceTotalInput = $row.find('input[name*="price_total"]');
+                const $weightTotalInput = $row.find('#weight_total');
+                const $priceTotalInput = $row.find('#price_total');
                 const $totalSebelumPajak = $('#total_sebelum_pajak');
+                const $totalSebelumPajakInput = $('input[name="total_sebelum_pajak"]');
 
-                // Parse the values (strip commas or formatting if necessary)
                 const qty = parseValue($qtyInput.val());
                 const weightAvg = parseValue($weightAvgInput.val());
                 const price = parseValue($priceInput.val());
 
-                // Perform calculations
                 const weightTotal = qty * weightAvg;
                 const priceTotal = weightTotal * price;
 
-                // Update the disabled input fields with localized formatting
                 $weightTotalInput.val(weightTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 $priceTotalInput.val(priceTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
                 setTimeout(function(){
-                    const priceAllRow = $('#marketing-product-repeater-1 input[name*="price_total"]').get().reduce(function(acc, elem) {
+                    const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
                         const value = parseValue($(elem).val());
                         return acc + value;
                     }, 0);
-                    $totalSebelumPajak.text(priceAllRow.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    $totalSebelumPajak.text(priceAllRow.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
                 }, 0);
             });
         }
-        calculateTotalPerRow();
         // ? END :: CALCULATION ::  PRODUCT ROWS
 
-        // ? START :: CALCULATION ::  TOTALS
-        $('#total_sebelum_pajak').on('change', function() {
-            console.log('TOTAL CHANGED');
-        });
-        // ? END :: CALCULATION ::  TOTALS
+        // ? START :: CALCULATION ::  GRAND TOTAL
+        function calculateGrandTotal() {
+            $(document).on('change input', '#addit_price, #total_setelah_pajak', function () {
+                const totalSetelahPajak = parseValue($('#total_setelah_pajak').text());
+                const $totalPiutang = $('#total_piutang');
+                setTimeout(function(){
+                    const priceAllRow = $('#addit_price').get().reduce(function(acc, elem) {
+                        const value = parseValue($(elem).val());
+                        return acc + value;
+                    }, 0);
+                    $totalPiutang.text((totalSetelahPajak + priceAllRow).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                }, 0);
+            });
+        }
+        // ? END :: CALCULATION ::  GRAND TOTAL
 
-        /*
-        ----- FORM INPUT DATAS -----
+        // ? START :: CALCULATION ::  BEFORE TAX
+        function calculateBeforeTax() {
+            $(document).on('change input', 'input[name="discount"], input[name="tax"], #total_sebelum_pajak', function () {
+                const $totalSetelahPajak = $('#total_setelah_pajak');
+                const totalSebelumPajak = parseValue($('#total_sebelum_pajak').text());
+                const tax = $('input[name="tax"]').val();
+                const discount = parseValue($('input[name="discount"]').val());
+                let total;
+                if (tax > 0) {
+                    total = totalSebelumPajak + (totalSebelumPajak * (tax / 100)) - discount;
+                } else {
+                    total = totalSebelumPajak - discount;
+                }
+                $totalSetelahPajak.text(total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
+            });
+        }
+        // ? END :: CALCULATION ::  BEFORE TAX
+
+        /* NOTE :
+        ----- INITIALIZATIONS -----
         */
-        // ? START :: SELECT2 :: CUSTOMER ID
-        const customerIdRoute = '{{ route("user-management.user.search") }}';
-        initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
-
-        var oldValueCustomer = "{{ old('customer_id') }}";
-        if (oldValueCustomer) {
-            var oldNameCustomer = "{{ old('customer_name') }}";
-            if (oldNameCustomer) {
-                var newOption = new Option(oldNameCustomer, oldValueCustomer, true, true);
-                $('#customer_id').append(newOption).trigger('change');
-            }
-        }
-
-        @if ($errors->has('customer_id'))
-            $('#customer_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-        @endif
-        // ? END :: SELECT2 :: CUSTOMER ID
-
-        // ? START :: SELECT2 :: SALES ID
-        const salesIdRoute = '{{ route("user-management.user.search") }}';
-        initSelect2($('#sales_id'), 'Pilih Sales', salesIdRoute);
-
-        var oldValueSales = "{{ old('sales_id') }}";
-        if (oldValueSales) {
-            var oldNameSales = "{{ old('sales_name') }}";
-            if (oldNameSales) {
-                var newOption = new Option(oldNameSales, oldValueSales, true, true);
-                $('#sales_id').append(newOption).trigger('change');
-            }
-        }
-
-        @if ($errors->has('sales_id'))
-            $('#sales_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-        @endif
-        // ? END :: SELECT2 :: SALES ID
-
         // ? START :: FLATPICKR ::  SOLD AT
         const dateOpt = { dateFormat: 'd-M-Y' };
         $('.flatpickr-basic').flatpickr(dateOpt);
         // ? END :: FLATPICKR ::  SOLD AT
 
-        /*
-        ----- PRODUCTS INITIALIZE -----
-        */
+        // ? START :: SELECT2
+        const customerIdRoute = '{{ route("data-master.customer.search") }}';
+        const salesIdRoute = '{{ route("user-management.user.search") }}';
+        initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
+        initSelect2($('#sales_id'), 'Pilih Sales', salesIdRoute);
+        // ? END :: SELECT2
 
-        // ? START :: SELECT2 ::  MARKETING KANDANG
-        var kandangIdRoute = '{{ route("data-master.kandang.search") }}';
-        initSelect2($('.marketing_kandang_select'), 'Pilih Kandang', kandangIdRoute);
-        // ? END :: SELECT2 ::  MARKETING KANDANG
-
-        // ? START :: SELECT2 :: MARKETING PRODUCT
-        $('.marketing_kandang_select').on('change', function() {
-            const marketingKandangId = $(this).val();
-
-            let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
-            productIdRoute = productIdRoute.replace(':id', marketingKandangId);
-            initSelect2($('.marketing_product_select'), 'Pilih Produk', productIdRoute);
-        });
-
-        $('.marketing_product_select').on('select2:select', function(e) {
-            const { qty } = $(this).select2('data')[0];
-            const value = qty.toLocaleString('id-ID');
-
-            const $rowScope = $(this).closest('tr');
-
-            $rowScope.find('#current_stock').text(value);
-            $rowScope.find('#qty').attr('max', qty);
-
-        });
-
-        $('#qty_mask').on('input', function() {
-            const val = parseValue($(this).val());
-            const stock = parseValue($(this).closest('tr').find('#current_stock').text());
-            $(this).siblings('#qty').val(val);
-            if (val > stock) {
-                $(this).siblings('#invalid_qty').css('opacity', 1);
-            } else {
-                $(this).siblings('#invalid_qty').css('opacity', 0);
-            }
-        });
-        // ? END :: SELECT2 :: MARKETING PRODUCT
-
-        // ? START :: REPEATER :: PRODUCTS
+        // ? START :: REPEATER OPTS :: PRODUCTS
         const optMarketingProduct = {
+            initEmpty: true,
             show: function() {
-                const $rowScope = $(this);
-                $rowScope.slideDown();
-
-                // ? START :: SELECT2 :: MARKETING KANDANG
-                $rowScope.find('.select2-container').remove();
-                initSelect2($('.marketing_kandang_select'), 'Pilih Kandang', kandangIdRoute);
-                // ? END :: SELECT2 :: MARKETING KANDANG
-                // ? START :: SELECT2 :: MARKETING PRODUCT
-                $(this).find('.marketing_kandang_select').on('change', function() {
+                const $row = $(this);
+                $row.slideDown();
+                const $uomSelect = $row.find('.uom_select');
+                const $marketingKandangSelect = $row.find('.marketing_kandang_select');
+                const $marketingProductSelect = $row.find('.marketing_product_select');
+                const kandangIdRoute = '{{ route("data-master.kandang.search") }}';
+                const uomIdRoute = '{{ route("data-master.uom.search") }}';
+                // ? START :: SELECT2 :: REINITIALIZE
+                initSelect2($marketingKandangSelect, 'Pilih Kandang', kandangIdRoute);
+                initSelect2($uomSelect, 'Pilih Satuan', uomIdRoute);
+                // START :: MARKETING PRODUCT + STOCK UPDATE
+                $marketingProductSelect.html('<option disabled selected>Pilih Kandang terlebih dahulu</option>');
+                $marketingKandangSelect.on('change', function(e) {
+                    e.preventDefault();
                     const marketingKandangId = $(this).val();
+                    $marketingProductSelect.val(null).trigger('change').html('');
 
-                    let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
-                    productIdRoute = productIdRoute.replace(':id', marketingKandangId);
-                    initSelect2($rowScope.find('.marketing_product_select'), 'Pilih Produk', productIdRoute);
+                    if (marketingKandangId) {
+                        let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
+                        productIdRoute = productIdRoute.replace(':id', marketingKandangId);
+                        initSelect2($marketingProductSelect, 'Pilih Produk', productIdRoute);
+                        setQtyStock($marketingProductSelect, true);
+                    } else {
+                        $marketingProductSelect.html('<option disabled selected>Pilih Kandang terlebih dahulu</option>');
+                        setQtyStock($(this), true);
+                    }
                 });
-                // ? END :: SELECT2 :: MARKETING PRODUCT
+                $marketingProductSelect.on('select2:select', function() {
+                    setQtyStock($(this));
+                });
+                // END :: MARKETING PRODUCT + STOCK UPDATE
+
+                // ? START :: VALIDATION :: QTY
+                $row.find('#qty_mask').on('input', function() {
+                    const val = parseValue($(this).val());
+                    const stock = parseValue($row.find('#current_stock').text());
+                    $(this).siblings('#qty').val(val);
+                    if (val > stock) {
+                        $(this).siblings('#invalid_qty').css('opacity', 1);
+                    } else {
+                        $(this).siblings('#invalid_qty').css('opacity', 0);
+                    }
+                });
+                // ? END :: VALIDATION :: QTY
+                // ? END :: SELECT2 :: REINITIALIZE
 
                 // FEATHER ICON
                 if (feather) {
@@ -456,45 +445,40 @@
                 }
 
                 initNumeralMask();
-                calculateTotalPerRow();
             },
             hide: function(deleteElement) {
                 confirmDelete(this, deleteElement);
             },
         };
 
-        const $marketingProductRepeater = $('#marketing-product-repeater-1').repeater(optMarketingProduct);
-        const oldMarketingProducts = @json(old('marketing_products'));
-        if (oldMarketingProducts) {
-            $marketingProductRepeater.setList(oldMarketingProduct);
+        // ? END :: REPEATER OPTS :: PRODUCTS
 
-            $.each(oldMarketingProducts, function(index, product) {
-                const $select = $(`.marketing_kandang_select:eq(${index})`);
-                const newOption = new Option(product.marketing_kandang_name, product.marketing_kandang_id, true, true);
-                $select.append(newOption).trigger('change');
-            })
-        }
-        // ? END :: REPEATER :: PRODUCTS
-
-        // ? START :: REPEATER :: MARKETING ADDIT PRICES
+        // ? START :: REPEATER OPTS :: MARKETING ADDIT PRICES
         const optMarketingAdditPrices = {
+            initEmpty: true,
             show: function() {
                 $(this).slideDown();
-
-                initNumeralMask();
-
                 // FEATHER ICONS
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
+                initNumeralMask();
             },
             hide: function(deleteElement) {
                 confirmDelete(this, deleteElement);
             },
         };
+        // ? END :: REPEATER OPTS :: MARKETING ADDIT PRICES
 
-        const $marketingAdditPricesRepeater = $('#marketing-addit-prices-repeater-1').repeater(optMarketingAdditPrices);
-        // ? END :: REPEATER :: MARKETING ADDIT PRICES
+        // ? START :: REPEATER :: INITIALIZE
+        $('#marketing-addit-prices-repeater-1').repeater(optMarketingAdditPrices);
+        $('#marketing-addit-prices-repeater-1').find('button[data-repeater-create]').trigger('click');
+        $('#marketing-product-repeater-1').repeater(optMarketingProduct);
+        $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+        calculateTotalPerRow();
+        calculateBeforeTax();
+        calculateGrandTotal();
+        // ? END :: REPEATER :: INITIALIZE
     });
 </script>
 

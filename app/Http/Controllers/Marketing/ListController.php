@@ -78,6 +78,18 @@ class ListController extends Controller
         'driver_name.required' => 'Nama Driver tidak boleh kosong',
     ];
 
+    private static function parseValue(?string $value): float
+    {
+        if (is_null($value)) {
+            return 0;
+        }
+
+        $value = str_replace('.', '', $value);
+        $value = str_replace(',', '.', $value);
+
+        return floatval($value) ?: 0;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -110,31 +122,7 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $input     = $req->all();
-                $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
-                if ($validator->fails()) {
-                    if (isset($input['customer_id'])) {
-                        $input['customer_name'] = Customer::find(
-                            $input['customer_id']
-                        )->name;
-                    }
-                    if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find(
-                            $input['company_id']
-                        )->name;
-                    }
-                    if (isset($input['sales_id'])) {
-                        $input['sales_name'] = User::find(
-                            $input['sales_id']
-                        )->name;
-                    }
-
-                    return redirect()
-                        ->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
-                }
-
+                $input = $req->all();
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
@@ -147,7 +135,7 @@ class ListController extends Controller
 
                     $docReferencePath = '';
                     if ($req->hasFile('doc_reference')) {
-                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
+                        $docUrl = FileHelper::upload($input['doc_reference'], Constants::MARKETING_DOC_REFERENCE_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
                         }
@@ -160,11 +148,11 @@ class ListController extends Controller
                         'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference'  => $docReferencePath,
                         'notes'          => $input['notes'],
-                        'saled_id'       => $input['sales_id'],
+                        'sales_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
-                        'discount'       => $input['discount'],
+                        'discount'       => self::parseValue($input['discount']),
                         'payment_status' => array_search(
-                            'Belum Dibayar',
+                            'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
                         ),
                         'marketing_status' => array_search(
@@ -178,52 +166,51 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = str_replace(',', '', $value['price'] ?? 0);
-                            $weightAvg = str_replace(',', '', $value['weight_avg'] ?? 0);
-                            $qty       = str_replace(',', '', $value['qty'] ?? 0);
+                            $price     = self::parseValue($value['price']);
+                            $weightAvg = self::parseValue($value['weight_avg']);
+                            $qty       = self::parseValue($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice  = $price     * $weightTotal;
 
                             $totalPrices += $totalPrice;
 
-                            $arrProduct[$key] = [
-                                'marketing_id' => $createdMarketing->marketing_id,
-                                'kandang_id'   => $input['kandang_id'],
-                                'product_id'   => $input['product_id'],
-                                'price'        => $price,
-                                'weight_avg'   => $weightAvg,
-                                'uom_id'       => $input['uom_id'],
-                                'qty'          => $qty,
-                                'weight_total' => $weightTotal,
-                                'total_price'  => $totalPrice,
-                            ];
+                            $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['product_id']   = $value['product_id'];
+                            $arrProduct[$key]['price']        = $price;
+                            $arrProduct[$key]['weight_avg']   = $weightAvg;
+                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
+                            $arrProduct[$key]['qty']          = $qty;
+                            $arrProduct[$key]['weight_total'] = $weightTotal;
+                            $arrProduct[$key]['total_price']  = $totalPrice;
                         }
 
                         MarketingProduct::insert($arrProduct);
                     }
 
-                    $createdMarketing->update([
-                        'sub_total'   => $totalPrices,
-                        'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
-                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
-                    ]);
+                    if ($req->has('marketing_products')) {
+                        $createdMarketing->update([
+                            'sub_total'   => $totalPrices,
+                            'grand_total' => isset($input['tax'])
+                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
+                                : $totalPrices                                          - self::parseValue($input['discount']),
+                        ]);
+                    }
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
+                        $item     = $value['item'] ?? null;
+                        $price    = self::parseValue($value['price']);
 
-                        foreach ($arrPrice as $key => $value) {
-                            $price = str_replace(',', '', $value['price']);
-
-                            $arrPrice[$key] = [
-                                'marketing_id' => $createdMarketing->marketing_id,
-                                'item'         => $value['item'],
-                                'price'        => $price,
-                            ];
+                        if ($item && $price) {
+                            foreach ($arrPrice as $key => $value) {
+                                $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
+                                $arrPrice[$key]['item']         = $item;
+                                $arrPrice[$key]['price']        = $price;
+                            }
+                            MarketingAdditPrice::insert($arrPrice);
                         }
-
-                        MarketingAdditPrice::insert($arrPrice);
                     }
 
                     $createdMarketing->update([
@@ -336,7 +323,7 @@ class ListController extends Controller
                         'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference' => $docReferencePath,
                         'notes'         => $input['notes'],
-                        'saled_id'      => $input['sales_id'],
+                        'sales_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
                         'discount'      => $input['discount'],
                     ]);
@@ -347,9 +334,9 @@ class ListController extends Controller
                         $marketing->marketing_products()->delete();
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = str_replace(',', '', $value['price'] ?? 0);
-                            $weightAvg = str_replace(',', '', $value['weight_avg'] ?? 0);
-                            $qty       = str_replace(',', '', $value['qty'] ?? 0);
+                            $price     = self::parseValue($value['price']);
+                            $weightAvg = self::parseValue($value['weight_avg']);
+                            $qty       = self::parseValue($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
@@ -374,27 +361,25 @@ class ListController extends Controller
                     $marketing->update([
                         'sub_total'   => $totalPrices,
                         'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - str_replace(',', '', $input['discount'] ?? 0)
-                            : $totalPrices                                          - str_replace(',', '', $input['discount'] ?? 0),
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
+                            : $totalPrices                                          - self::parseValue($input['discount']),
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
-                        $arrPrice = $req->input('marketing_addit_prices');
-
                         $marketing->marketing_addit_prices()->delete();
 
-                        foreach ($arrPrice as $key => $value) {
-                            $item  = $value['item'];
-                            $price = str_replace(',', '', $value['price']);
+                        $arrPrice = $req->input('marketing_addit_prices');
+                        $item     = $value['item'] ?? null;
+                        $price    = self::parseValue($value['price']);
 
-                            $arrPrice[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'item'         => $item,
-                                'price'        => $price,
-                            ];
+                        if ($item && $price) {
+                            foreach ($arrPrice as $key => $value) {
+                                $arrPrice[$key]['marketing_id'] = $marketing->marketing_id;
+                                $arrPrice[$key]['item']         = $item;
+                                $arrPrice[$key]['price']        = $price;
+                            }
+                            MarketingAdditPrice::insert($arrPrice);
                         }
-
-                        MarketingAdditPrice::insert($arrPrice);
                     }
                 });
 
@@ -415,10 +400,10 @@ class ListController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Marketing $marketing)
+    public function delete(Marketing $id)
     {
         try {
-            $marketing->delete();
+            $id->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->route('marketing.list.index')->with($success);
@@ -468,7 +453,7 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty = str_replace(',', '', $value['qty'] ?? 0);
+                            $qty = self::parseValue($value['qty']);
 
                             $arrVehicle[$key] = [
                                 'marketing_id' => $marketing->marketing_id,

@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function() {
         });
         Route::group(['prefix' => 'return'], function() {
             Route::get('/', [App\Http\Controllers\Marketing\ReturnController::class, 'index'])->name('marketing.return.index')->middleware('permission:marketing.return.index');
-            Route::any('/add', [App\Http\Controllers\Marketing\ReturnController::class, 'add'])->name('marketing.return.add')->middleware('permission:marketing.return.add');
+            Route::any('/add/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'add'])->name('marketing.return.add')->middleware('permission:marketing.return.add');
             Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
             Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
             Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
@@ -261,6 +261,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/add', [App\Http\Controllers\DataMaster\CustomerController::class, 'add'])->name('data-master.customer.add')->middleware('permission:data-master.customer.add');
             Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\CustomerController::class, 'edit'])->name('data-master.customer.edit')->middleware('permission:data-master.customer.edit');
             Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\CustomerController::class, 'delete'])->name('data-master.customer.delete')->middleware('permission:data-master.customer.delete');
+            Route::get('/search', [App\Http\Controllers\DataMaster\CustomerController::class, 'searchCustomer'])->name('data-master.customer.search');
         });
 
         Route::group(['prefix' => 'fcr'], function() {
