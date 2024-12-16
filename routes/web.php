@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/approve/{id}', [App\Http\Controllers\Project\ListController::class, 'approve'])->name('project.list.approve')->middleware('permission:project.list.approve');
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ListController::class, 'delete'])->name('project.list.delete')->middleware('permission:project.list.delete');
             Route::get('/search', [App\Http\Controllers\Project\ListController::class, 'searchProject'])->name('project.list.search');
-            Route::get('/search-period', [App\Http\Controllers\Project\ListController::class], 'searchPeriod')->name('project.list.search-period');
+            Route::get('/search-period', [App\Http\Controllers\Project\ListController::class, 'searchPeriod'])->name('project.list.search-period');
         });
         Route::group(['prefix' => 'perparation'], function() {
             Route::get('/', [App\Http\Controllers\Project\PreparationController::class, 'index'])->name('project.perparation.index')->middleware('permission:project.perparation.index');
@@ -70,12 +70,13 @@ Route::middleware('auth')->group(function() {
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ChickinController::class, 'delete'])->name('project.chick-in.delete')->middleware('permission:project.chick-in.delete');
         });
         Route::group(['prefix' => 'recording'], function() {
-            Route::any('/', 'App\Http\Controllers\Project\RecordingController@index')->name('project.recording.index')->middleware('permission:project.recording.index');
-            Route::any('/add', 'App\Http\Controllers\Project\RecordingController@add')->name('project.recording.add')->middleware('permission:project.recording.add');
-            // Route::any('/edit/{id}', 'App\Http\Controllers\Project\RecordingController@edit')->name('project.recording.edit')->middleware('permission:project.recording.index');
-            Route::any('/detail/{id}', 'App\Http\Controllers\Project\RecordingController@detail')->name('project.recording.detail')->middleware('permission:project.recording.detail');
-            Route::any('/delete/{id}', 'App\Http\Controllers\Project\RecordingController@delete')->name('project.recording.delete'); //->middleware('permission:project.recording.index');
-            // Route::any('/approve/{id}', 'App\Http\Controllers\Project\RecordingController@approve')->name('project.recording.approve');//->middleware('permission:project.recording.index');
+            Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
+            Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
+            Route::any('/add', [App\Http\Controllers\Project\RecordingController::class, 'add'])->name('project.recording.add')->middleware('permission:project.recording.add');
+            // Route::any('/edit/{id}', [App\Http\Controllers\Project\RecordingController::class, 'edit'])->name('project.recording.edit')->middleware('permission:project.recording.index');
+            Route::any('/detail/{id}', [App\Http\Controllers\Project\RecordingController::class, 'detail'])->name('project.recording.detail')->middleware('permission:project.recording.detail');
+            Route::any('/delete/{id}', [App\Http\Controllers\Project\RecordingController::class, 'delete'])->name('project.recording.delete'); //->middleware('permission:project.recording.index');
+            // Route::any('/approve/{id}', [App\Http\Controllers\Project\RecordingController::class, 'approve'])->name('project.recording.approve');//->middleware('permission:project.recording.index');
         });
     });
 
@@ -154,9 +155,9 @@ Route::middleware('auth')->group(function() {
 
     Route::group(['prefix' => 'inventory'], function() {
         Route::group(['prefix' => 'product'], function() {
-            Route::get('/', 'App\Http\Controllers\Inventory\ProductController@index')->name('inventory.product.index')->middleware('permission:inventory.product.index');
-            Route::any('/detail/{id}', 'App\Http\Controllers\Inventory\ProductController@detail')->name('inventory.product.detail')->middleware('permission:inventory.product.detail');
-            Route::any('/check-stock-by-warehouse', 'App\Http\Controllers\Inventory\ProductController@checkStockByWarehouse')->name('inventory.product.check-stock-by-warehouse');
+            Route::get('/', [App\Http\Controllers\Inventory\ProductController::class, 'index'])->name('inventory.product.index')->middleware('permission:inventory.product.index');
+            Route::any('/detail/{id}', [App\Http\Controllers\Inventory\ProductController::class, 'detail'])->name('inventory.product.detail')->middleware('permission:inventory.product.detail');
+            Route::any('/check-stock-by-warehouse', [App\Http\Controllers\Inventory\ProductController::class, 'checkStockByWarehouse'])->name('inventory.product.check-stock-by-warehouse');
         });
 
         Route::group(['prefix' => 'adjustment'], function() {
@@ -287,11 +288,11 @@ Route::middleware('auth')->group(function() {
         });
 
         Route::group(['prefix' => 'nonstock'], function() {
-            Route::get('/', 'App\Http\Controllers\DataMaster\NonstockController@index')->name('data-master.nonstock.index')->middleware('permission:data-master.nonstock.index');
-            Route::any('/add', 'App\Http\Controllers\DataMaster\NonstockController@add')->name('data-master.nonstock.add')->middleware('permission:data-master.nonstock.add');
-            Route::any('/edit/{id}', 'App\Http\Controllers\DataMaster\NonstockController@edit')->name('data-master.nonstock.edit')->middleware('permission:data-master.nonstock.edit');
-            Route::any('/delete/{id}', 'App\Http\Controllers\DataMaster\NonstockController@delete')->name('data-master.nonstock.delete')->middleware('permission:data-master.nonstock.delete');
-            Route::get('/search', 'App\Http\Controllers\DataMaster\NonstockController@searchNonstock')->name('data-master.nonstock.search');
+            Route::get('/', [App\Http\Controllers\DataMaster\NonstockController::class, 'index'])->name('data-master.nonstock.index')->middleware('permission:data-master.nonstock.index');
+            Route::any('/add', [App\Http\Controllers\DataMaster\NonstockController::class, 'add'])->name('data-master.nonstock.add')->middleware('permission:data-master.nonstock.add');
+            Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\NonstockController::class, 'edit'])->name('data-master.nonstock.edit')->middleware('permission:data-master.nonstock.edit');
+            Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\NonstockController::class, 'delete'])->name('data-master.nonstock.delete')->middleware('permission:data-master.nonstock.delete');
+            Route::get('/search', [App\Http\Controllers\DataMaster\NonstockController::class, 'searchNonstock'])->name('data-master.nonstock.search');
         });
     });
 
