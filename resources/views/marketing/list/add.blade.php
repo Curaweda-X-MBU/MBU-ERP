@@ -223,67 +223,6 @@
     /* NOTE :
     ----- HELPER FUNCTIONS -----
     */
-    function parseValue(value) { return parseFloat(value.replace(/\./g, '').replace(',', '.') || 0); }
-
-    // ? START :: SWAL2 ::  DELETE CONFIRMATION
-    function confirmDelete($this, deleteElement) {
-        Swal.fire({
-            title: 'Hapus data ini?',
-            text: 'Data tidak bisa dikembalikan.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Hapus',
-            customClass: {
-                confirmButton: 'btn btn-danger mr-1',
-                cancelButton: 'btn btn-secondary',
-            },
-            buttonsStyling: false,
-        }).then(function(result) {
-            if (result.value) {
-                $(this).slideUp(deleteElement);
-            }
-        });
-    }
-    // ? END :: SWAL2 ::  DELETE CONFIRMATION
-
-    // ? START :: NUMERAL MASK :: INITIALIZE
-    function initNumeralMask() {
-        $('.numeral-mask').each(function() {
-            new Cleave(this, {
-                numeral: true,
-                numeralDecimalMark: ',', delimiter: '.',
-            });
-        });
-    }
-    // ? END :: NUMERAL MASK :: INITIALIZE
-
-    // ? START :: SELECT2 :: INITIALIZE
-    function initSelect2($component, placeholder, routePath) {
-        $component.select2({
-            placeholder: placeholder,
-            ajax: {
-                url: routePath,
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data.map((item) => ({
-                            id: item.id,
-                            text: item.text,
-                            qty: item.qty ? item.qty : 0,
-                        }))
-                    };
-                },
-                cache: true,
-            },
-       });
-    }
-    // ? END :: SELECT2 :: INITIALIZE
 
     // ? START :: SET VALUE :: QTY & CURRENT STOCK
     function setQtyStock($this, reset) {
@@ -319,9 +258,9 @@
                 const $totalSebelumPajak = $('#total_sebelum_pajak');
                 const $totalSebelumPajakInput = $('input[name="total_sebelum_pajak"]');
 
-                const qty = parseValue($qtyInput.val());
-                const weightAvg = parseValue($weightAvgInput.val());
-                const price = parseValue($priceInput.val());
+                const qty = parseLocale($qtyInput.val());
+                const weightAvg = parseLocale($weightAvgInput.val());
+                const price = parseLocale($priceInput.val());
 
                 const weightTotal = qty * weightAvg;
                 const priceTotal = weightTotal * price;
@@ -331,7 +270,7 @@
 
                 setTimeout(function(){
                     const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                        const value = parseValue($(elem).val());
+                        const value = parseLocale($(elem).val());
                         return acc + value;
                     }, 0);
                     $totalSebelumPajak.text(priceAllRow.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
@@ -343,11 +282,11 @@
         // ? START :: CALCULATION ::  GRAND TOTAL
         function calculateGrandTotal() {
             $(document).on('change input', '#addit_price, #total_setelah_pajak', function () {
-                const totalSetelahPajak = parseValue($('#total_setelah_pajak').text());
+                const totalSetelahPajak = parseLocale($('#total_setelah_pajak').text());
                 const $totalPiutang = $('#total_piutang');
                 setTimeout(function(){
                     const priceAllRow = $('#addit_price').get().reduce(function(acc, elem) {
-                        const value = parseValue($(elem).val());
+                        const value = parseLocale($(elem).val());
                         return acc + value;
                     }, 0);
                     $totalPiutang.text((totalSetelahPajak + priceAllRow).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -360,9 +299,9 @@
         function calculateBeforeTax() {
             $(document).on('change input', 'input[name="discount"], input[name="tax"], #total_sebelum_pajak', function () {
                 const $totalSetelahPajak = $('#total_setelah_pajak');
-                const totalSebelumPajak = parseValue($('#total_sebelum_pajak').text());
+                const totalSebelumPajak = parseLocale($('#total_sebelum_pajak').text());
                 const tax = $('input[name="tax"]').val();
-                const discount = parseValue($('input[name="discount"]').val());
+                const discount = parseLocale($('input[name="discount"]').val());
                 let total;
                 if (tax > 0) {
                     total = totalSebelumPajak + (totalSebelumPajak * (tax / 100)) - discount;
@@ -427,8 +366,8 @@
 
                 // ? START :: VALIDATION :: QTY
                 $row.find('#qty_mask').on('input', function() {
-                    const val = parseValue($(this).val());
-                    const stock = parseValue($row.find('#current_stock').text());
+                    const val = parseLocale($(this).val());
+                    const stock = parseLocale($row.find('#current_stock').text());
                     $(this).siblings('#qty').val(val);
                     if (val > stock) {
                         $(this).siblings('#invalid_qty').css('opacity', 1);
@@ -444,10 +383,10 @@
                     feather.replace({ width: 14, height: 14 });
                 }
 
-                initNumeralMask();
+                initNumeralMask('.numeral-mask');
             },
             hide: function(deleteElement) {
-                confirmDelete(this, deleteElement);
+                confirmDelete($(this), deleteElement);
             },
         };
 
@@ -462,10 +401,10 @@
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
-                initNumeralMask();
+                initNumeralMask('.numeral-mask');
             },
             hide: function(deleteElement) {
-                confirmDelete(this, deleteElement);
+                confirmDelete($(this), deleteElement);
             },
         };
         // ? END :: REPEATER OPTS :: MARKETING ADDIT PRICES

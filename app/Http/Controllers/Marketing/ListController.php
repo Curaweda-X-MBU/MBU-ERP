@@ -78,18 +78,6 @@ class ListController extends Controller
         'driver_name.required' => 'Nama Driver tidak boleh kosong',
     ];
 
-    private static function parseValue(?string $value): float
-    {
-        if (is_null($value)) {
-            return 0;
-        }
-
-        $value = str_replace('.', '', $value);
-        $value = str_replace(',', '.', $value);
-
-        return floatval($value) ?: 0;
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -150,7 +138,7 @@ class ListController extends Controller
                         'notes'          => $input['notes'],
                         'sales_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
-                        'discount'       => self::parseValue($input['discount']),
+                        'discount'       => parseLocale($input['discount']),
                         'payment_status' => array_search(
                             'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -166,9 +154,9 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = self::parseValue($value['price']);
-                            $weightAvg = self::parseValue($value['weight_avg']);
-                            $qty       = self::parseValue($value['qty']);
+                            $price     = parseLocale($value['price']);
+                            $weightAvg = parseLocale($value['weight_avg']);
+                            $qty       = parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $weightTotal;
@@ -193,15 +181,15 @@ class ListController extends Controller
                         $createdMarketing->update([
                             'sub_total'   => $totalPrices,
                             'grand_total' => isset($input['tax'])
-                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
-                                : $totalPrices                                          - self::parseValue($input['discount']),
+                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - parseLocale($input['discount'])
+                                : $totalPrices                                          - parseLocale($input['discount']),
                         ]);
                     }
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
                         $item     = $value['item'] ?? null;
-                        $price    = self::parseValue($value['price']);
+                        $price    = parseLocale($value['price']);
 
                         if ($item && $price) {
                             foreach ($arrPrice as $key => $value) {
@@ -334,9 +322,9 @@ class ListController extends Controller
                         $marketing->marketing_products()->delete();
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = self::parseValue($value['price']);
-                            $weightAvg = self::parseValue($value['weight_avg']);
-                            $qty       = self::parseValue($value['qty']);
+                            $price     = parseLocale($value['price']);
+                            $weightAvg = parseLocale($value['weight_avg']);
+                            $qty       = parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
@@ -361,8 +349,8 @@ class ListController extends Controller
                     $marketing->update([
                         'sub_total'   => $totalPrices,
                         'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - self::parseValue($input['discount'])
-                            : $totalPrices                                          - self::parseValue($input['discount']),
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - parseLocale($input['discount'])
+                            : $totalPrices                                          - parseLocale($input['discount']),
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
@@ -370,7 +358,7 @@ class ListController extends Controller
 
                         $arrPrice = $req->input('marketing_addit_prices');
                         $item     = $value['item'] ?? null;
-                        $price    = self::parseValue($value['price']);
+                        $price    = parseLocale($value['price']);
 
                         if ($item && $price) {
                             foreach ($arrPrice as $key => $value) {
@@ -453,7 +441,7 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty = self::parseValue($value['qty']);
+                            $qty = parseLocale($value['qty']);
 
                             $arrVehicle[$key] = [
                                 'marketing_id' => $marketing->marketing_id,
