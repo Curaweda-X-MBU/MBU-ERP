@@ -1,3 +1,10 @@
+@php
+    $dataMarketing = '';
+    if (isset($data)) {
+        $dataMarketing = $data;
+    }
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/animate/animate.css')}}" />
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
 
@@ -13,13 +20,7 @@
             <div class="col-md-4 mt-1">
                 <label for="sales_id" class="form-label">Nama Sales<i class="text-danger">*</i></label>
                 <select name="sales_id" id="sales_id" class="form-control" required>
-                    @if(old('sales_id') && old('sales_id'))
-                        <option value="{{ old('sales_id') }}" selected="selected">{{ old('sales_name') }}</option>
-                    @endif
                 </select>
-                @if ($errors->has('sales_id'))
-                    <span class="text-danger small">{{ $errors->first('sales_id') }}</span>
-                @endif
             </div>
         </div>
     </div>
@@ -32,13 +33,13 @@
             <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
             <div class="col-5"> <span>Pajak:</span> </div>
             <div class="col-5 input-group">
-                <input name="tax" type="number" min="0" max="100" class="form-control" value="0">
+                <input name="tax" id="tax" type="number" min="0" max="100" class="form-control" value="0">
                 <div class="input-group-append"><span class="input-group-text">%</span></div>
             </div>
             <div class="col-5"> <span>Diskon:</span> </div>
             <div class="col-5 input-group">
                 <div class="input-group-prepend"><span class="input-group-text">Rp.</span></div>
-                <input name="discount" type="text" class="form-control numeral-mask" value="0">
+                <input name="discount" id="discount" type="text" class="form-control numeral-mask" value="0">
             </div>
             <div class="offset-5 col-5"> <hr class="border-bottom"> </div>
             <div class="col-5"> <span>Total Setelah Pajak dan Diskon:</span> </div>
@@ -56,7 +57,7 @@
                 <div class="col-5"> <input name="item" type="text" class="form-control" placeholder="Item"> </div>
                 <div class="col-5 input-group">
                     <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
-                    <input type="text" name="price" id ="addit_price" class="form-control numeral-mask" placeholder="Harga">
+                    <input type="text" name="price" class="addit_price form-control numeral-mask" placeholder="Harga">
                 </div>
                 <div class="col-2 text-left">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -86,11 +87,12 @@
 <script>
     // ? START :: CALCULATION ::  GRAND TOTAL
     function calculateGrandTotal() {
-        $(document).on('change input', '#addit_price, #total_setelah_pajak', function () {
+        $(document).on('change input', '.addit_price, #total_setelah_pajak', function () {
             const totalSetelahPajak = parseLocale($('#total_setelah_pajak').text());
             const $totalPiutang = $('#total_piutang');
+            console.log($('.addit_price').length);
             setTimeout(function(){
-                const priceAllRow = $('#addit_price').get().reduce(function(acc, elem) {
+                const priceAllRow = $('.addit_price').get().reduce(function(acc, elem) {
                     const value = parseLocale($(elem).val());
                     return acc + value;
                 }, 0);
@@ -108,7 +110,7 @@
             const tax = $('input[name="tax"]').val();
             const discount = parseLocale($('input[name="discount"]').val());
             let total;
-            if (tax > 0) {
+            if (tax && tax > 0) {
                 total = totalSebelumPajak + (totalSebelumPajak * (tax / 100)) - discount;
             } else {
                 total = totalSebelumPajak - discount;
@@ -141,9 +143,33 @@
     // ? END :: SELECT2 :: INITIALIZE
 
     // ? START :: REPEATER :: INITIALIZE
-    $('#marketing-addit-prices-repeater-1').repeater(optMarketingAdditPrices);
-    $('#marketing-addit-prices-repeater-1').find('button[data-repeater-create]').trigger('click');
+    const $additRepeater = $('#marketing-addit-prices-repeater-1').repeater(optMarketingAdditPrices);
     calculateBeforeTax();
     calculateGrandTotal();
     // ? END :: REPEATER :: INITIALIZE
+
+    // ? START :: EDIT VALUES
+    if ('{{ $dataMarketing }}'.length) {
+        const marketing = @json($dataMarketing);
+        const additPrices = marketing.marketing_addit_prices;
+
+        // NOTES
+        $('#catatan').text(marketing.notes);
+
+        // SALES
+        $('#sales_id').append(`<option value="${marketing.sales_id}" selected>${marketing.sales.name}</option>`).trigger('change');
+
+        // TAX
+        $('#tax').val(marketing.tax);
+
+        // DISCOUNT
+        $('#discount').val(marketing.discount);
+
+        if (additPrices.length > 0) {
+            $additRepeater.setList(additPrices);
+        }
+    } else {
+        $('#marketing-addit-prices-repeater-1').find('button[data-repeater-create]').trigger('click');
+    }
+    // ? END :: EDIT VALUES
 </script>

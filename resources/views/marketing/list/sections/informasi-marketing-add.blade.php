@@ -1,3 +1,12 @@
+@php
+    $dataMarketing = '';
+    $dataCustomer = '';
+    if (isset($data)) {
+        $dataMarketing = $data;
+        $dataCustomer = $data->customer;
+    }
+@endphp
+
 <style>
     #transparentFileUpload {
         opacity: 0;
@@ -41,10 +50,6 @@
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script>
-    /* NOTE :
-    ----- INITIALIZATIONS -----
-    */
-
     $(document).ready(function() {
         $('#transparentFileUpload').on('change', function() {
             $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
@@ -60,4 +65,30 @@
     const customerIdRoute = '{{ route("data-master.customer.search") }}';
     initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
     // ? END :: SELECT2
+
+    // ? START :: EDIT VALUES
+    if ('{{ $dataMarketing }}'.length && '{{ $dataCustomer }}'.length) {
+        const marketing = @json($dataMarketing);
+        const customer = @json($dataCustomer);
+        const MARKETING_STATUS = @json(App\Constants::MARKETING_STATUS);
+        console.log(marketing);
+
+        // CUSTOMER
+        $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');
+
+        // SOLD AT
+        const dateOpt = {
+            day: '2-digit',
+            year: 'numeric',
+            month: 'short',
+        };
+        const date = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
+        $('#sold_at').val(date.replace(/ /g, '-'));
+
+        // STATUS
+        $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
+
+        // TODO: FILE UPLOAD
+    }
+    // ? END :: EDIT VALUES
 </script>

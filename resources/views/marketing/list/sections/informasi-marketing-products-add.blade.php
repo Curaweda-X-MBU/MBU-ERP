@@ -1,3 +1,10 @@
+@php
+    $dataProducts = '';
+    if (isset($data)) {
+        $dataProducts = $data->marketing_products;
+    }
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/animate/animate.css')}}" />
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
 
@@ -76,6 +83,7 @@
         } else {
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
+            console.log(data);
         }
         const value = qty.toLocaleString('id-ID');
         const $rowScope = $this.closest('tr');
@@ -182,7 +190,35 @@
     };
 
     // ? END :: REPEATER OPTS :: PRODUCTS
-    $('#marketing-product-repeater-1').repeater(optMarketingProduct);
-    $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+    const $repeaterProduct = $('#marketing-product-repeater-1').repeater(optMarketingProduct);
     calculateTotalPerRow();
+
+    // ? START :: EDIT VALUES
+    if ('{{ $dataProducts }}'.length) {
+        const products = @json($dataProducts);
+
+        products.forEach((product, i) => {
+            $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+            $(`select[name="marketing_products[${i}][kandang_id]"]`).append(`<option value="${product.kandang.kandang_id}" selected>${product.kandang.name}</option>`).trigger('change');
+            $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
+            $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
+            $(`select[name="marketing_products[${i}][uom_id]"]`).append(`<option value="${product.uom_id}" selected>${product.uom.name}</option>`).trigger('change');
+            $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
+            let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
+            productIdRoute = productIdRoute.replace(':id', product.kandang.kandang_id);
+            const ajaxProduct = $.get({
+                url: productIdRoute,
+                dataType: 'json',
+            });
+            ajaxProduct.done(function(res) {
+                const chose = res.filter((a) => a.data.product_id = product.product.product_id)[0];
+                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
+                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
+            });
+        });
+    } else {
+        $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+    }
+    // ? END :: EDIT VALUES
 </script>
