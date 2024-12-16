@@ -25,17 +25,6 @@ class ListController extends Controller
         'customer_id'   => 'required',
         'sold_at'       => 'required',
         'doc_reference' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
-        'sales_id'      => 'required',
-        'sub_total'     => 'required',
-        'grand_total'   => 'required',
-
-        // Validasi marketing_products
-        'marketing_products.*.kandang_id' => 'required',
-        'marketing_products.*.product_id' => 'required',
-        'marketing_products.*.price'      => 'required',
-        'marketing_products.*.weight_avg' => 'required',
-        'marketing_products.*.uom_id'     => 'required',
-        'marketing_products.*.qty'        => 'required',
     ];
 
     private const VALIDATION_RULES_REALIZATION = [
@@ -55,17 +44,6 @@ class ListController extends Controller
         'doc_reference.file'     => 'Referensi Dokumen tidak valid',
         'doc_reference.mimes'    => 'Referensi hanya boleh pdf, jpeg, png, atau jpg',
         'doc_reference.max'      => 'Ukuran file tidak boleh lebih dari 5MB',
-        'sales_id.required'      => 'Nama Sales tidak boleh kosong',
-        'sub_total.required'     => 'Total setelah pajak & diskon tidak boleh kosong',
-        'grand_total.required'   => 'Total Piutang tidak boleh kosong',
-
-        // Validasi marketing_products
-        'marketing_products.*.kandang_id.required' => 'Nama Kandang tidak boleh kosong',
-        'marketing_products.*.product_id.required' => 'Nama Produk tidak boleh kosong',
-        'marketing_products.*.price.required'      => 'Harga Satuan tidak boleh kosong',
-        'marketing_products.*.weight_avg.required' => 'Weight Avg tidak boleh kosong',
-        'marketing_products.*.uom_id.required'     => 'Uom tidak boleh kosong',
-        'marketing_products.*.qty.required'        => 'Qty tidak boleh kosong',
     ];
 
     private const VALIDATION_MESSAGES_REALIZATION = [
@@ -109,22 +87,22 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
+                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
+
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
                 DB::transaction(function() use ($req) {
-                    $input = $req->all();
-
-                    $totalPrices = 0;
-
-                    $company = Auth::user()->department->company;
-
+                    $input            = $req->all();
+                    $totalPrices      = 0;
+                    $company          = Auth::user()->department->company;
                     $docReferencePath = '';
-                    if ($req->hasFile('doc_reference')) {
-                        $docUrl = FileHelper::upload($input['doc_reference'], Constants::MARKETING_DOC_REFERENCE_PATH);
+
+                    if (isset($input['doc_reference'])) {
+                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
                         if (! $docUrl['status']) {
-                            return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
+                            throw new \Exception($docUrl['message']);
                         }
                         $docReferencePath = $docUrl['url'];
                     }
@@ -224,11 +202,12 @@ class ListController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(Marketing $marketing)
+    public function detail(Marketing $id)
     {
         try {
-            $data  = $marketing->with(['customer', 'company'])->get();
-            $param = [
+            $marketing = $id;
+            $data      = $marketing->with(['customer', 'company'])->get();
+            $param     = [
                 'title' => 'Penjualan > Detail',
                 'data'  => $data,
             ];

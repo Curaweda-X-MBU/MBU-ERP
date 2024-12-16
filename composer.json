@@ -33,7 +33,8 @@
         },
         "files": [
             "app/Helpers/FileHelper.php",
-            "app/Helpers/Encryption.php"
+            "app/Helpers/Encryption.php",
+            "app/helpers.php"
         ]
     },
     "autoload-dev": {
