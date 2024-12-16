@@ -92,10 +92,17 @@
                                                                             <span>Chick In</span>
                                                                         </a>
                                                                         @endif
-                                                                        <a class="dropdown-item" href="javascript:void(0)">
-                                                                            <i data-feather='fast-forward' class="mr-50"></i>
-                                                                            <span>Recording</span>
-                                                                        </a>
+                                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.index'))
+                                                                        <form action="{{ route('project.recording.index') }}" method="POST">
+                                                                            @csrf
+                                                                            <input type="hidden" name="project_id" value="{{$item->project_id}}">
+                                                                            <input type="hidden" name="period" value="{{$item->period}}">
+                                                                            <button class="dropdown-item">
+                                                                                <i data-feather='fast-forward' class="mr-50"></i>
+                                                                                <span>Recording</span>
+                                                                            </button>
+                                                                        </form>
+                                                                        @endif
                                                                         <a class="dropdown-item" href="javascript:void(0)">
                                                                             <i data-feather='check-circle' class="mr-50"></i>
                                                                             <span>Persiapan</span>
@@ -150,6 +157,10 @@
 
                     <script>
                         $(function () {
+                            function getRecording() {
+                                document.getElementById('getRecording').submit();
+                            }
+
                             $('#datatable').DataTable({
                                 // scrollX: true,
                                 drawCallback: function( settings ) {

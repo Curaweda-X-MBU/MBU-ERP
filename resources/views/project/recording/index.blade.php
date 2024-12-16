@@ -6,9 +6,25 @@
 @endphp
                     <div class="row">
                         <div class="col-12">
+                            <h4 class="card-title">{{ $title }}</h4>
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">{{ $title }}</h4>
+                                    <form method="post" action="{{ request()->fullUrl() }}" style="display: inline-flex; column-gap: 10px; width: 40%;">
+                                        @csrf
+                                        <select name="project_id" class="form-control project_id" required>
+                                            @if(isset($param) && isset($param['project']))
+                                                <option value="{{ $param['project_id'] }}" selected>{{ $param['project']->kandang->name??'' }}</option>
+                                            @endif
+                                        </select>
+                                        <select name="period" class="form-control period" required>
+                                            @if(isset($param) && isset($param['project']))
+                                                <option value="{{ $param['period'] }}" selected>{{ $param['period'] }}</option>
+                                            @endif
+                                        </select>
+                                        <div class="input-group-append" id="button-addon2">
+                                            <button type="submit" class="btn btn-outline-primary waves-effect" type="button"><i data-feather='search'></i></button>
+                                        </div>
+                                    </form>
                                     @if (Auth::user()->role->hasPermissionTo('project.recording.add'))
                                     <div class="float-right">
                                         <a href="{{ route('project.recording.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah Baru</a>
@@ -105,6 +121,8 @@
 
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
+                    <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+
 
                     <script>
                         $(function () {
@@ -120,6 +138,54 @@
                                 var id = button.data('id')
                                 var modal = $(this)
                                 modal.find('.modal-body #id').val(id)
+                            });
+
+                            $('.project_id').select2({
+                                placeholder: "Pilih Project",
+                                ajax: {
+                                    url: '{{ route("project.list.search") }}?project_status_not=1&project_status_not=3&chickin_status=3', 
+                                    dataType: 'json',
+                                    delay: 250, 
+                                    data: function(params) {
+                                        return {
+                                            q: params.term 
+                                        };
+                                    },
+                                    processResults: function(data) {
+                                        data.unshift({
+                                            id: 0,
+                                            text: "Semua Project"
+                                        })                    
+                                        return {
+                                            results: data
+                                        };
+                                    },
+                                    cache: true
+                                }
+                            });
+
+                            $('.period').select2({
+                                placeholder: "Pilih Periode",
+                                ajax: {
+                                    url: '{{ route("project.list.search-period") }}?project_status_not=1&project_status_not=3&chickin_status=3', 
+                                    dataType: 'json',
+                                    delay: 250, 
+                                    data: function(params) {
+                                        return {
+                                            q: params.term 
+                                        };
+                                    },
+                                    processResults: function(data) {
+                                        data.unshift({
+                                            id: 0,
+                                            text: "Semua Periode"
+                                        })                    
+                                        return {
+                                            results: data
+                                        };
+                                    },
+                                    cache: true
+                                }
                             });
                         });
                     </script>
