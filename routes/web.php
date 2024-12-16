@@ -82,8 +82,8 @@ Route::middleware('auth')->group(function() {
         Route::group(['prefix' => 'list'], function() {
             Route::get('/', [App\Http\Controllers\Marketing\ListController::class, 'index'])->name('marketing.list.index')->middleware('permission:marketing.list.index');
             Route::any('/add', [App\Http\Controllers\Marketing\ListController::class, 'add'])->name('marketing.list.add')->middleware('permission:marketing.list.add');
-            Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ListController::class, 'edit'])->name('marketing.list.edit')->middleware('permission:marketing.list.edit');
-            Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ListController::class, 'detail'])->name('marketing.list.detail')->middleware('permission:marketing.list.detail');
+            Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\ListController::class, 'edit'])->name('marketing.list.edit')->middleware('permission:marketing.list.edit');
+            Route::any('/detail/{marketing}', [App\Http\Controllers\Marketing\ListController::class, 'detail'])->name('marketing.list.detail')->middleware('permission:marketing.list.detail');
             Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ListController::class, 'delete'])->name('marketing.list.delete')->middleware('permission:marketing.list.delete');
             Route::any('/realization/{id}', [App\Http\Controllers\Marketing\ListController::class, 'realization'])->name('marketing.list.realization')->middleware('permission:marketing.list.realization');
             Route::get('/search', [App\Http\Controllers\Marketing\ListController::class, 'searchMarketing'])->name('marketing.list.search');

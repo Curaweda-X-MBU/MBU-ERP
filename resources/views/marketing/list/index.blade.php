@@ -38,7 +38,7 @@
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ $item->realized_at ?? '-' }}</td>
                                         <td>{{ $item->customer->name }}</td>
-                                        <td>{{ $item->company->name }}</td>
+                                        <td>{{ $item->company->alias }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
@@ -78,7 +78,7 @@
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.edit', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.edit', ['marketing' => $item->marketing_id]) }}">
                                                         <i data-feather="edit" class="mr-50"></i>
                                                         <span>Edit</span>
                                                     </a>
@@ -86,7 +86,7 @@
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', ['marketing' => $item->marketing_id]) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>

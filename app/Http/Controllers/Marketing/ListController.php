@@ -249,10 +249,12 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
+            // $data = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
+            $data  = $marketing;
             $param = [
-                'title' => 'Penjualan > Edit',
-                'data'  => $data,
+                'title'   => 'Penjualan > Edit',
+                'is_edit' => true,
+                'data'    => $data,
             ];
 
             if ($req->isMethod('post')) {
@@ -313,7 +315,7 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
-                        'discount'      => $input['discount'],
+                        'discount'      => self::parseValue($input['discount']),
                     ]);
 
                     if ($req->has('marketing_products')) {
