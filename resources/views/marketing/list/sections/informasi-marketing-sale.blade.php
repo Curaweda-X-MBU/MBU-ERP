@@ -18,8 +18,8 @@
             </div>
 
             <div class="col-md-4 mt-1">
-                <label for="sales_id" class="form-label">Nama Sales<i class="text-danger">*</i></label>
-                <select name="sales_id" id="sales_id" class="form-control" required>
+                <label for="sales_id" class="form-label">Nama Sales</label>
+                <select name="sales_id" id="sales_id" class="form-control">
                 </select>
             </div>
         </div>
