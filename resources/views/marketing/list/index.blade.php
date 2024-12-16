@@ -11,8 +11,8 @@
                         Eksport
                     </button>
                     <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <a class="dropdown-item" href="link_to_excel_export">Excel</a>
-                        <a class="dropdown-item" href="link_to_pdf_export">PDF</a>
+                        <button id="exportExcel" class="dropdown-item w-100" href="link_to_excel_export">Excel</button>
+                        <button id="exportPdf" class="dropdown-item w-100" href="link_to_pdf_export">PDF</button>
                     </div>
                     <a href="{{ route('marketing.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
@@ -119,14 +119,46 @@
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') }}"></script>
 
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.buttons.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/buttons.html5.min.js') }}"></script>
+
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/jszip.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
+
 <script>
     $(function () {
         $('#datatable').DataTable({
             // scrollX: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    className: 'd-none datatable-hidden-excel-button',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                    },
+                },
+                {
+                    extend: 'pdfHtml5',
+                    className: 'd-none datatable-hidden-pdf-button',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                    },
+                },
+            ],
             drawCallback: function( settings ) {
                 feather.replace();
             },
             order: [[0, 'desc']],
+        });
+
+        $('#exportExcel').on('click', function() {
+            $('.datatable-hidden-excel-button').trigger('click');
+        });
+
+        $('#exportPdf').on('click', function() {
+            $('.datatable-hidden-pdf-button').trigger('click');
         });
     });
 </script>
