@@ -38,7 +38,7 @@
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ $item->realized_at ?? '-' }}</td>
                                         <td>{{ $item->customer->name }}</td>
-                                        <td>{{ $item->company->alias }}</td>
+                                        <td>{{ $item->company->name }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;

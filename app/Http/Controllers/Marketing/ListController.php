@@ -7,24 +7,20 @@ use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Product;
-use App\Models\DataMaster\Uom;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
-use App\Models\UserManagement\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class ListController extends Controller
 {
     private const VALIDATION_RULES_ADD = [
-        'customer_id'   => 'required',
-        'sold_at'       => 'required',
-        'doc_reference' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
+        'customer_id' => 'required',
+        'sold_at'     => 'required',
     ];
 
     private const VALIDATION_RULES_REALIZATION = [
@@ -37,13 +33,9 @@ class ListController extends Controller
     ];
 
     private const VALIDATION_MESSAGES_ADD = [
-        'customer_id.required'   => 'Nama Pelanggan tidak boleh kosong',
-        'sold_at.required'       => 'Tanggal Penjualan tidak boleh kosong',
-        'sold_at.date'           => 'Format tanggal tidak valid',
-        'doc_reference.required' => 'Referensi Dokumen tidak boleh kosong',
-        'doc_reference.file'     => 'Referensi Dokumen tidak valid',
-        'doc_reference.mimes'    => 'Referensi hanya boleh pdf, jpeg, png, atau jpg',
-        'doc_reference.max'      => 'Ukuran file tidak boleh lebih dari 5MB',
+        'customer_id.required' => 'Nama Pelanggan tidak boleh kosong',
+        'sold_at.required'     => 'Tanggal Penjualan tidak boleh kosong',
+        'sold_at.date'         => 'Format tanggal tidak valid',
     ];
 
     private const VALIDATION_MESSAGES_REALIZATION = [
@@ -93,6 +85,7 @@ class ListController extends Controller
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
+
                 DB::transaction(function() use ($req) {
                     $input            = $req->all();
                     $totalPrices      = 0;
@@ -113,7 +106,7 @@ class ListController extends Controller
                         'sold_at'        => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference'  => $docReferencePath,
                         'notes'          => $input['notes'],
-                        'sales_id'       => $input['sales_id'],
+                        'sales_id'       => $input['sales_id'] ?? null,
                         'tax'            => $input['tax'],
                         'discount'       => Parser::parseLocale($input['discount']),
                         'payment_status' => array_search(
@@ -137,7 +130,6 @@ class ListController extends Controller
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $weightTotal;
-
                             $totalPrices += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
@@ -165,17 +157,21 @@ class ListController extends Controller
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
+                        $create   = false;
                         foreach ($arrPrice as $key => $value) {
                             $item  = $value['item'] ?? null;
-                            $price = Parser::parseLocale($value['price']);
+                            $price = Parser::parseLocale($value['price'] ?? null);
 
                             if ($item && $price) {
+                                $create                         = true;
                                 $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
                                 $arrPrice[$key]['item']         = $item;
                                 $arrPrice[$key]['price']        = $price;
                             }
                         }
-                        MarketingAdditPrice::insert($arrPrice);
+                        if ($create) {
+                            MarketingAdditPrice::insert($arrPrice);
+                        }
                     }
 
                     $createdMarketing->update([
@@ -202,12 +198,11 @@ class ListController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(Marketing $id)
+    public function detail(Marketing $marketing)
     {
         try {
-            $marketing = $id;
-            $data      = $marketing->with(['customer', 'company'])->get();
-            $param     = [
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $param = [
                 'title' => 'Penjualan > Detail',
                 'data'  => $data,
             ];
@@ -235,26 +230,26 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
+                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
+
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
 
                 DB::transaction(function() use ($req, $marketing) {
-                    $input = $req->all();
-
-                    $totalPrices = 0;
-
+                    $input            = $req->all();
+                    $totalPrices      = 0;
                     $existingDoc      = $marketing->doc_reference ?? null;
                     $docReferencePath = '';
-                    if ($req->hasFile('doc_reference')) {
+
+                    if (isset($input['doc_reference'])) {
                         if ($existingDoc) {
                             FileHelper::delete($existingDoc);
                         }
-
                         $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
                         if (! $docUrl['status']) {
-                            return redirect()->back()->with('error', $docUrl['message'].' '.$input['doc_reference'])->withInput();
+                            throw new \Exception($docUrl['message']);
                         }
                         $docReferencePath = $docUrl['url'];
                     } else {
@@ -266,15 +261,14 @@ class ListController extends Controller
                         'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference' => $docReferencePath,
                         'notes'         => $input['notes'],
-                        'sales_id'      => $input['sales_id'],
+                        'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
                         'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     if ($req->has('marketing_products')) {
-                        $arrProduct = $req->input('marketing_products');
-
                         $marketing->marketing_products()->delete();
+                        $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
                             $price     = Parser::parseLocale($value['price']);
@@ -285,45 +279,47 @@ class ListController extends Controller
                             $totalPrice  = $price     * $qty;
                             $totalPrices += $totalPrice;
 
-                            $arrProduct[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'kandang_id'   => $value['kandang_id'],
-                                'product_id'   => $value['product_id'],
-                                'price'        => $price,
-                                'weight_avg'   => $weightAvg,
-                                'uom_id'       => $value['uom_id'],
-                                'qty'          => $qty,
-                                'weight_total' => $weightTotal,
-                                'total_price'  => $totalPrice,
-                            ];
+                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
+                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['product_id']   = $value['product_id'];
+                            $arrProduct[$key]['price']        = $price;
+                            $arrProduct[$key]['weight_avg']   = $weightAvg;
+                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
+                            $arrProduct[$key]['qty']          = $qty;
+                            $arrProduct[$key]['weight_total'] = $weightTotal;
+                            $arrProduct[$key]['total_price']  = $totalPrice;
                         }
 
                         MarketingProduct::insert($arrProduct);
                     }
 
-                    $marketing->update([
-                        'sub_total'   => $totalPrices,
-                        'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                            : $totalPrices                                          - Parser::parseLocale($input['discount']),
-                    ]);
+                    if ($req->has('marketing_products')) {
+                        $marketing->update([
+                            'sub_total'   => $totalPrices,
+                            'grand_total' => isset($input['tax'])
+                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                                : $totalPrices                                          - Parser::parseLocale($input['discount']),
+                        ]);
+                    }
 
+                    $marketing->marketing_addit_prices()->delete();
                     if ($req->has('marketing_addit_prices')) {
-                        $marketing->marketing_addit_prices()->delete();
-
                         $arrPrice = $req->input('marketing_addit_prices');
-
+                        $create   = false;
                         foreach ($arrPrice as $key => $value) {
                             $item  = $value['item'] ?? null;
-                            $price = Parser::parseLocale($value['price']);
+                            $price = Parser::parseLocale($value['price'] ?? null);
 
                             if ($item && $price) {
+                                $create                         = true;
                                 $arrPrice[$key]['marketing_id'] = $marketing->marketing_id;
                                 $arrPrice[$key]['item']         = $item;
                                 $arrPrice[$key]['price']        = $price;
                             }
                         }
-                        MarketingAdditPrice::insert($arrPrice);
+                        if ($create) {
+                            MarketingAdditPrice::insert($arrPrice);
+                        }
                     }
                 });
 
@@ -365,28 +361,15 @@ class ListController extends Controller
     public function realization(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
                 'title' => 'Penjualan > Realisasi',
                 'data'  => $data,
             ];
 
             if ($req->isMethod('post')) {
-                $validator = Validator::make($req->all(), self::VALIDATION_RULES_REALIZATION, self::VALIDATION_MESSAGES_REALIZATION);
-                $input     = $req->all();
-
-                if ($validator->fails()) {
-                    if (isset($input['uom_id'])) {
-                        $input['uom_name'] = Uom::find($input['uom_id'])->name;
-                    }
-                    if (isset($input['sender_id'])) {
-                        $input['sender_name'] = User::find($input['sender_id'])->name;
-                    }
-
-                    return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
-                }
+                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
+                $input = $req->all();
 
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
@@ -457,13 +440,11 @@ class ListController extends Controller
     public function approve(Request $req, Marketing $marketing)
     {
         try {
-            $input         = $req->all();
-            $marketingData = $marketing->get();
-
+            $input   = $req->all();
             $success = [];
 
             if ($input['is_approved'] === 0) {
-                $marketingData->update([
+                $marketing->update([
                     'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
                     'approver_id'    => Auth::id(),
                     'approval_notes' => $input['approval_notes'],
@@ -471,7 +452,7 @@ class ListController extends Controller
 
                 $success = ['success' => 'Data berhasil ditolak'];
             } else {
-                $marketingData->update([
+                $marketing->update([
                     'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
                     'approver_id' => Auth::id(),
                     'approved_at' => date('Y-m-d H:i:s'),
