@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Helpers\Parser;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\UserManagement\User;
 use DB;
@@ -53,8 +54,8 @@ class StockLog extends Model
             $productId      = $input['product_id'];
             $warehouseId    = $input['warehouse_id'];
             $currentWhStock = ProductWarehouse::where(['product_id' => $productId, 'warehouse_id' => $warehouseId])->first();
-            $increase       = parseLocale($input['increase']);
-            $decrease       = parseLocale($input['decrease']);
+            $increase       = Parser::parseLocale($input['increase']);
+            $decrease       = Parser::parseLocale($input['decrease']);
             $stock          = new ProductWarehouse;
 
             if ($currentWhStock) {

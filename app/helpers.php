@@ -30,21 +30,3 @@ function decryptData($encryptedData)
         return false;
     }
 }
-
-/**
- * Parse locale string id-ID to float value
- *
- * @param  string  $data
- * @return string
- */
-function parseLocale(?string $value): float
-{
-    if (is_null($value)) {
-        return 0;
-    }
-
-    $value = str_replace('.', '', $value);
-    $value = str_replace(',', '.', $value);
-
-    return floatval($value) ?: 0;
-}

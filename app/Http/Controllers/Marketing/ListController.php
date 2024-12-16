@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Constants;
 use App\Helpers\FileHelper;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
-use App\Models\DataMaster\Company;
-use App\Models\DataMaster\Customer;
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Uom;
 use App\Models\Marketing\Marketing;
@@ -116,7 +115,7 @@ class ListController extends Controller
                         'notes'          => $input['notes'],
                         'sales_id'       => $input['sales_id'],
                         'tax'            => $input['tax'],
-                        'discount'       => parseLocale($input['discount']),
+                        'discount'       => Parser::parseLocale($input['discount']),
                         'payment_status' => array_search(
                             'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -132,9 +131,9 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = parseLocale($value['price']);
-                            $weightAvg = parseLocale($value['weight_avg']);
-                            $qty       = parseLocale($value['qty']);
+                            $price     = Parser::parseLocale($value['price']);
+                            $weightAvg = Parser::parseLocale($value['weight_avg']);
+                            $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $weightTotal;
@@ -159,24 +158,24 @@ class ListController extends Controller
                         $createdMarketing->update([
                             'sub_total'   => $totalPrices,
                             'grand_total' => isset($input['tax'])
-                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - parseLocale($input['discount'])
-                                : $totalPrices                                          - parseLocale($input['discount']),
+                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                                : $totalPrices                                          - Parser::parseLocale($input['discount']),
                         ]);
                     }
 
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
-                        $item     = $value['item'] ?? null;
-                        $price    = parseLocale($value['price']);
+                        foreach ($arrPrice as $key => $value) {
+                            $item  = $value['item'] ?? null;
+                            $price = Parser::parseLocale($value['price']);
 
-                        if ($item && $price) {
-                            foreach ($arrPrice as $key => $value) {
+                            if ($item && $price) {
                                 $arrPrice[$key]['marketing_id'] = $createdMarketing->marketing_id;
                                 $arrPrice[$key]['item']         = $item;
                                 $arrPrice[$key]['price']        = $price;
                             }
-                            MarketingAdditPrice::insert($arrPrice);
                         }
+                        MarketingAdditPrice::insert($arrPrice);
                     }
 
                     $createdMarketing->update([
@@ -225,42 +224,18 @@ class ListController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $req, Marketing $id)
+    public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $marketing = $id;
-            $data      = $marketing->with(['company', 'customer', 'sales', 'marketing_products', 'marketing_addit_prices'])->get();
-            $param     = [
-                'title' => 'Penjualan > Edit',
-                'data'  => $data,
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $param = [
+                'title'   => 'Penjualan > Edit',
+                'is_edit' => true,
+                'data'    => $data,
             ];
 
             if ($req->isMethod('post')) {
-                $input     = $req->all();
-                $validator = Validator::make($input, self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
-                if ($validator->fails()) {
-                    if (isset($input['customer_id'])) {
-                        $input['customer_name'] = Customer::find(
-                            $input['customer_id']
-                        )->name;
-                    }
-                    if (isset($input['company_id'])) {
-                        $input['company_name'] = Company::find(
-                            $input['company_id']
-                        )->name;
-                    }
-                    if (isset($input['sales_id'])) {
-                        $input['sales_name'] = User::find(
-                            $input['sales_id']
-                        )->name;
-                    }
-
-                    return redirect()
-                        ->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
-                }
-
+                $input = $req->all();
                 if (! $req->has('marketing_products')) {
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
@@ -293,7 +268,7 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'],
                         'tax'           => $input['tax'],
-                        'discount'      => $input['discount'],
+                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     if ($req->has('marketing_products')) {
@@ -302,9 +277,9 @@ class ListController extends Controller
                         $marketing->marketing_products()->delete();
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = parseLocale($value['price']);
-                            $weightAvg = parseLocale($value['weight_avg']);
-                            $qty       = parseLocale($value['qty']);
+                            $price     = Parser::parseLocale($value['price']);
+                            $weightAvg = Parser::parseLocale($value['weight_avg']);
+                            $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
@@ -316,7 +291,7 @@ class ListController extends Controller
                                 'product_id'   => $value['product_id'],
                                 'price'        => $price,
                                 'weight_avg'   => $weightAvg,
-                                'uom_id'       => $input['uom_id'],
+                                'uom_id'       => $value['uom_id'],
                                 'qty'          => $qty,
                                 'weight_total' => $weightTotal,
                                 'total_price'  => $totalPrice,
@@ -329,25 +304,26 @@ class ListController extends Controller
                     $marketing->update([
                         'sub_total'   => $totalPrices,
                         'grand_total' => isset($input['tax'])
-                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - parseLocale($input['discount'])
-                            : $totalPrices                                          - parseLocale($input['discount']),
+                            ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                            : $totalPrices                                          - Parser::parseLocale($input['discount']),
                     ]);
 
                     if ($req->has('marketing_addit_prices')) {
                         $marketing->marketing_addit_prices()->delete();
 
                         $arrPrice = $req->input('marketing_addit_prices');
-                        $item     = $value['item'] ?? null;
-                        $price    = parseLocale($value['price']);
 
-                        if ($item && $price) {
-                            foreach ($arrPrice as $key => $value) {
+                        foreach ($arrPrice as $key => $value) {
+                            $item  = $value['item'] ?? null;
+                            $price = Parser::parseLocale($value['price']);
+
+                            if ($item && $price) {
                                 $arrPrice[$key]['marketing_id'] = $marketing->marketing_id;
                                 $arrPrice[$key]['item']         = $item;
                                 $arrPrice[$key]['price']        = $price;
                             }
-                            MarketingAdditPrice::insert($arrPrice);
                         }
+                        MarketingAdditPrice::insert($arrPrice);
                     }
                 });
 
@@ -421,7 +397,7 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty = parseLocale($value['qty']);
+                            $qty = Parser::parseLocale($value['qty']);
 
                             $arrVehicle[$key] = [
                                 'marketing_id' => $marketing->marketing_id,
