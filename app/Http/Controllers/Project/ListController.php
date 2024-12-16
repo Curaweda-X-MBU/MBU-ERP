@@ -311,4 +311,33 @@ class ListController extends Controller
             return ['id' => $project->project_id, 'text' => $project->kandang->name, 'data' => $project];
         }));
     }
+
+    public function searchPeriod(Request $request)
+    {
+        $search   = $request->input('q');
+        $projects = Project::with(['kandang', 'kandang.warehouse', 'product_category'])
+            ->whereHas('kandang', function($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%');
+            });
+        $queryParams = $request->query();
+        foreach ($queryParams as $key => $value) {
+            if ($key === 'project_status_not') {
+                $projects->whereNot('project_status', $value);
+            } else {
+                if ($key === 'company_id') {
+                    $projects->whereHas('kandang', function($query) use ($value) {
+                        $query->where('company_id', $value);
+                    });
+                } elseif ($key !== 'q') {
+                    $projects->where($key, $value);
+                }
+            }
+        }
+
+        $projects = $projects->get();
+
+        return response()->json($projects->map(function($project) {
+            return ['id' => $project->period, 'text' => $project->period];
+        }));
+    }
 }
