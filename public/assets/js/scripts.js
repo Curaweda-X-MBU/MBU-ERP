@@ -86,7 +86,7 @@ function confirmDelete(
  */
 
 function initSelect2($component, placeholder = "Pilih", routePath) {
-    if (routePath || routePath !== "") {
+    if (routePath) {
         $component.select2({
             placeholder: placeholder,
             ajax: {
