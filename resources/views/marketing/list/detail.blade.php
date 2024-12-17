@@ -217,7 +217,7 @@
                                                     @foreach ($data->marketing_products as $index => $item)
                                                         <tr>
                                                             <td>{{ $index + 1 }}</td>
-                                                            <td>{{ $item->kandang->name }}</td>
+                                                            <td>{{ $item->warehouse->name }}</td>
                                                             <td>{{ $item->product->name }}</td>
                                                             <td>{{ number_format($item->price, 2, '.', ',') }}</td>
                                                             <td>{{ $item->weight_avg }}</td>

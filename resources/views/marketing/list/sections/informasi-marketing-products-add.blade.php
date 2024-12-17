@@ -30,7 +30,7 @@
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
                 <td class="pt-2 pb-3">
-                    <select name="kandang_id" class="form-control marketing_kandang_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
+                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
@@ -137,23 +137,23 @@
             const $row = $(this);
             $row.slideDown();
             const $uomSelect = $row.find('.uom_select');
-            const $marketingKandangSelect = $row.find('.marketing_kandang_select');
+            const $marketingWarehouseSelect = $row.find('.marketing_warehouse_select');
             const $marketingProductSelect = $row.find('.marketing_product_select');
-            const kandangIdRoute = '{{ route("data-master.kandang.search") }}';
+            const warehouseIdRoute = '{{ route("data-master.warehouse.search-kandang") }}';
             const uomIdRoute = '{{ route("data-master.uom.search") }}';
             // ? START :: SELECT2 :: REINITIALIZE
-            initSelect2($marketingKandangSelect, 'Pilih Kandang', kandangIdRoute);
+            initSelect2($marketingWarehouseSelect, 'Pilih Kandang', warehouseIdRoute);
             initSelect2($uomSelect, 'Pilih Satuan', uomIdRoute);
             // START :: MARKETING PRODUCT + STOCK UPDATE
             $marketingProductSelect.html('<option disabled selected>Pilih Kandang terlebih dahulu</option>');
-            $marketingKandangSelect.on('change', function(e) {
+            $marketingWarehouseSelect.on('change', function(e) {
                 e.preventDefault();
-                const marketingKandangId = $(this).val();
+                const marketingWarehouseId = $(this).val();
                 $marketingProductSelect.val(null).trigger('change').html('');
 
-                if (marketingKandangId) {
+                if (marketingWarehouseId) {
                     let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
-                    productIdRoute = productIdRoute.replace(':id', marketingKandangId);
+                    productIdRoute = productIdRoute.replace(':id', marketingWarehouseId);
                     initSelect2($marketingProductSelect, 'Pilih Produk', productIdRoute);
                     setQtyStock($marketingProductSelect, true);
                 } else {
@@ -201,13 +201,13 @@
 
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
-            $(`select[name="marketing_products[${i}][kandang_id]"]`).append(`<option value="${product.kandang.kandang_id}" selected>${product.kandang.name}</option>`).trigger('change');
+            $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`select[name="marketing_products[${i}][uom_id]"]`).append(`<option value="${product.uom_id}" selected>${product.uom.name}</option>`).trigger('change');
             $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
             let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
-            productIdRoute = productIdRoute.replace(':id', product.kandang.kandang_id);
+            productIdRoute = productIdRoute.replace(':id', product.warehouse_id);
             const ajaxProduct = $.get({
                 url: productIdRoute,
                 dataType: 'json',

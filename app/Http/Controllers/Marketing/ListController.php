@@ -274,7 +274,7 @@ class ListController extends Controller
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['warehouse_id'] = $value['warehous_id'];
+                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
                             $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
@@ -478,14 +478,15 @@ class ListController extends Controller
                     }
 
                     if (isset($marketing->realized_at)) {
-                        $marketing->marketing_products->each(function($product) use ($req) {
-                            $input = $req->all();
+                        $marketing->marketing_products->each(function($product) {
+                            $input = [];
 
-                            $input['stocked_by'] = 'Marketing';
-                            $input['stock_date'] = date('Y-m-d');
-                            $input['increase']   = 0;
-                            $input['decrease']   = $product->qty;
-                            $input['product_id'] = $product->product_id;
+                            $input['product_id']   = $product->product_id;
+                            $input['warehouse_id'] = $product->warehouse_id;
+                            $input['stocked_by']   = 'Marketing';
+                            $input['stock_date']   = date('Y-m-d');
+                            $input['increase']     = 0;
+                            $input['decrease']     = $product->qty;
 
                             $triggerStock = StockLog::triggerStock($input);
 
