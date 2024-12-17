@@ -67,6 +67,14 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            @if ($data->document_revision)
+                                            <div class="col-md-6 mt-1">
+                                                <div class="text-right">
+                                                    Dokumen perubahan data recording<br>
+                                                    <a class="btn btn-success btn-sm" href="{{ route('file.show', ['filename' => $data->document_revision]) }}" target="_blank">Download</a>
+                                                </div>
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
 

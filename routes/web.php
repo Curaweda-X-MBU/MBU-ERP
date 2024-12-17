@@ -73,8 +73,10 @@ Route::middleware('auth')->group(function() {
             Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
             Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
             Route::any('/add', [App\Http\Controllers\Project\RecordingController::class, 'add'])->name('project.recording.add')->middleware('permission:project.recording.add');
-            // Route::any('/edit/{id}', [App\Http\Controllers\Project\RecordingController::class, 'edit'])->name('project.recording.edit')->middleware('permission:project.recording.index');
+            Route::any('/edit/{id}', [App\Http\Controllers\Project\RecordingController::class, 'edit'])->name('project.recording.edit'); //->middleware('permission:project.recording.index');
             Route::any('/detail/{id}', [App\Http\Controllers\Project\RecordingController::class, 'detail'])->name('project.recording.detail')->middleware('permission:project.recording.detail');
+            Route::any('/revision-submission/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionSubmission'])->name('project.recording.revision-submission'); //->middleware('permission:project.recording.detail');
+            Route::any('/revision-approval/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionApproval'])->name('project.recording.revision-approval'); //->middleware('permission:project.recording.detail');
             Route::any('/delete/{id}', [App\Http\Controllers\Project\RecordingController::class, 'delete'])->name('project.recording.delete'); //->middleware('permission:project.recording.index');
             // Route::any('/approve/{id}', [App\Http\Controllers\Project\RecordingController::class, 'approve'])->name('project.recording.approve');//->middleware('permission:project.recording.index');
         });

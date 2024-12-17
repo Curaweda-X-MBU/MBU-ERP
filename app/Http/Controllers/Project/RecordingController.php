@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Project;
 
 use App\Constants;
+use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
@@ -240,22 +241,97 @@ class RecordingController extends Controller
     public function detail(Request $req)
     {
         try {
-            $recordingId = $req->id;
-            $data        = Recording::with([
-                'recording_stock',
-                'recording_nonstock',
-                'recording_bw.recordingBwList',
-                'recording_depletion',
-                'recording_egg',
-                'project',
-            ])->find($recordingId);
-
+            $data  = $this->getById($req->id);
             $param = [
                 'title' => 'Project > Recording > Detail',
                 'data'  => $data,
             ];
 
             return view('project.recording.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function getById($recordingId)
+    {
+        $data = Recording::with([
+            'recording_stock.product_warehouse.product.uom',
+            'recording_nonstock.nonstock.uom',
+            'recording_bw.recordingBwList',
+            'recording_depletion.product_warehouse.product',
+            'recording_egg',
+            'project',
+        ])->findOrFail($recordingId);
+
+        return $data;
+    }
+
+    public function edit(Request $req)
+    {
+        try {
+            $data = $this->getById($req->id);
+            if ($data->revision_status !== 2) {
+                return redirect()->back()->with('error', 'Data recording tidak bisa dirubah, silahkan ajukan perubahan data')->withInput();
+            }
+            $param = [
+                'title' => 'Project > Recording > Ubah',
+                'data'  => $data,
+            ];
+
+            return view('project.recording.add', $param);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function revisionApproval(Request $req)
+    {
+        try {
+            $id        = $req->id;
+            $status    = $req->revision_status;
+            $recording = Recording::findOrFail($id);
+            $recording->update([
+                'revision_status' => $status,
+            ]);
+
+            $message = 'Perubahan data berhasil disetujui';
+            if ($status == 4) {
+                $message = 'Perubahan berhasil ditolak';
+            }
+            $success = ['success' => $message];
+
+            return redirect()->route('project.recording.index')->with($success);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function revisionSubmission(Request $req)
+    {
+        try {
+            $id        = $req->id;
+            $recording = Recording::findOrFail($id);
+            $document  = '';
+            if ($req->has('document_revision')) {
+                $docUrl = FileHelper::upload($req->file('document_revision'), constants::REVISION_DOC_PATH);
+                if (! $docUrl['status']) {
+                    return redirect()->back()->with('error', $docUrl['message'])->withInput();
+                }
+                $document = $docUrl['url'];
+            }
+
+            $recording->update([
+                'revision_status'   => 1,
+                'document_revision' => $document,
+            ]);
+
+            $success = ['success' => 'Perubahan berhasil diajukan'];
+
+            return redirect()->route('project.recording.index')->with($success);
+
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

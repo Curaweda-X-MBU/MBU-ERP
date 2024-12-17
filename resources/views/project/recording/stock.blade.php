@@ -94,30 +94,8 @@
                     const productId = e.params.data.id;
                     const selectedData = e.params.data.data;
                     $(this).closest('td').next().next().next().find('.uom').val(selectedData.uom.name);
-                    $(this).closest('td').next().next().find('.decrease_stock').val(null);
-                    $.ajax({
-                        type: "post",
-                        url: "{{ route('inventory.product.check-stock-by-warehouse') }}",
-                        data: {
-                            product_id: productId,
-                            warehouse_id: $('#warehouse_id').val()
-                        },
-                        beforeSend: function() {
-                            $this.find('.current-stock').val(null);
-                        },
-                        success: function (response) {
-                            $this.find('.current-stock').val(response);
-                            var numeralMask = $('.numeral-mask');
-                            if (numeralMask.length) {
-                                numeralMask.each(function() { 
-                                    new Cleave(this, {
-                                        numeral: true,
-                                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
-                                    });
-                                })
-                            }
-                        }
-                    });
+                    // $(this).closest('td').next().next().find('.decrease_stock').val(null);
+                    getCurrentStock(productId, $('#warehouse_id').val(), $this)
                 });
 
                 $this.find('.decrease_stock').change(function (e) { 
@@ -138,7 +116,52 @@
             }
         };
 
+        function getCurrentStock(productId, warehouseId, $this) {
+            $.ajax({
+                type: "post",
+                url: "{{ route('inventory.product.check-stock-by-warehouse') }}",
+                data: {
+                    product_id: productId,
+                    warehouse_id: warehouseId
+                },
+                beforeSend: function() {
+                    $this.find('.current-stock').val(null);
+                },
+                success: function (response) {
+                    $this.find('.current-stock').val(response);
+                    var numeralMask = $('.numeral-mask');
+                    if (numeralMask.length) {
+                        numeralMask.each(function() { 
+                            new Cleave(this, {
+                                numeral: true,
+                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                            });
+                        })
+                    }
+                }
+            });
+        }
+
         const $repeaterStock = $('#stock-repeater').repeater(optStock);
         $('.add-stock').trigger('click');
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_stock) {
+            const dataStock = dataRecording.recording_stock;
+            dataStock.forEach(item => {
+                item.decrease_stock = item.decrease
+            });
+
+            $repeaterStock.setList(dataStock);
+
+            for (let i = 0; i < dataStock.length; i++) {
+                $(`select[name="stock[${i}][product_id]"]`).append(`<option value="${dataStock[i].product_warehouse.product.product_id}" selected>${dataStock[i].product_warehouse.product.name}</option>`);
+                const $selector = $(`select[name="stock[${i}][product_id]"]`).closest('tr');
+                const productId = dataStock[i].product_warehouse.product.product_id;
+                const warehouseId = dataStock[i].product_warehouse.warehouse_id;
+                getCurrentStock(productId, warehouseId, $selector)
+                $selector.find('.uom').val(dataStock[i].product_warehouse.product.uom.name)
+            }
+        }
     });
 </script>

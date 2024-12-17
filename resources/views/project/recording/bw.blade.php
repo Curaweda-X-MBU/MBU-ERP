@@ -139,7 +139,7 @@
                 let total = 0;
                 $(selector).each(function() {
                     const value = parseFloat($(this).val().replace(/\./g, '').replace(/,/g, '.')) || 0;
-                    console.log(value);
+                    // console.log(value);
                     
                     total += value;
                 });
@@ -166,6 +166,18 @@
             
             const bwValue = totalCalc / totalChick;
             applyCleave('value', bwValue);
+        }
+
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_bw[0]) {
+            const dataBwList = dataRecording.recording_bw[0].recording_bw_list;
+            dataBwList.forEach(item => {
+                item.weight = item.weight.replace('.', ',');
+            });
+            // console.log('data bw: ', dataBwList);
+            $repeaterBw.setList(dataBwList);
+            $('.weight, .total').trigger('change');
         }
 
     });
