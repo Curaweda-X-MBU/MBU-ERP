@@ -209,9 +209,8 @@ class ListController extends Controller
         try {
             $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
-                'title'   => 'Penjualan > Edit',
-                'is_edit' => true,
-                'data'    => $data,
+                'title' => 'Penjualan > Edit',
+                'data'  => $data,
             ];
 
             if ($req->isMethod('post')) {
@@ -348,14 +347,18 @@ class ListController extends Controller
     public function realization(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            if ($marketing->marketing_delivery_vehicles()->exists()) {
+                $data->load('marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
+            }
+
             $param = [
-                'title' => 'Penjualan > Realisasi',
-                'data'  => $data,
+                'title'          => 'Penjualan > Realisasi',
+                'data'           => $data,
+                'is_realization' => true,
             ];
 
             if ($req->isMethod('post')) {
-                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {
@@ -389,13 +392,14 @@ class ListController extends Controller
                     $marketing->update([
                         'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
                         'doc_reference' => $docReferencePath,
-                        'realized_at'   => $input['realized_at'],
+                        'realized_at'   => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
                         'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
+                    $marketing->marketing_delivery_vehicles()->delete();
                     if ($req->has('marketing_delivery_vehicles')) {
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
@@ -406,7 +410,9 @@ class ListController extends Controller
                                 'marketing_id' => $marketing->marketing_id,
                                 'plat_number'  => $value['plat_number'],
                                 'qty'          => $qty,
+                                'uom_id'       => $value['uom_id'],
                                 'exit_at'      => date('Y-m-d H:i', strtotime($value['exit_at'])),
+                                'sender_id'    => $value['sender_id'],
                                 'driver_name'  => $value['driver_name'],
                             ];
                         }

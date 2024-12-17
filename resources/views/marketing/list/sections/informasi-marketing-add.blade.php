@@ -21,7 +21,7 @@
     <!-- Nama Pelanggan -->
     <div class="col-md-2 mt-1">
         <label for="customer_id" class="form-label">Nama Pelanggan<i class="text-danger">*</i></label>
-        <select name="customer_id" id="customer_id" class="form-control" required>
+        <select name="customer_id" id="customer_id" class="form-control" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
         </select>
     </div>
     <!-- Tanggal Penjualan -->
@@ -45,6 +45,13 @@
             </div>
         </div>
     </div>
+    <!-- Tanggal Realisasi -->
+    @if (isset($is_realization) && $is_realization)
+    <div class="col-md-2 mt-1">
+        <label for="realized_at" class="form-label">Tanggal Realisasi</label>
+        <input id="realized_at" name="realized_at" class="form-control flatpickr-basic" aria-desribedby="realized_at" placeholder="Pilih Tanggal" required>
+    </div>
+    @endif
 </div>
 
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
@@ -71,7 +78,6 @@
         const marketing = @json($dataMarketing);
         const customer = @json($dataCustomer);
         const MARKETING_STATUS = @json(App\Constants::MARKETING_STATUS);
-        console.log(marketing);
 
         // CUSTOMER
         $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');

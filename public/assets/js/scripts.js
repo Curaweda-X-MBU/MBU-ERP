@@ -15,17 +15,17 @@
  * <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
  *
  * @param {string} selector
- * @param {string} [decimalMark=,]
- * @param {string} [delimeter=.]
  */
-function initNumeralMask(selector, decimalMark = ",", delimeter = ".") {
-    $(selector).each(function () {
-        new Cleave(this, {
-            numeral: true,
-            numeralDecimalMark: decimalMark,
-            delimiter: delimeter,
+function initNumeralMask(selector) {
+    var element = $(selector);
+    if (element.length) {
+        element.each(function () {
+            new Cleave(this, {
+                numeral: true,
+                numeralThousandsGroupStyle: "thousand",
+            });
         });
-    });
+    }
 }
 
 /**
@@ -34,7 +34,7 @@ function initNumeralMask(selector, decimalMark = ",", delimeter = ".") {
  * @returns {number} Float value | e.g. 1000,50
  */
 function parseLocale(value) {
-    return parseFloat(value.replace(/\./g, "").replace(",", ".") || 0);
+    return parseFloat(value.replace(/\,/g, "") || 0);
 }
 
 /**
@@ -44,7 +44,7 @@ function parseLocale(value) {
  * <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
  * <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
  *
- * @param [$row]
+ * @param $row
  * @param deleteElement
  * @param {string} [title]
  * @param {string} [text]
