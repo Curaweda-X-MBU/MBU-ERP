@@ -38,7 +38,7 @@
 
                 {{-- add payment button --}}
                 <div class="mt-2 text-right">
-                    <button type="button" class="btn btn-icon btn-primary" data-toggle="modal" data-target="#returnPayment" data-repeater-create>
+                    <button type="button" class="btn btn-icon btn-primary" data-toggle="modal" data-target="#returnPayment">
                         <i data-feather="plus"></i> Tambah Pembayaran
                     </button>
                 </div>
@@ -62,7 +62,7 @@
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody data-repeater-list="farms">
+                            <tbody data-repeater-list="marketing_returns_payment">
                                 <tr class="text-center" data-repeater-item>
                                     <td>1</td>
                                     <td>25-Dec-2024</td>

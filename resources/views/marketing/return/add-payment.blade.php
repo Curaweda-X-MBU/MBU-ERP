@@ -5,6 +5,9 @@
         inset: 0;
     }
 </style>
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/animate/animate.css')}}" />
 
 <div class="modal fade" id="returnPayment" tabindex="-1" role="dialog" aria-labelledby="returnPaymentLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -16,7 +19,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
+                <form class="form-horizontal" method="post" action="{{ route('marketing.return.payment') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         {{-- Table kiri --}}
@@ -24,38 +27,43 @@
                             <table class="table table-borderless">
                                 <tbody>
                                     <tr>
-                                        <td><label for="noDO">No. DO</label></td>
-                                        <td><input type="text" class="form-control" id="noDO" value="DO-MBU-19289" disabled></td>
+                                        <td><label for="do_number">No. DO</label></td>
+                                        <td><input type="text" class="form-control" id="do_number" value="DO-MBU-19289" disabled></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="namaCustomer">Nama Customer</label></td>
-                                        <td><input type="text" class="form-control" id="namaCustomer" value="Abd. Muis" disabled></td>
+                                        <td><label for="customer_name">Nama Customer</label></td>
+                                        <td><input type="text" class="form-control" id="customer_name" value="Abd. Muis" disabled></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="nominalRetur">Nominal Retur</label></td>
-                                        <td><input type="text" class="form-control" id="nominalRetur" value="8,020,000.00" disabled></td>
+                                        <td><label for="return_nominal">Nominal Retur</label></td>
+                                        <td><input type="text" class="form-control text-right" id="return_nominal" value="8,020,000.00" disabled></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="metodePembayaran">Metode Pembayaran*</label></td>
+                                        <td><label for="payment_method">Metode Pembayaran*</label></td>
                                         <td>
-                                            <select class="form-control" id="metodePembayaran">
-                                                <option>Transfer</option>
+                                            <select class="form-control" id="payment_method">
+                                                <option value="">Pilih Metode Pembayaran</option>
+                                                <option value="transfer">Transfer</option>
+                                                <option value="cash">Cash</option>
+                                                <option value="credit_card">Kartu Kredit</option>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="akunBank">Akun Bank*</label></td>
+                                        <td><label for="own_bank_id">Akun Bank*</label></td>
                                         <td>
-                                            <select class="form-control" id="akunBank">
-                                                <option>Mandiri - 012345678 - Mitra Berlian</option>
+                                            <select class="form-control" id="own_bank_id">
+                                                <option value="">Pilih Akun Bank</option>
+                                                <option value="bank1">Mandiri - 012345678 - Mitra Berlian</option>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="bankPenerima">Bank Penerima*</label></td>
+                                        <td><label for="recipient_bank_id">Bank Penerima*</label></td>
                                         <td>
-                                            <select class="form-control" id="bankPenerima">
-                                                <option>Mandiri - 85462220 - Abd. Muis</option>
+                                            <select class="form-control" id="recipient_bank_id">
+                                                <option value="">Pilih Akun Bank</option>
+                                                <option value="bank2">Mandiri - 85462220 - Abd. Muis</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -68,33 +76,33 @@
                             <table class="table table-borderless">
                                 <tbody>
                                     <tr>
-                                        <td><label for="refPembayaran">Referensi Pembayaran</label></td>
-                                        <td><input type="text" class="form-control" id="refPembayaran" value="INV-0929"></td>
+                                        <td><label for="ref_number">Referensi Pembayaran</label></td>
+                                        <td><input type="text" class="form-control" id="ref_number" value="INV-0929"></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="noTransaksi">Nomor Transaksi</label></td>
-                                        <td><input type="text" class="form-control" id="noTransaksi" value="12345678"></td>
+                                        <td><label for="transaction_number">Nomor Transaksi</label></td>
+                                        <td><input type="text" class="form-control" id="transaction_number" value="12345678"></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="nominalPembayaran">Nominal Pembayaran*</label></td>
-                                        <td><input type="text" class="form-control" id="nominalPembayaran" value="8,020,000.00"></td>
+                                        <td><label for="payment_amount">Nominal Pembayaran*</label></td>
+                                        <td><input type="text" class="form-control numeral-mask" id="payment_amount" value="0"></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="biayaAdmin">Biaya Admin Bank*</label></td>
-                                        <td><input type="text" class="form-control" id="biayaAdmin" value="0"></td>
+                                        <td><label for="admin_fee">Biaya Admin Bank*</label></td>
+                                        <td><input type="text" class="form-control numeral-mask" id="admin_fee" value="0"></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="tanggalBayar">Tanggal Bayar*</label></td>
-                                        <td><input type="date" class="form-control" id="tanggalBayar" value="0"></td>
+                                        <td><label for="payment_at">Tanggal Bayar*</label></td>
+                                        <td><input type="date" class="form-control flatpickr-basic" id="payment_at" value="0"></td>
                                     </tr>
                                     <tr>
-                                        <td><label for="uploadDokumen">Upload Dokumen</label></td>
+                                        <td><label for="doc_reference">Upload Dokumen</label></td>
                                         <td>
                                             <div class="input-group">
-                                                <input type="text" id="uploadDokumen" class="form-control">
+                                                <input type="text" id="fileName" placeholder="Upload" class="form-control">
                                                 <input type="file" id="transparentFileUpload" name="doc_reference">
                                                 <div class="input-group-append">
-                                                    <span class="input-group-text bg-primary text-white">Upload</span>
+                                                    <span class="input-group-text"> <i data-feather="upload"></i> </span>
                                                 </div>
                                             </div>
                                         </td>
@@ -107,15 +115,34 @@
                             </table>
                         </div>
                     </div>
-
-                    {{-- button --}}
-                    <center class="mt-2">
-                        <a href="{{ route('marketing.return.payment') }}" class="btn btn-outline-warning waves-effect">Batal</a>
-                        <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>
-                    </center>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ route('marketing.return.payment') }}" class="btn btn-outline-warning waves-effect">Batal</a>
+                <button id="submitForm" type="submit" data-repeater-create class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>
             </div>
         </div>
     </div>
 </div>
 
+<script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
+<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
+<script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
+<script>
+    $(document).ready(function() {
+        $('#transparentFileUpload').on('change', function() {
+            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
+        })
+    })
+
+    initNumeralMask('.numeral-mask');
+
+    const dateOpt = { dateFormat: 'd-M-Y' };
+        $('.flatpickr-basic').flatpickr(dateOpt);
+
+    initSelect2($('#payment_method'), 'Pilih Metode Pembayaran');
+    initSelect2($('#own_bank_id'), 'Pilih Bank');
+    initSelect2($('#recipient_bank_id'), 'Pilih Bank');
+
+</script>
