@@ -140,6 +140,11 @@ class Constants
         3 => 'Dibayar Penuh',
     ];
 
+    public const MARKETING_VERIFY_PAYMENT_STATUS = [
+        1 => 'Diajukan',
+        2 => 'Terverifikasi',
+    ];
+
     public const MARKETING_STATUS = [
         1 => 'Diajukan',
         2 => 'Penawaran',

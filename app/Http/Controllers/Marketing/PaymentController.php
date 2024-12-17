@@ -38,10 +38,10 @@ class PaymentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Marketing $marketing)
     {
         try {
-            $data  = MarketingPayment::with(['approver', 'bank', 'marketing'])->get();
+            $data  = $marketing->load(['customer', 'company', 'marketing_payments']);
             $param = [
                 'title' => 'Penjualan > Payment',
                 'data'  => $data,
