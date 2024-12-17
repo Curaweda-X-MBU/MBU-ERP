@@ -86,7 +86,7 @@
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', ['marketing' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', ['id' => $item->marketing_id]) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
