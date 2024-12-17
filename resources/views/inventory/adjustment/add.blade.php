@@ -117,25 +117,27 @@
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
-                            var numeralMask = $('.numeral-mask');
-                            if (numeralMask.length) {
-                                numeralMask.each(function() { 
-                                    new Cleave(this, {
-                                        numeral: true,
-                                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
-                                    });
-                                })
-                            }
+                            // WARN: Temporary changes for Cleave bug
+                            initNumeralMask('.numeral-mask');
+                            // var numeralMask = $('.numeral-mask');
+                            // if (numeralMask.length) {
+                            //     numeralMask.each(function() {
+                            //         new Cleave(this, {
+                            //             numeral: true,
+                            //             numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                            //         });
+                            //     })
+                            // }
 
                             $('#product_category_id').select2({
                                 placeholder: "Pilih Kategoti Produk",
                                 ajax: {
-                                    url: '{{ route("data-master.product-category.search") }}', 
+                                    url: '{{ route("data-master.product-category.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
@@ -147,7 +149,7 @@
                                 }
                             });
 
-                            $('#product_category_id').change(function (e) { 
+                            $('#product_category_id').change(function (e) {
                                 e.preventDefault();
                                 const prodCatId = $(this).val();
                                 $('#product_id').val(null).trigger('change');
@@ -155,12 +157,12 @@
                                 $('#product_id').select2({
                                     placeholder: "Pilih Produk",
                                     ajax: {
-                                        url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}`, 
+                                        url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}`,
                                         dataType: 'json',
-                                        delay: 250, 
+                                        delay: 250,
                                         data: function(params) {
                                             return {
-                                                q: params.term 
+                                                q: params.term
                                             };
                                         },
                                         processResults: function(data) {
@@ -177,12 +179,12 @@
                             $('#warehouse_id').select2({
                                 placeholder: "Pilih Gudang",
                                 ajax: {
-                                    url: '{{ route("data-master.warehouse.search") }}', 
+                                    url: '{{ route("data-master.warehouse.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {

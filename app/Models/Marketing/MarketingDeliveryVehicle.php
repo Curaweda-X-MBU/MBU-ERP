@@ -11,7 +11,7 @@ class MarketingDeliveryVehicle extends Model
 {
     use HasFactory;
 
-    protected $table = 'marketing_delivery_vehicle';
+    protected $table = 'marketing_delivery_vehicles';
 
     protected $primaryKey = 'marketing_delivery_vehicle_id';
 
@@ -27,16 +27,16 @@ class MarketingDeliveryVehicle extends Model
 
     public function marketing()
     {
-        $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
+        return $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
     }
 
     public function uom()
     {
-        $this->belongsTo(Uom::class, 'uom_id', 'uom_id');
+        return $this->belongsTo(Uom::class, 'uom_id', 'uom_id');
     }
 
     public function sender()
     {
-        $this->belongsTo(User::class, 'sender_id', 'user_id');
+        return $this->belongsTo(User::class, 'sender_id', 'user_id');
     }
 }

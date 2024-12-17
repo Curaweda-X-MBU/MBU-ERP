@@ -21,7 +21,7 @@
                 <th>Total Bobot</th>
                 <th>Total Penjualan (Rp)</th>
                 <th>
-                    <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
+                    <button class="btn btn-sm btn-icon btn-primary {{ isset($is_realization) ? 'd-none' : '' }}" type="button" data-repeater-create title="Tambah Produk">
                         <i data-feather="plus"></i>
                     </button>
                 </th>
@@ -30,11 +30,11 @@
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
                 <td class="pt-2 pb-3">
-                    <select name="kandang_id" class="form-control marketing_kandang_select" required>
+                    <select name="kandang_id" class="form-control marketing_kandang_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
-                    <select name="product_id" class="form-control marketing_product_select" required>
+                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
                         <option disabled selected>Pilih Kandang terlebih dahulu</option>
                     </select>
                     <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0</span></small>
@@ -60,11 +60,13 @@
                 <td class="pt-2 pb-3">
                     <input type="text" id="price_total" class="form-control" value="0,00" disabled>
                 </td>
+                @if (!isset($is_realization))
                 <td class="pt-2 pb-3">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>
                     </button>
                 </td>
+                @endif
             </tr>
         </tbody>
     </table>
@@ -76,6 +78,7 @@
 <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
     // ? START :: SET VALUE :: QTY & CURRENT STOCK
+    const localeOpts = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
     function setQtyStock($this, reset) {
         let qty;
         if (reset) {
@@ -83,9 +86,8 @@
         } else {
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
-            console.log(data);
         }
-        const value = qty.toLocaleString('id-ID');
+        const value = qty.toLocaleString('en-GB');
         const $rowScope = $this.closest('tr');
 
         $rowScope.find('#current_stock').text(value);
@@ -106,6 +108,7 @@
             const $totalSebelumPajak = $('#total_sebelum_pajak');
             const $totalSebelumPajakInput = $('input[name="total_sebelum_pajak"]');
 
+            console.log($qtyInput.val());
             const qty = parseLocale($qtyInput.val());
             const weightAvg = parseLocale($weightAvgInput.val());
             const price = parseLocale($priceInput.val());
@@ -113,15 +116,15 @@
             const weightTotal = qty * weightAvg;
             const priceTotal = weightTotal * price;
 
-            $weightTotalInput.val(weightTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-            $priceTotalInput.val(priceTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $weightTotalInput.val(weightTotal.toLocaleString('en-GB'));
+            $priceTotalInput.val(priceTotal.toLocaleString('en-GB'));
 
             setTimeout(function(){
                 const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
                     const value = parseLocale($(elem).val());
                     return acc + value;
                 }, 0);
-                $totalSebelumPajak.text(priceAllRow.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
+                $totalSebelumPajak.text(priceAllRow.toLocaleString('en-GB')).trigger('change');
             }, 0);
         });
     }
@@ -181,7 +184,6 @@
             if (feather) {
                 feather.replace({ width: 14, height: 14 });
             }
-
             initNumeralMask('.numeral-mask');
         },
         hide: function(deleteElement) {
@@ -215,6 +217,8 @@
                 $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
                 $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
                 $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
+
+            initNumeralMask('.numeral-mask');
             });
         });
     } else {
