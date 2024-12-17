@@ -14,7 +14,9 @@
                     @include('marketing.list.sections.informasi-marketing-add')
                     @include('marketing.list.sections.informasi-marketing-products-add')
                     <hr class="border-bottom">
-                    @include('marketing.list.sections.informasi-marketing-sale')
+                    <div class="row">
+                        @include('marketing.list.sections.informasi-marketing-sale')
+                    </div>
                     <div class="col-12 mt-1">
                         <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
                         <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Edit</button>

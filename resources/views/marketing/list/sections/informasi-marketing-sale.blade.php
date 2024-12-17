@@ -91,7 +91,7 @@
                     const value = parseLocale($(elem).val());
                     return acc + value;
                 }, 0);
-                $totalPiutang.text((totalSetelahPajak + priceAllRow).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $totalPiutang.text((totalSetelahPajak + priceAllRow).toLocaleString('en-GB'));
             }, 0);
         });
     }
@@ -110,7 +110,7 @@
             } else {
                 total = totalSebelumPajak - discount;
             }
-            $totalSetelahPajak.text(total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
+            $totalSetelahPajak.text(total.toLocaleString('en-GB')).trigger('change');
         });
     }
     // ? END :: CALCULATION ::  BEFORE TAX

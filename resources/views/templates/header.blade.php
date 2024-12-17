@@ -26,10 +26,9 @@
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/core/menu/menu-types/vertical-menu.css')}}">
     <!-- END: Page CSS-->
 
-    <!-- BEGIN: Custom CSS & JS-->
+    <!-- BEGIN: Custom CSS-->
     <link rel="stylesheet" type="text/css" href="{{asset('assets/css/style.css')}}">
-    <script src="{{asset('assets/js/scripts.js')}}"></script>
-    <!-- END: Custom CSS & JS-->
+    <!-- END: Custom CSS-->
 
     <!-- BEGIN: Vendor JS-->
     <script src="{{asset('app-assets/vendors/js/vendors.min.js')}}"></script>

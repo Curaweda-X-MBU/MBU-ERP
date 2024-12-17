@@ -180,4 +180,25 @@ class WarehouseController extends Controller
             return ['id' => $warehouse->warehouse_id, 'text' => $warehouse->name];
         }));
     }
+
+    public function searchKandangWarehouse(Request $request)
+    {
+        $search     = $request->input('q');
+        $warehouses = Warehouse::with(['location', 'kandang'])
+            ->where('type', 2)
+            ->where('name', 'like', "%{$search}");
+        $queryParams = $request->query();
+        $queryParams = Arr::except($queryParams, ['q']);
+        if (auth()->user()->role->name !== 'Super Admin') {
+            foreach ($queryParams as $key => $value) {
+                $warehouses->where($key, $value);
+            }
+        }
+
+        $warehouses = $warehouses->get();
+
+        return response()->json($warehouses->map(function($warehouse) {
+            return ['id' => $warehouse->warehouse_id, 'text' => $warehouse->name];
+        }));
+    }
 }

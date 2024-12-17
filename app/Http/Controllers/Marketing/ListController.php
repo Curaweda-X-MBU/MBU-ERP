@@ -62,7 +62,6 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {
@@ -117,7 +116,7 @@ class ListController extends Controller
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
-                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
                             $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
@@ -190,7 +189,7 @@ class ListController extends Controller
                 'company',
                 'customer',
                 'sales',
-                'marketing_products.kandang',
+                'marketing_products.warehouse',
                 'marketing_products.product',
                 'marketing_products.uom',
                 'marketing_addit_prices',
@@ -217,7 +216,7 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
                 'title' => 'Penjualan > Edit',
                 'data'  => $data,
@@ -275,7 +274,7 @@ class ListController extends Controller
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
                             $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
@@ -357,7 +356,7 @@ class ListController extends Controller
     public function realization(Request $req, Marketing $marketing)
     {
         try {
-            $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             if ($marketing->marketing_delivery_vehicles()->exists()) {
                 $data->load('marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
             }
@@ -444,7 +443,7 @@ class ListController extends Controller
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
                             $arrProduct[$key]['product_id']   = $value['product_id'];
                             $arrProduct[$key]['price']        = $price;
                             $arrProduct[$key]['weight_avg']   = $weightAvg;
@@ -479,14 +478,15 @@ class ListController extends Controller
                     }
 
                     if (isset($marketing->realized_at)) {
-                        $marketing->marketing_products->each(function($product) use ($req) {
-                            $input = $req->all();
+                        $marketing->marketing_products->each(function($product) {
+                            $input = [];
 
-                            $input['stocked_by'] = 'Marketing';
-                            $input['stock_date'] = date('Y-m-d');
-                            $input['increase']   = 0;
-                            $input['decrease']   = $product->qty;
-                            $input['product_id'] = $product->product_id;
+                            $input['product_id']   = $product->product_id;
+                            $input['warehouse_id'] = $product->warehouse_id;
+                            $input['stocked_by']   = 'Marketing';
+                            $input['stock_date']   = date('Y-m-d');
+                            $input['increase']     = 0;
+                            $input['decrease']     = $product->qty;
 
                             $triggerStock = StockLog::triggerStock($input);
 
@@ -585,6 +585,28 @@ class ListController extends Controller
 
         $products = Product::whereHas('product_warehouse.warehouse.kandang', function($q) use ($kandangId) {
             $q->where('kandang_id', $kandangId);
+        })->with(['product_warehouse' => function($q) {
+            $q->select('product_id', 'quantity');
+        }])->get();
+
+        $val = $products->map(function($product) {
+            return [
+                'id'   => $product->product_id,
+                'text' => $product->name,
+                'qty'  => $product->product_warehouse->sum('quantity'),
+                'data' => $product,
+            ];
+        });
+
+        return response()->json($val);
+    }
+
+    public function searchProductByWarehouse(Request $req)
+    {
+        $warehouseId = $req->id;
+
+        $products = Product::whereHas('product_warehouse.warehouse', function($q) use ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
         })->with(['product_warehouse' => function($q) {
             $q->select('product_id', 'quantity');
         }])->get();

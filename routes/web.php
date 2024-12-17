@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/realization/{marketing}', [App\Http\Controllers\Marketing\ListController::class, 'realization'])->name('marketing.list.realization')->middleware('permission:marketing.list.realization');
             Route::get('/search', [App\Http\Controllers\Marketing\ListController::class, 'searchMarketing'])->name('marketing.list.search');
             Route::post('/approve/{marketing}', [App\Http\Controllers\Marketing\ListController::class, 'approve'])->name('marketing.list.approve')->middleware('permission:marketing.list.approve');
-            Route::get('/search-product/{id}', [App\Http\Controllers\Marketing\ListController::class, 'searchProductByKandang'])->name('marketing.list.search-product');
+            Route::get('/search-product/{id}', [App\Http\Controllers\Marketing\ListController::class, 'searchProductByWarehouse'])->name('marketing.list.search-product');
 
         });
         Route::group(['prefix' => 'payment'], function() {
@@ -276,6 +276,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\WarehouseController::class, 'edit'])->name('data-master.warehouse.edit')->middleware('permission:data-master.warehouse.edit');
             Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\WarehouseController::class, 'delete'])->name('data-master.warehouse.delete')->middleware('permission:data-master.warehouse.delete');
             Route::get('/search', [App\Http\Controllers\DataMaster\WarehouseController::class, 'searchWarehouse'])->name('data-master.warehouse.search');
+            Route::get('/search-kandang', [App\Http\Controllers\DataMaster\WarehouseController::class, 'searchKandangWarehouse'])->name('data-master.warehouse.search-kandang');
         });
 
         Route::group(['prefix' => 'uom'], function() {
