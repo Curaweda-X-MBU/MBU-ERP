@@ -9,8 +9,6 @@
 
     <!-- BEGIN: Page JS-->
     <!-- END: Page JS-->
-
-    <script src="{{asset('assets/js/scripts.js')}}"></script>
     <script>
         $(window).on('load', function() {
             if (feather) {
