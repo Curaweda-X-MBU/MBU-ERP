@@ -7,6 +7,7 @@ use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Product;
+use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingDeliveryVehicle;
@@ -23,28 +24,10 @@ class ListController extends Controller
         'sold_at'     => 'required',
     ];
 
-    private const VALIDATION_RULES_REALIZATION = [
-        'plat_number' => 'required',
-        'qty'         => 'required',
-        'uom_id'      => 'required',
-        'exit_at'     => 'required',
-        'sender_id'   => 'required',
-        'driver_name' => 'required',
-    ];
-
     private const VALIDATION_MESSAGES_ADD = [
         'customer_id.required' => 'Nama Pelanggan tidak boleh kosong',
         'sold_at.required'     => 'Tanggal Penjualan tidak boleh kosong',
         'sold_at.date'         => 'Format tanggal tidak valid',
-    ];
-
-    private const VALIDATION_MESSAGES_REALIZATION = [
-        'plat_number.required' => 'No Polisi tidak boleh kosong',
-        'qty.required'         => 'Jumlah tidak boleh kosong',
-        'uom_id.required'      => 'Uom tidak boleh kosong',
-        'exit_at.required'     => 'Waktu Keluar Kandang tidak boleh kosong',
-        'sender_id.required'   => 'Nama Pengirim tidak boleh kosong',
-        'driver_name.required' => 'Nama Driver tidak boleh kosong',
     ];
 
     /**
@@ -88,7 +71,8 @@ class ListController extends Controller
 
                 DB::transaction(function() use ($req) {
                     $input            = $req->all();
-                    $totalPrices      = 0;
+                    $productPrice     = 0;
+                    $additPrice       = 0;
                     $company          = Auth::user()->department->company;
                     $docReferencePath = '';
 
@@ -130,7 +114,7 @@ class ListController extends Controller
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $weightTotal;
-                            $totalPrices += $totalPrice;
+                            $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
                             $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
@@ -146,21 +130,13 @@ class ListController extends Controller
                         MarketingProduct::insert($arrProduct);
                     }
 
-                    if ($req->has('marketing_products')) {
-                        $createdMarketing->update([
-                            'sub_total'   => $totalPrices,
-                            'grand_total' => isset($input['tax'])
-                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                                : $totalPrices                                          - Parser::parseLocale($input['discount']),
-                        ]);
-                    }
-
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
                         $create   = false;
                         foreach ($arrPrice as $key => $value) {
                             $item  = $value['item'] ?? null;
                             $price = Parser::parseLocale($value['price'] ?? null);
+                            $additPrice += $price;
 
                             if ($item && $price) {
                                 $create                         = true;
@@ -173,6 +149,15 @@ class ListController extends Controller
                             MarketingAdditPrice::insert($arrPrice);
                         }
                     }
+
+                    $subTotal = isset($input['tax'])
+                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+
+                    $createdMarketing->update([
+                        'sub_total'   => $subTotal,
+                        'grand_total' => $subTotal + $additPrice,
+                    ]);
 
                     $createdMarketing->update([
                         'id_marketing' => "DO.{$company->alias}.{$createdMarketing->marketing_id}",
@@ -239,7 +224,8 @@ class ListController extends Controller
 
                 DB::transaction(function() use ($req, $marketing) {
                     $input            = $req->all();
-                    $totalPrices      = 0;
+                    $productPrice     = 0;
+                    $additPrice       = 0;
                     $existingDoc      = $marketing->doc_reference ?? null;
                     $docReferencePath = '';
 
@@ -277,7 +263,7 @@ class ListController extends Controller
 
                             $weightTotal = $weightAvg * $qty;
                             $totalPrice  = $price     * $qty;
-                            $totalPrices += $totalPrice;
+                            $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
                             $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
@@ -293,15 +279,6 @@ class ListController extends Controller
                         MarketingProduct::insert($arrProduct);
                     }
 
-                    if ($req->has('marketing_products')) {
-                        $marketing->update([
-                            'sub_total'   => $totalPrices,
-                            'grand_total' => isset($input['tax'])
-                                ? $totalPrices + ($totalPrices * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                                : $totalPrices                                          - Parser::parseLocale($input['discount']),
-                        ]);
-                    }
-
                     $marketing->marketing_addit_prices()->delete();
                     if ($req->has('marketing_addit_prices')) {
                         $arrPrice = $req->input('marketing_addit_prices');
@@ -309,6 +286,7 @@ class ListController extends Controller
                         foreach ($arrPrice as $key => $value) {
                             $item  = $value['item'] ?? null;
                             $price = Parser::parseLocale($value['price'] ?? null);
+                            $additPrice += $price;
 
                             if ($item && $price) {
                                 $create                         = true;
@@ -321,6 +299,15 @@ class ListController extends Controller
                             MarketingAdditPrice::insert($arrPrice);
                         }
                     }
+
+                    $subTotal = isset($input['tax'])
+                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+
+                    $marketing->update([
+                        'sub_total'   => $subTotal,
+                        'grand_total' => $subTotal + $additPrice,
+                    ]);
                 });
 
                 $success = ['success' => 'Data Berhasil diubah'];
@@ -372,10 +359,43 @@ class ListController extends Controller
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {
-                    return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
+                    return redirect()->back()
+                        ->with('error', 'Produk Penjualan tidak boleh kosong')
+                        ->withInput($input);
                 }
 
-                DB::transaction(function() use ($req, $marketing) {
+                $success = [];
+
+                DB::transaction(function() use ($req, $marketing, &$success) {
+                    $input            = $req->all();
+                    $productPrice     = 0;
+                    $additPrice       = 0;
+                    $existingDoc      = $marketing->doc_reference ?? null;
+                    $docReferencePath = '';
+
+                    if (isset($input['doc_reference'])) {
+                        if ($existingDoc) {
+                            FileHelper::delete($existingDoc);
+                        }
+                        $docUrl = FileHelper::upload($input['doc_reference'], constants::MARKETING_DOC_REFERENCE_PATH);
+                        if (! $docUrl['status']) {
+                            throw new \Exception($docUrl['message']);
+                        }
+                        $docReferencePath = $docUrl['url'];
+                    } else {
+                        $docReferencePath = $existingDoc;
+                    }
+
+                    $marketing->update([
+                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference' => $docReferencePath,
+                        'realized_at'   => $input['realized_at'],
+                        'notes'         => $input['notes'],
+                        'sales_id'      => $input['sales_id'] ?? null,
+                        'tax'           => $input['tax'],
+                        'discount'      => Parser::parseLocale($input['discount']),
+                    ]);
+
                     if ($req->has('marketing_delivery_vehicles')) {
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
@@ -393,10 +413,86 @@ class ListController extends Controller
 
                         MarketingDeliveryVehicle::insert($arrVehicle);
                     }
+
+                    if ($req->has('marketing_products')) {
+                        $marketing->marketing_products()->delete();
+                        $arrProduct = $req->input('marketing_products');
+
+                        foreach ($arrProduct as $key => $value) {
+                            $price     = Parser::parseLocale($value['price']);
+                            $weightAvg = Parser::parseLocale($value['weight_avg']);
+                            $qty       = Parser::parseLocale($value['qty']);
+
+                            $weightTotal = $weightAvg * $qty;
+                            $totalPrice  = $price     * $qty;
+                            $productPrice += $totalPrice;
+
+                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
+                            $arrProduct[$key]['kandang_id']   = $value['kandang_id'];
+                            $arrProduct[$key]['product_id']   = $value['product_id'];
+                            $arrProduct[$key]['price']        = $price;
+                            $arrProduct[$key]['weight_avg']   = $weightAvg;
+                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
+                            $arrProduct[$key]['qty']          = $qty;
+                            $arrProduct[$key]['weight_total'] = $weightTotal;
+                            $arrProduct[$key]['total_price']  = $totalPrice;
+                        }
+
+                        MarketingProduct::insert($arrProduct);
+                    }
+
+                    $marketing->marketing_addit_prices()->delete();
+                    if ($req->has('marketing_addit_prices')) {
+                        $arrPrice = $req->input('marketing_addit_prices');
+                        $create   = false;
+                        foreach ($arrPrice as $key => $value) {
+                            $item  = $value['item'] ?? null;
+                            $price = Parser::parseLocale($value['price'] ?? null);
+                            $additPrice += $price;
+
+                            if ($item && $price) {
+                                $create                         = true;
+                                $arrPrice[$key]['marketing_id'] = $marketing->marketing_id;
+                                $arrPrice[$key]['item']         = $item;
+                                $arrPrice[$key]['price']        = $price;
+                            }
+                        }
+                        if ($create) {
+                            MarketingAdditPrice::insert($arrPrice);
+                        }
+                    }
+
+                    if (isset($marketing->realized_at)) {
+                        $marketing->marketing_products->each(function($product) use ($req) {
+                            $input = $req->all();
+
+                            $input['stocked_by'] = 'Marketing';
+                            $input['stock_date'] = date('Y-m-d');
+                            $input['increase']   = 0;
+                            $input['decrease']   = $product->qty;
+                            $input['product_id'] = $product->product_id;
+
+                            $triggerStock = StockLog::triggerStock($input);
+
+                            if (! $triggerStock['result']) {
+                                throw new \Exception($triggerStock['message']);
+                            }
+                        });
+
+                        $success['success'] = 'Data Berhasil direalisasikan';
+                    } else {
+                        $success['success'] = 'Data Berhasil disimpan sebagai draft';
+                    }
+
+                    $subTotal = isset($input['tax'])
+                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
+                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+
+                    $marketing->update([
+                        'sub_total'   => $subTotal,
+                        'grand_total' => $subTotal + $additPrice,
+                    ]);
                 });
-                $success = ! empty($marketing->realized_at)
-                    ? ['success' => 'Data Berhasil direalisasikan']
-                    : ['success' => 'Data Berhasil disimpan sebagai draft'];
 
                 return redirect()->route('marketing.list.index')->with($success);
             }
