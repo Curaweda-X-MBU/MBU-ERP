@@ -186,7 +186,17 @@ class ListController extends Controller
     public function detail(Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.kandang', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $data = $marketing->load([
+                'company',
+                'customer',
+                'sales',
+                'marketing_products.kandang',
+                'marketing_products.product',
+                'marketing_products.uom',
+                'marketing_addit_prices',
+                'marketing_delivery_vehicles.uom',
+                'marketing_delivery_vehicles.sender',
+            ]);
             $param = [
                 'title' => 'Penjualan > Detail',
                 'data'  => $data,
@@ -311,7 +321,7 @@ class ListController extends Controller
 
                 $success = ['success' => 'Data Berhasil diubah'];
 
-                return redirect()->route('marketing.list.index')->with($success);
+                return redirect()->route('marketing.list.detail', $marketing->marketing_id)->with($success);
             }
 
             return view('marketing.list.edit', $param);
