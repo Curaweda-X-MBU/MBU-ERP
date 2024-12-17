@@ -78,27 +78,23 @@
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.edit', ['marketing' => $item->marketing_id]) }}">
-                                                        <i data-feather="edit" class="mr-50"></i>
-                                                        <span>Edit</span>
-                                                    </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.delete', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.delete', $item->marketing_id) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.detail', $item->marketing_id) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.realization', ['marketing' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.realization', $item->marketing_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
                                                         <span>Tambah Realisasi</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.payment.index', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.return.add', ['id' => $item->marketing_id]) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.return.add', $item->marketing_id) }}">
                                                         <i data-feather="corner-down-left" class="mr-50"></i>
                                                         <span>Retur</span>
                                                     </a>

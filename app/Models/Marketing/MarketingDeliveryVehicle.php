@@ -11,7 +11,7 @@ class MarketingDeliveryVehicle extends Model
 {
     use HasFactory;
 
-    protected $table = 'marketing_delivery_vehicle';
+    protected $table = 'marketing_delivery_vehicles';
 
     protected $primaryKey = 'marketing_delivery_vehicle_id';
 

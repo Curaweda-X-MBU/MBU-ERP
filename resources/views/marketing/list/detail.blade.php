@@ -20,11 +20,11 @@
         <div class="no-print pb-2">
             <h4 class="card-title">{{$title}}</h4>
 
-                <a href="" class="btn btn-outline-secondary">
+                <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                    <a href="" class="btn btn-primary">
+                    <a href="{{ route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
                     </a>
@@ -35,7 +35,6 @@
         </div>
     </div>
 </div>
-
 
 <section id="collapsible">
     <div class="row">
@@ -55,36 +54,81 @@
                                         <div class="table-responsive">
                                             <table class="table table-bordered w-100">
                                                 <thead>
-                                                    <th>No. DO</th>
-                                                    <th>Nama Pelanggan</th>
-                                                    <th>Unit Bisnis</th>
-                                                    <th>Referensi Dokumen</th>
-                                                    <th>Nama Sales</th>
-                                                    <th>Catatan</th>
-                                                    <th>Total Piutang Penjualan</th>
-                                                    <th>Status Pembayaran</th>
-                                                    <th>Status Penjualan</th>
+                                                    <tr>
+                                                        <th>No. DO</th>
+                                                        <th>Tanggal Penjualan</th>
+                                                        <th>Tanggal Realisasi</th>
+                                                        <th>Nama Pelanggan</th>
+                                                        <th>Unit Bisnis</th>
+                                                        <th>Referensi Dokumen</th>
+                                                        <th>Nama Sales</th>
+                                                        <th>Catatan</th>
+                                                        <th>Total Piutang Penjualan (RP)</th>
+                                                        <th>Status Pembayaran</th>
+                                                        <th>Status Penjualan</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>DO.MBU.1</td>
-                                                        <td>Agus</td>
-                                                        <td>MBU</td>
+                                                        <td>{{ $data->id_marketing }}</td>
+                                                        <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
+                                                        <td>{{ $data->realized_at ?? '-' }}</td>
+                                                        <td>{{ $data->customer->name }}</td>
+                                                        <td>{{ $data->company->alias }}</td>
                                                         <td>
-                                                            <a class="dropdown-item" href="" target="_blank">
+                                                            @if ($data->doc_reference)
+                                                            <a class="dropdown-item" href="{{ route('file.show', ['filename' => $data->doc_reference]) }}" target="_blank">
                                                                 <i data-feather='download' class="mr-50"></i>
                                                                 <span>Download</span>
                                                             </a>
+                                                            @else
+                                                            <span>-</span>
+                                                            @endif
                                                         </td>
-                                                        <td>Abdullah</td>
+                                                        <td>{{ $data->sales->name }}</td>
                                                         <td>
+                                                            @if ($data->notes)
                                                             <button type="button" class="btn btn-link" data-toggle="modal" data-target="#notesModal">
                                                                 Lihat Catatan
                                                             </button>
+                                                            @else
+                                                            <span>-</span>
+                                                            @endif
                                                         </td>
-                                                        <td>100.000.000</td>
-                                                        <td><div class="badge badge-pill badge-success">Lunas</div></td>
-                                                        <td><div class="badge badge-pill badge-success">Selesai</div></td>
+                                                        <td>{{ number_format($data->grand_total, 2, '.', ',') }}</td>
+                                                        <td>
+                                                            @php
+                                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                                            @endphp
+                                                            @switch($data->payment_status)
+                                                                @case(1)
+                                                                    <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
+                                                                    @break
+                                                                @case(2)
+                                                                    <div class="badge badge-pill badge-success">{{ $statusPayment[$data->payment_status] }}</div>
+                                                                    @break
+                                                                @default
+                                                                    <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->payment_status] }}</div>
+                                                            @endswitch
+                                                        </td>
+                                                        <td>
+                                                            @php
+                                                                $statusMarketing = App\Constants::MARKETING_STATUS;
+                                                            @endphp
+                                                            @switch($data->marketing_status)
+                                                                @case(1)
+                                                                    <div class="badge badge-pill badge-warning">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                                    @break
+                                                                @case(2)
+                                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                                    @break
+                                                                @case(3)
+                                                                    <div class="badge badge-pill badge-success">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                                    @break
+                                                                @default
+                                                                    <div class="badge badge-pill badge-primary">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                            @endswitch
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -100,10 +144,7 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <p>Sudah dibayar full Catatan tambahan: Pembayaran dilakukan melalui transfer bank pada tanggal 1 Januari 2023. Jika ada pertanyaan lebih lanjut, silakan hubungi sales.</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                                                            <p>{{ $data->notes }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -130,11 +171,19 @@
                                                     <th>Price</th>
                                                 </thead>
                                                 <tbody>
-                                                        <tr>
-                                                            <td>1</td>
-                                                            <td>Ayan Potong</td>
-                                                            <td>2.000.000.000</td>
-                                                        </tr>
+                                                    @if (count($data->marketing_addit_prices) > 0)
+                                                        @foreach ($data->marketing_addit_prices as $index => $item)
+                                                            <tr>
+                                                                <td>{{  $index + 1 }}</td>
+                                                                <td>{{ $item->item }}</td>
+                                                                <td>{{ number_format($item->price, 2, '.', ',') }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    @else
+                                                    <tr>
+                                                        <td class="text-center" colspan="3">Tidak ada data biaya lainnya</td>
+                                                    </tr>
+                                                    @endif
                                                 </tbody>
                                             </table>
                                         </div>
@@ -145,10 +194,10 @@
 
                         {{-- COLLAPSE TABLE PRODUK PENJUALAN --}}
                         <div class="card mb-1">
-                            <div id="headingCollapse1" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                            <div id="headingCollapse3" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse3" aria-expanded="true" aria-controls="collapse3">
                                 <span class="lead collapse-title"> Produk  Penjualan </span>
                             </div>
-                            <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse show" aria-expanded="true">
+                            <div id="collapse3" role="tabpanel" aria-labelledby="headingCollapse3" class="collapse show" aria-expanded="true">
                                 <div class="card-body p-2">
                                     <div class="col-12">
                                         <div class="table-responsive">
@@ -165,17 +214,19 @@
                                                     <th>Total Penjualan (Rp)</th>
                                                 </thead>
                                                 <tbody>
-                                                    <tr>
-                                                        <td>1</td>
-                                                        <td>Singaparna 1</td>
-                                                        <td>Broiler</td>
-                                                        <td>20.000.000</td>
-                                                        <td>12</td>
-                                                        <td>KG</td>
-                                                        <td>12</td>
-                                                        <td>120000</td>
-                                                        <td>120.000.000</td>
-                                                    </tr>
+                                                    @foreach ($data->marketing_products as $index => $item)
+                                                        <tr>
+                                                            <td>{{ $index + 1 }}</td>
+                                                            <td>{{ $item->kandang->name }}</td>
+                                                            <td>{{ $item->product->name }}</td>
+                                                            <td>{{ number_format($item->price, 2, '.', ',') }}</td>
+                                                            <td>{{ $item->weight_avg }}</td>
+                                                            <td>{{ $item->uom->name }}</td>
+                                                            <td>{{ number_format($item->qty, 2, '.', ',') }}</td>
+                                                            <td>{{ number_format($item->weight_total, 2, '.', ',') }}</td>
+                                                            <td>{{ number_format($item->total_price, 2, '.', ',') }}</td>
+                                                        </tr>
+                                                    @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
@@ -184,13 +235,12 @@
                             </div>
                         </div>
 
-
                         {{-- COLLAPSE TABLE ARMADA ANGKUT --}}
                         <div class="card mb-1">
-                            <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
+                            <div id="headingCollapse4" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse4" aria-expanded="true" aria-controls="collapse4">
                                 <span class="lead collapse-title"> Armada Angkut </span>
                             </div>
-                            <div id="collapse2" role="tabpanel" aria-labelledby="headingCollapse2" class="collapse show" aria-expanded="true">
+                            <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
                                 <div class="card-body p-2">
                                     <div class="col-12">
                                         <div class="table-responsive">
@@ -198,20 +248,30 @@
                                                 <thead>
                                                     <th>No</th>
                                                     <th>No. Polisi</th>
-                                                    <th>Jumlah (Ekor)</th>
+                                                    <th>Jumlah</th>
+                                                    <th>uom</th>
                                                     <th>Waktu Keluar Kandang</th>
                                                     <th>Nama Pengirim</th>
                                                     <th>Nama Driver</th>
                                                 </thead>
                                                 <tbody>
-                                                        <tr>
-                                                            <td>1</td>
-                                                            <td>JSAFGIA</td>
-                                                            <td>12</td>
-                                                            <td>12-12-2024</td>
-                                                            <td>Abdullah</td>
-                                                            <td>Septian</td>
-                                                        </tr>
+                                                    @if (count($data->marketing_delivery_vehicles) > 0)
+                                                        @foreach ($data->marketing_delivery_vehicles as $index => $item)
+                                                            <tr>
+                                                                <td>{{  $index + 1 }}</td>
+                                                                <td>{{ $item->plat_number }}</td>
+                                                                <td>{{ $item->qty }}</td>
+                                                                <td>{{ $item->uom->name }}</td>
+                                                                <td>{{ $item->exit_at }}</td>
+                                                                <td>{{ $item->sender->name }}</td>
+                                                                <td>{{ $item->driver_name }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    @else
+                                                    <tr>
+                                                        <td class="text-center" colspan="7">Belum ada data armada angkut</td>
+                                                    </tr>
+                                                    @endif
                                                 </tbody>
                                             </table>
                                         </div>
@@ -219,8 +279,6 @@
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>
