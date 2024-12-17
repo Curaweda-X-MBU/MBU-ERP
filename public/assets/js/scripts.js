@@ -86,27 +86,33 @@ function confirmDelete(
  */
 
 function initSelect2($component, placeholder = "Pilih", routePath) {
-    $component.select2({
-        placeholder: placeholder,
-        ajax: {
-            url: routePath,
-            dataType: "json",
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term,
-                };
+    if (routePath || routePath !== "") {
+        $component.select2({
+            placeholder: placeholder,
+            ajax: {
+                url: routePath,
+                dataType: "json",
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.map((item) => ({
+                            id: item.id,
+                            text: item.text,
+                            qty: item.qty ? item.qty : 0,
+                        })),
+                    };
+                },
+                cache: true,
             },
-            processResults: function (data) {
-                return {
-                    results: data.map((item) => ({
-                        id: item.id,
-                        text: item.text,
-                        qty: item.qty ? item.qty : 0,
-                    })),
-                };
-            },
-            cache: true,
-        },
-    });
+        });
+    } else {
+        $component.select2({
+            placeholder: placeholder,
+        });
+    }
 }
