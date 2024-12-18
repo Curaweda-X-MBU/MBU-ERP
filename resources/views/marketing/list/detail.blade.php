@@ -24,7 +24,7 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                    <a href="{{ route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
+                    <a href="{{ isset($data->realized_at) ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
                     </a>
@@ -260,7 +260,7 @@
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->plat_number }}</td>
-                                                                <td>{{ $item->qty }}</td>
+                                                                <td>{{ number_format($item->qty, 2, '.', ',') }}</td>
                                                                 <td>{{ $item->uom->name }}</td>
                                                                 <td>{{ $item->exit_at }}</td>
                                                                 <td>{{ $item->sender->name }}</td>
