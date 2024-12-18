@@ -81,7 +81,7 @@ class ListController extends Controller
                                     'product_id'   => $value['product_id'],
                                     'warehouse_id' => $value['warehouse_id'],
                                     'project_id'   => $value['project_id'] ?? null,
-                                    'qty'          => str_replace(',', '', $value['qty']),
+                                    'qty'          => str_replace('.', '', str_replace(',', '.', $value['qty'])),
                                 ]);
                             }
                         }
@@ -140,7 +140,7 @@ class ListController extends Controller
                                     'product_id'   => $value['product_id'],
                                     'warehouse_id' => $value['warehouse_id'],
                                     'project_id'   => $value['project_id'] ?? null,
-                                    'qty'          => str_replace(',', '', $value['qty']),
+                                    'qty'          => str_replace('.', '', str_replace(',', '.', $value['qty'])),
                                 ]);
                             }
                         }
@@ -372,8 +372,8 @@ class ListController extends Controller
                                     $travelDoc = $docUrl['url'];
                                 }
                             }
-                            $received = str_replace(',', '', $arrItemReception[$k]['total_received']);
-                            $retur    = str_replace(',', '', $arrItemReception[$k]['total_retur']);
+                            $received = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['total_received']));
+                            $retur    = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['total_retur']));
                             $receivedItem += $received;
                             $receivedItemAmount = $receivedItem * $value->price;
                             $totalRetur += $retur;
@@ -585,8 +585,8 @@ class ListController extends Controller
                         'recipient_bank_id'  => $req->input('recipient_bank_id'),
                         'ref_number'         => $req->input('ref_number'),
                         'transaction_number' => $req->input('transaction_number'),
-                        'bank_charge'        => str_replace(',', '', $req->input('bank_charge')),
-                        'amount'             => str_replace(',', '', $req->input('amount')),
+                        'bank_charge'        => str_replace('.', '', str_replace(',', '.', $req->input('bank_charge'))),
+                        'amount'             => str_replace('.', '', str_replace(',', '.', $req->input('amount'))),
                         'document'           => $document,
                         'status'             => array_search('Menunggu persetujuan', Constants::PAYMENT_STATUS),
                     ]);

@@ -99,7 +99,20 @@
             }
         };
 
-        const $repeaterStock = $('#nonstock-repeater').repeater(optNonStock);
+        const $repeaterNonstock = $('#nonstock-repeater').repeater(optNonStock);
         $('.add-nonstock').trigger('click');
+
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_nonstock) {
+            const dataNonstock = dataRecording.recording_nonstock;
+            $repeaterNonstock.setList(dataNonstock);
+
+            for (let i = 0; i < dataNonstock.length; i++) {
+                $(`select[name="nonstock[${i}][nonstock_id]"]`).append(`<option value="${dataNonstock[i].nonstock.nonstock_id}" selected>${dataNonstock[i].nonstock.name}</option>`);
+                const $selector = $(`select[name="nonstock[${i}][nonstock_id]"]`).closest('tr');
+                $selector.find('.uom').val(dataNonstock[i].nonstock.uom.name)
+            }
+        }
     });
 </script>
