@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
+use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingReturn;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class ReturnController extends Controller
     public function index()
     {
         try {
-            $data  = MarketingReturn::with(['marketing'])->get();
+            $data  = Marketing::with(['marketing_return'])->get();
             $param = [
                 'title' => 'Penjualan > Retur',
                 'data'  => $data,

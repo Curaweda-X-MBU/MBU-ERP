@@ -1,6 +1,7 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -36,7 +37,7 @@
                                     <tr>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
-                                        <td>{{ $item->realized_at ?? '-' }}</td>
+                                        <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
                                         <td>

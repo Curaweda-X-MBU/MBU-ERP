@@ -24,9 +24,11 @@ class MarketingPayment extends Model
         'payment_nominal',
         'payment_reference',
         'transaction_number',
+        'payment_at',
         'document_path',
         'notes',
         'marketing_id',
+        'verify_status',
     ];
 
     public function approver()

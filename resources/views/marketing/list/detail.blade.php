@@ -72,7 +72,7 @@
                                                     <tr>
                                                         <td>{{ $data->id_marketing }}</td>
                                                         <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
-                                                        <td>{{ $data->realized_at ?? '-' }}</td>
+                                                        <td>{{ date('d-M-Y', strtotime($data->realized_at)) ?? '-' }}</td>
                                                         <td>{{ $data->customer->name }}</td>
                                                         <td>{{ $data->company->alias }}</td>
                                                         <td>
@@ -85,7 +85,7 @@
                                                             <span>-</span>
                                                             @endif
                                                         </td>
-                                                        <td>{{ $data->sales->name }}</td>
+                                                        <td>{{ isset($data->sales->name) ? $data->sales->name : '-' }}</td>
                                                         <td>
                                                             @if ($data->notes)
                                                             <button type="button" class="btn btn-link" data-toggle="modal" data-target="#notesModal">
