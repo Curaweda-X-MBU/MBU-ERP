@@ -105,5 +105,18 @@
 
         const $repeateregg = $('#egg').repeater(optegg);
         $('.add-egg').trigger('click');
+
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_egg) {
+            const dataEgg = dataRecording.recording_egg;
+            $repeateregg.setList(dataEgg);
+
+            for (let i = 0; i < dataEgg.length; i++) {
+                $(`select[name="eggs[${i}][product_id]"]`).append(`<option value="${dataEgg[i].product_warehouse.product_id}" selected>${dataEgg[i].product_warehouse.product.name}</option>`);
+                const $selector = $(`select[name="eggs[${i}][product_id]"]`).closest('tr');
+                $selector.find('.uom').val(dataEgg[i].product_warehouse.product.uom.name)
+            }
+        }
     });
 </script>

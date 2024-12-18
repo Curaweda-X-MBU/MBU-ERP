@@ -27,20 +27,30 @@ class RecordingController extends Controller
             $param = ['title' => 'Project > Recording'];
             $data  = Recording::with('project');
             if ($req->isMethod('post')) {
-                $projectId   = $req->project_id;
-                $period      = $req->period;
-                $whereClause = [];
-                if ($projectId != 0) {
-                    $whereClause['project_id'] = $projectId;
-                    $whereClause['project']    = Project::with('kandang')->find($projectId);
-                }
-                if ($period != 0) {
-                    $whereClause['period'] = $period;
-                }
-                $param['param'] = $whereClause;
-                $data->whereHas('project', function($query) use ($whereClause) {
-                    unset($whereClause['project']);
-                    $query->where($whereClause);
+                $projectId                 = $req->project_id;
+                $period                    = $req->period;
+                $whereClause               = [];
+                $whereClause['project_id'] = $projectId;
+                $whereClause['project']    = Project::with('kandang')->find($projectId);
+                $whereClause['period']     = $period;
+                $param['param']            = $whereClause;
+
+                $filteredWhereClause = array_filter($whereClause, function($value, $key) {
+                    if ($key === 'project') {
+                        return false;
+                    }
+                    if ($key === 'period' && $value == 0) {
+                        return false;
+                    }
+                    if ($key === 'project_id' && $value == 0) {
+                        return false;
+                    }
+
+                    return true;
+                }, ARRAY_FILTER_USE_BOTH);
+
+                $data->whereHas('project', function($query) use ($filteredWhereClause) {
+                    $query->where($filteredWhereClause);
                 });
             }
             $param['data'] = $data->get();
@@ -108,7 +118,8 @@ class RecordingController extends Controller
                         'warehouse_id' => $input['warehouse_id'],
                     ])->first();
 
-                    if ($generalStock && $generalStock->quantity < $value['decrease_stock']) {
+                    $valDecrease = str_replace('.', '', $value['decrease_stock']);
+                    if ($generalStock && $generalStock->quantity < $valDecrease) {
                         DB::rollback();
 
                         return redirect()->back()->withErrors($validator)->withInput();
@@ -118,7 +129,7 @@ class RecordingController extends Controller
                         'product_id'   => $value['product_id'],
                         'stock_date'   => date('Y-m-d', $strtotime),
                         'warehouse_id' => $input['warehouse_id'],
-                        'decrease'     => $value['decrease_stock'],
+                        'decrease'     => $valDecrease,
                         'stocked_by'   => 'Recording',
                         'notes'        => 'Persediaan Project '.$project->kandang->name,
                     ]);
@@ -131,7 +142,7 @@ class RecordingController extends Controller
                     RecordingStock::create([
                         'recording_id'         => $recording->recording_id,
                         'product_warehouse_id' => $generalStock->product_warehouse_id,
-                        'decrease'             => $value['decrease_stock'],
+                        'decrease'             => $valDecrease,
                     ]);
                 }
 
@@ -260,7 +271,7 @@ class RecordingController extends Controller
             'recording_nonstock.nonstock.uom',
             'recording_bw.recordingBwList',
             'recording_depletion.product_warehouse.product',
-            'recording_egg',
+            'recording_egg.product_warehouse.product.uom',
             'project',
         ])->findOrFail($recordingId);
 

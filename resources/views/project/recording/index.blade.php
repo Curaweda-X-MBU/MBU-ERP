@@ -14,12 +14,12 @@
                                         @csrf
                                         <select name="project_id" class="form-control project_id" required>
                                             @if(isset($param) && isset($param['project']))
-                                                <option value="{{ $param['project_id'] }}" selected>{{ $param['project']->kandang->name??'' }}</option>
+                                                <option value="{{ $param['project_id'] }}" selected>{{ $param['project_id']==0?"Semua Project":($param['project']->kandang->name??'') }}</option>
                                             @endif
                                         </select>
                                         <select name="period" class="form-control period" required>
-                                            @if(isset($param) && isset($param['project']))
-                                                <option value="{{ $param['period'] }}" selected>{{ $param['period'] }}</option>
+                                            @if(isset($param) && isset($param['period']))
+                                                <option value="{{ $param['period'] }}" selected>{{ $param['period']==0?"Semua Periode":$param['period'] }}</option>
                                             @endif
                                         </select>
                                         <div class="input-group-append" id="button-addon2">
