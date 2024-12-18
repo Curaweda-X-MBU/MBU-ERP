@@ -91,30 +91,29 @@ Route::middleware('auth')->group(function() {
             Route::get('/search-product/{id}', [App\Http\Controllers\Marketing\ListController::class, 'searchProductByWarehouse'])->name('marketing.list.search-product');
 
             Route::group(['prefix' => 'payment'], function() {
-                Route::get('/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'index'])->name('marketing.list.payment.index')->middleware('permission:marketing.list.payment.index');
-                Route::post('/add/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'add'])->name('marketing.list.payment.add')->middleware('permission:marketing.list.payment.add');
-                Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'edit'])->name('marketing.list.payment.edit')->middleware('permission:marketing.list.payment.edit');
-                Route::get('/detail/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'detail'])->name('marketing.list.payment.detail')->middleware('permission:marketing.list.payment.detail');
-                Route::get('/delete/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'delete'])->name('marketing.list.payment.delete')->middleware('permission:marketing.list.payment.delete');
-                Route::post('/approve/{marketing}', [App\Http\Controllers\Marketing\PaymentController::class, 'approve'])->name('marketing.list.payment.approve')->middleware('permission:marketing.list.payment.approve');
+                Route::get('/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'index'])->name('marketing.list.payment.index')->middleware('permission:marketing.list.payment.index');
+                Route::post('/add/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'add'])->name('marketing.list.payment.add')->middleware('permission:marketing.list.payment.add');
+                Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'edit'])->name('marketing.list.payment.edit')->middleware('permission:marketing.list.payment.edit');
+                Route::get('/detail/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'detail'])->name('marketing.list.payment.detail')->middleware('permission:marketing.list.payment.detail');
+                Route::get('/delete/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'delete'])->name('marketing.list.payment.delete')->middleware('permission:marketing.list.payment.delete');
+                Route::post('/approve/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'approve'])->name('marketing.list.payment.approve')->middleware('permission:marketing.list.payment.approve');
             });
         });
 
         Route::group(['prefix' => 'return'], function() {
             Route::get('/', [App\Http\Controllers\Marketing\ReturnController::class, 'index'])->name('marketing.return.index')->middleware('permission:marketing.return.index');
-            Route::any('/add/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'add'])->name('marketing.return.add')->middleware('permission:marketing.return.add');
-            Route::any('/edit/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
-            Route::any('/detail/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
-            Route::any('/delete/{id}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
-            Route::any('/payment', [App\Http\Controllers\Marketing\ReturnController::class, 'payment'])->name('marketing.return.payment');
+            Route::any('/add/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'add'])->name('marketing.return.add')->middleware('permission:marketing.return.add');
+            Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
+            Route::any('/detail/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
+            Route::any('/delete/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
 
             Route::group(['prefix' => 'payment'], function() {
                 Route::get('/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'index'])->name('marketing.return.payment.index')->middleware('permission:marketing.return.payment.index');
                 Route::post('/add/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'add'])->name('marketing.return.payment.add')->middleware('permission:marketing.return.payment.add');
                 Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'edit'])->name('marketing.return.payment.edit')->middleware('permission:marketing.return.payment.edit');
-                Route::get('/detail/{id}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'detail'])->name('marketing.return.payment.detail')->middleware('permission:marketing.return.payment.detail');
-                Route::get('/delete/{id}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'delete'])->name('marketing.return.payment.delete')->middleware('permission:marketing.return.payment.delete');
-                Route::post('/approve/{id}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'approve'])->name('marketing.return.payment.approve')->middleware('permission:marketing.return.payment.approve');
+                Route::get('/detail/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'detail'])->name('marketing.return.payment.detail')->middleware('permission:marketing.return.payment.detail');
+                Route::get('/delete/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'delete'])->name('marketing.return.payment.delete')->middleware('permission:marketing.return.payment.delete');
+                Route::post('/approve/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'approve'])->name('marketing.return.payment.approve')->middleware('permission:marketing.return.payment.approve');
             });
         });
     });

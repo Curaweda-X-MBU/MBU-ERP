@@ -13,7 +13,7 @@ class MarketingPayment extends Model
 
     protected $table = 'marketing_payments';
 
-    protected $priaryKey = 'marketing_payment_id';
+    protected $primaryKey = 'marketing_payment_id';
 
     protected $fillable = [
         'payment_method',

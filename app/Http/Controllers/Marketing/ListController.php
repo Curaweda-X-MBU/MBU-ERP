@@ -20,17 +20,6 @@ use Illuminate\Support\Facades\DB;
 
 class ListController extends Controller
 {
-    private const VALIDATION_RULES_ADD = [
-        'customer_id' => 'required',
-        'sold_at'     => 'required',
-    ];
-
-    private const VALIDATION_MESSAGES_ADD = [
-        'customer_id.required' => 'Nama Pelanggan tidak boleh kosong',
-        'sold_at.required'     => 'Tanggal Penjualan tidak boleh kosong',
-        'sold_at.date'         => 'Format tanggal tidak valid',
-    ];
-
     /**
      * Display a listing of the resource.
      */
@@ -224,7 +213,6 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {

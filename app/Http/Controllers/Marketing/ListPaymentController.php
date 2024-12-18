@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PaymentController extends Controller
+class ListPaymentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -161,18 +161,18 @@ class PaymentController extends Controller
             $payment->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
-            return $success;
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
 
         }
     }
 
-    public function approve(Request $req, MarketingPayment $marketingPayment)
+    public function approve(Request $req, MarketingPayment $payment)
     {
         try {
             $input   = $req->all();
-            $payment = $marketingPayment->get();
+            $payment = $payment->get();
 
             $success = [];
 
