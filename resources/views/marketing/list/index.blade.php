@@ -95,7 +95,7 @@
                                                         <i data-feather='package' class="mr-50"></i>
                                                         <span>Tambah Realisasi</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('marketing.payment.index', $item->marketing_id) }}">
+                                                    <a class="dropdown-item" href="{{ route('marketing.list.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
                                                     </a>

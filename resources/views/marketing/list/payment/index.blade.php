@@ -14,7 +14,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form class="form-horizontal" method="post" action="{{ route('marketing.payment.add', $data->marketing_id) }}" enctype="multipart/form-data">
+                <form class="form-horizontal" method="post" action="{{ route('marketing.list.payment.add', $data->marketing_id) }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <div class="row row-cols-2 row-cols-md-4">
                         <!-- Nama Pelanggan -->
@@ -25,7 +25,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-3 mt-1">
                             <label for="tanggalPenjualan" class="form-label">Tanggal Penjualan</label>
-                            <input id="status" value="{{ $data->sold_at }}" name="status" type="text" class="form-control" disabled>
+                            <input id="status" value="{{ date('d-M-Y', strtotime($data->sold_at)) }}" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Nomor DO -->
                         <div class="col-md-3 mt-1">
@@ -48,7 +48,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                     </div>
 
                     <!-- Modal -->
-                    @include('marketing.payment.add')
+                    @include('marketing.list.payment.add')
 
                     <!-- BEGIN: Table-->
                     <div class="table-responsive mt-3">
@@ -77,12 +77,12 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                 @php
                                                     $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                                 @endphp
-                                                @switch($data->verify_status)
+                                                @switch($item->verify_status)
                                                     @case(1)
-                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->marketing_status] }}</div>
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->verify_status] }}</div>
                                                         @break
                                                     @default
-                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->marketing_status] }}</div>
+                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$item->verify_status] }}</div>
                                                 @endswitch
                                             </td>
                                             <td>
@@ -95,7 +95,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                             <i data-feather="edit" class="mr-50"></i>
                                                             <span>Edit</span>
                                                         </a>
-                                                        <a class="dropdown-item item-delete-button" href="#">
+                                                        <a class="dropdown-item item-delete-button" href="{{ route('marketing.list.payment.delete', $item->marketing_payment_id) }}">
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>

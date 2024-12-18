@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PaymentController extends Controller
+class ListPaymentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -26,7 +26,7 @@ class PaymentController extends Controller
                 'data'  => $data,
             ];
 
-            return view('marketing.payment.index', $param);
+            return view('marketing.list.payment.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
@@ -79,10 +79,20 @@ class PaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(MarketingPayment $payment)
+    public function detail(Marketing $marketing)
     {
         try {
-            $data = $payment->with(['approver', 'marketing', 'bank'])->get();
+            $data = $marketing->load([
+                'company',
+                'customer',
+                'sales',
+                'marketing_products.warehouse',
+                'marketing_products.product',
+                'marketing_products.uom',
+                'marketing_addit_prices',
+                'marketing_delivery_vehicles.uom',
+                'marketing_delivery_vehicles.sender',
+            ]);
 
             return $data;
         } catch (\Exception $e) {
@@ -132,7 +142,7 @@ class PaymentController extends Controller
                 $success = ['success' => 'Data Berhasil diubah'];
 
                 return redirect()
-                    ->route('marketing.payment.index')
+                    ->route('marketing.list.payment.index')
                     ->with($success);
             }
 
@@ -151,18 +161,18 @@ class PaymentController extends Controller
             $payment->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
-            return $success;
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
 
         }
     }
 
-    public function approve(Request $req, MarketingPayment $marketingPayment)
+    public function approve(Request $req, MarketingPayment $payment)
     {
         try {
             $input   = $req->all();
-            $payment = $marketingPayment->get();
+            $payment = $payment->get();
 
             $success = [];
 
@@ -184,7 +194,7 @@ class PaymentController extends Controller
                 $success = ['success' => 'Payment berhasil disetujui'];
             }
 
-            return redirect()->route('marketing.payment.index')->with($success);
+            return redirect()->route('marketing.list.payment.index')->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

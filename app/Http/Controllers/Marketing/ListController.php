@@ -20,17 +20,6 @@ use Illuminate\Support\Facades\DB;
 
 class ListController extends Controller
 {
-    private const VALIDATION_RULES_ADD = [
-        'customer_id' => 'required',
-        'sold_at'     => 'required',
-    ];
-
-    private const VALIDATION_MESSAGES_ADD = [
-        'customer_id.required' => 'Nama Pelanggan tidak boleh kosong',
-        'sold_at.required'     => 'Tanggal Penjualan tidak boleh kosong',
-        'sold_at.date'         => 'Format tanggal tidak valid',
-    ];
-
     /**
      * Display a listing of the resource.
      */
@@ -224,7 +213,6 @@ class ListController extends Controller
             ];
 
             if ($req->isMethod('post')) {
-                $req->validate(self::VALIDATION_RULES_ADD, self::VALIDATION_MESSAGES_ADD);
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {
@@ -336,10 +324,10 @@ class ListController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Marketing $id)
+    public function delete(Marketing $marketing)
     {
         try {
-            $id->delete();
+            $marketing->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->route('marketing.list.index')->with($success);
@@ -405,13 +393,17 @@ class ListController extends Controller
                     }
 
                     $marketing->update([
-                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
-                        'doc_reference' => $docReferencePath,
-                        'realized_at'   => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
-                        'notes'         => $input['notes'],
-                        'sales_id'      => $input['sales_id'] ?? null,
-                        'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
+                        'sold_at'          => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference'    => $docReferencePath,
+                        'realized_at'      => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
+                        'notes'            => $input['notes'],
+                        'sales_id'         => $input['sales_id'] ?? null,
+                        'tax'              => $input['tax'],
+                        'discount'         => Parser::parseLocale($input['discount']),
+                        'marketing_status' => array_search(
+                            'Realisasi',
+                            Constants::MARKETING_STATUS
+                        ),
                     ]);
 
                     $marketing->marketing_delivery_vehicles()->delete();

@@ -36,6 +36,7 @@ class Marketing extends Model
         'grand_total',
         'payment_status',
         'marketing_status',
+        'is_returned',
         'created_by',
     ];
 
