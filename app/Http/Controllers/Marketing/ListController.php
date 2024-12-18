@@ -367,7 +367,12 @@ class ListController extends Controller
                 'is_realization' => true,
             ];
 
+            // if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi'){
+            //     throw new \Exception('Status Penjualan belum final');
+            // }
+
             if ($req->isMethod('post')) {
+
                 $input = $req->all();
 
                 if (! $req->has('marketing_products')) {

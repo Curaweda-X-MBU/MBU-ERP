@@ -5,36 +5,14 @@ namespace App\Http\Controllers\Marketing;
 use App\Constants;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
-use App\Models\DataMaster\Bank;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
-    private const VALIDATION_RULES = [
-        'marketing_id'    => 'required',
-        'payment_method'  => 'required',
-        'bank_id'         => 'required',
-        'payment_nominal' => 'required',
-        'payment_at'      => 'required',
-        'document_path'   => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120',
-    ];
-
-    private const VALIDATION_MESSAGES = [
-        'marketing_id.required'    => 'ID Marketing tidak boleh kosong',
-        'payment_method.required'  => 'Metode Pembayaran tidak boleh kosong',
-        'bank_id.required'         => 'Akun Bank tidak boleh kosong',
-        'payment_nominal.required' => 'Nominal Pembayaran tidak boleh kosong',
-        'payment_at.required'      => 'Tanggal Bayar tidak boleh kosong',
-        'document_path.file'       => 'Dokumen tidak valid',
-        'document_path.mimes'      => 'Dokumen hanya boleh pdf, jpeg, png, atau jpg',
-        'document_path.max'        => 'Ukuran file tidak boleh lebih dari 5MB',
-    ];
-
     /**
      * Display a listing of the resource.
      */
@@ -56,62 +34,42 @@ class PaymentController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function add(Request $req)
+    public function add(Request $req, Marketing $marketing)
     {
         try {
-            if ($req->isMethod('post')) {
-                $input     = $req->all();
-                $validator = Validator::make($input, self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
-                if ($validator->fails()) {
-                    if (isset($input['marketing_id'])) {
-                        $marketing          = Marketing::with(['customer'])->find($input['marketing_id']);
-                        $input['marketing'] = [
-                            'id_marketing'  => $marketing->id_marketing,
-                            'customer_name' => $marketing->customer->name,
-                            'grand_total'   => $marketing->grand_total,
-                        ];
-                    }
-                    if (isset($input['bank_id'])) {
-                        $bank               = Bank::find($input['bank_id']);
-                        $input['bank_name'] = `{$bank->alias} - {$bank->account_number} - {$bank->owner}`;
-                    }
+            DB::transaction(function() use ($req, $marketing) {
+                $input = $req->all();
 
-                    return redirect()
-                        ->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
+                $docPath = '';
+                if ($req->hasFile('document_path')) {
+                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                    if (! $docUrl['status']) {
+                        return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
+                    }
+                    $docPath = $docUrl['url'];
                 }
 
-                DB::transaction(function() use ($req) {
-                    $input = $req->all();
+                MarketingPayment::create([
+                    'marketing_id'       => $marketing->marketing_id,
+                    'payment_method'     => $input['payment_method'],
+                    'bank_id'            => $input['bank_id'] ?? null,
+                    'payment_reference'  => $input['payment_reference'],
+                    'transaction_number' => $input['transaction_number'],
+                    'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
+                    'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
+                    'document_path'      => $docPath,
+                    'notes'              => $input['notes'],
+                    'verify_status'      => array_search(
+                        'Diajukan',
+                        Constants::MARKETING_VERIFY_PAYMENT_STATUS
+                    ),
+                ]);
+            });
+            $success = ['success' => 'Data Berhasil disimpan'];
 
-                    $docPath = '';
-                    if ($req->hasFile('document_path')) {
-                        $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
-                        if (! $docUrl['status']) {
-                            return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
-                        }
-                        $docPath = $docUrl['url'];
-                    }
-
-                    MarketingPayment::create([
-                        'marketing_id'       => $input['marketing_id'],
-                        'payment_method'     => $input['payment_method'],
-                        'bank_id'            => $input['bank_id'],
-                        'payment_reference'  => $input['payment_reference'],
-                        'transaction_number' => $input['transaction_number'],
-                        'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
-                        'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                        'document_path'      => $docPath,
-                        'notes'              => $input['notes'],
-                    ]);
-                });
-                $success = ['success' => 'Data Berhasil disimpan'];
-
-                return redirect()
-                    ->route('marketing.payment.index')
-                    ->with($success);
-            }
+            return redirect()
+                ->back()
+                ->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
@@ -134,34 +92,12 @@ class PaymentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $req, MarketingPayment $payment)
+    public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data = $payment->with(['approver', 'marketing', 'bank']);
+            $data = $marketing->load(['approver', 'marketing', 'bank']);
 
             if ($req->isMethod('post')) {
-                $input     = $req->all();
-                $validator = Validator::make($input, self::VALIDATION_RULES, self::VALIDATION_MESSAGES);
-                if ($validator->fails()) {
-                    if (isset($input['marketing_id'])) {
-                        $marketing          = Marketing::with(['customer'])->find($input['marketing_id']);
-                        $input['marketing'] = [
-                            'id_marketing'  => $marketing->id_marketing,
-                            'customer_name' => $marketing->customer->name,
-                            'grand_total'   => $marketing->grand_total,
-                        ];
-                    }
-                    if (isset($input['bank_id'])) {
-                        $bank               = Bank::find($input['bank_id']);
-                        $input['bank_name'] = `{$bank->alias} - {$bank->account_number} - {$bank->owner}`;
-                    }
-
-                    return redirect()
-                        ->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
-                }
-
                 DB::transaction(function() use ($req, $data) {
                     $input = $req->all();
 

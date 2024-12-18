@@ -11,28 +11,28 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form class="form-horizontal" method="post" action="{{ route('marketing.list.add') }}" enctype="multipart/form-data">
+                <form class="form-horizontal" method="post" action="{{ route('marketing.payment.add', $data->marketing_id) }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <div class="row row-cols-2 row-cols-md-4">
                         <!-- Nama Pelanggan -->
                         <div class="col-md-3 mt-1">
                             <label for="NamaPelanggan" class="form-label">Nama Pelanggan</label>
-                            <input id="status" value="{{ $data->customer->name }}" name="status" type="text" class="form-control" readonly>
+                            <input id="status" value="{{ $data->customer->name }}" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-3 mt-1">
                             <label for="tanggalPenjualan" class="form-label">Tanggal Penjualan</label>
-                            <input id="status" value="{{ $data->sold_at }}" name="status" type="text" class="form-control" readonly>
+                            <input id="status" value="{{ $data->sold_at }}" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Nomor DO -->
                         <div class="col-md-3 mt-1">
                             <label for="NomorDo" class="form-label">Nomor DO</label>
-                            <input id="status" value="{{ $data->id_marketing }}" name="status" type="text" class="form-control" readonly>
+                            <input id="status" value="{{ $data->id_marketing }}" name="status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Status -->
                         <div class="col-md-3 mt-1">
                             <label for="NamaPelanggan" class="form-label">Status</label>
-                            <input id="status" value="{{ $statusMarketing[$data->marketing_status] ?? '-' }}" name="status" type="text" class="form-control" readonly>
+                            <input id="status" value="{{ $statusMarketing[$data->marketing_status] ?? '-' }}" name="status" type="text" class="form-control" disabled>
                         </div>
                     </div>
                     <div class="row row-cols-3 row-cols-md-4 justify-content-end">
@@ -65,11 +65,11 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                     @foreach ($data->marketing_payments as $index => $item)
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
-                                            <td>{{ $item->payment_at }}</td>
+                                            <td>{{ date('d-M-Y', strtotime($item->payment_at)) }}</td>
                                             <td>{{ $item->payment_method }}</td>
-                                            <td>{{ $item->bank->alias }} - {{ $item->bank->account_number }} - {{ $item->bank->owner }}</td>
+                                            <td>{{ isset($item->bank) ? $item->bank->alias.' - '.$item->bank->account_number.' - '.$item->bank->owner : '-'}}</td>
                                             <td>{{ number_format($item->payment_nominal, 2, '.', ',') }}</td>
-                                            <td>{{ $item->payment_reference }}</td>
+                                            <td>{{ $item->payment_reference ?? '-' }}</td>
                                             <td>
                                                 @php
                                                     $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
@@ -133,7 +133,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                 <tbody class="text-right">
                                     <tr>
                                         <td>Total Sudah Dibayar:</td>
-                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ $data->marketing_payments->sum('payment_nominal') ?? 0 }}</td>
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ number_format($data->marketing_payments->sum('payment_nominal') ?? 0, 2, '.', ',')  }}</td>
                                     </tr>
                                     <tr>
                                         <td>Nominal Pembelian:</td>

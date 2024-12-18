@@ -66,7 +66,7 @@ return new class extends Migration
             $table->string('payment_reference')->nullable();
             $table->string('transaction_number')->nullable();
             $table->bigInteger('payment_nominal');
-            $table->datetime('payment_at');
+            $table->dateTime('payment_at');
             $table->string('document_path')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
@@ -121,10 +121,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('marketings');
         Schema::dropIfExists('marketing_addit_prices');
         Schema::dropIfExists('marketing_payments');
         Schema::dropIfExists('marketing_products');
         Schema::dropIfExists('marketing_delivery_vehicles');
+        Schema::dropIfExists('marketings');
     }
 };

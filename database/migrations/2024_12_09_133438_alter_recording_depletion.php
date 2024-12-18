@@ -39,6 +39,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('recording_depletions');
+        Schema::dropIfExists('recording_eggs');
     }
 };

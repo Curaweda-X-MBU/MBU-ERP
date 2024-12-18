@@ -4,6 +4,8 @@
 @php
     $statusReturPembayaran = 1;
     $statusRetur = 2;
+
+    // dd($data);
 @endphp
 <div class="row">
     <div class="col-12">
@@ -36,8 +38,12 @@
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
+                                @if (isset($data->marketing_return_id))
+                                @foreach ($data as $item)
+
+                                @endforeach
                                 <tr>
-                                    <td>DO.MBU.091224</td>
+                                    <td>{{ $item->id_marketing }}</td>
                                     <td>CN0001</td>
                                     <td>25-01-2025</td>
                                     <td>Abdul Aziz</td>
@@ -96,6 +102,11 @@
                                         </div>
                                     </td>
                                 </tr>
+                                @else
+                                <tr>
+                                    <td class="text-center" colspan="9">Belum ada data retur</td>
+                                </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>

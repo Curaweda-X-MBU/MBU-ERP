@@ -20,5 +20,11 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void {}
+    public function down(): void
+    {
+        Schema::table('recording_nonstocks', function(Blueprint $table) {
+            $table->dropForeign(['recording_id']);
+            $table->dropColumn('recording_id');
+        });
+    }
 };

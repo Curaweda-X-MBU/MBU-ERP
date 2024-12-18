@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('marketing_payments', function(Blueprint $table) {
-            $table->tinyInteger('verify_status')->after('notes');
+            $table->integer('bank_id')->nullable()->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('marketing_payments', function(Blueprint $table) {
-            Schema::dropColumn('verify_status');
+            $table->integer('bank_id')->nullable(false)->change();
         });
     }
 };
