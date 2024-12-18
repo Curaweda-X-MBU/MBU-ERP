@@ -90,7 +90,7 @@
         const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
-        $rowScope.find('#current_stock').text(value);
+        $rowScope.find('#current_stock').text(value.split(',')[0]); // don't get the decimals
         $rowScope.find('#qty').attr('max', qty);
     }
     // ? END :: SET VALUE :: QTY & CURRENT STOCK
@@ -120,8 +120,6 @@
             setTimeout(function(){
                 const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
                     const value = parseLocaleToNum($(elem).val());
-                    console.log($(elem).val());
-                    console.log(value);
                     return acc + value;
                 }, 0);
                 $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');

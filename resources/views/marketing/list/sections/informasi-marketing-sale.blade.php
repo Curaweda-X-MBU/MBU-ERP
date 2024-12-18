@@ -31,7 +31,7 @@
         <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
         <div class="col-5"> <span>Pajak:</span> </div>
         <div class="col-5 input-group">
-            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control" value="0">
+            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control">
             <div class="input-group-append"><span class="input-group-text">%</span></div>
         </div>
         <div class="col-5"> <span>Diskon:</span> </div>
