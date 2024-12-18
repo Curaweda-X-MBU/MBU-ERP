@@ -59,26 +59,24 @@
                             </div>
                             <div class="col-12 row">
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <label for="payment_method">Metode Pembayaran*</label>
+                                    <label for="payment_method">Metode Pembayaran<i class="text-danger">*</i></label>
                                 </div>
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <select class="form-control" id="payment_method">
-                                        <option value="">Pilih Metode Pembayaran</option>
+                                    <select class="form-control" id="payment_method" required>
+                                        <option value="" selected hidden>Pilih Pembayaran</option>
                                         <option value="transfer">Transfer</option>
                                         <option value="cash">Cash</option>
-                                        <option value="credit_card">Card</option>
-                                        <option value="credit_card">Cheque</option>
+                                        <option value="card">Card</option>
+                                        <option value="cheque">Cheque</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-12 row">
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <label for="own_bank_id">Akun Bank*</label>
+                                    <label for="own_bank_id">Akun Bank</label>
                                 </div>
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <select class="form-control" id="own_bank_id">
-                                        <option value="">Pilih Akun Bank</option>
-                                        <option value="bank1">Mandiri - 012345678 - Mitra Berlian</option>
+                                    <select class="form-control" id="own_bank_id" disabled>
                                     </select>
                                 </div>
                             </div>
@@ -104,7 +102,7 @@
                             </div>
                             <div class="col-12 row">
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <label for="payment_amount">Nominal Pembayaran*</label>
+                                    <label for="payment_amount">Nominal Pembayaran<i class="text-danger">*</i></label>
                                 </div>
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                                     <input type="text" class="form-control numeral-mask" id="payment_amount" value="0">
@@ -112,7 +110,7 @@
                             </div>
                             <div class="col-12 row">
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <label for="payment_at">Tanggal Bayar*</label></td>
+                                    <label for="payment_at">Tanggal Bayar<i class="text-danger">*</i></label></td>
                                 </div>
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                                     <input type="date" class="form-control flatpickr-basic" id="payment_at">
@@ -126,8 +124,8 @@
                                     <div class="input-group">
                                         <input type="text" id="fileName" placeholder="Upload" class="form-control">
                                         <input type="file" id="transparentFileUpload" name="doc_reference">
-                                        <div class="input-group-append">
-                                            <span class="input-group-text"> <i data-feather="upload"></i> </span>
+                                        <div class="input-group-append" style="pointer-events: none;">
+                                            <span class="input-group-text btn btn-primary">Upload</span>
                                         </div>
                                     </div>
                                 </div>
@@ -167,7 +165,28 @@
     const dateOpt = { dateFormat: 'd-M-Y' };
     $('.flatpickr-basic').flatpickr(dateOpt);
 
-    initSelect2($('#payment_method'), 'Pilih Metode Pembayaran');
-    initSelect2($('#own_bank_id'), 'Pilih Bank');
+    const $paymentSelect = $('#payment_method');
+    const bankIdRoute = '{{ route("data-master.bank.search") }}'
+    const $bankSelect = $('#own_bank_id');
+    initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
+    $bankSelect.addClass('d-none');
+    initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
     initSelect2($('#recipient_bank_id'), 'Pilih Bank');
+
+    $paymentSelect.on('select2:select', function() {
+        switch (this.value) {
+            case 'transfer':
+                $bankSelect.attr('required', true);
+                $bankSelect.attr('disabled', false);
+                break;
+            case 'card':
+                $bankSelect.attr('required', true);
+                $bankSelect.attr('disabled', false);
+                break;
+            default:
+                $bankSelect.attr('required', false);
+                $bankSelect.attr('disabled', true);
+                break;
+        }
+    });
 </script>
