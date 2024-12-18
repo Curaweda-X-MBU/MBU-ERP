@@ -14,6 +14,7 @@ use App\Models\DataMaster\Uom;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
 use App\Models\Project\ProjectChickIn;
+use App\Models\Project\Recording;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -266,6 +267,7 @@ class ListController extends Controller
     public function delete(Request $req)
     {
         try {
+            DB::beginTransaction();
             $project = Project::findOrFail($req->id);
             $kandang = Kandang::find($project->kandang_id);
             $kandang->update([
@@ -274,11 +276,15 @@ class ListController extends Controller
             $project->delete();
             $projectChickIn = ProjectChickIn::where('project_id', $req->id);
             $projectChickIn->delete();
-
+            $projectRecording = Recording::where('project_id', $req->id);
+            $projectRecording->delete();
+            DB::commit();
             $success = ['success' => 'Data berhasil dihapus'];
 
             return redirect()->route('project.list.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
