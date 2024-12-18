@@ -2,6 +2,8 @@
 @section('title', $title)
 @section('content')
 
+<link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -79,7 +81,9 @@
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.delete', $item->marketing_id) }}">
+                                                    <a class="dropdown-item item-delete-button"
+                                                        href="{{ route('marketing.list.delete', $item->marketing_id) }}"
+                                                    >
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
@@ -123,6 +127,8 @@
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
 
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
+
 <script>
     $(function () {
         $('#datatable').DataTable({
@@ -156,6 +162,20 @@
 
         $('#exportPdf').on('click', function() {
             $('.datatable-hidden-pdf-button').trigger('click');
+        });
+
+        $('.item-delete-button').on('click', function(e) {
+            e.preventDefault();
+
+            confirmCallback({
+                title: 'Hapus',
+                text: 'Data tidak bisa dikembalikan!',
+                icon: 'warning',
+                confirmText: 'Hapus',
+                confirmClass: 'btn-danger',
+            }, function() {
+                window.location.href = e.target.href;
+            });
         });
     });
 </script>

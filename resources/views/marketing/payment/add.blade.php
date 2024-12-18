@@ -104,7 +104,9 @@
                                     <label for="payment_amount">Nominal Pembayaran<i class="text-danger">*</i></label>
                                 </div>
                                 <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                                    <input name="payment_nominal" type="text" class="form-control numeral-mask" id="payment_amount" placeholder="0" required>
+                                    <input name="payment_nominal" type="number" id="payment_nominal" max="{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                                    <input name="payment_nominal_mask" type="text" class="form-control numeral-mask" id="payment_nominal_mask" placeholder="0" required>
+                                    <span id="invalid_payment_nominal" class="text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
                                 </div>
                             </div>
                             <div class="col-12 row">
@@ -188,6 +190,18 @@
                 $bankSelect.attr('disabled', true);
                 $bankRequiredLabel.text('');
                 break;
+        }
+    });
+
+    const credit = parseFloat("{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}");
+    $('#payment_nominal_mask').on('input', function() {
+        const val = parseLocaleToNum($(this).val());
+
+        $(this).siblings('#payment_nominal').val(val);
+        if (val > credit) {
+            $(this).siblings('#invalid_payment_nominal').css('opacity', 1);
+        } else {
+            $(this).siblings('#invalid_payment_nominal').css('opacity', 0);
         }
     });
 </script>

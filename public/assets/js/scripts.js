@@ -17,12 +17,14 @@
  * @param {string} selector
  */
 function initNumeralMask(selector) {
-    var element = $(selector);
-    if (element.length) {
-        element.each(function () {
+    var numeralMask = $(selector);
+    if (numeralMask.length) {
+        numeralMask.each(function () {
             new Cleave(this, {
                 numeral: true,
                 numeralThousandsGroupStyle: "thousand",
+                numeralDecimalMark: ",",
+                delimiter: ".",
             });
         });
     }
@@ -33,8 +35,25 @@ function initNumeralMask(selector) {
  * @param {string} value Numeral string | e.g. 1.000,50
  * @returns {number} Float value | e.g. 1000,50
  */
-function parseLocale(value) {
-    return parseFloat(value.replace(/\,/g, "") || 0);
+function parseLocaleToNum(value) {
+    return parseFloat(
+        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, "") || 0,
+    );
+    // return parseFloat(value.replace(/\,/g, "") || 0);
+}
+
+/**
+ * Parse a number to locale string with id-ID format
+ * @param {number} value
+ * @returns {string}
+ */
+function parseNumToLocale(value) {
+    return (
+        value.toLocaleString("id-ID", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }) || 0
+    );
 }
 
 /**
@@ -75,6 +94,32 @@ function confirmDelete(
     });
 }
 
+/**
+ * Show general confirmation modal with Swal
+ * ! Be sure to put this script in your blade/html file !
+ * <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
+ * <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
+ *
+ */
+function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        customClass: {
+            confirmButton: "btn mr-1 " + confirmClass,
+            cancelButton: "btn btn-secondary",
+        },
+        buttonsStyling: false,
+    }).then(function (result) {
+        if (result.value) {
+            cb();
+        }
+    });
+}
+
 /** Initialize jquery select2
  * ! FOR JQUERY SELECT2
  * ! Be sure to put this script in your blade/html file !
@@ -84,7 +129,6 @@ function confirmDelete(
  * @param {string} [placeholder=Pilih]
  * @param {*} routePath
  */
-
 function initSelect2($component, placeholder = "Pilih", routePath) {
     if (routePath) {
         $component.select2({

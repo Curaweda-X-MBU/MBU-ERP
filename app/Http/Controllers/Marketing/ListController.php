@@ -7,6 +7,7 @@ use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Product;
+use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
@@ -610,17 +611,15 @@ class ListController extends Controller
     {
         $warehouseId = $req->id;
 
-        $products = Product::whereHas('product_warehouse.warehouse', function($q) use ($warehouseId) {
-            $q->where('warehouse_id', $warehouseId);
-        })->with(['product_warehouse' => function($q) {
-            $q->select('product_id', 'quantity');
-        }])->get();
+        $products = ProductWarehouse::where('warehouse_id', $warehouseId)
+            ->with(['product'])
+            ->get();
 
         $val = $products->map(function($product) {
             return [
                 'id'   => $product->product_id,
-                'text' => $product->name,
-                'qty'  => $product->product_warehouse->sum('quantity'),
+                'text' => $product->product->name,
+                'qty'  => $product->quantity,
                 'data' => $product,
             ];
         });

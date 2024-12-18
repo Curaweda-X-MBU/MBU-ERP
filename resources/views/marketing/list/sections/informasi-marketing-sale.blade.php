@@ -31,7 +31,7 @@
         <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
         <div class="col-5"> <span>Pajak:</span> </div>
         <div class="col-5 input-group">
-            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control" value="0">
+            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control">
             <div class="input-group-append"><span class="input-group-text">%</span></div>
         </div>
         <div class="col-5"> <span>Diskon:</span> </div>
@@ -83,15 +83,14 @@
     // ? START :: CALCULATION ::  GRAND TOTAL
     function calculateGrandTotal() {
         $(document).on('change input', '.addit_price, #total_setelah_pajak', function () {
-            const totalSetelahPajak = parseLocale($('#total_setelah_pajak').text());
+            const totalSetelahPajak = parseLocaleToNum($('#total_setelah_pajak').text());
             const $totalPiutang = $('#total_piutang');
-            console.log($('.addit_price').length);
             setTimeout(function(){
                 const priceAllRow = $('.addit_price').get().reduce(function(acc, elem) {
-                    const value = parseLocale($(elem).val());
+                    const value = parseLocaleToNum($(elem).val());
                     return acc + value;
                 }, 0);
-                $totalPiutang.text((totalSetelahPajak + priceAllRow).toLocaleString('en-GB'));
+                $totalPiutang.text(parseNumToLocale(totalSetelahPajak + priceAllRow));
             }, 0);
         });
     }
@@ -101,16 +100,16 @@
     function calculateBeforeTax() {
         $(document).on('change input', 'input[name="discount"], input[name="tax"], #total_sebelum_pajak', function () {
             const $totalSetelahPajak = $('#total_setelah_pajak');
-            const totalSebelumPajak = parseLocale($('#total_sebelum_pajak').text());
+            const totalSebelumPajak = parseLocaleToNum($('#total_sebelum_pajak').text());
             const tax = $('input[name="tax"]').val();
-            const discount = parseLocale($('input[name="discount"]').val());
+            const discount = parseLocaleToNum($('input[name="discount"]').val());
             let total;
             if (tax && tax > 0) {
                 total = totalSebelumPajak + (totalSebelumPajak * (tax / 100)) - discount;
             } else {
                 total = totalSebelumPajak - discount;
             }
-            $totalSetelahPajak.text(total.toLocaleString('en-GB')).trigger('change');
+            $totalSetelahPajak.text(parseNumToLocale(total)).trigger('change');
         });
     }
     // ? END :: CALCULATION ::  BEFORE TAX

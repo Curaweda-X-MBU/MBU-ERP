@@ -30,14 +30,20 @@
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
                 <td class="pt-2 pb-3">
-                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
+                    @if (isset($is_realization) && $is_realization)
+                        <input type="hidden" name="warehouse_id"required>
+                    @endif
+                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
-                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
+                    @if (isset($is_realization) && $is_realization)
+                        <input type="hidden" name="product_id"required>
+                    @endif
+                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
                         <option disabled selected>Pilih Kandang terlebih dahulu</option>
                     </select>
-                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0</span></small>
+                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">{{ (isset($is_realization) && $is_realization) ? 'Stock Sold: ' : 'Current Stock: ' }}<span id="current_stock">0</span></small>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
                     <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" required>
@@ -87,10 +93,10 @@
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
         }
-        const value = qty.toLocaleString('en-GB');
+        const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
-        $rowScope.find('#current_stock').text(value);
+        $rowScope.find('#current_stock').text(value.split(',')[0]); // don't get the decimals
         $rowScope.find('#qty').attr('max', qty);
     }
     // ? END :: SET VALUE :: QTY & CURRENT STOCK
@@ -106,25 +112,23 @@
             const $weightTotalInput = $row.find('#weight_total');
             const $priceTotalInput = $row.find('#price_total');
             const $totalSebelumPajak = $('#total_sebelum_pajak');
-            const $totalSebelumPajakInput = $('input[name="total_sebelum_pajak"]');
 
-            console.log($qtyInput.val());
-            const qty = parseLocale($qtyInput.val());
-            const weightAvg = parseLocale($weightAvgInput.val());
-            const price = parseLocale($priceInput.val());
+            const qty = parseLocaleToNum($qtyInput.val());
+            const weightAvg = parseLocaleToNum($weightAvgInput.val());
+            const price = parseLocaleToNum($priceInput.val());
 
             const weightTotal = qty * weightAvg;
             const priceTotal = weightTotal * price;
 
-            $weightTotalInput.val(weightTotal.toLocaleString('en-GB'));
-            $priceTotalInput.val(priceTotal.toLocaleString('en-GB'));
+            $weightTotalInput.val(parseNumToLocale(weightTotal));
+            $priceTotalInput.val(parseNumToLocale(priceTotal));
 
             setTimeout(function(){
                 const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                    const value = parseLocale($(elem).val());
+                    const value = parseLocaleToNum($(elem).val());
                     return acc + value;
                 }, 0);
-                $totalSebelumPajak.text(priceAllRow.toLocaleString('en-GB')).trigger('change');
+                $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
             }, 0);
         });
     }
@@ -168,8 +172,8 @@
 
             // ? START :: VALIDATION :: QTY
             $row.find('#qty_mask').on('input', function() {
-                const val = parseLocale($(this).val());
-                const stock = parseLocale($row.find('#current_stock').text());
+                const val = parseLocaleToNum($(this).val());
+                const stock = parseLocaleToNum($row.find('#current_stock').text());
                 $(this).siblings('#qty').val(val);
                 if (val > stock) {
                     $(this).siblings('#invalid_qty').css('opacity', 1);
@@ -201,8 +205,13 @@
 
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
+
+            $(`input[name="marketing_products[${i}][warehouse_id]"]`).val(product.warehouse_id);
+            $(`input[name="marketing_products[${i}][product_id]"]`).val(product.product_id);
+
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`select[name="marketing_products[${i}][uom_id]"]`).append(`<option value="${product.uom_id}" selected>${product.uom.name}</option>`).trigger('change');
             $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
@@ -214,8 +223,13 @@
             });
             ajaxProduct.done(function(res) {
                 const chose = res.filter((a) => a.data.product_id = product.product.product_id)[0];
-                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
-                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                if ('{{isset($is_realization) && $is_realization}}') {
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', product.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(product.qty);
+                } else {
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                }
                 $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
 
             initNumeralMask('.numeral-mask');

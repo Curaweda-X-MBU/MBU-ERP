@@ -72,7 +72,7 @@
                                                     <tr>
                                                         <td>{{ $data->id_marketing }}</td>
                                                         <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
-                                                        <td>{{ date('d-M-Y', strtotime($data->realized_at)) ?? '-' }}</td>
+                                                        <td>{{ isset($data->realized_at) ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
                                                         <td>{{ $data->customer->name }}</td>
                                                         <td>{{ $data->company->alias }}</td>
                                                         <td>
@@ -95,7 +95,7 @@
                                                             <span>-</span>
                                                             @endif
                                                         </td>
-                                                        <td>{{ number_format($data->grand_total, 2, '.', ',') }}</td>
+                                                        <td>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
                                                         <td>
                                                             @php
                                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
@@ -176,7 +176,7 @@
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->item }}</td>
-                                                                <td>{{ number_format($item->price, 2, '.', ',') }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @else
@@ -219,12 +219,12 @@
                                                             <td>{{ $index + 1 }}</td>
                                                             <td>{{ $item->warehouse->name }}</td>
                                                             <td>{{ $item->product->name }}</td>
-                                                            <td>{{ number_format($item->price, 2, '.', ',') }}</td>
+                                                            <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                             <td>{{ $item->weight_avg }}</td>
                                                             <td>{{ $item->uom->name }}</td>
-                                                            <td>{{ number_format($item->qty, 2, '.', ',') }}</td>
-                                                            <td>{{ number_format($item->weight_total, 2, '.', ',') }}</td>
-                                                            <td>{{ number_format($item->total_price, 2, '.', ',') }}</td>
+                                                            <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
+                                                            <td>{{ \App\Helpers\Parser::toLocale($item->weight_total) }}</td>
+                                                            <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -260,7 +260,7 @@
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->plat_number }}</td>
-                                                                <td>{{ number_format($item->qty, 2, '.', ',') }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                                 <td>{{ $item->uom->name }}</td>
                                                                 <td>{{ $item->exit_at }}</td>
                                                                 <td>{{ $item->sender->name }}</td>
