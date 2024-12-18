@@ -1,6 +1,6 @@
 @php
     $dataVehicles = '';
-    if (isset($data)) {
+    if (isset($data->marketing_delivery_vehicles[0])) {
         $dataVehicles = $data->marketing_delivery_vehicles;
     }
 @endphp

@@ -23,4 +23,15 @@ class Parser
 
         return floatval($value) ?: 0;
     }
+
+    /**
+     * Parse locale string id-ID to float value
+     *
+     * @param  float  $value
+     * @return string
+     */
+    public static function toLocale($value)
+    {
+        return number_format($value, 2, ',', '.');
+    }
 }

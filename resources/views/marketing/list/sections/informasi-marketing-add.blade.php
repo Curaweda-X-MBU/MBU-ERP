@@ -88,8 +88,12 @@
             year: 'numeric',
             month: 'short',
         };
-        const date = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
-        $('#sold_at').val(date.replace(/ /g, '-'));
+        const soldAt = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
+        $('#sold_at').val(soldAt.replace(/ /g, '-'));
+        if (marketing.realized_at) {
+            const realizedAt = new Date(marketing.realized_at).toLocaleDateString('en-GB', dateOpt);
+            $('#realized_at').val(realizedAt.replace(/ /g, '-'));
+        }
 
         // STATUS
         $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);

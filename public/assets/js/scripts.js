@@ -28,15 +28,6 @@ function initNumeralMask(selector) {
             });
         });
     }
-    // var element = $(selector);
-    // if (element.length) {
-    //     element.each(function () {
-    //         new Cleave(this, {
-    //             numeral: true,
-    //             numeralThousandsGroupStyle: "thousand",
-    //         });
-    //     });
-    // }
 }
 
 /**
@@ -103,6 +94,32 @@ function confirmDelete(
     });
 }
 
+/**
+ * Show general confirmation modal with Swal
+ * ! Be sure to put this script in your blade/html file !
+ * <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
+ * <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
+ *
+ */
+function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        customClass: {
+            confirmButton: "btn mr-1 " + confirmClass,
+            cancelButton: "btn btn-secondary",
+        },
+        buttonsStyling: false,
+    }).then(function (result) {
+        if (result.value) {
+            cb();
+        }
+    });
+}
+
 /** Initialize jquery select2
  * ! FOR JQUERY SELECT2
  * ! Be sure to put this script in your blade/html file !
@@ -112,7 +129,6 @@ function confirmDelete(
  * @param {string} [placeholder=Pilih]
  * @param {*} routePath
  */
-
 function initSelect2($component, placeholder = "Pilih", routePath) {
     if (routePath) {
         $component.select2({

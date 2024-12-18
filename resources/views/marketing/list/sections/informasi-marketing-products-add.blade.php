@@ -30,14 +30,20 @@
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
                 <td class="pt-2 pb-3">
-                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
+                    @if (isset($is_realization) && $is_realization)
+                        <input type="hidden" name="warehouse_id"required>
+                    @endif
+                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
-                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'readonly' : '' }} required>
+                    @if (isset($is_realization) && $is_realization)
+                        <input type="hidden" name="product_id"required>
+                    @endif
+                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
                         <option disabled selected>Pilih Kandang terlebih dahulu</option>
                     </select>
-                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">Current Stock: <span id="current_stock">0</span></small>
+                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">{{ (isset($is_realization) && $is_realization) ? 'Stock Sold: ' : 'Current Stock: ' }}<span id="current_stock">0</span></small>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
                     <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" required>
@@ -199,8 +205,13 @@
 
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
+
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
+
+            $(`input[name="marketing_products[${i}][warehouse_id]"]`).val(product.warehouse_id);
+            $(`input[name="marketing_products[${i}][product_id]"]`).val(product.product_id);
+
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`select[name="marketing_products[${i}][uom_id]"]`).append(`<option value="${product.uom_id}" selected>${product.uom.name}</option>`).trigger('change');
             $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
@@ -212,8 +223,13 @@
             });
             ajaxProduct.done(function(res) {
                 const chose = res.filter((a) => a.data.product_id = product.product.product_id)[0];
-                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
-                $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                if ('{{isset($is_realization) && $is_realization}}') {
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', product.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(product.qty);
+                } else {
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                }
                 $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
 
             initNumeralMask('.numeral-mask');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Constants;
 use App\Helpers\FileHelper;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingPayment;
@@ -55,7 +56,7 @@ class PaymentController extends Controller
                     'bank_id'            => $input['bank_id'] ?? null,
                     'payment_reference'  => $input['payment_reference'],
                     'transaction_number' => $input['transaction_number'],
-                    'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
+                    'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
                     'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                     'document_path'      => $docPath,
                     'notes'              => $input['notes'],

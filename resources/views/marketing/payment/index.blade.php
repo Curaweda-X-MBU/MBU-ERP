@@ -4,6 +4,9 @@
 @php
 $statusMarketing = App\Constants::MARKETING_STATUS;
 @endphp
+
+<link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -68,7 +71,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                             <td>{{ date('d-M-Y', strtotime($item->payment_at)) }}</td>
                                             <td>{{ $item->payment_method }}</td>
                                             <td>{{ isset($item->bank) ? $item->bank->alias.' - '.$item->bank->account_number.' - '.$item->bank->owner : '-'}}</td>
-                                            <td>{{ number_format($item->payment_nominal, 2, '.', ',') }}</td>
+                                            <td>{{ \App\Helpers\Parser::toLocale($item->payment_nominal) }}</td>
                                             <td>{{ $item->payment_reference ?? '-' }}</td>
                                             <td>
                                                 @php
@@ -83,7 +86,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                 @endswitch
                                             </td>
                                             <td>
-                                                <div class="dropdown dropleft">
+                                                <div class="dropdown dropleft" style="position: static;">
                                                     <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
                                                         <i data-feather="more-vertical"></i>
                                                     </button>
@@ -92,7 +95,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                             <i data-feather="edit" class="mr-50"></i>
                                                             <span>Edit</span>
                                                         </a>
-                                                        <a class="dropdown-item" href="">
+                                                        <a class="dropdown-item item-delete-button" href="#">
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>
@@ -133,15 +136,15 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                 <tbody class="text-right">
                                     <tr>
                                         <td>Total Sudah Dibayar:</td>
-                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ number_format($data->marketing_payments->sum('payment_nominal') ?? 0, 2, '.', ',')  }}</td>
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->marketing_payments->sum('payment_nominal') ?? 0)  }}</td>
                                     </tr>
                                     <tr>
                                         <td>Nominal Pembelian:</td>
-                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ number_format($data->grand_total, 2, '.', ',') }}</td>
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-danger">Sisa Belum Dibayar:</td>
-                                        <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{ number_format($data->grand_total - $data->marketing_payments->sum('payment_nominal') ?? 0, 2, '.', ',') }}</td>
+                                        <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total - $data->marketing_payments->sum('payment_nominal')) }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -152,5 +155,24 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
+
+<script>
+    $('.item-delete-button').on('click', function(e) {
+        e.preventDefault();
+
+        confirmCallback({
+            title: 'Hapus',
+            text: 'Data tidak bisa dikembalikan!',
+            icon: 'warning',
+            confirmText: 'Hapus',
+            confirmClass: 'btn-danger',
+        }, function() {
+            window.location.href = e.target.href;
+        });
+    });
+</script>
+
 @endsection
