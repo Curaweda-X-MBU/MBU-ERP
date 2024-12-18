@@ -17,15 +17,26 @@
  * @param {string} selector
  */
 function initNumeralMask(selector) {
-    var element = $(selector);
-    if (element.length) {
-        element.each(function () {
+    var numeralMask = $(selector);
+    if (numeralMask.length) {
+        numeralMask.each(function () {
             new Cleave(this, {
                 numeral: true,
                 numeralThousandsGroupStyle: "thousand",
+                numeralDecimalMark: ",",
+                delimiter: ".",
             });
         });
     }
+    // var element = $(selector);
+    // if (element.length) {
+    //     element.each(function () {
+    //         new Cleave(this, {
+    //             numeral: true,
+    //             numeralThousandsGroupStyle: "thousand",
+    //         });
+    //     });
+    // }
 }
 
 /**
@@ -33,8 +44,25 @@ function initNumeralMask(selector) {
  * @param {string} value Numeral string | e.g. 1.000,50
  * @returns {number} Float value | e.g. 1000,50
  */
-function parseLocale(value) {
-    return parseFloat(value.replace(/\,/g, "") || 0);
+function parseLocaleToNum(value) {
+    return parseFloat(
+        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, "") || 0,
+    );
+    // return parseFloat(value.replace(/\,/g, "") || 0);
+}
+
+/**
+ * Parse a number to locale string with id-ID format
+ * @param {number} value
+ * @returns {string}
+ */
+function parseNumToLocale(value) {
+    return (
+        value.toLocaleString("id-ID", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }) || 0
+    );
 }
 
 /**

@@ -87,7 +87,7 @@
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
         }
-        const value = qty.toLocaleString('en-GB');
+        const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
         $rowScope.find('#current_stock').text(value);
@@ -106,25 +106,25 @@
             const $weightTotalInput = $row.find('#weight_total');
             const $priceTotalInput = $row.find('#price_total');
             const $totalSebelumPajak = $('#total_sebelum_pajak');
-            const $totalSebelumPajakInput = $('input[name="total_sebelum_pajak"]');
 
-            console.log($qtyInput.val());
-            const qty = parseLocale($qtyInput.val());
-            const weightAvg = parseLocale($weightAvgInput.val());
-            const price = parseLocale($priceInput.val());
+            const qty = parseLocaleToNum($qtyInput.val());
+            const weightAvg = parseLocaleToNum($weightAvgInput.val());
+            const price = parseLocaleToNum($priceInput.val());
 
             const weightTotal = qty * weightAvg;
             const priceTotal = weightTotal * price;
 
-            $weightTotalInput.val(weightTotal.toLocaleString('en-GB'));
-            $priceTotalInput.val(priceTotal.toLocaleString('en-GB'));
+            $weightTotalInput.val(parseNumToLocale(weightTotal));
+            $priceTotalInput.val(parseNumToLocale(priceTotal));
 
             setTimeout(function(){
                 const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                    const value = parseLocale($(elem).val());
+                    const value = parseLocaleToNum($(elem).val());
+                    console.log($(elem).val());
+                    console.log(value);
                     return acc + value;
                 }, 0);
-                $totalSebelumPajak.text(priceAllRow.toLocaleString('en-GB')).trigger('change');
+                $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
             }, 0);
         });
     }
@@ -168,8 +168,8 @@
 
             // ? START :: VALIDATION :: QTY
             $row.find('#qty_mask').on('input', function() {
-                const val = parseLocale($(this).val());
-                const stock = parseLocale($row.find('#current_stock').text());
+                const val = parseLocaleToNum($(this).val());
+                const stock = parseLocaleToNum($row.find('#current_stock').text());
                 $(this).siblings('#qty').val(val);
                 if (val > stock) {
                     $(this).siblings('#invalid_qty').css('opacity', 1);

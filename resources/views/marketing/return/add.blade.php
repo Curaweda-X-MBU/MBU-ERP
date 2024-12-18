@@ -235,7 +235,7 @@
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
         }
-        const value = qty.toLocaleString('id-ID');
+        const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
         $rowScope.find('#current_stock').text(value);
@@ -258,7 +258,7 @@
             const data = $this.select2('data')[0];
             qty = data && data.qty ? data.qty : 0;
         }
-        const value = qty.toLocaleString('id-ID');
+        const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
         $rowScope.find('#current_stock').text(value);
@@ -278,22 +278,22 @@
                 const $priceTotalInput = $row.find('#price_total');
                 const $totalSebelumPajak = $('#total_sebelum_pajak');
 
-                const qty = parseLocale($qtyInput.val());
-                const weightAvg = parseLocale($weightAvg.val());
-                const price = parseLocale($price.val());
+                const qty = parseLocaleToNum($qtyInput.val());
+                const weightAvg = parseLocaleToNum($weightAvg.val());
+                const price = parseLocaleToNum($price.val());
 
                 const weightTotal = qty * weightAvg;
                 const priceTotal = weightTotal * price;
 
-                $weightTotalInput.val(weightTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                $priceTotalInput.val(priceTotal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $weightTotalInput.val(parseNumToLocale(weightTotal));
+                $priceTotalInput.val(parseNumToLocale(priceTotal));
 
                 setTimeout(function(){
                     const priceAllRow = $('#marketing-return-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                        const value = parseLocale($(elem).val());
+                        const value = parseLocaleToNum($(elem).val());
                         return acc + value;
                     }, 0);
-                    $totalSebelumPajak.text(priceAllRow.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })).trigger('change');
+                    $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
                 }, 0);
             })
         }

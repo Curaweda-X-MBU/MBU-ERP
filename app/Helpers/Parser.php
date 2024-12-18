@@ -16,9 +16,10 @@ class Parser
             return 0;
         }
 
-        $value = str_replace(',', '', $value);
-        // $value = str_replace('.', '', $value);
-        // $value = str_replace(',', '.', $value);
+        // $value = str_replace(',', '', $value);
+        $value = str_replace('.', '_', $value);
+        $value = str_replace(',', '.', $value);
+        $value = str_replace('_', '', $value);
 
         return floatval($value) ?: 0;
     }
