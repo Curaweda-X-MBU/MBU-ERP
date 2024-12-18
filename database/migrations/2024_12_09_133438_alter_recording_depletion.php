@@ -39,7 +39,26 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recording_depletions');
-        Schema::dropIfExists('recording_eggs');
+        Schema::table('recording_depletions', function(Blueprint $table) {
+            $table->bigInteger('increase')->default(0);
+            $table->bigInteger('decrease')->default(0);
+            $table->bigInteger('death')->default(0);
+            $table->bigInteger('culling')->default(0);
+            $table->bigInteger('afkir')->default(0);
+            $table->bigInteger('total_depletion')->default(0);
+            $table->dropColumn('total');
+        });
+
+        Schema::table('recording_eggs', function(Blueprint $table) {
+            $table->bigInteger('increase')->default(0);
+            $table->bigInteger('decrease')->default(0);
+            $table->bigInteger('big')->default(0);
+            $table->bigInteger('small')->default(0);
+            $table->bigInteger('crack')->default(0);
+            $table->bigInteger('dirty')->default(0);
+            $table->bigInteger('broken')->default(0);
+            $table->bigInteger('total_egg')->default(0);
+            $table->dropColumn('total');
+        });
     }
 };
