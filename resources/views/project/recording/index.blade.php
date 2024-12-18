@@ -85,27 +85,33 @@
                                                                             <span>Detail</span>
                                                                         </a>
                                                                         @endif
-                                                                        @if (in_array($item->revision_status, [0, 4]))
-                                                                        <a class="dropdown-item text-warning" href="javascript:void(0);" data-id="{{ $item->recording_id }}" data-toggle="modal" data-target="#revision-submission">
-                                                                            <i data-feather="edit-2" class="mr-50"></i>
-                                                                            <span>Ajukan Perubahan</span>
-                                                                        </a>
+                                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.revision-submission'))
+                                                                            @if (in_array($item->revision_status, [0, 4]))
+                                                                            <a class="dropdown-item text-warning" href="javascript:void(0);" data-id="{{ $item->recording_id }}" data-toggle="modal" data-target="#revision-submission">
+                                                                                <i data-feather="edit-2" class="mr-50"></i>
+                                                                                <span>Ajukan Perubahan</span>
+                                                                            </a>
+                                                                            @endif
                                                                         @endif
-                                                                        @if ($item->revision_status == 2)
-                                                                        <a class="dropdown-item text-info" href="{{ route('project.recording.edit', $item->recording_id) }}">
-                                                                            <i data-feather="edit-2" class="mr-50"></i>
-                                                                            <span>Ubah</span>
-                                                                        </a>
+                                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.edit'))
+                                                                            @if ($item->revision_status == 2)
+                                                                            <a class="dropdown-item text-info" href="{{ route('project.recording.edit', $item->recording_id) }}">
+                                                                                <i data-feather="edit-2" class="mr-50"></i>
+                                                                                <span>Ubah</span>
+                                                                            </a>
+                                                                            @endif
                                                                         @endif
-                                                                        @if ($item->revision_status === 1)
-                                                                        <a class="dropdown-item text-success" href="javascript:void(0);" data-id="{{ $item->recording_id }}#approve" data-toggle="modal" data-target="#revision-approval">
-                                                                            <i data-feather="check" class="mr-50"></i>
-                                                                            <span>Setujui</span>
-                                                                        </a>
-                                                                        <a class="dropdown-item text-danger" href="javascript:void(0);" data-id="{{ $item->recording_id }}#reject" data-toggle="modal" data-target="#revision-approval">
-                                                                            <i data-feather="x" class="mr-50"></i>
-                                                                            <span>Tolak</span>
-                                                                        </a>
+                                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.revision-approval'))
+                                                                            @if ($item->revision_status === 1)
+                                                                            <a class="dropdown-item text-success" href="javascript:void(0);" data-id="{{ $item->recording_id }}#approve" data-toggle="modal" data-target="#revision-approval">
+                                                                                <i data-feather="check" class="mr-50"></i>
+                                                                                <span>Setujui</span>
+                                                                            </a>
+                                                                            <a class="dropdown-item text-danger" href="javascript:void(0);" data-id="{{ $item->recording_id }}#reject" data-toggle="modal" data-target="#revision-approval">
+                                                                                <i data-feather="x" class="mr-50"></i>
+                                                                                <span>Tolak</span>
+                                                                            </a>
+                                                                            @endif
                                                                         @endif
                                                                     </div>
                                                                 </div>
