@@ -336,8 +336,13 @@ class ListController extends Controller
 
         $projects = $projects->get();
 
-        return response()->json($projects->map(function($project) {
-            return ['id' => $project->period, 'text' => $project->period];
-        }));
+        return response()->json(
+            $projects
+                ->map(function($project) {
+                    return ['id' => $project->period, 'text' => $project->period];
+                })
+                ->unique('id')
+                ->values()
+        );
     }
 }
