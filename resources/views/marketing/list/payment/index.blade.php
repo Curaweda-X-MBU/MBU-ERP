@@ -14,7 +14,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form class="form-horizontal" method="post" action="{{ route('marketing.payment.add', $data->marketing_id) }}" enctype="multipart/form-data">
+                <form class="form-horizontal" method="post" action="{{ route('marketing.list.payment.add', $data->marketing_id) }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <div class="row row-cols-2 row-cols-md-4">
                         <!-- Nama Pelanggan -->
@@ -48,7 +48,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                     </div>
 
                     <!-- Modal -->
-                    @include('marketing.payment.add')
+                    @include('marketing.list.payment.add')
 
                     <!-- BEGIN: Table-->
                     <div class="table-responsive mt-3">

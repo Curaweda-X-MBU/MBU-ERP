@@ -7,30 +7,37 @@ use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MarketingPayment extends Model
+class MarketingReturnPayment extends Model
 {
     use HasFactory;
 
-    protected $table = 'marketing_payments';
+    protected $table = 'marketing_return_payments';
 
-    protected $priaryKey = 'marketing_payment_id';
+    protected $primaryKey = 'marketing_return_payment_id';
 
     protected $fillable = [
+        'marketing_return_id',
         'payment_method',
         'is_approved',
         'approver_id',
-        'approved_at',
         'approval_notes',
+        'approved_at',
         'bank_id',
-        'payment_nominal',
+        'recipient_bank_id',
         'payment_reference',
         'transaction_number',
+        'payment_nominal',
+        'bank_admin_fees',
         'payment_at',
         'document_path',
         'notes',
-        'marketing_id',
         'verify_status',
     ];
+
+    public function marketing_return()
+    {
+        return $this->belongsTo(MarketingReturn::class, 'marketing_id', 'marketing_id');
+    }
 
     public function approver()
     {
@@ -42,8 +49,8 @@ class MarketingPayment extends Model
         return $this->belongsTo(Bank::class, 'bank_id', 'bank_id');
     }
 
-    public function marketing()
+    public function recipient_bank()
     {
-        return $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
+        return $this->belongsTo(Bank::class, 'recipient_bank_id', 'bank_id');
     }
 }
