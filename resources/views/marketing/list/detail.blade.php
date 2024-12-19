@@ -15,6 +15,15 @@
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
+<script>
+    function setApproval(value) {
+        $('#is_approved').val(value);
+        console.log(value);
+
+        $('#approveForm').trigger('submit');
+    }
+</script>
+
 <div class="col-12">
     <div class="row">
         <div class="no-print pb-2">
@@ -289,7 +298,7 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form method="post" action="{{ route('marketing.list.approve', $data->marketing_id) }}">
+            <form id="approveForm" method="post" action="{{ route('marketing.list.approve', $data->marketing_id) }}">
             {{csrf_field()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Penjualan</h4>
@@ -302,20 +311,19 @@
                     <div class="form-group">
                         <label for="marketing_status" class="form-label">Status Penjualan<i class="text-danger">*</i></label>
                         <select name="marketing_status" id="marketing_status" class="form-control" required>
-                            <option value="">Pilih Status</option>
-                            <option value="2">Penawaran</option>
+                            <option value="2" selected>Penawaran</option>
                             <option value="3">Final</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="notes" class="form-label">Catatan</label>
-                        <textarea name="notes" id="notes" class="form-control"></textarea>
+                        <textarea name="approval_notes" id="notes" class="form-control"></textarea>
                     </div>
                     <br><p>Apakah kamu yakin ingin menyetujui data penjualan ini ?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" onclick="setApproval(1)" class="btn btn-success">Setuju</button>
-                    <button type="submit" onclick="setApproval(0)" class="btn btn-danger">Tidak</button>
+                    <button type="button" onclick="setApproval(1)" class="btn btn-success">Setuju</button>
+                    <button type="button" onclick="setApproval(0)" class="btn btn-danger">Tidak</button>
                 </div>
             </form>
         </div>
@@ -326,10 +334,6 @@
 <script>
     $(function() {
         initSelect2($('#marketing_status'), 'Pilih Status');
-
-        function setApproval(value) {
-            $('#is_approved').val(value);
-        }
     });
 </script>
 
