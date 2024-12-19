@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('marketings', function(Blueprint $table) {
-            $table->tinyInteger('is_returned')->after('marketing_status');
+            $table->dropColumn('is_approved');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('marketings', function(Blueprint $table) {
-            $table->dropColumn('is_returned');
+            $table->tinyInteger('is_approved')->nullable();
         });
     }
 };
