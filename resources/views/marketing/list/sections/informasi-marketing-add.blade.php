@@ -21,13 +21,17 @@
     <!-- Nama Pelanggan -->
     <div class="col-md-2 mt-1">
         <label for="customer_id" class="form-label">Nama Pelanggan<i class="text-danger">*</i></label>
-        <select name="customer_id" id="customer_id" class="form-control" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
+        <select name="customer_id" id="customer_id" class="form-control" {{ @$is_realization || @$is_return ? 'disabled' : 'required' }}>
         </select>
     </div>
     <!-- Tanggal Penjualan -->
     <div class="col-md-2 mt-1">
         <label for="sold_at" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
-        <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now()->format('d-M-Y') }}" required>
+        @if(@$is_return)
+            <input name="sold_at" id="sold_at" class="form-control" readonly>
+        @else
+            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now()->format('d-M-Y') }}">
+        @endif
     </div>
     <!-- Status -->
     <div class="col-md-2 mt-1">
@@ -46,10 +50,17 @@
         </div>
     </div>
     <!-- Tanggal Realisasi -->
-    @if (isset($is_realization) && $is_realization)
+    @if (@$is_realization)
     <div class="col-md-2 mt-1">
-        <label for="realized_at" class="form-label">Tanggal Realisasi</label>
+        <label for="realized_at" class="form-label">Tanggal Realisasi<i class="text-danger">*</i></label>
         <input id="realized_at" name="realized_at" class="form-control flatpickr-basic" aria-desribedby="realized_at" placeholder="Pilih Tanggal" required>
+    </div>
+    @endif
+    <!-- Tanggal Retur -->
+    @if (@$is_return)
+    <div class="col-md-2 mt-1">
+        <label for="return_at" class="form-label">Tanggal Retur<i class="text-danger">*</i></label>
+        <input id="return_at" name="return_at" class="form-control flatpickr-basic" aria-desribedby="realized_at" placeholder="Pilih Tanggal" required>
     </div>
     @endif
 </div>
@@ -93,6 +104,11 @@
         if (marketing.realized_at) {
             const realizedAt = new Date(marketing.realized_at).toLocaleDateString('en-GB', dateOpt);
             $('#realized_at').val(realizedAt.replace(/ /g, '-'));
+        }
+
+        if (marketing.marketing_return) {
+            const returnAt = new Date(marketing.marketing_return.return_at).toLocaleDateString('en-GB', dateOpt);
+            $('#return_at').val(returnAt.replace(/ /g, '-'));
         }
 
         // STATUS
