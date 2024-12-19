@@ -41,8 +41,9 @@ class ReturnController extends Controller
         try {
             $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
-                'title' => 'Penjualan > Retur > Tambah',
-                'data'  => $data,
+                'title'     => 'Penjualan > Retur > Tambah',
+                'is_return' => true,
+                'data'      => $data,
             ];
 
             if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
@@ -94,14 +95,9 @@ class ReturnController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price = Parser::parseLocale($value['price']);
-                            $qty   = Parser::parseLocale($value['qty']);
-
-                            $totalPrice = $price * $qty;
-                            $productPrice += $totalPrice;
-
-                            $arrProduct[$key]['return_qty'] = $qty;
-                            MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
+                            $qty       = Parser::parseLocale($value['qty']);
+                            $returnQty = ['return_qty' => $qty];
+                            MarketingProduct::find($value['marketing_product_id'])->update($returnQty);
                         }
                     }
 
