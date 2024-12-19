@@ -26,6 +26,7 @@ class MarketingProduct extends Model
         'qty',
         'weight_total',
         'total_price',
+        'return_qty',
     ];
 
     public function marketing()

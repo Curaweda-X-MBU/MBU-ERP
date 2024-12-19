@@ -26,7 +26,10 @@ class ListController extends Controller
     public function index()
     {
         try {
-            $data  = Marketing::with(['customer', 'company'])->get();
+            $data = Marketing::with(['customer', 'company'])
+                ->whereNull('marketing_return_id')
+                ->get();
+
             $param = [
                 'title' => 'Penjualan > List',
                 'data'  => $data,
@@ -481,7 +484,7 @@ class ListController extends Controller
 
                             $input['product_id']   = $product->product_id;
                             $input['warehouse_id'] = $product->warehouse_id;
-                            $input['stocked_by']   = 'Marketing';
+                            $input['stocked_by']   = 'Penjualan';
                             $input['stock_date']   = date('Y-m-d');
                             $input['increase']     = 0;
                             $input['decrease']     = $product->qty;

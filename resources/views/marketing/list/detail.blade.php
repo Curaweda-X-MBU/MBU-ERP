@@ -28,7 +28,6 @@
     <div class="row">
         <div class="no-print pb-2">
             <h4 class="card-title">{{$title}}</h4>
-
                 <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
@@ -40,7 +39,7 @@
                     @php
                         $roleAccess = Auth::user()->role;
                     @endphp
-                    @if ($roleAccess->hasPermissionTo('marketing.list.approve'))
+                    @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->is_approved != 1)
                         <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
                             <i data-feather="check" class="mr-50"></i>
                             Approve

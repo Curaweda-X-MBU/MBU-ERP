@@ -86,6 +86,7 @@
                             </thead>
                             <tbody data-repeater-list="marketing_products">
                                 <tr class="text-center" data-repeater-item>
+                                    <input type="hidden" name="marketing_product_id">
                                     <td class="pt-2 pb-3">
                                         <input type="hidden" name="warehouse_id" required>
                                         <select name="warehouse_id" class="form-control marketing_warehouse_select" disabled>
@@ -317,6 +318,7 @@
         products.forEach((product, i) => {
             $('#marketing-return-product-repeater-1').find('[data-repeater-create]').trigger('click');
 
+            $(`input[name="marketing_products[${i}][marketing_product_id]"]`).val(product.marketing_product_id);
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][uom_id]"]`).append(`<option value="${product.uom_id}" selected>${product.uom.name}</option>`).trigger('change');
