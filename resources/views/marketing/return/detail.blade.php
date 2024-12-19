@@ -15,6 +15,13 @@
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
+<script>
+    function setApproval(value) {
+        $('#is_approved').val(value);
+        $('#approveForm').trigger('submit');
+    }
+</script>
+
 <div class="col-12">
     <div class="row">
         <div class="no-print pb-2">
@@ -27,10 +34,15 @@
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
                 </a>
-                <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
-                    <i data-feather="check" class="mr-50"></i>
-                    Approve
-                </a>
+                @php
+                    $roleAccess = Auth::user()->role;
+                @endphp
+                @if ($roleAccess->hasPermissionTo('marketing.return.approve') && $data->marketing_return->is_approved != 1)
+                    <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
+                        <i data-feather="check" class="mr-50"></i>
+                        Approve
+                    </a>
+                @endif
         </div>
     </div>
 </div>
@@ -291,23 +303,25 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form method="post" action="{{ route('project.chick-in.approve', 'test') }}">
+            <form id="approveForm" method="post" action="{{ route('marketing.return.approve', $data->marketing_return->marketing_return_id) }}">
             {{csrf_field()}}
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Chick In</h4>
+                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Retur Penjualan</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="id" value="">
-                    <input type="hidden" name="act" id="act" value="">
-                    <input type="text" class="form-control flatpickr-inline" name="first_day_old_chick" placeholder="Pilih tanggal umur ayam 1 hari" required>
-                    <br><p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
+                    <input type="hidden" name="is_approved" id="is_approved" value="">
+                    <div class="form-group">
+                        <label for="notes" class="form-label">Catatan</label>
+                        <textarea name="approval_notes" id="notes" class="form-control"></textarea>
+                    </div>
+                    <br><p>Apakah anda yakin ingin menyetujui data retur penjualan ini ?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">Ya</button>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                    <button type="button" onclick="setApproval(1)" class="btn btn-success">Setuju</button>
+                    <button type="button" onclick="setApproval(0)" class="btn btn-danger">Tidak</button>
                 </div>
             </form>
         </div>

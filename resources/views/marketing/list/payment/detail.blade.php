@@ -56,7 +56,7 @@ $is_detail = true;
                     </div>
                     <div style="justify-self: end;">
                         <button type="button" onclick="setApproval(1)" class="btn btn-success mr-1 waves-effect waves-float waves-light">Setuju</button>
-                        <button type="button" onclick="setApproval(0)" class="btn btn-danger mr-1 waves-effect waves-float waves-light">Tolak</button>
+                        <button type="button" onclick="setApproval(0)" class="btn btn-danger mr-1 waves-effect waves-float waves-light">Tidak</button>
                     </div>
                 </div>
                 @endif

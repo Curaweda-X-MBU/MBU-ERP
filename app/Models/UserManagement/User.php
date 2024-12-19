@@ -119,6 +119,11 @@ class User extends Authenticatable implements CanResetPassword
         return $this->hasMany(MarketingPayment::class, 'approver_id', 'user_id');
     }
 
+    public function approve_marketing_returns()
+    {
+        return $this->hasMany(Marketing::class, 'approver_id', 'user_id');
+    }
+
     public function approve_marketing_return_payments()
     {
         return $this->hasMany(MarketingReturnPayment::class, 'approver_id', 'user_id');

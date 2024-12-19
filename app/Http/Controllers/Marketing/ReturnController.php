@@ -6,11 +6,13 @@ use App\Constants;
 use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Marketing\MarketingReturn;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ReturnController extends Controller
@@ -295,6 +297,55 @@ class ReturnController extends Controller
         try {
             $return->delete();
             $success = ['success' => 'Data berhasil dihapus'];
+
+            return redirect()->route('marketing.return.index')->with($success);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function approve(Request $req, MarketingReturn $return)
+    {
+        try {
+            $input   = $req->all();
+            $success = [];
+
+            if ($input['is_approved'] == 0) {
+                $return->update([
+                    'is_approved'    => 0,
+                    'approver_id'    => Auth::id(),
+                    'approval_notes' => $input['approval_notes'],
+                ]);
+
+                $success = ['success' => 'Retur berhasil ditolak'];
+            } else {
+                $return->update([
+                    'is_approved'    => 1,
+                    'approver_id'    => Auth::id(),
+                    'return_status'  => array_search('Disetujui', Constants::MARKETING_RETURN_STATUS),
+                    'approved_at'    => date('Y-m-d H:i:s'),
+                    'approval_notes' => $input['approval_notes'],
+                ]);
+
+                $success = ['success' => 'Retur berhasil disetujui'];
+
+                $return->marketing->marketing_products->each(function($product) {
+                    $input = [];
+
+                    $input['product_id']   = $product->product_id;
+                    $input['warehouse_id'] = $product->warehouse_id;
+                    $input['stocked_by']   = 'Retur Penjualan';
+                    $input['stock_date']   = date('Y-m-d');
+                    $input['increase']     = $product->return_qty ?? 0;
+                    $input['decrease']     = 0;
+
+                    $triggerStock = StockLog::triggerStock($input);
+
+                    if (! $triggerStock['result']) {
+                        throw new \Exception($triggerStock['message']);
+                    }
+                });
+            }
 
             return redirect()->route('marketing.return.index')->with($success);
         } catch (\Exception $e) {
