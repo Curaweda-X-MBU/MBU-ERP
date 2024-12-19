@@ -74,7 +74,10 @@ class ReturnController extends Controller
                     ]);
 
                     MarketingReturn::create([
-                        'return_at' => $input['return_at'],
+                        'marketing_id'          => $marketing->marketing_id,
+                        'return_status'         => array_search('Diajukan', Constants::MARKETING_RETURN_STATUS),
+                        'payment_return_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
+                        'return_at'             => $input['return_at'],
                     ]);
 
                     if ($req->has('marketing_products')) {

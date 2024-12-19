@@ -101,7 +101,7 @@ class ListPaymentController extends Controller
     public function edit(Request $req, MarketingPayment $payment)
     {
         try {
-            $data = $payment->marketing->load(['customer', 'company', 'marketing_payments']);
+            $data = $payment->load(['bank']);
 
             if ($req->isMethod('post')) {
                 DB::transaction(function() use ($req, $payment) {

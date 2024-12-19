@@ -54,6 +54,7 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                 <!-- Modal -->
                 @include('marketing.list.payment.add')
                 @include('marketing.list.payment.detail')
+                @include('marketing.list.payment.edit')
 
                 <!-- BEGIN: Table-->
                 <div class="table-responsive mt-3">
@@ -96,10 +97,15 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="{{ route('marketing.list.payment.edit', $item->marketing_payment_id) }}">
-                                                        <i data-feather="edit" class="mr-50"></i>
-                                                        <span>Edit</span>
-                                                    </a>
+                                                    @php
+                                                        $roleAccess = Auth::user()->role;
+                                                    @endphp
+                                                    @if ($roleAccess->hasPermissionTo('marketing.list.payment.edit'))
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-bs-toggle="modal" data-bs-target="#paymentEdit" data-payment-id="{{ $item->marketing_payment_id }}">
+                                                            <i data-feather="edit" class="mr-50"></i>
+                                                            <span>Edit</span>
+                                                        </a>
+                                                    @endif
                                                     <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-bs-toggle="modal" data-bs-target="#paymentDetail" data-payment-id="{{ $item->marketing_payment_id }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>

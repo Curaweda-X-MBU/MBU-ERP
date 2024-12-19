@@ -37,10 +37,15 @@
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
                     </a>
-                    <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
-                        <i data-feather="check" class="mr-50"></i>
-                        Approve
-                    </a>
+                    @php
+                        $roleAccess = Auth::user()->role;
+                    @endphp
+                    @if ($roleAccess->hasPermissionTo('marketing.list.approve'))
+                        <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
+                            <i data-feather="check" class="mr-50"></i>
+                            Approve
+                        </a>
+                    @endif
         </div>
     </div>
 </div>

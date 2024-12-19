@@ -152,6 +152,11 @@ class Constants
         4 => 'Realisasi',
     ];
 
+    public const MARKETING_RETURN_STATUS = [
+        1 => 'Diajukan',
+        2 => 'Disetujui',
+    ];
+
     public const MARKETING_DOC_REFERENCE_PATH = 'marketing-doc-reference';
 
     public const MARKETING_PAYMENT_DOC_PATH = 'marketing-payment-doc';

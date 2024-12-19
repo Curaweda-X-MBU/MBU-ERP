@@ -31,7 +31,7 @@
             <tr class="text-center" data-repeater-item>
                 <td class="pt-2 pb-3">
                     @if (isset($is_realization) && $is_realization)
-                        <input type="hidden" name="warehouse_id"required>
+                        <input type="hidden" name="warehouse_id" required>
                     @endif
                     <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
                     </select>
