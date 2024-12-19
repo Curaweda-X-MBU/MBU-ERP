@@ -84,10 +84,10 @@ class ListPaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(Marketing $marketing)
+    public function detail(MarketingPayment $payment)
     {
         try {
-            $data = $marketing->load(['customer', 'company', 'marketing_payments']);
+            $data = $payment->load(['bank']);
 
             return $data;
         } catch (\Exception $e) {
@@ -172,24 +172,20 @@ class ListPaymentController extends Controller
 
             $success = [];
 
-            if ($input['is_approved'] === 0) {
-                $payment->update([
-                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Payment berhasil ditolak'];
-            } else {
+            if ($input['is_approved'] == 1) {
                 $payment->update([
                     'is_approved'    => array_search('Disetujui', Constants::MARKETING_APPROVAL),
                     'approver_id'    => Auth::id(),
                     'approved_at'    => date('Y-m-d H:i:s'),
                     'approval_notes' => $input['approval_notes'],
+                    'verify_status'  => array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
                 ]);
 
                 $grandTotal    = $payment->marketing->grand_total;
-                $totalPayments = $payment->marketing->marketing_payments->sum('payment_nominal');
+                $totalPayments = $payment->marketing
+                    ->marketing_payments
+                    ->filter(fn ($p) => $p->verify_status == 2)
+                    ->sum('payment_nominal');
 
                 if ($grandTotal === $totalPayments) {
                     $payment->marketing->update([
@@ -202,11 +198,19 @@ class ListPaymentController extends Controller
                 }
 
                 $success = ['success' => 'Payment berhasil disetujui'];
+            } else {
+                $payment->update([
+                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'    => Auth::id(),
+                    'approval_notes' => $input['approval_notes'],
+                ]);
+
+                $success = ['success' => 'Payment berhasil ditolak'];
             }
 
             DB::commit(); // Commit transaksi jika semua berhasil
 
-            return redirect()->route('marketing.list.payment.index')->with($success);
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
 

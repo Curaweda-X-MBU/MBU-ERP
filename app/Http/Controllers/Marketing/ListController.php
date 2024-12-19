@@ -553,9 +553,9 @@ class ListController extends Controller
             $input   = $req->all();
             $success = [];
 
-            if ($input['is_approved'] === 0) {
+            if ($input['is_approved'] == 0) {
                 $marketing->update([
-                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
+                    'is_approved'    => 0,
                     'approver_id'    => Auth::id(),
                     'approval_notes' => $input['approval_notes'],
                 ]);
@@ -563,10 +563,11 @@ class ListController extends Controller
                 $success = ['success' => 'Data berhasil ditolak'];
             } else {
                 $marketing->update([
-                    'is_approved'      => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'is_approved'      => 1,
                     'approver_id'      => Auth::id(),
                     'marketing_status' => $input['marketing_status'],
                     'approved_at'      => date('Y-m-d H:i:s'),
+                    'approval_notes'   => $input['approval_notes'],
                 ]);
 
                 $success = ['success' => 'Data berhasil disetujui'];
