@@ -32,8 +32,7 @@ class ListPaymentController extends Controller
 
             return view('marketing.list.payment.index', $param);
         } catch (\Exception $e) {
-            dd($e);
-            // return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
 
