@@ -108,7 +108,7 @@
                                     </td>
                                     <td class="pt-2 pb-3 position-relative">
                                         <input type="number" name="qty" id="qty" max="0" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
-                                        <input type="text" name="qty_mask" id="qty_mask" class="form-control numeral-mask" placeholder="Qty" required>
+                                        <input type="text" id="qty_mask" class="form-control numeral-mask" placeholder="Qty" required>
                                         <span id="invalid_qty" class="text-danger text-right small position-absolute pr-1" style="right: 0; font-size: 80%; opacity: 0;">Melebihi stock</span>
                                     </td>
                                     <td class="pt-2 pb-3">
@@ -329,7 +329,7 @@
 
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
-            $(`input[name="marketing_products[${i}][qty_mask]"]`).val(product.qty).trigger('input');
+            $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
 
             let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
             productIdRoute = productIdRoute.replace(':id', product.warehouse_id);
@@ -343,7 +343,7 @@
                 $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(parseNumToLocale(product.qty).split(',')[0]);
 
                 initNumeralMask('.numeral-mask');
-                $(`input[name="marketing_products[${i}][qty_mask]"]`).on('input', function() {
+                $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').on('input', function() {
                     const $row = $(this).closest('tr');
                     const val = parseLocaleToNum($(this).val());
                     const stock = parseLocaleToNum($(this).siblings('#qty').attr('max'));

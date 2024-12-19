@@ -79,7 +79,7 @@ class ReturnController extends Controller
                     ]);
 
                     $marketing->update([
-                        'marketing_return_id' => $createdReturn->marketing_id,
+                        'marketing_return_id' => $createdReturn->marketing_return_id,
                         'doc_reference'       => $docReferencePath,
                         'notes'               => $input['notes'],
                         'tax'                 => $input['tax'],
@@ -87,7 +87,7 @@ class ReturnController extends Controller
                     ]);
 
                     $createdReturn->update([
-                        'invoice_number' => `CN{$createdReturn->marketing_return_id}`,
+                        'invoice_number' => 'CN'.$createdReturn->marketing_return_id,
                     ]);
 
                     if ($req->has('marketing_products')) {
@@ -137,7 +137,7 @@ class ReturnController extends Controller
                     ]);
                 });
 
-                $success = ['success' => 'Data Berhasil diubah'];
+                $success = ['success' => 'Retur Berhasil Diajukan'];
 
                 return redirect()->route('marketing.return.detail', $marketing->marketing_id)->with($success);
             }
@@ -293,11 +293,10 @@ class ReturnController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Marketing $marketing)
+    public function delete(MarketingReturn $return)
     {
         try {
-            $marketing->delete();
-
+            $return->delete();
             $success = ['success' => 'Data berhasil dihapus'];
 
             return redirect()->route('marketing.return.index')->with($success);
