@@ -25,7 +25,7 @@ class ReturnPaymentController extends Controller
                 'data'  => $data,
             ];
 
-            return view('marketing.list.payment.index', $param);
+            return view('marketing.return.payment.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

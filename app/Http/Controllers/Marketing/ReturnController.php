@@ -21,7 +21,7 @@ class ReturnController extends Controller
     public function index()
     {
         try {
-            $data  = Marketing::whereHas('marketing_return')->get();
+            $data  = MarketingReturn::with('marketing')->get();
             $param = [
                 'title' => 'Penjualan > Retur',
                 'data'  => $data,
@@ -45,6 +45,10 @@ class ReturnController extends Controller
                 'data'  => $data,
             ];
 
+            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
+                throw new \Exception('Status Penjualan belum realisasi');
+            }
+
             if ($req->isMethod('post')) {
                 DB::transaction(function() use ($req, $marketing) {
                     $input            = $req->all();
@@ -66,45 +70,39 @@ class ReturnController extends Controller
                         $docReferencePath = $existingDoc;
                     }
 
-                    $marketing->update([
-                        'doc_reference' => $docReferencePath,
-                        'notes'         => $input['notes'],
-                        'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
-                    ]);
-
-                    MarketingReturn::create([
+                    $createdReturn = MarketingReturn::create([
                         'marketing_id'          => $marketing->marketing_id,
                         'return_status'         => array_search('Diajukan', Constants::MARKETING_RETURN_STATUS),
                         'payment_return_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
-                        'return_at'             => $input['return_at'],
+                        'return_at'             => date('Y-m-d', strtotime($input['return_at'])),
+                        'total_return'          => 0,
+                    ]);
+
+                    $marketing->update([
+                        'marketing_return_id' => $createdReturn->marketing_id,
+                        'doc_reference'       => $docReferencePath,
+                        'notes'               => $input['notes'],
+                        'tax'                 => $input['tax'],
+                        'discount'            => Parser::parseLocale($input['discount']),
+                    ]);
+
+                    $createdReturn->update([
+                        'invoice_number' => `CN{$createdReturn->marketing_return_id}`,
                     ]);
 
                     if ($req->has('marketing_products')) {
-                        $marketing->marketing_products()->delete();
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = Parser::parseLocale($value['price']);
-                            $weightAvg = Parser::parseLocale($value['weight_avg']);
-                            $qty       = Parser::parseLocale($value['qty']);
+                            $price = Parser::parseLocale($value['price']);
+                            $qty   = Parser::parseLocale($value['qty']);
 
-                            $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice = $price * $qty;
                             $productPrice += $totalPrice;
 
-                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
-                            $arrProduct[$key]['product_id']   = $value['product_id'];
-                            $arrProduct[$key]['price']        = $price;
-                            $arrProduct[$key]['weight_avg']   = $weightAvg;
-                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
-                            $arrProduct[$key]['qty']          = $qty;
-                            $arrProduct[$key]['weight_total'] = $weightTotal;
-                            $arrProduct[$key]['total_price']  = $totalPrice;
+                            $arrProduct[$key]['return_qty'] = $qty;
+                            MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
-
-                        MarketingProduct::insert($arrProduct);
                     }
 
                     $marketing->marketing_addit_prices()->delete();
@@ -132,9 +130,10 @@ class ReturnController extends Controller
                         ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
                         : $productPrice                                           - Parser::parseLocale($input['discount']);
 
-                    $marketing->update([
-                        'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                    $grandTotal = $subTotal + $additPrice;
+
+                    $createdReturn->update([
+                        'total_return' => $grandTotal,
                     ]);
                 });
 
@@ -154,8 +153,19 @@ class ReturnController extends Controller
      */
     public function detail(Marketing $marketing)
     {
-        $data = $marketing->load(['marketing_return']);
         try {
+            $data = $marketing->load([
+                'company',
+                'customer',
+                'sales',
+                'marketing_products.warehouse',
+                'marketing_products.product',
+                'marketing_products.uom',
+                'marketing_addit_prices',
+                'marketing_delivery_vehicles.uom',
+                'marketing_delivery_vehicles.sender',
+                'marketing_return',
+            ]);
             $param = [
                 'title' => 'Penjualan > Retur > Detail',
                 'data'  => $data,
