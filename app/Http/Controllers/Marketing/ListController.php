@@ -356,9 +356,9 @@ class ListController extends Controller
                 'is_realization' => true,
             ];
 
-            // if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi'){
-            //     throw new \Exception('Status Penjualan belum final');
-            // }
+            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
+                throw new \Exception('Status Penjualan belum final');
+            }
 
             if ($req->isMethod('post')) {
 
@@ -563,9 +563,10 @@ class ListController extends Controller
                 $success = ['success' => 'Data berhasil ditolak'];
             } else {
                 $marketing->update([
-                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id' => Auth::id(),
-                    'approved_at' => date('Y-m-d H:i:s'),
+                    'is_approved'      => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'      => Auth::id(),
+                    'marketing_status' => $input['marketing_status'],
+                    'approved_at'      => date('Y-m-d H:i:s'),
                 ]);
 
                 $success = ['success' => 'Data berhasil disetujui'];
@@ -603,16 +604,19 @@ class ListController extends Controller
     {
         $warehouseId = $req->id;
 
-        $products = ProductWarehouse::where('warehouse_id', $warehouseId)
-            ->with(['product'])
+        $productWarehouses = ProductWarehouse::where('warehouse_id', $warehouseId)
+            ->with(['product', 'product.uom'])
             ->get();
 
-        $val = $products->map(function($product) {
+        $val = $productWarehouses->map(function($productWarehouse) {
             return [
-                'id'   => $product->product_id,
-                'text' => $product->product->name,
-                'qty'  => $product->quantity,
-                'data' => $product,
+                'id'       => $productWarehouse->product_id,
+                'text'     => $productWarehouse->product->name,
+                'qty'      => $productWarehouse->quantity,
+                'price'    => $productWarehouse->product->selling_price,
+                'uom_id'   => $productWarehouse->product->uom_id,
+                'uom_name' => $productWarehouse->product->uom->name,
+                'data'     => $productWarehouse,
             ];
         });
 

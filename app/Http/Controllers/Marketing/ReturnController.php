@@ -21,7 +21,7 @@ class ReturnController extends Controller
     public function index()
     {
         try {
-            $data  = Marketing::with(['marketing_return'])->get();
+            $data  = Marketing::whereHas('marketing_return')->get();
             $param = [
                 'title' => 'Penjualan > Retur',
                 'data'  => $data,

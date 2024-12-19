@@ -76,17 +76,11 @@
                                             @endswitch
                                         </td>
                                         <td>
-                                            <div class="dropdown dropleft">
+                                            <div class="dropdown dropleft" style="position: static;">
                                                 <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item item-delete-button"
-                                                        href="{{ route('marketing.list.delete', $item->marketing_id) }}"
-                                                    >
-                                                        <i data-feather='trash' class="mr-50"></i>
-                                                        <span>Hapus</span>
-                                                    </a>
                                                     <a class="dropdown-item" href="{{ route('marketing.list.detail', $item->marketing_id) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
@@ -102,6 +96,12 @@
                                                     <a class="dropdown-item" href="{{ route('marketing.return.add', $item->marketing_id) }}">
                                                         <i data-feather="corner-down-left" class="mr-50"></i>
                                                         <span>Retur</span>
+                                                    </a>
+                                                    <a class="dropdown-item item-delete-button text-danger"
+                                                        href="{{ route('marketing.list.delete', $item->marketing_id) }}"
+                                                    >
+                                                        <i data-feather='trash' class="mr-50"></i>
+                                                        <span>Hapus</span>
                                                     </a>
                                                 </div>
                                             </div>

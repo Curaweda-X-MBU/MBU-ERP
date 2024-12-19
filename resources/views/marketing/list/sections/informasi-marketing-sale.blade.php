@@ -31,13 +31,13 @@
         <div class="col-5"> Rp. <span id="total_sebelum_pajak">0,00</span> </div>
         <div class="col-5"> <span>Pajak:</span> </div>
         <div class="col-5 input-group">
-            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control">
+            <input name="tax" id="tax" type="number" min="0" max="100" class="form-control" placeholder="0">
             <div class="input-group-append"><span class="input-group-text">%</span></div>
         </div>
         <div class="col-5"> <span>Diskon:</span> </div>
         <div class="col-5 input-group">
             <div class="input-group-prepend"><span class="input-group-text">Rp.</span></div>
-            <input name="discount" id="discount" type="text" class="form-control numeral-mask" value="0">
+            <input name="discount" id="discount" type="text" class="form-control numeral-mask" placeholder="0">
         </div>
         <div class="offset-5 col-5"> <hr class="border-bottom"> </div>
         <div class="col-5"> <span>Total Setelah Pajak dan Diskon:</span> </div>
