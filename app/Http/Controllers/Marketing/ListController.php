@@ -356,9 +356,9 @@ class ListController extends Controller
                 'is_realization' => true,
             ];
 
-            // if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi'){
-            //     throw new \Exception('Status Penjualan belum final');
-            // }
+            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
+                throw new \Exception('Status Penjualan belum final');
+            }
 
             if ($req->isMethod('post')) {
 
@@ -563,9 +563,10 @@ class ListController extends Controller
                 $success = ['success' => 'Data berhasil ditolak'];
             } else {
                 $marketing->update([
-                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id' => Auth::id(),
-                    'approved_at' => date('Y-m-d H:i:s'),
+                    'is_approved'      => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'      => Auth::id(),
+                    'marketing_status' => $input['marketing_status'],
+                    'approved_at'      => date('Y-m-d H:i:s'),
                 ]);
 
                 $success = ['success' => 'Data berhasil disetujui'];

@@ -26,6 +26,10 @@ class ListPaymentController extends Controller
                 'data'  => $data,
             ];
 
+            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
+                throw new \Exception('Status Penjualan belum final');
+            }
+
             return view('marketing.list.payment.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -66,6 +70,7 @@ class ListPaymentController extends Controller
                     ),
                 ]);
             });
+
             $success = ['success' => 'Data Berhasil disimpan'];
 
             return redirect()
@@ -82,17 +87,7 @@ class ListPaymentController extends Controller
     public function detail(Marketing $marketing)
     {
         try {
-            $data = $marketing->load([
-                'company',
-                'customer',
-                'sales',
-                'marketing_products.warehouse',
-                'marketing_products.product',
-                'marketing_products.uom',
-                'marketing_addit_prices',
-                'marketing_delivery_vehicles.uom',
-                'marketing_delivery_vehicles.sender',
-            ]);
+            $data = $marketing->load(['customer', 'company', 'marketing_payments']);
 
             return $data;
         } catch (\Exception $e) {
@@ -103,13 +98,13 @@ class ListPaymentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $req, Marketing $marketing)
+    public function edit(Request $req, MarketingPayment $payment)
     {
         try {
-            $data = $marketing->load(['approver', 'marketing', 'bank']);
+            $data = $payment->marketing->load(['customer', 'company', 'marketing_payments']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $data) {
+                DB::transaction(function() use ($req, $payment) {
                     $input = $req->all();
 
                     $existingDoc = $data->document_path ?? null;
@@ -128,7 +123,7 @@ class ListPaymentController extends Controller
                         $docPath = $existingDoc;
                     }
 
-                    MarketingPayment::create([
+                    $payment->update([
                         'payment_method'     => $input['payment_method'],
                         'bank_id'            => $input['bank_id'],
                         'payment_reference'  => $input['payment_reference'],
@@ -139,10 +134,11 @@ class ListPaymentController extends Controller
                         'notes'              => $input['notes'],
                     ]);
                 });
+
                 $success = ['success' => 'Data Berhasil diubah'];
 
                 return redirect()
-                    ->route('marketing.list.payment.index')
+                    ->back()
                     ->with($success);
             }
 
@@ -170,9 +166,9 @@ class ListPaymentController extends Controller
 
     public function approve(Request $req, MarketingPayment $payment)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $payment = $payment->get();
+            $input = $req->all();
 
             $success = [];
 
@@ -186,16 +182,34 @@ class ListPaymentController extends Controller
                 $success = ['success' => 'Payment berhasil ditolak'];
             } else {
                 $payment->update([
-                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id' => Auth::id(),
-                    'approved_at' => date('Y-m-d H:i:s'),
+                    'is_approved'    => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'    => Auth::id(),
+                    'approved_at'    => date('Y-m-d H:i:s'),
+                    'approval_notes' => $input['approval_notes'],
                 ]);
+
+                $grandTotal    = $payment->marketing->grand_total;
+                $totalPayments = $payment->marketing->marketing_payments->sum('payment_nominal');
+
+                if ($grandTotal === $totalPayments) {
+                    $payment->marketing->update([
+                        'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } else {
+                    $payment->marketing->update([
+                        'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                }
 
                 $success = ['success' => 'Payment berhasil disetujui'];
             }
 
+            DB::commit(); // Commit transaksi jika semua berhasil
+
             return redirect()->route('marketing.list.payment.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
