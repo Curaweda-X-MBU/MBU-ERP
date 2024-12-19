@@ -603,16 +603,19 @@ class ListController extends Controller
     {
         $warehouseId = $req->id;
 
-        $products = ProductWarehouse::where('warehouse_id', $warehouseId)
-            ->with(['product'])
+        $productWarehouses = ProductWarehouse::where('warehouse_id', $warehouseId)
+            ->with(['product', 'product.uom'])
             ->get();
 
-        $val = $products->map(function($product) {
+        $val = $productWarehouses->map(function($productWarehouse) {
             return [
-                'id'   => $product->product_id,
-                'text' => $product->product->name,
-                'qty'  => $product->quantity,
-                'data' => $product,
+                'id'       => $productWarehouse->product_id,
+                'text'     => $productWarehouse->product->name,
+                'qty'      => $productWarehouse->quantity,
+                'price'    => $productWarehouse->product->selling_price,
+                'uom_id'   => $productWarehouse->product->uom_id,
+                'uom_name' => $productWarehouse->product->uom->name,
+                'data'     => $productWarehouse,
             ];
         });
 

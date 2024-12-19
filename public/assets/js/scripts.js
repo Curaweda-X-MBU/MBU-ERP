@@ -128,8 +128,9 @@ function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
  * @param {*} $component
  * @param {string} [placeholder=Pilih]
  * @param {*} routePath
+ * @param {string} [type]
  */
-function initSelect2($component, placeholder = "Pilih", routePath) {
+function initSelect2($component, placeholder = "Pilih", routePath, type = "") {
     if (routePath) {
         $component.select2({
             placeholder: placeholder,
@@ -143,13 +144,25 @@ function initSelect2($component, placeholder = "Pilih", routePath) {
                     };
                 },
                 processResults: function (data) {
-                    return {
-                        results: data.map((item) => ({
-                            id: item.id,
-                            text: item.text,
-                            qty: item.qty ? item.qty : 0,
-                        })),
-                    };
+                    if (type === "productWarehouse") {
+                        return {
+                            results: data.map((item) => ({
+                                id: item.id,
+                                text: item.text,
+                                qty: item.qty ? item.qty : 0,
+                                price: item.price ? item.price : 0,
+                                uom_id: item.uom_id ? item.uom_id : null,
+                                uom_name: item.uom_name ? item.uom_name : "",
+                            })),
+                        };
+                    } else {
+                        return {
+                            results: data.map((item) => ({
+                                id: item.id,
+                                text: item.text,
+                            })),
+                        };
+                    }
                 },
                 cache: true,
             },

@@ -85,19 +85,29 @@
 <script>
     // ? START :: SET VALUE :: QTY & CURRENT STOCK
     const localeOpts = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-    function setQtyStock($this, reset) {
+    function setField($this, reset) {
         let qty;
+        let price;
+        let uom_id;
+        let uom_name;
         if (reset) {
-            qty = 0;
+            qty = price = 0;
+            uom_id = '';
+            uom_name = '';
         } else {
             const data = $this.select2('data')[0];
-            qty = data && data.qty ? data.qty : 0;
+            qty = data.qty && data.qty;
+            price = data.price && data.price;
+            uom_id = data.uom_id && data.uom_id;
+            uom_name = data.uom_name && data.uom_name;
         }
         const value = parseNumToLocale(qty);
         const $rowScope = $this.closest('tr');
 
         $rowScope.find('#current_stock').text(value.split(',')[0]); // don't get the decimals
         $rowScope.find('#qty').attr('max', qty);
+        $rowScope.find('input[name*="price"]').val(price).trigger('input');
+        $rowScope.find('select[name*="uom_id"]').append(`<option value="${uom_id}" selected>${uom_name}</option>`).trigger('change');
     }
     // ? END :: SET VALUE :: QTY & CURRENT STOCK
 
@@ -158,15 +168,15 @@
                 if (marketingWarehouseId) {
                     let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
                     productIdRoute = productIdRoute.replace(':id', marketingWarehouseId);
-                    initSelect2($marketingProductSelect, 'Pilih Produk', productIdRoute);
-                    setQtyStock($marketingProductSelect, true);
+                    initSelect2($marketingProductSelect, 'Pilih Produk', productIdRoute, 'productWarehouse');
+                    setField($marketingProductSelect, true);
                 } else {
                     $marketingProductSelect.html('<option disabled selected>Pilih Kandang terlebih dahulu</option>');
-                    setQtyStock($(this), true);
+                    setField($(this), true);
                 }
             });
             $marketingProductSelect.on('select2:select', function() {
-                setQtyStock($(this));
+                setField($(this));
             });
             // END :: MARKETING PRODUCT + STOCK UPDATE
 
