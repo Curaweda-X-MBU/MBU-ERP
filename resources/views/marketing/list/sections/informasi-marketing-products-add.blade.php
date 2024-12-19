@@ -21,7 +21,7 @@
                 <th>Total Bobot</th>
                 <th>Total Penjualan (Rp)</th>
                 <th>
-                    <button class="btn btn-sm btn-icon btn-primary {{ isset($is_realization) ? 'd-none' : '' }}" type="button" data-repeater-create title="Tambah Produk">
+                    <button class="btn btn-sm btn-icon btn-primary {{ @$is_realization || @$is_return ? 'd-none' : '' }}" type="button" data-repeater-create title="Tambah Produk">
                         <i data-feather="plus"></i>
                     </button>
                 </th>
@@ -29,30 +29,36 @@
         </thead>
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
+                @if(@$is_return)
+                <input type="hidden" name="marketing_product_id">
+                @endif
                 <td class="pt-2 pb-3">
-                    @if (isset($is_realization) && $is_realization)
+                    @if (@$is_realization || @$is_return)
                         <input type="hidden" name="warehouse_id" required>
                     @endif
-                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
+                    <select name="warehouse_id" class="form-control marketing_warehouse_select" {{ @$is_realization || @$is_return ? 'disabled' : 'required' }}>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
-                    @if (isset($is_realization) && $is_realization)
-                        <input type="hidden" name="product_id"required>
+                    @if (@$is_realization || @$is_return)
+                        <input type="hidden" name="product_id" required>
                     @endif
-                    <select name="product_id" class="form-control marketing_product_select" {{ (isset($is_realization) && $is_realization) ? 'disabled' : '' }} required>
+                    <select name="product_id" class="form-control marketing_product_select" {{ @$is_realization || @$is_return ? 'disabled' : 'required' }}>
                         <option disabled selected>Pilih Kandang terlebih dahulu</option>
                     </select>
-                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">{{ (isset($is_realization) && $is_realization) ? 'Stock Sold: ' : 'Current Stock: ' }}<span id="current_stock">0</span></small>
+                    <small class="form-text text-muted text-right position-absolute pr-1" style="right: 0; font-size: 80%;">{{ (@$is_realization || @$is_return) ? 'Stock Sold: ' : 'Current Stock: ' }}<span id="current_stock">0</span></small>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
-                    <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" required>
+                    <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
                 <td class="pt-2 pb-3">
-                    <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" required>
+                    <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
                 <td class="pt-2 pb-3">
-                    <select name="uom_id" class="form-control uom_select" required>
+                    @if (@$is_realization || @$is_return)
+                        <input type="hidden" name="uom_id"required>
+                    @endif
+                    <select name="uom_id" class="form-control uom_select" {{ @$is_return ? 'disabled' : 'required' }}>
                     </select>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
@@ -66,7 +72,8 @@
                 <td class="pt-2 pb-3">
                     <input type="text" id="price_total" class="form-control" value="0,00" disabled>
                 </td>
-                @if (!isset($is_realization))
+                @if (@$is_realization || @$is_return)
+                @else
                 <td class="pt-2 pb-3">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>
@@ -184,7 +191,7 @@
             // ? START :: VALIDATION :: QTY
             $row.find('#qty_mask').on('input', function() {
                 const val = parseLocaleToNum($(this).val());
-                const stock = parseLocaleToNum($row.find('#current_stock').text());
+                const stock = parseLocaleToNum($(this).siblings('#qty').attr('max'));
                 $(this).siblings('#qty').val(val);
                 if (val > stock) {
                     $(this).siblings('#invalid_qty').css('opacity', 1);
@@ -217,6 +224,9 @@
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
 
+            @if(@$is_return)
+                $(`input[name="marketing_products[${i}][marketing_product_id]"]`).val(product.marketing_product_id);
+            @endif
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
 
@@ -234,7 +244,7 @@
             });
             ajaxProduct.done(function(res) {
                 const chose = res.filter((a) => a.data.product_id = product.product.product_id)[0];
-                if ('{{isset($is_realization) && $is_realization}}') {
+                if ('{{@$is_realization || @$is_return}}') {
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', product.qty);
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(product.qty);
                 } else {
@@ -242,9 +252,8 @@
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
                 }
                 $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
-
-            initNumeralMask('.numeral-mask');
-            });
+                initNumeralMask('.numeral-mask');
+            })
         });
     } else {
         $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');

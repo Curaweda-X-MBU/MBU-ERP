@@ -17,7 +17,7 @@
         </div>
         <div class="col-md-4 mt-1">
             <label for="sales_id" class="form-label">Nama Sales</label>
-            <select name="sales_id" id="sales_id" class="form-control">
+            <select name="sales_id" id="sales_id" class="form-control" {{ @$is_return ? 'disabled' : '' }}>
             </select>
         </div>
     </div>

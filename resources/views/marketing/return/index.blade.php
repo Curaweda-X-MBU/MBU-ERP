@@ -14,7 +14,7 @@
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
                     <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Eksport
+                        Export
                     </button>
                     <div class="dropdown-menu" aria-labelledby="exportDropdown">
                         <a class="dropdown-item" href="link_to_excel_export">Excel</a>
