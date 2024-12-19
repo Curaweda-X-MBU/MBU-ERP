@@ -289,27 +289,48 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form method="post" action="{{ route('project.chick-in.approve', 'test') }}">
+            <form method="post" action="{{ route('marketing.list.approve', $data->marketing_id) }}">
             {{csrf_field()}}
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Chick In</h4>
+                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Penjualan</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="id" value="">
-                    <input type="hidden" name="act" id="act" value="">
-                    <input type="text" class="form-control flatpickr-inline" name="first_day_old_chick" placeholder="Pilih tanggal umur ayam 1 hari" required>
-                    <br><p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
+                    <input type="hidden" name="is_approved" id="is_approved" value="">
+                    <div class="form-group">
+                        <label for="marketing_status" class="form-label">Status Penjualan<i class="text-danger">*</i></label>
+                        <select name="marketing_status" id="marketing_status" class="form-control" required>
+                            <option value="">Pilih Status</option>
+                            <option value="2">Penawaran</option>
+                            <option value="3">Final</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes" class="form-label">Catatan</label>
+                        <textarea name="notes" id="notes" class="form-control"></textarea>
+                    </div>
+                    <br><p>Apakah kamu yakin ingin menyetujui data penjualan ini ?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">Ya</button>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                    <button type="submit" onclick="setApproval(1)" class="btn btn-success">Setuju</button>
+                    <button type="submit" onclick="setApproval(0)" class="btn btn-danger">Tidak</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script>
+    $(function() {
+        initSelect2($('#marketing_status'), 'Pilih Status');
+
+        function setApproval(value) {
+            $('#is_approved').val(value);
+        }
+    });
+</script>
 
 @endsection

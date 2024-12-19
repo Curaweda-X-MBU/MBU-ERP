@@ -108,6 +108,7 @@
         $rowScope.find('#qty').attr('max', qty);
         $rowScope.find('input[name*="price"]').val(price).trigger('input');
         $rowScope.find('select[name*="uom_id"]').append(`<option value="${uom_id}" selected>${uom_name}</option>`).trigger('change');
+        initNumeralMask('.numeral-mask');
     }
     // ? END :: SET VALUE :: QTY & CURRENT STOCK
 
