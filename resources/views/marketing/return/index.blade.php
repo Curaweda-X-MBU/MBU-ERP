@@ -42,7 +42,7 @@
                                     @foreach ($data as $item)
                                         <tr>
                                             <td>{{ $item->marketing->id_marketing }}</td>
-                                            <td>{{ $item->invoice_number }}</td>
+                                            <td>{{ $item->invoice_number ?? '-' }}</td>
                                             <td>{{ date('d-M-Y', strtotime($item->return_at)) }}</td>
                                             <td>{{ $item->marketing->customer->name }}</td>
                                             <td>{{ $item->marketing->company->alias }}</td>
@@ -80,10 +80,6 @@
                                                         <i data-feather="more-vertical"></i>
                                                     </button>
                                                     <div class="dropdown-menu">
-                                                        <a class="dropdown-item" href="{{ route('marketing.return.edit', $item->marketing_id) }}">
-                                                            <i data-feather="edit" class="mr-50"></i>
-                                                            <span>Edit</span>
-                                                        </a>
                                                         <a class="dropdown-item" href="{{ route('marketing.return.detail', $item->marketing_id) }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>

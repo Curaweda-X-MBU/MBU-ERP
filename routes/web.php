@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/edit/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'edit'])->name('marketing.return.edit')->middleware('permission:marketing.return.edit');
             Route::get('/detail/{marketing}', [App\Http\Controllers\Marketing\ReturnController::class, 'detail'])->name('marketing.return.detail')->middleware('permission:marketing.return.detail');
             Route::any('/delete/{return}', [App\Http\Controllers\Marketing\ReturnController::class, 'delete'])->name('marketing.return.delete')->middleware('permission:marketing.return.delete');
+            Route::post('/approve/{return}', [App\Http\Controllers\Marketing\ReturnController::class, 'approve'])->name('marketing.return.approve')->middleware('permission:marketing.return.approve');
 
             Route::group(['prefix' => 'payment'], function() {
                 Route::get('/{marketing}', [App\Http\Controllers\Marketing\ReturnPaymentController::class, 'index'])->name('marketing.return.payment.index')->middleware('permission:marketing.return.payment.index');

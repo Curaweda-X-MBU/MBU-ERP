@@ -194,7 +194,6 @@
         if ('{{ isset($is_detail) }}') {
             const $this = $('#detail');
             var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
-            console.log($this);
 
             $marketingPayment.on('change', function() {
                 const paymentId = $marketingPayment.val();
