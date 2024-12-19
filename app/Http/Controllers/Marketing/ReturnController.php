@@ -86,10 +86,6 @@ class ReturnController extends Controller
                         'discount'            => Parser::parseLocale($input['discount']),
                     ]);
 
-                    $createdReturn->update([
-                        'invoice_number' => 'CN'.$createdReturn->marketing_return_id,
-                    ]);
-
                     if ($req->has('marketing_products')) {
                         $arrProduct = $req->input('marketing_products');
 
@@ -133,7 +129,8 @@ class ReturnController extends Controller
                     $grandTotal = $subTotal + $additPrice;
 
                     $createdReturn->update([
-                        'total_return' => $grandTotal,
+                        'total_return'   => $grandTotal,
+                        'invoice_number' => 'CN'.$createdReturn->marketing_return_id,
                     ]);
                 });
 

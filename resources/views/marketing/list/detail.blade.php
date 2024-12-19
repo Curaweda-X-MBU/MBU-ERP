@@ -18,8 +18,6 @@
 <script>
     function setApproval(value) {
         $('#is_approved').val(value);
-        console.log(value);
-
         $('#approveForm').trigger('submit');
     }
 </script>
