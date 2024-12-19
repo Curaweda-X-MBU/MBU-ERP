@@ -10,8 +10,14 @@
     }
 </style>
 
-<input type="hidden" name="marketing_payment_id" value="" disabled>
-<div class="row custom-modal-layout" id={{ @$is_detail ? 'detail' : '' }}>
+@if (isset($is_detail))
+<div class="row custom-modal-layout" id="detail">
+@elseif (isset($is_edit))
+<div class="row custom-modal-layout" id="edit">
+@else
+<div class="row custom-modal-layout">
+@endif
+    <input type="hidden" name="marketing_payment_id" value="" disabled>
     {{-- Table kiri --}}
     <div class="row col-12 col-sm-6" style="row-gap: 1em;">
         <div class="col-12 row">
@@ -137,79 +143,111 @@
         $('#transparentFileUpload').on('change', function() {
             $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
         })
-    })
-
-    initNumeralMask('.numeral-mask');
-
-    var dateOpt = { dateFormat: 'd-M-Y' };
-    $('.flatpickr-basic').flatpickr(dateOpt);
-
-    var $paymentSelect = $('#payment_method');
-    var $bankRequiredLabel = $('#bank_required_label');
-    var bankIdRoute = '{{ route("data-master.bank.search") }}';
-    var $bankSelect = $('#own_bank_id');
-    initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
-    initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
-    initSelect2($('#recipient_bank_id'), 'Pilih Bank');
-
-    $paymentSelect.on('select2:select', function() {
-        switch (this.value.toLowerCase()) {
-            case 'transfer':
-                $bankSelect.attr('required', true);
-                $bankSelect.attr('disabled', false);
-                $bankRequiredLabel.text('*');
-                break;
-            case 'card':
-                $bankSelect.attr('required', true);
-                $bankSelect.attr('disabled', false);
-                $bankRequiredLabel.text('*');
-                break;
-            default:
-                $bankSelect.attr('required', false);
-                $bankSelect.attr('disabled', true);
-                $bankRequiredLabel.text('');
-                break;
-        }
     });
 
-    var credit = parseFloat("{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}");
-    $('#payment_nominal_mask').on('input', function() {
-        const val = parseLocaleToNum($(this).val());
+    (function() {
+        initNumeralMask('.numeral-mask');
 
-        $(this).siblings('#payment_nominal').val(val);
-        if (val > credit) {
-            $(this).siblings('#invalid_payment_nominal').css('opacity', 1);
-        } else {
-            $(this).siblings('#invalid_payment_nominal').css('opacity', 0);
-        }
-    });
+        var dateOpt = { dateFormat: 'd-M-Y' };
+        $('.flatpickr-basic').flatpickr(dateOpt);
 
-    if ('{{ isset($is_detail) }}') {
-        var $marketingPayment = $('input[name="marketing_payment_id"]');
-        var $this = $('#detail');
-        $marketingPayment.on('change', function() {
-            const paymentId = $marketingPayment.val();
-            const $paymentMethod = $this.find('#payment_method');
-            const $ownBank = $this.find('#own_bank_id');
-            const $refNumber = $this.find('#ref_number');
-            const $transactionNumber = $this.find('#transaction_number');
-            const $paymentNominal = $this.find('#payment_nominal_mask');
-            const $paymentAt = $this.find('#payment_at');
-            const $notes = $this.find('#notes');
-            const route = '{{ route('marketing.list.payment.detail', ':id') }}'
-            $.ajax({
-                method: 'get',
-                url: route.replace(':id', paymentId),
-            }).then(function(result) {
-                $paymentMethod.val(result.payment_method);
-                $ownBank.append(`<option value="" selected>${result.bank ? result.bank.name : '-'}</option>`);
-                $refNumber.val(result.payment_reference ?? '-');
-                $transactionNumber.val(result.transaction_number ?? '-');
-                $paymentNominal.val(parseNumToLocale(result.payment_nominal));
-                $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
-                $notes.text(result.notes ?? '-');
-            });
+        var $paymentSelect = $('#payment_method');
+        var $bankRequiredLabel = $('#bank_required_label');
+        var bankIdRoute = '{{ route("data-master.bank.search") }}';
+        var $bankSelect = $('#own_bank_id');
+        initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
+        initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
+        initSelect2($('#recipient_bank_id'), 'Pilih Bank');
+
+        $paymentSelect.on('select2:select', function() {
+            switch (this.value.toLowerCase()) {
+                case 'transfer':
+                    $bankSelect.attr('required', true);
+                    $bankSelect.attr('disabled', false);
+                    $bankRequiredLabel.text('*');
+                    break;
+                case 'card':
+                    $bankSelect.attr('required', true);
+                    $bankSelect.attr('disabled', false);
+                    $bankRequiredLabel.text('*');
+                    break;
+                default:
+                    $bankSelect.attr('required', false);
+                    $bankSelect.attr('disabled', true);
+                    $bankRequiredLabel.text('');
+                    break;
+            }
         });
 
-    }
+        var credit = parseFloat("{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}");
+        $('#payment_nominal_mask').on('input', function() {
+            const val = parseLocaleToNum($(this).val());
+
+            $(this).siblings('#payment_nominal').val(val);
+            if (val > credit) {
+                $(this).siblings('#invalid_payment_nominal').css('opacity', 1);
+            } else {
+                $(this).siblings('#invalid_payment_nominal').css('opacity', 0);
+            }
+        });
+
+        if ('{{ isset($is_detail) }}') {
+            const $this = $('#detail');
+            var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
+            console.log($this);
+
+            $marketingPayment.on('change', function() {
+                const paymentId = $marketingPayment.val();
+                const $paymentMethod = $this.find('#payment_method');
+                const $ownBank = $this.find('#own_bank_id');
+                const $refNumber = $this.find('#ref_number');
+                const $transactionNumber = $this.find('#transaction_number');
+                const $paymentNominal = $this.find('#payment_nominal_mask');
+                const $paymentAt = $this.find('#payment_at');
+                const $notes = $this.find('#notes');
+                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
+                $.ajax({
+                    method: 'get',
+                    url: route.replace(':id', paymentId),
+                }).then(function(result) {
+                    $paymentMethod.val(result.payment_method);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $refNumber.val(result.payment_reference ?? '-');
+                    $transactionNumber.val(result.transaction_number ?? '-');
+                    $paymentNominal.val(parseNumToLocale(result.payment_nominal));
+                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $notes.text(result.notes ?? '-');
+                });
+            });
+        }
+
+        if ('{{ isset($is_edit) }}') {
+            const $this = $('#edit');
+            var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
+
+            $marketingPayment.on('change', function() {
+                const paymentId = $marketingPayment.val();
+                const $paymentMethod = $this.find('#payment_method');
+                const $ownBank = $this.find('#own_bank_id');
+                const $refNumber = $this.find('#ref_number');
+                const $transactionNumber = $this.find('#transaction_number');
+                const $paymentNominal = $this.find('#payment_nominal_mask');
+                const $paymentAt = $this.find('#payment_at');
+                const $notes = $this.find('#notes');
+                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
+                $.ajax({
+                    method: 'get',
+                    url: route.replace(':id', paymentId),
+                }).then(function(result) {
+                    $paymentMethod.val(result.payment_method);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $refNumber.val(result.payment_reference ?? '-');
+                    $transactionNumber.val(result.transaction_number ?? '-');
+                    $paymentNominal.val(parseNumToLocale(result.payment_nominal));
+                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $notes.text(result.notes ?? '-');
+                });
+            })
+        }
+    })();
 </script>

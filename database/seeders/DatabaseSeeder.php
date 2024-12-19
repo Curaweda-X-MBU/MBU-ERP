@@ -66,29 +66,123 @@ class DatabaseSeeder extends Seeder
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        Department::create([
-            'name'        => 'Super Admin',
-            'company_id'  => 1,
-            'location_id' => 1,
-            'created_at'  => date('Y-m-d H:i:s'),
+        Department::insert([
+            [
+                'name'        => 'Super Admin',
+                'company_id'  => 1,
+                'location_id' => 1,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ],
+            [
+                'name'        => 'Admin Marketing',
+                'company_id'  => 1,
+                'location_id' => 1,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ],
+            [
+                'name'        => 'Admin Finance',
+                'company_id'  => 1,
+                'location_id' => 1,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ],
+            [
+                'name'        => 'Manager Marketing',
+                'company_id'  => 1,
+                'location_id' => 1,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ],
+            [
+                'name'        => 'Manager Finance',
+                'company_id'  => 1,
+                'location_id' => 1,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ],
         ]);
 
-        Role::create([
-            'name'       => 'Super Admin',
-            'company_id' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
+        // Role::insert([
+        //     [
+        //         'name'       => 'Super Admin',
+        //         'company_id' => 1,
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'Admin Marketing',
+        //         'company_id' => 1,
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'Admin Finance',
+        //         'company_id' => 1,
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'Manager Marketing',
+        //         'company_id' => 1,
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'Manager Finance',
+        //         'company_id' => 1,
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        // ]);
 
-        User::create([
-            'npk'           => '0000',
-            'name'          => 'Super Admin',
-            'email'         => 'admin@mbugroup.id',
-            'phone'         => '08111111111',
-            'password'      => Hash::make(env('BYPASS').now()->format('dmY')),
-            'department_id' => 1,
-            'role_id'       => 1,
-            'is_active'     => 1,
-            'created_at'    => now(),
+        User::insert([
+            [
+                'npk'           => '0000',
+                'name'          => 'Super Admin',
+                'email'         => 'admin@mbugroup.id',
+                'phone'         => '08111111111',
+                'password'      => Hash::make(env('BYPASS').now()->format('dmY')),
+                'department_id' => 1,
+                'role_id'       => 1,
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ],
+            [
+                'npk'           => '0000',
+                'name'          => 'Admin Marketing',
+                'email'         => 'admin.marketing@mbugroup.id',
+                'phone'         => '08111111111',
+                'password'      => Hash::make(env('BYPASS')),
+                'department_id' => 2,
+                'role_id'       => 2,
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ],
+            [
+                'npk'           => '0000',
+                'name'          => 'Admin Finance',
+                'email'         => 'admin.finance@mbugroup.id',
+                'phone'         => '08111111111',
+                'password'      => Hash::make(env('BYPASS')),
+                'department_id' => 3,
+                'role_id'       => 3,
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ],
+            [
+                'npk'           => '0000',
+                'name'          => 'Manager Marketing',
+                'email'         => 'manager.marketing@mbugroup.id',
+                'phone'         => '08111111111',
+                'password'      => Hash::make(env('BYPASS')),
+                'department_id' => 4,
+                'role_id'       => 4,
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ],
+            [
+                'npk'           => '0000',
+                'name'          => 'Manager Finance',
+                'email'         => 'manager.finance@mbugroup.id',
+                'phone'         => '08111111111',
+                'password'      => Hash::make(env('BYPASS')),
+                'department_id' => 5,
+                'role_id'       => 5,
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ],
         ]);
 
         $this->call([
