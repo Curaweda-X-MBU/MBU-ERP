@@ -2,6 +2,10 @@
 @section('title', $title)
 @section('content')
 
+@php
+    $statusMarketing = App\Constants::MARKETING_STATUS;
+@endphp
+
 <style>
     #transparentFileUpload {
         opacity: 0;
@@ -29,13 +33,13 @@
                         <div class="col-md-2 mt-1">
                             <label for="customer_id" class="form-label">Nama Pelanggan<i class="text-danger">*</i></label>
                             <select name="customer_id" id="customer_id" class="form-control" disabled>
-                                <option value="1" selected="selected">Abd. Muis</option>
+                                <option value="1" selected="selected">{{ $data->customer->name }}</option>
                             </select>
                         </div>
                         <!-- Tanggal Penjualan -->
                         <div class="col-md-2 mt-1">
                             <label for="sold_at" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
-                            <input id="sold_at" name="sold_at" type="text" class="form-control" value="16-Des-2024" disabled>
+                            <input id="sold_at" name="sold_at" type="text" class="form-control" value="{{ date('d-M-Y', strtotime($data->sold_at)) }}" disabled>
                         </div>
                         <!-- Tanggal Retur -->
                         <div class="col-md-2 mt-1">
@@ -45,7 +49,7 @@
                         <!-- Status -->
                         <div class="col-md-2 mt-1">
                             <label for="marketing_status" class="form-label">Status<i class="text-danger">*</i></label>
-                            <input id="marketing_status" value="Diajukan" name="marketing_status" type="text" class="form-control" disabled>
+                            <input id="marketing_status" value="{{ $statusMarketing[$data->marketing_status] ?? '-' }}" name="marketing_status" type="text" class="form-control" disabled>
                         </div>
                         <!-- Referensi Dokumen -->
                         <div class="col-md-2 mt-1">
@@ -138,13 +142,13 @@
                                 <div class="row">
                                     <div class="col-md-8 mt-1">
                                         <label for="catatan" class="form-label">Catatan :</label>
-                                        <textarea id="catatan" class="form-control" rows="3"></textarea>
+                                        <textarea id="catatan" class="form-control" rows="3">{{ $data->notes }}</textarea>
                                     </div>
 
                                     <div class="col-md-4 mt-1">
                                         <label for="namaSales" class="form-label">Nama Sales</label>
-                                        <select name="namaSales" id="namaSales" class="form-control" disabled>
-                                            <option value="1" selected="selected">Ulfah</option>
+                                        <select name="sales_id" id="namaSales" class="form-control" disabled>
+                                            <option value="1" selected="selected">{{ $data->sales->name ?? '' }}</option>
                                         </select>
                                     </div>
                                 </div>
