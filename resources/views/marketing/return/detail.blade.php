@@ -30,10 +30,12 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                <a href="{{ route('marketing.return.edit', $data->marketing_id) }}" class="btn btn-primary">
-                    <i data-feather="edit-2" class="mr-50"></i>
-                    Edit
-                </a>
+                @if ($data->marketing_return->is_approved != 1)
+                    <a href="{{ route('marketing.return.edit', $data->marketing_id) }}" class="btn btn-primary">
+                        <i data-feather="edit-2" class="mr-50"></i>
+                        Edit
+                    </a>
+                @endif
                 @php
                     $roleAccess = Auth::user()->role;
                 @endphp
