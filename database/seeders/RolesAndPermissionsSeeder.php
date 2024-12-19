@@ -96,6 +96,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'marketing.return.edit',
             'marketing.return.detail',
             'marketing.return.delete',
+            'marketing.return.approve',
             'marketing.return.payment.index',
             'marketing.return.payment.add',
             'marketing.return.payment.edit',

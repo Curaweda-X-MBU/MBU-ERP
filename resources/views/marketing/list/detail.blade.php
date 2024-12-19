@@ -321,7 +321,7 @@
                         <label for="notes" class="form-label">Catatan</label>
                         <textarea name="approval_notes" id="notes" class="form-control"></textarea>
                     </div>
-                    <br><p>Apakah kamu yakin ingin menyetujui data penjualan ini ?</p>
+                    <br><p>Apakah anda yakin ingin menyetujui data penjualan ini ?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="setApproval(1)" class="btn btn-success">Setuju</button>
