@@ -16,7 +16,6 @@
                     <div class="row">
                         @include('marketing.list.sections.informasi-marketing-sale')
                     </div>
-                    {{-- button --}}
                     <div class="col-12 mt-1">
                         <a href="{{ route('marketing.return.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
                         <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>

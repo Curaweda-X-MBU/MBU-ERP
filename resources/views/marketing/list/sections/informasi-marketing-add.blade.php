@@ -106,6 +106,11 @@
             $('#realized_at').val(realizedAt.replace(/ /g, '-'));
         }
 
+        if (marketing.marketing_return) {
+            const returnAt = new Date(marketing.marketing_return.return_at).toLocaleDateString('en-GB', dateOpt);
+            $('#return_at').val(returnAt.replace(/ /g, '-'));
+        }
+
         // STATUS
         $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
 

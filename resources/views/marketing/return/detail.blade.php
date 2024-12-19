@@ -23,7 +23,7 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                <a href="" class="btn btn-primary">
+                <a href="{{ route('marketing.return.edit', $data->marketing_id) }}" class="btn btn-primary">
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
                 </a>

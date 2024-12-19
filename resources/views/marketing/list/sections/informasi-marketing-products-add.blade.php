@@ -224,9 +224,9 @@
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
 
-            @if(@$is_return)
+            if('{{ @$is_return }}') {
                 $(`input[name="marketing_products[${i}][marketing_product_id]"]`).val(product.marketing_product_id);
-            @endif
+            }
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
 
@@ -246,12 +246,16 @@
                 const chose = res.filter((a) => a.data.product_id = product.product.product_id)[0];
                 if ('{{@$is_realization || @$is_return}}') {
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', product.qty);
-                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(product.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(parseNumToLocale(product.qty).split(',')[0]);
                 } else {
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
-                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(chose.qty);
+                    $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(parseNumToLocale(chose.qty).split(',')[0]);
                 }
-                $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
+                if ('{{@$is_edit}}') {
+                    $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.return_qty).trigger('input');
+                } else {
+                    $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
+                }
                 initNumeralMask('.numeral-mask');
             })
         });
