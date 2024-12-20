@@ -36,6 +36,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('marketings', function(Blueprint $table) {
+            $table->dropForeign(['marketing_return_id']);
+            $table->dropColumn('marketing_return_id');
+        });
         Schema::dropIfExists('marketing_returns');
     }
 };

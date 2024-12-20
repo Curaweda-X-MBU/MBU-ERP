@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Helpers\Parser;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\UserManagement\User;
 use DB;
@@ -44,14 +45,6 @@ class StockLog extends Model
     public function purchase_item()
     {
         return $this->belongsTo(PurchaseItem::class, 'purchase_item_id');
-    }
-
-    private static function parseValue(string $value): float
-    {
-        $value = str_replace('.', '', $value);
-        $value = str_replace(',', '.', $value);
-
-        return floatval($value) ?: 0;
     }
 
     public static function triggerStock($input)

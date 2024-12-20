@@ -2,8 +2,9 @@
 
 namespace App\Models\Marketing;
 
-use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\Product;
+use App\Models\DataMaster\Uom;
+use App\Models\DataMaster\Warehouse;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,27 +18,34 @@ class MarketingProduct extends Model
 
     protected $fillable = [
         'marketing_id',
-        'kandang_id',
+        'warehouse_id',
         'product_id',
         'price',
         'weight_avg',
+        'uom_id',
         'qty',
         'weight_total',
         'total_price',
+        'return_qty',
     ];
 
     public function marketing()
     {
-        $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
+        return $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
     }
 
-    public function kandang()
+    public function warehouse()
     {
-        $this->belongsTo(Kandang::class, 'kandang_id', 'kandang_id');
+        return $this->belongsTo(Warehouse::class, 'warehouse_id', 'warehouse_id');
     }
 
     public function product()
     {
-        $this->belongsTo(Product::class, 'product_id', 'product_id');
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
+
+    public function uom()
+    {
+        return $this->belongsTo(Uom::class, 'uom_id', 'uom_id');
     }
 }

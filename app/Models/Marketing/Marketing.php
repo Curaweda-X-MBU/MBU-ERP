@@ -21,6 +21,7 @@ class Marketing extends Model
     protected $fillable = [
         'id_marketing',
         'marketing_return_id',
+        'is_approved',
         'approver_id',
         'approval_notes',
         'company_id',
@@ -36,6 +37,7 @@ class Marketing extends Model
         'grand_total',
         'payment_status',
         'marketing_status',
+        'is_returned',
         'created_by',
     ];
 

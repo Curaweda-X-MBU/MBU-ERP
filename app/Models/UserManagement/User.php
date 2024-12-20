@@ -8,6 +8,7 @@ use App\Models\DataMaster\Kandang;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingPayment;
+use App\Models\Marketing\MarketingReturnPayment;
 use App\Models\Ph\PhComplaint;
 use App\Models\Project\Project;
 use App\Models\Purchase\Purchase;
@@ -116,6 +117,16 @@ class User extends Authenticatable implements CanResetPassword
     public function approve_marketing_payments()
     {
         return $this->hasMany(MarketingPayment::class, 'approver_id', 'user_id');
+    }
+
+    public function approve_marketing_returns()
+    {
+        return $this->hasMany(Marketing::class, 'approver_id', 'user_id');
+    }
+
+    public function approve_marketing_return_payments()
+    {
+        return $this->hasMany(MarketingReturnPayment::class, 'approver_id', 'user_id');
     }
 
     public static function getData($all, $active, $whereClause = false)

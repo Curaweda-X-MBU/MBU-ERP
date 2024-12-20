@@ -75,6 +75,11 @@ class ProductSeeder extends Seeder
                 'name'                => 'Mati',
                 'product_category_id' => 2,
             ],
+            // Final Stock
+            [
+                'name'                => 'Baik',
+                'product_category_id' => 3,
+            ],
         ]);
 
         Product::insert([
@@ -172,7 +177,7 @@ class ProductSeeder extends Seeder
                 // Product Category Code - Category Name - Sub Category Name
                 'name'                    => 'PRS - Parent Stock - Afkir',
                 'brand'                   => 'Brand 2',
-                'uom_id'                  => 3,
+                'uom_id'                  => 2,
                 'sku'                     => strval(random_int(1000000000, 9999999999)),
                 'company_id'              => 3,
                 'product_category_id'     => 2,
@@ -183,6 +188,24 @@ class ProductSeeder extends Seeder
                 'expiry_period'           => 10,
                 'can_be_sold'             => 0,
                 'can_be_purchased'        => 0,
+                'is_active'               => 1,
+                'created_by'              => 1,
+            ],
+            [
+                // Product Category Code - Category Name - Sub Category Name
+                'name'                    => 'FLS - Final Stock - Baik',
+                'brand'                   => 'Brand 4',
+                'uom_id'                  => 3,
+                'sku'                     => strval(random_int(1000000000, 9999999999)),
+                'company_id'              => 3,
+                'product_category_id'     => 2,
+                'product_sub_category_id' => 3,
+                'product_price'           => 30000,
+                'selling_price'           => 35000,
+                'tax'                     => 15,
+                'expiry_period'           => 15,
+                'can_be_sold'             => 1,
+                'can_be_purchased'        => 1,
                 'is_active'               => 1,
                 'created_by'              => 1,
             ],
