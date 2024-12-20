@@ -200,4 +200,14 @@ class Constants
     ];
 
     public const CATEGORY_PRODUCT_RECORDING = ['DOC', 'TLR'];
+
+    public const REVISION_STATUS = [
+        0 => 'Tidak ada perubahan',
+        1 => 'Menunggu persetujuan',
+        2 => 'Disetujui',
+        3 => 'Selesai',
+        4 => 'Ditolak',
+    ];
+
+    public const REVISION_DOC_PATH = 'recording-revision-doc';
 }

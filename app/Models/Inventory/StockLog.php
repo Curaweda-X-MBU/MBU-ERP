@@ -54,8 +54,8 @@ class StockLog extends Model
             $productId      = $input['product_id'];
             $warehouseId    = $input['warehouse_id'];
             $currentWhStock = ProductWarehouse::where(['product_id' => $productId, 'warehouse_id' => $warehouseId])->first();
-            $increase       = Parser::parseLocale($input['increase']);
-            $decrease       = Parser::parseLocale($input['decrease']);
+            $increase       = self::parseValue($input['increase'] ?? 0);
+            $decrease       = self::parseValue($input['decrease'] ?? 0);
             $stock          = new ProductWarehouse;
 
             if ($currentWhStock) {

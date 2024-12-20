@@ -99,5 +99,16 @@
 
         const $repeaterDepletion = $('#depletion').repeater(optDepletion);
         $('.add-depletion').trigger('click');
+
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_depletion) {
+            const dataDepletion = dataRecording.recording_depletion;
+            $repeaterDepletion.setList(dataDepletion);
+
+            for (let i = 0; i < dataDepletion.length; i++) {
+                $(`select[name="depletions[${i}][product_id]"]`).append(`<option value="${dataDepletion[i].product_warehouse.product_id}" selected>${dataDepletion[i].product_warehouse.product.name}</option>`);
+            }
+        }
     });
 </script>

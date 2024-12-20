@@ -19,6 +19,8 @@ class Recording extends Model
         'project_id',
         'record_datetime',
         'status',
+        'revision_status',
+        'document_revision',
         'on_time',
         'created_by',
     ];
