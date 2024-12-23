@@ -63,7 +63,7 @@
                 <label for="own_bank_id" id="own_bank_label">Akun Bank<i id="bank_required_label" class="text-danger"></i></label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <select name="bank_id" class="form-control" id="own_bank_id" disabled>
+                <select name="bank_id" class="form-control" id="own_bank_id" {{ isset($is_detail) ? 'disabled' : '' }}>
                 </select>
             </div>
         </div>
@@ -159,26 +159,6 @@
         initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
         initSelect2($('#recipient_bank_id'), 'Pilih Bank');
 
-        $paymentSelect.on('select2:select', function() {
-            switch (this.value.toLowerCase()) {
-                case 'transfer':
-                    $bankSelect.attr('required', true);
-                    $bankSelect.attr('disabled', false);
-                    $bankRequiredLabel.text('*');
-                    break;
-                case 'card':
-                    $bankSelect.attr('required', true);
-                    $bankSelect.attr('disabled', false);
-                    $bankRequiredLabel.text('*');
-                    break;
-                default:
-                    $bankSelect.attr('required', false);
-                    $bankSelect.attr('disabled', true);
-                    $bankRequiredLabel.text('');
-                    break;
-            }
-        });
-
         var credit = parseFloat("{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}");
         $('#payment_nominal_mask').on('input', function() {
             const val = parseLocaleToNum($(this).val());
@@ -210,7 +190,7 @@
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     $paymentMethod.val(result.payment_method);
-                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominal.val(parseNumToLocale(result.payment_nominal));
