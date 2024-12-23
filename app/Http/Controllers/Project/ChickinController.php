@@ -52,7 +52,7 @@ class ChickinController extends Controller
 
             $docPurchaseQty = 0;
             foreach ($project->purchase_item as $key => $value) {
-                if ($value->product->product_category->category_code === 'DOC') {
+                if ($value->product->product_category->category_code === 'BRO') {
                     $docPurchaseQty += $value->total_received;
                 }
             }
