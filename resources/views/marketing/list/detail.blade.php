@@ -1,6 +1,11 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+@php
+    $nominalPenjualan = $data->grand_total;
+    $nominalSisaBayar = $data->marketing_payments->sum('payment_nominal');
+@endphp
+
 <style>
     .color-header {
         color: white;
@@ -22,29 +27,190 @@
     }
 </script>
 
-<div class="col-12">
-    <div class="row">
-        <div class="no-print pb-2">
-            <h4 class="card-title">{{$title}}</h4>
-                <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
-                    <i data-feather="arrow-left" class="mr-50"></i>
-                    Kembali
-                </a>
-                @if ($data->marketing_status != 4)
-                <a href="{{ $data->marketing_status == 4 ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
-                    <i data-feather="edit-2" class="mr-50"></i>
-                    Edit
-                </a>
-                @endif
-                @php
-                    $roleAccess = Auth::user()->role;
-                @endphp
-                @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->marketing_status != 3 && $data->marketing_status != 4)
-                    <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
-                        <i data-feather="check" class="mr-50"></i>
-                        Approve
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">{{ $title }}</h4>
+                <div>
+                    @if ($data->marketing_status != 4)
+                    <a href="{{ $data->marketing_status == 4 ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
+                        <i data-feather="edit-2" class="mr-50"></i>
+                        Edit
                     </a>
-                @endif
+                    @endif
+                    @php
+                        $roleAccess = Auth::user()->role;
+                    @endphp
+                    @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->marketing_status != 3 && $data->marketing_status != 4)
+                        <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
+                            <i data-feather="check" class="mr-50"></i>
+                            Approve
+                        </a>
+                    @endif
+                    <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left" class="mr-50"></i>
+                        Kembali
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-datatable">
+                    <div class="table-responsive mb-2">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped w-100">
+                                        <tr>
+                                            <td style="width: 25%"><b>No. DO</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->id_marketing }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Penjualan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Realisasi</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ @$data->realized_at ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nama Pelanggan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->customer->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Unit Bisnis</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->company->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Referensi Dokumen</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @if ($data->doc_reference)
+                                                    <a class="p-0" href="{{ route('file.show', ['filename' => $data->doc_reference]) }}" target="_blank">
+                                                        <i data-feather='download' class="mr-50"></i>
+                                                        <span>Download</span>
+                                                    </a>
+                                                @else
+                                                    <span>-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nama Sales</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ @$data->sales->name ? $data->sales->name : '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Catatan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @if ($data->notes)
+                                                    <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal">
+                                                        Lihat Catatan
+                                                    </button>
+                                                @else
+                                                    <span>-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div>
+                                    <table class="table table-striped w-100">
+                                        <tr>
+                                            <td style="width: 25%"><b>Pajak</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ \App\Helpers\Parser::toLocale($data->tax) }} %</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Diskon</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>Rp. {{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Penjualan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Sudah Bayar</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td class="text-success">Rp. {{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Sisa Bayar</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Status Pembayaran</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @php
+                                                    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                                @endphp
+                                                @switch($data->payment_status)
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @case(2)
+                                                        <div class="badge badge-pill badge-success">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->payment_status] }}</div>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Status Penjualan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @php
+                                                    $statusMarketing = App\Constants::MARKETING_STATUS;
+                                                @endphp
+                                                @switch($data->marketing_status)
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                        @break
+                                                    @case(2)
+                                                        <div class="badge badge-pill badge-danger">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                        @break
+                                                    @case(3)
+                                                        <div class="badge badge-pill badge-success">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-primary">{{ $statusMarketing[$data->marketing_status] }}</div>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <!-- Modal -->
+                                <div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="notesModalLabel">Catatan Penjualan</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>{{ $data->notes }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -55,123 +221,6 @@
             <div class=" collapse-icon">
                 <div class=" p-0">
                     <div class="collapse-default">
-
-                        {{-- COLLAPSE TABLE INFORMASI PENJUALAN --}}
-                        <div class="card mb-1">
-                            <div id="headingCollapse1" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
-                                <span class="lead collapse-title"> Informasi  Penjualan </span>
-                            </div>
-                            <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse show" aria-expanded="true">
-                                <div class="card-body p-2">
-                                    <div class="col-12">
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered w-100">
-                                                <thead>
-                                                    <tr>
-                                                        <th>No. DO</th>
-                                                        <th>Tanggal Penjualan</th>
-                                                        <th>Tanggal Realisasi</th>
-                                                        <th>Nama Pelanggan</th>
-                                                        <th>Unit Bisnis</th>
-                                                        <th>Referensi Dokumen</th>
-                                                        <th>Nama Sales</th>
-                                                        <th>Catatan</th>
-                                                        <th>Pajak</th>
-                                                        <th>Diskon</th>
-                                                        <th>Total Piutang Penjualan (RP)</th>
-                                                        <th>Status Pembayaran</th>
-                                                        <th>Status Penjualan</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>{{ $data->id_marketing }}</td>
-                                                        <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
-                                                        <td>{{ isset($data->realized_at) ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
-                                                        <td>{{ $data->customer->name }}</td>
-                                                        <td>{{ $data->company->alias }}</td>
-                                                        <td>
-                                                            @if ($data->doc_reference)
-                                                            <a class="dropdown-item" href="{{ route('file.show', ['filename' => $data->doc_reference]) }}" target="_blank">
-                                                                <i data-feather='download' class="mr-50"></i>
-                                                                <span>Download</span>
-                                                            </a>
-                                                            @else
-                                                            <span>-</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ isset($data->sales->name) ? $data->sales->name : '-' }}</td>
-                                                        <td>
-                                                            @if ($data->notes)
-                                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#notesModal">
-                                                                Lihat Catatan
-                                                            </button>
-                                                            @else
-                                                            <span>-</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ \App\Helpers\Parser::toLocale($data->tax) }}</td>
-                                                        <td>{{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
-                                                        <td>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
-                                                        <td>
-                                                            @php
-                                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
-                                                            @endphp
-                                                            @switch($data->payment_status)
-                                                                @case(1)
-                                                                    <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
-                                                                    @break
-                                                                @case(2)
-                                                                    <div class="badge badge-pill badge-success">{{ $statusPayment[$data->payment_status] }}</div>
-                                                                    @break
-                                                                @default
-                                                                    <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->payment_status] }}</div>
-                                                            @endswitch
-                                                        </td>
-                                                        <td>
-                                                            @php
-                                                                $statusMarketing = App\Constants::MARKETING_STATUS;
-                                                            @endphp
-                                                            @switch($data->marketing_status)
-                                                                @case(1)
-                                                                    <div class="badge badge-pill badge-warning">{{ $statusMarketing[$data->marketing_status] }}</div>
-                                                                    @break
-                                                                @case(2)
-                                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$data->marketing_status] }}</div>
-                                                                    @break
-                                                                @case(3)
-                                                                    <div class="badge badge-pill badge-success">{{ $statusMarketing[$data->marketing_status] }}</div>
-                                                                    @break
-                                                                @default
-                                                                    <div class="badge badge-pill badge-primary">{{ $statusMarketing[$data->marketing_status] }}</div>
-                                                            @endswitch
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-
-                                            <!-- Modal -->
-                                            <div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="notesModalLabel">Catatan Penjualan</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p>{{ $data->notes }}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {{-- COLLAPSE TABLE BIAYA LAINNYA --}}
                         <div class="card mb-1">
                             <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
@@ -279,7 +328,7 @@
                                                                 <td>{{ $item->plat_number }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                                 <td>{{ $item->uom->name }}</td>
-                                                                <td>{{ $item->exit_at }}</td>
+                                                                <td>{{ date('d-M-Y H:i', strtotime($item->exit_at)) }}</td>
                                                                 <td>{{ $item->sender->name }}</td>
                                                                 <td>{{ $item->driver_name }}</td>
                                                             </tr>
