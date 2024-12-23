@@ -20,15 +20,15 @@ class ListPaymentController extends Controller
     public function index(Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['customer', 'company', 'marketing_payments']);
+            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
+                throw new \Exception('Status Penjualan belum final');
+            }
+
+            $data  = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
             $param = [
                 'title' => 'Penjualan > Payment',
                 'data'  => $data,
             ];
-
-            if (Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Final' && Constants::MARKETING_STATUS[$marketing->marketing_status] !== 'Realisasi') {
-                throw new \Exception('Status Penjualan belum final');
-            }
 
             return view('marketing.list.payment.index', $param);
         } catch (\Exception $e) {

@@ -26,9 +26,17 @@ class ListController extends Controller
     public function index()
     {
         try {
-            $data = Marketing::with(['customer', 'company'])
+            $data = Marketing::with(['customer', 'company', 'marketing_payments'])
                 ->whereNull('marketing_return_id')
-                ->get();
+                ->get()->map(function($marketing) {
+                    $marketing->is_paid = $marketing->marketing_payments
+                        ->filter(function($payment) {
+                            return $payment->verify_status == 2;
+                        })
+                        ->sum('payment_nominal');
+
+                    return $marketing;
+                });
 
             $param = [
                 'title' => 'Penjualan > List',
@@ -142,13 +150,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $createdMarketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
 
                     $createdMarketing->update([
@@ -301,13 +308,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 
@@ -502,13 +508,12 @@ class ListController extends Controller
                         $success['success'] = 'Data Berhasil disimpan sebagai draft';
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 

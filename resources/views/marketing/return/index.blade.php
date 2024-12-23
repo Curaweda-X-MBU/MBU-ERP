@@ -17,8 +17,8 @@
                         Export
                     </button>
                     <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <a class="dropdown-item" href="link_to_excel_export">Excel</a>
-                        <a class="dropdown-item" href="link_to_pdf_export">PDF</a>
+                        <button id="exportExcel" class="dropdown-item w-100">Excel</button>
+                        <button id="exportPdf" class="dropdown-item w-100">PDF</button>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,9 @@
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
                                                         </a>
-                                                        <a class="dropdown-item text-danger" href="{{ route('marketing.return.delete', $item->marketing_return_id) }}">
+                                                        <a class="dropdown-item item-delete-button text-danger"
+                                                            href="{{ route('marketing.return.delete', $item->marketing_return_id) }}"
+                                                        >
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>
@@ -114,13 +116,62 @@
 <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
 
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.buttons.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/buttons.html5.min.js') }}"></script>
+
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/jszip.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
+
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
+
+
 <script>
     $(function () {
         $('#datatable').DataTable({
+            dom: 'B<"d-flex justify-content-between"lf>rtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    className: 'd-none datatable-hidden-excel-button',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                    },
+                },
+                {
+                    extend: 'pdfHtml5',
+                    className: 'd-none datatable-hidden-pdf-button',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                    },
+                },
+            ],
             drawCallback: function( settings ) {
                 feather.replace();
             },
             order: [[0, 'desc']],
+        });
+
+        $('#exportExcel').on('click', function() {
+            $('.datatable-hidden-excel-button').trigger('click');
+        });
+
+        $('#exportPdf').on('click', function() {
+            $('.datatable-hidden-pdf-button').trigger('click');
+        });
+
+        $('.item-delete-button').on('click', function(e) {
+            e.preventDefailt();
+
+            confirmCallback({
+                title: 'Hapus',
+                text: 'Data tidak bisa dikembalikan!',
+                icon: 'warning',
+                confirmText: 'Hapus',
+                confirmClass: 'btn-danger',
+            }, function() {
+                window.location.href = e.target.href;
+            });
         });
     });
 </script>

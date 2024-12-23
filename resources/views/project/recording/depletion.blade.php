@@ -54,7 +54,7 @@
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Kondisi",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=DOC&can_be_purchased=0`, 
+                        url: `{{ route("data-master.product.search") }}?product_category-category_code=BRO&can_be_purchased=0`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {

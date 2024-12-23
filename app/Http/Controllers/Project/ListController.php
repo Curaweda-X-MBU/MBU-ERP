@@ -134,8 +134,8 @@ class ListController extends Controller
                     if ($req->has('budget')) {
                         $arrBudget = $req->input('budget');
                         foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty']        = str_replace(',', '', $value['qty']);
-                            $arrBudget[$key]['price']      = str_replace(',', '', $value['price']);
+                            $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                            $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
                             $arrBudget[$key]['project_id'] = $projectId;
                         }
                         ProjectBudget::insert($arrBudget);
@@ -194,8 +194,8 @@ class ListController extends Controller
                         ProjectBudget::where('project_id', $projectId)->delete();
                         $arrBudget = $req->input('budget');
                         foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty']        = str_replace(',', '', $value['qty']);
-                            $arrBudget[$key]['price']      = str_replace(',', '', $value['price']);
+                            $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                            $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
                             $arrBudget[$key]['project_id'] = $projectId;
                         }
                         ProjectBudget::insert($arrBudget);

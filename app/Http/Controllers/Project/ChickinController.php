@@ -45,13 +45,26 @@ class ChickinController extends Controller
     public function add(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_chick_in'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_chick_in', 'purchase_item.product.product_category'])->findOrFail($req->id);
             if (! $project->approval_date) {
                 return redirect()->back()->with('error', 'Project ini belum disetujui');
             }
+
+            $docPurchaseQty = 0;
+            foreach ($project->purchase_item as $key => $value) {
+                if ($value->product->product_category->category_code === 'BRO') {
+                    $docPurchaseQty += $value->total_received;
+                }
+            }
+
+            if ($docPurchaseQty == 0) {
+                return redirect()->back()->with('error', 'Project ini belum melakukan pembelian/penerimaan DOC');
+            }
+
             $param = [
-                'title' => 'Project > chick-in > Tambah',
-                'data'  => $project,
+                'title'       => 'Project > chick-in > Tambah',
+                'data'        => $project,
+                'chickin_qty' => $docPurchaseQty,
             ];
 
             if ($req->isMethod('post')) {
@@ -102,8 +115,9 @@ class ChickinController extends Controller
                 ->findOrFail($req->id);
 
             $param = [
-                'title' => 'Project > chick-in > Edit',
-                'data'  => $project,
+                'title'       => 'Project > chick-in > Edit',
+                'data'        => $project,
+                'chickin_qty' => $project->project_chick_in[0]->total_chickin,
             ];
 
             if ($req->isMethod('post')) {

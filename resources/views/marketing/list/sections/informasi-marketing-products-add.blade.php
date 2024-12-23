@@ -232,7 +232,7 @@
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`input[name="marketing_products[${i}][uom_id]"]`).val(product.uom_id);
             $(`input[name="marketing_products[${i}][uom_name]"]`).val(product.uom.name);
-            $(`input[name="marketing_products[${i}][weight_avg]"]`).val(product.weight_avg);
+            $(`input[name="marketing_products[${i}][weight_avg]"]`).val(parseNumToLocale(product.weight_avg));
             let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
             productIdRoute = productIdRoute.replace(':id', product.warehouse_id);
             const ajaxProduct = $.get({
