@@ -123,6 +123,15 @@ Route::middleware('auth')->group(function() {
         });
     });
 
+    Route::group(['prefix' => 'expense'], function() {
+        Route::get('/', [App\Http\Controllers\Expense\ExpenseController::class, 'index'])->name('expense.index')->middleware('permission:expense.index');
+        Route::any('/add', [App\Http\Controllers\Expense\ExpenseController::class, 'add'])->name('expense.add')->middleware('permission:expense.add');
+        Route::any('/edit/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'edit'])->name('expense.edit')->middleware('permission:expense.edit');
+        Route::get('/detail/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'detail'])->name('expense.detail')->middleware('permission:expense.detail');
+        Route::get('/delete/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'delete'])->name('expense.delete')->middleware('permission:expense.delete');
+        Route::post('/approve/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.approve')->middleware('permission:expense.approve');
+    });
+
     Route::group(['prefix' => 'purchase'], function() {
         Route::get('/', [App\Http\Controllers\Purchase\ListController::class, 'index'])->name('purchase.index')->middleware('permission:purchase.index');
         Route::any('/add', [App\Http\Controllers\Purchase\ListController::class, 'add'])->name('purchase.add')->middleware('permission:purchase.add');

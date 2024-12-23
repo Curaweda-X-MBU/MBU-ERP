@@ -106,6 +106,10 @@
                     </ul>
                 </li>
                 @endif
+                @if (hasAccess($collection, 'expense.index', $roleAccess))
+                <li id="{{ ltrim(parse_url(route('expense.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('expense.index') }}"><i data-feather="pie-chart"></i><span class="menu-title text-truncate" data-i18n="Expense">Biaya</span></a>
+                </li>
+                @endif
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
                 <li id="{{ ltrim(parse_url(route('purchase.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('purchase.index') }}"><i data-feather="shopping-cart"></i><span class="menu-title text-truncate" data-i18n="Pembelian">Pembelian</span></a>
                 </li>
