@@ -30,18 +30,28 @@
                                 <th>Tanggal Realisasi</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
+                                <th>Nominal Penjualan (Rp)</th>
+                                <th>Nominal Sudah Bayar (Rp)</th>
+                                <th>Nominal Sisa Bayar (Rp)</th>
                                 <th>Status Pembayaran</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
                                 @foreach ($data as $item)
+                                @php
+                                    $nominalPenjualan = $item->grand_total;
+                                    $nominalSisaBayar = $item->marketing_payments->sum('payment_nominal');
+                                @endphp
                                     <tr>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
