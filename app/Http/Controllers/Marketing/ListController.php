@@ -216,11 +216,10 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices.uom']);
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
-                'title'   => 'Penjualan > Edit',
-                'data'    => $data,
-                'is_edit' => true,
+                'title' => 'Penjualan > Edit',
+                'data'  => $data,
             ];
 
             if ($req->isMethod('post')) {
