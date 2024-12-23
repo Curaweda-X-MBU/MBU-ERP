@@ -30,19 +30,19 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                    <a href="{{ isset($data->realized_at) ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
-                        <i data-feather="edit-2" class="mr-50"></i>
-                        Edit
+                <a href="{{ isset($data->realized_at) ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
+                    <i data-feather="edit-2" class="mr-50"></i>
+                    Edit
+                </a>
+                @php
+                    $roleAccess = Auth::user()->role;
+                @endphp
+                @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->marketing_status != 3)
+                    <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
+                        <i data-feather="check" class="mr-50"></i>
+                        Approve
                     </a>
-                    @php
-                        $roleAccess = Auth::user()->role;
-                    @endphp
-                    @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->is_approved != 1)
-                        <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
-                            <i data-feather="check" class="mr-50"></i>
-                            Approve
-                        </a>
-                    @endif
+                @endif
         </div>
     </div>
 </div>
@@ -74,6 +74,8 @@
                                                         <th>Referensi Dokumen</th>
                                                         <th>Nama Sales</th>
                                                         <th>Catatan</th>
+                                                        <th>Pajak</th>
+                                                        <th>Diskon</th>
                                                         <th>Total Piutang Penjualan (RP)</th>
                                                         <th>Status Pembayaran</th>
                                                         <th>Status Penjualan</th>
@@ -106,6 +108,8 @@
                                                             <span>-</span>
                                                             @endif
                                                         </td>
+                                                        <td>{{ \App\Helpers\Parser::toLocale($data->tax) }}</td>
+                                                        <td>{{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
                                                         <td>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
                                                         <td>
                                                             @php
@@ -231,7 +235,7 @@
                                                             <td>{{ $item->warehouse->name }}</td>
                                                             <td>{{ $item->product->name }}</td>
                                                             <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                            <td>{{ $item->weight_avg }}</td>
+                                                            <td>{{ \App\Helpers\Parser::toLocale($item->weight_avg) }}</td>
                                                             <td>{{ $item->uom->name }}</td>
                                                             <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                             <td>{{ \App\Helpers\Parser::toLocale($item->weight_total) }}</td>
