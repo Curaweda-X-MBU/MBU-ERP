@@ -62,6 +62,8 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead>
+                                <th>Grand Total</th>
+                                <th>Is Paid</th>
                                 <th>No.DO</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
@@ -75,6 +77,8 @@
                             <tbody>
                                 @foreach ($data as $item)
                                     <tr>
+                                        <td>{{ $item->grand_total }}</td>
+                                        <td>{{ $item->is_paid }}</td>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
@@ -150,6 +154,39 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                            <table class="table table-borderless">
+                                <tbody class="text-right">
+                                    <tr>
+                                        <td>
+                                            Total Penjualan:
+                                        </td>
+                                        <td class="font-weight-boder" style="font-size: 1.2em">
+                                            Rp. <span id="grand_total">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Total Sudah Dibayar:
+                                        </td>
+                                        <td class="font-weight-boder text-success" style="font-size: 1.2em">
+                                            Rp. <span id="is_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Total Belum Dibayar:
+                                        </td>
+                                        <td class="font-weight-boder text-danger" style="font-size: 1.2em">
+                                            Rp. <span id="not_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -191,7 +228,7 @@
                     },
                 },
             ],
-            drawCallback: function( settings ) {
+            drawCallback: function(settings) {
                 if (!$('#customer_slice').length) {
                     $('#filter_wrapper')
                         .addClass('d-flex flex-wrap justify-content-between align-items-center')
@@ -222,10 +259,32 @@
                     });
 
                     $('#customer_slice').on('select2:select change', function() {
-                        $table.columns(3).search('').draw();
-                        $table.columns(3).search($(this).val() ?? '').draw();
+                        $table.columns(5).search('').draw();
+                        $table.columns(5).search($(this).val() ?? '').draw();
                     });
                 }
+
+
+                let grandTotalSum = 0;
+                let isPaidSum = 0;
+
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const grandTotal = parseFloat(data[0]) || 0;
+                    const isPaid = parseFloat(data[1]) || 0;
+
+                    grandTotalSum += grandTotal;
+                    isPaidSum += isPaid;
+                });
+
+                const $grandTotal = $("#grand_total");
+                const $isPaid = $('#is_paid');
+                const $notPaid = $('#not_paid');
+
+                $grandTotal.text(parseNumToLocale(grandTotalSum));
+                $isPaid.text(parseNumToLocale(isPaidSum));
+                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+
                 feather.replace();
             },
             order: [[0, 'desc']],
@@ -256,7 +315,9 @@
             });
         }
 
-        $table.columns(3).visible(false);
+        $table.columns(0).visible(false);
+        $table.columns(1).visible(false);
+        $table.columns(5).visible(false);
 
         $.ajax({
             method: 'get',
@@ -265,10 +326,10 @@
             result.forEach(function(company) {
                 $('#filterCompany').append(`<a class="dropdown-item">${company.alias}</a>`);
             });
-            setupDropdownFilter('#filterCompany', 5, $table);
+            setupDropdownFilter('#filterCompany', 7, $table);
         });
-        setupDropdownFilter('#filterPaymentStatus', 6, $table);
-        setupDropdownFilter('#filterMarketingStatus', 7, $table);
+        setupDropdownFilter('#filterPaymentStatus', 8, $table);
+        setupDropdownFilter('#filterMarketingStatus', 9, $table);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');
