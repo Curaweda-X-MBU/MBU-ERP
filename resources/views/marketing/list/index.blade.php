@@ -4,18 +4,55 @@
 
 <link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
 
+<style>
+#filter_wrapper label, #filter_wrapper input {
+    margin: 0;
+}
+</style>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Export
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <button id="exportExcel" class="dropdown-item w-100" href="link_to_excel_export">Excel</button>
-                        <button id="exportPdf" class="dropdown-item w-100" href="link_to_pdf_export">PDF</button>
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-outline-secondary btn-icon waves-effect" type="button" data-toggle="dropdown">
+                            <i data-feather="filter"></i>
+                        </button>
+                        <ul class="dropdown-menu" id="filterDropdown" aria-labelledby="filterDropdown">
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Unit Bisnis</a>
+                                <ul class="dropdown-menu" id="filterCompany">
+                                </ul>
+                            </div>
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status Pembayaran</a>
+                                <ul class="dropdown-menu" id="filterPaymentStatus">
+                                    <a class="dropdown-item">Tempo</a>
+                                    <a class="dropdown-item">Dibayar Sebagian</a>
+                                    <a class="dropdown-item">Dibayar Penuh</a>
+                                </ul>
+                            </div>
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status</a>
+                                <ul class="dropdown-menu" id="filterMarketingStatus">
+                                    <a class="dropdown-item">Diajukan</a>
+                                    <a class="dropdown-item">Penawaran</a>
+                                    <a class="dropdown-item">Final</a>
+                                    <a class="dropdown-item">Realisasi</a>
+                                </ul>
+                            </div>
+                        </ul>
+                    </div>
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Export
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <button id="exportExcel" class="dropdown-item w-100">Excel</button>
+                            <button id="exportPdf" class="dropdown-item w-100">PDF</button>
+                        </ul>
                     </div>
                     <a href="{{ route('marketing.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
@@ -25,9 +62,12 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead>
+                                <th>Grand Total</th>
+                                <th>Is Paid</th>
                                 <th>No.DO</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
+                                <th>customer_id</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
                                 <th>Status Pembayaran</th>
@@ -37,9 +77,12 @@
                             <tbody>
                                 @foreach ($data as $item)
                                     <tr>
+                                        <td>{{ $item->grand_total }}</td>
+                                        <td>{{ $item->is_paid }}</td>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
+                                        <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
                                         <td>
@@ -111,6 +154,39 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                            <table class="table table-borderless">
+                                <tbody class="text-right">
+                                    <tr>
+                                        <td>
+                                            Total Penjualan:
+                                        </td>
+                                        <td class="font-weight-boder" style="font-size: 1.2em">
+                                            Rp. <span id="grand_total">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Total Sudah Dibayar:
+                                        </td>
+                                        <td class="font-weight-boder text-success" style="font-size: 1.2em">
+                                            Rp. <span id="is_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Total Belum Dibayar:
+                                        </td>
+                                        <td class="font-weight-boder text-danger" style="font-size: 1.2em">
+                                            Rp. <span id="not_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -129,11 +205,13 @@
 
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
+<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+
 <script>
     $(function () {
-        $('#datatable').DataTable({
+        var $table = $('#datatable').DataTable({
             // scrollX: true,
-            dom: 'Bfrtip',
+            dom: 'B<"#filter_wrapper"<"#filter_left"l>f>rtip',
             buttons: [
                 {
                     extend: 'excelHtml5',
@@ -150,11 +228,108 @@
                     },
                 },
             ],
-            drawCallback: function( settings ) {
+            drawCallback: function(settings) {
+                if (!$('#customer_slice').length) {
+                    $('#filter_wrapper')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem');
+                    $('#filter_left')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem')
+                        .append(
+                            `
+                                <div class="input-group" style="width: auto;">
+                                    <div>
+                                        <select id="customer_slice" class="form-control" style="width: auto;"></select>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button id="customer_slice_clear" class="btn btn-icon btn-outline-secondary">
+                                            <i data-feather="x"></i>
+                                        </buton>
+                                    </div>
+                                </div>
+                            `
+                        );
+
+                    var customerIdRoute = '{{ route("data-master.customer.search") }}';
+                    initSelect2($('#customer_slice'), 'Filter Pelanggan', customerIdRoute);
+
+                    $('#customer_slice_clear').on('click', function() {
+                        $('#customer_slice').val(null).trigger('change');
+                    });
+
+                    $('#customer_slice').on('select2:select change', function() {
+                        $table.columns(5).search('').draw();
+                        $table.columns(5).search($(this).val() ?? '').draw();
+                    });
+                }
+
+
+                let grandTotalSum = 0;
+                let isPaidSum = 0;
+
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const grandTotal = parseFloat(data[0]) || 0;
+                    const isPaid = parseFloat(data[1]) || 0;
+
+                    grandTotalSum += grandTotal;
+                    isPaidSum += isPaid;
+                });
+
+                const $grandTotal = $("#grand_total");
+                const $isPaid = $('#is_paid');
+                const $notPaid = $('#not_paid');
+
+                $grandTotal.text(parseNumToLocale(grandTotalSum));
+                $isPaid.text(parseNumToLocale(isPaidSum));
+                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+
                 feather.replace();
             },
             order: [[0, 'desc']],
         });
+
+        function setupDropdownFilter(selector, column, $table) {
+            const resetClass = 'reset';
+            const reset = `<a class="dropdown-item ${resetClass} active">Semua</a>`;
+            $(selector).prepend(reset);
+            $(selector).on('click', '.dropdown-item', function(e) {
+                e.stopPropagation();
+                $(this).siblings('.dropdown-item').removeClass('active');
+                $(this).addClass('active')
+                $table.columns(column).search('').draw();
+                if (!$(this).hasClass(resetClass)) {
+                    $table.columns(column).search($(this).text()).draw();
+                }
+            });
+
+            $(selector).siblings('a').on('mouseover', function() {
+                $(this).dropdown('show');
+                $(this).parent('.autoclose').siblings('.autoclose').each(function() {
+                    $(this).find('.dropdown-menu').dropdown('hide');
+                });
+            });
+            $(selector).on('mouseleave', function() {
+                $(this).dropdown('hide');
+            });
+        }
+
+        $table.columns(0).visible(false);
+        $table.columns(1).visible(false);
+        $table.columns(5).visible(false);
+
+        $.ajax({
+            method: 'get',
+            url: '{{ route("data-master.company.search") }}',
+        }).done(function(result) {
+            result.forEach(function(company) {
+                $('#filterCompany').append(`<a class="dropdown-item">${company.alias}</a>`);
+            });
+            setupDropdownFilter('#filterCompany', 7, $table);
+        });
+        setupDropdownFilter('#filterPaymentStatus', 8, $table);
+        setupDropdownFilter('#filterMarketingStatus', 9, $table);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');

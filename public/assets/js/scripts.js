@@ -129,10 +129,18 @@ function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
  * @param {string} [placeholder=Pilih]
  * @param {*} routePath
  * @param {string} [type]
+ * @param {Object} [opts]
  */
-function initSelect2($component, placeholder = "Pilih", routePath, type = "") {
+function initSelect2(
+    $component,
+    placeholder = "Pilih",
+    routePath,
+    type = "",
+    opts,
+) {
     if (routePath) {
         $component.select2({
+            ...opts,
             placeholder: placeholder,
             ajax: {
                 url: routePath,
@@ -169,6 +177,7 @@ function initSelect2($component, placeholder = "Pilih", routePath, type = "") {
         });
     } else {
         $component.select2({
+            ...opts,
             placeholder: placeholder,
         });
     }
