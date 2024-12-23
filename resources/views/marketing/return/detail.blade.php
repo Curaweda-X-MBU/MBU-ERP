@@ -77,6 +77,8 @@
                                                         <th>Referensi Dokumen</th>
                                                         <th>Nama Sales</th>
                                                         <th>Catatan</th>
+                                                        <th>Pajak</th>
+                                                        <th>Diskon</th>
                                                         <th>Total Piutang Penjualan (Rp)</th>
                                                         <th>Total Retur (Rp)</th>
                                                         <th>Status Retur Pembayaran</th>
@@ -111,6 +113,8 @@
                                                             <span>-</span>
                                                             @endif
                                                         </td>
+                                                        <td>{{ \App\Helpers\Parser::toLocale($data->tax) }}</td>
+                                                        <td>{{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
                                                         <td>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
                                                         <td>{{ \App\Helpers\Parser::toLocale($data->marketing_return->total_return) }}</td>
                                                         <td>
