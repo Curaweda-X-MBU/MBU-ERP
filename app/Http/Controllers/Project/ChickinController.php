@@ -58,7 +58,7 @@ class ChickinController extends Controller
             }
 
             if ($docPurchaseQty == 0) {
-                return redirect()->back()->with('error', 'Project ini belum melakukan pembelian/penerimaan DOC');
+                return redirect()->back()->with('error', 'Project ini belum melakukan pembelian/penerimaan produk');
             }
 
             $param = [
