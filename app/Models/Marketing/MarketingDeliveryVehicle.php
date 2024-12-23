@@ -18,6 +18,7 @@ class MarketingDeliveryVehicle extends Model
     protected $fillable = [
         'marketing_id',
         'plat_number',
+        'marketing_product_id',
         'qty',
         'uom_id',
         'exit_at',
@@ -28,6 +29,11 @@ class MarketingDeliveryVehicle extends Model
     public function marketing()
     {
         return $this->belongsTo(Marketing::class, 'marketing_id', 'marketing_id');
+    }
+
+    public function marketing_product()
+    {
+        return $this->belongsTo(MarketingProduct::class, 'marketing_product_id', 'marketing_product_id');
     }
 
     public function uom()

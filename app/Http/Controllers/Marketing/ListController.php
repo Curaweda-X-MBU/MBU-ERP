@@ -216,11 +216,10 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices.uom']);
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             $param = [
-                'title'   => 'Penjualan > Edit',
-                'data'    => $data,
-                'is_edit' => true,
+                'title' => 'Penjualan > Edit',
+                'data'  => $data,
             ];
 
             if ($req->isMethod('post')) {
@@ -357,7 +356,7 @@ class ListController extends Controller
         try {
             $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             if ($marketing->marketing_delivery_vehicles()->exists()) {
-                $data->load('marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
+                $data->load('marketing_delivery_vehicles.marketing_product.product', 'marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
             }
 
             $param = [
@@ -403,18 +402,23 @@ class ListController extends Controller
                     }
 
                     $marketing->update([
-                        'sold_at'          => date('Y-m-d', strtotime($input['sold_at'])),
-                        'doc_reference'    => $docReferencePath,
-                        'realized_at'      => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
-                        'notes'            => $input['notes'],
-                        'sales_id'         => $input['sales_id'] ?? null,
-                        'tax'              => $input['tax'],
-                        'discount'         => Parser::parseLocale($input['discount']),
-                        'marketing_status' => array_search(
-                            'Realisasi',
-                            Constants::MARKETING_STATUS
-                        ),
+                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference' => $docReferencePath,
+                        'realized_at'   => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
+                        'notes'         => $input['notes'],
+                        'sales_id'      => $input['sales_id'] ?? null,
+                        'tax'           => $input['tax'],
+                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
+
+                    if ($input['realized_at']) {
+                        $marketing->update([
+                            'marketing_status' => array_search(
+                                'Realisasi',
+                                Constants::MARKETING_STATUS
+                            ),
+                        ]);
+                    }
 
                     $marketing->marketing_delivery_vehicles()->delete();
                     if ($req->has('marketing_delivery_vehicles')) {
@@ -424,21 +428,20 @@ class ListController extends Controller
                             $qty = Parser::parseLocale($value['qty']);
 
                             $arrVehicle[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'plat_number'  => $value['plat_number'],
-                                'qty'          => $qty,
-                                'uom_id'       => $value['uom_id'],
-                                'exit_at'      => date('Y-m-d H:i', strtotime($value['exit_at'])),
-                                'sender_id'    => $value['sender_id'],
-                                'driver_name'  => $value['driver_name'],
+                                'marketing_id'         => $marketing->marketing_id,
+                                'plat_number'          => $value['plat_number'],
+                                'marketing_product_id' => $value['marketing_product_id'],
+                                'qty'                  => $qty,
+                                'uom_id'               => $value['uom_id'],
+                                'exit_at'              => date('Y-m-d H:i', strtotime($value['exit_at'])),
+                                'sender_id'            => $value['sender_id'],
+                                'driver_name'          => $value['driver_name'],
                             ];
                         }
-
                         MarketingDeliveryVehicle::insert($arrVehicle);
                     }
 
                     if ($req->has('marketing_products')) {
-                        $marketing->marketing_products()->delete();
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
@@ -447,21 +450,14 @@ class ListController extends Controller
                             $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice  = $price     * $weightTotal;
                             $productPrice += $totalPrice;
 
-                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
-                            $arrProduct[$key]['product_id']   = $value['product_id'];
-                            $arrProduct[$key]['price']        = $price;
-                            $arrProduct[$key]['weight_avg']   = $weightAvg;
-                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
-                            $arrProduct[$key]['qty']          = $qty;
-                            $arrProduct[$key]['weight_total'] = $weightTotal;
-                            $arrProduct[$key]['total_price']  = $totalPrice;
+                            $arrProduct[$key]['price']      = $price;
+                            $arrProduct[$key]['weight_avg'] = $weightAvg;
+                            $arrProduct[$key]['qty']        = $qty;
+                            MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
-
-                        MarketingProduct::insert($arrProduct);
                     }
 
                     $marketing->marketing_addit_prices()->delete();

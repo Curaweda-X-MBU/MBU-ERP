@@ -13,6 +13,7 @@
         <thead>
             <tr class="text-center">
                 <th>No Polisi</th>
+                <th>Product</th>
                 <th>Jumlah</th>
                 <th>UOM</th>
                 <th>Waktu Keluar Kandang</th>
@@ -31,11 +32,16 @@
                     <input name="plat_number" type="text" class="form-control" placeholder="No Polisi" required>
                 </td>
                 <td class="py-2">
+                    <select name="marketing_product_id" class="form-control vehicle_product_select" required>
+                        <option value="">Pilih Produk</option>
+                    </select>
+                </td>
+                <td class="py-2">
                     <input name="qty" type="text" class="form-control numeral-mask" placeholder="Jumlah" required>
                 </td>
                 <td class="py-2">
-                    <select name="uom_id" class="form-control uom_select" required>
-                    </select>
+                    <input name="uom_id" type="hidden">
+                    <input name="uom_name" class="form-control uom_select" placeholder="Unit" disabled>
                 </td>
                 <td class="py-2">
                     <input id="exit_at" name="exit_at" class="form-control flatpickr-datetime" placeholder="Waktu Keluar Kandang" required>
@@ -71,12 +77,29 @@
             show: function() {
                 const $row = $(this);
                 $row.slideDown();
-                const $uomSelect = $row.find('.uom_select');
                 const $senderSelect = $row.find('.sender_select');
-                const uomIdRoute = '{{ route("data-master.uom.search") }}';
                 const senderIdRoute = '{{ route("user-management.user.search") }}';
-                initSelect2($uomSelect, 'Pilih Satuan', uomIdRoute);
                 initSelect2($senderSelect, 'Pilih Pengirim', senderIdRoute);
+
+                const $productSelect = $row.find('.vehicle_product_select');
+                initSelect2($productSelect, 'Pilih Produk');
+                if ('{{ @$data->marketing_products }}') {
+                    const marketingProducts = @json($data->marketing_products);
+                    marketingProducts.forEach((marketingProduct, i) => {
+                        $productSelect.append(`<option data-uom_id="${marketingProduct.uom.uom_id}" data-uom_name="${marketingProduct.uom.name}" value="${marketingProduct.marketing_product_id}">${marketingProduct.product.name}</option>`)
+                    });
+                }
+
+                const $uomId = $row.find('input[name*="uom_id"]');
+                const $uomName = $row.find('input[name*="uom_name"]');
+                $productSelect.on('select2:select', function() {
+                    const data = $(this).select2('data')[0];
+                    const uom_id = data.element.dataset.uom_id;
+                    const uom_name = data.element.dataset.uom_name;
+                    $uomId.val(uom_id);
+                    $uomName.val(uom_name);
+                });
+
                 initNumeralMask('.numeral-mask');
                 $('.flatpickr-datetime').flatpickr(dateTimeOpt);
                 $('.flatpickr-basic').flatpickr(dateOpt);
@@ -96,11 +119,25 @@
 
             vehicles.forEach((vehicle, i) => {
                 $('#marketing-delivery-vehicles-repeater-1').find('button[data-repeater-create]').trigger('click');
+
                 $(`input[name="marketing_delivery_vehicles[${i}][plat_number]"]`).val(vehicle.plat_number);
+
+                $(`select[name="marketing_delivery_vehicles[${i}][marketing_product_id]"]`).append(`<option value="${vehicle.marketing_product_id}" selected>${vehicle.marketing_product.product.name}</option>`).trigger('change');
+
                 $(`input[name="marketing_delivery_vehicles[${i}][qty]"]`).val(vehicle.qty);
-                $(`select[name="marketing_delivery_vehicles[${i}][uom_id]"]`).append(`<option value="${vehicle.uom_id}" selected>${vehicle.uom.name}</option>`).trigger('change');
-                $(`input[name="marketing_delivery_vehicles[${i}][exit_at]"]`).val(vehicle.exit_at);
+
+                $(`input[name="marketing_delivery_vehicles[${i}][uom_id]"]`).val(vehicle.uom_id);
+                $(`input[name="marketing_delivery_vehicles[${i}][uom_name]"]`).val(vehicle.uom.name);
+
+                const date = new Date(vehicle.exit_at);
+                const dateOptions = { day: '2-digit', year: 'numeric', month: 'short' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+                const formattedDate = date.toLocaleDateString('en-GB', dateOptions).replace(/ /g, '-');
+                const formattedTime = date.toLocaleTimeString('en-GB', timeOptions);
+                $(`input[name="marketing_delivery_vehicles[${i}][exit_at]"]`).val(`${formattedDate} ${formattedTime}`);
+
                 $(`select[name="marketing_delivery_vehicles[${i}][sender_id]"]`).append(`<option value="${vehicle.sender_id}" selected>${vehicle.sender.name}</option>`).trigger('change');
+
                 $(`input[name="marketing_delivery_vehicles[${i}][driver_name]"]`).val(vehicle.driver_name);
             });
         } else {
