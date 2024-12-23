@@ -7,7 +7,7 @@
 <div class="table-responsive">
     <table class="table table-bordered w-100 no-wrap text-center" id="bw-repeater">
         <thead>
-            <th>Berat (Kg)</th>
+            <th>Berat (gram)</th>
             <th>Jumlah</th>
             <th>Total Rataan</th>
             <th>Satuan</th>
@@ -110,7 +110,8 @@
             if (weight && qty) {
                 weight = parseFloat(weight.replace(/\./g, '').replace(/,/g, '.'));
                 qty = parseInt(qty.replace(/\./g, '').replace(/,/g, '.'));
-                const weightCalc = weight*qty;
+                const weightGram = weight/1000;
+                const weightCalc = weightGram*qty;
                 
                 if (weightCalc >= 0) {
                     set.find('.weight_calc_input').val(weightCalc);
@@ -146,7 +147,7 @@
                 return total;
             }
 
-            totalWeight = calculateTotalFromSelector('.weight');
+            totalWeight = calculateTotalFromSelector('.weight')/1000;
             totalChick = calculateTotalFromSelector('.total');
             totalCalc = calculateTotalFromSelector('.weight_calc');
             

@@ -90,7 +90,7 @@ class RecordingController extends Controller
 
                 foreach ($project->purchase_item as $key => $value) {
                     if ($value->product->product_category->category_code
-                        && $value->product->product_category->category_code === 'DOC') {
+                        && $value->product->product_category->category_code === 'BRO') {
                         $docProdId = $value->product_id;
                     }
                     if ($value->product->product_category->category_code

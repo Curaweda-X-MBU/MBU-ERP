@@ -128,7 +128,7 @@
                                             <div class="table-responsive">
                                                 <table class="table table-bordered w-100 no-wrap text-center" id="bw-repeater">
                                                     <thead>
-                                                        <th>Berat (Kg)</th>
+                                                        <th>Berat (Gram)</th>
                                                         <th>Jumlah</th>
                                                         <th>Total Rataan</th>
                                                         <th>Satuan</th>
@@ -137,9 +137,9 @@
                                                         @foreach ($data->recording_bw??[] as $item)
                                                             @foreach ($item->recordingBwList??[] as $val)
                                                             <tr>
-                                                                <td>{{ $val->weight }}</td>
-                                                                <td>{{ $val->total }}</td>
-                                                                <td>{{ $val->weight_calc }}</td>
+                                                                <td>{{ number_format($val->weight,2,',','.') }}</td>
+                                                                <td>{{ number_format($val->total,0,',','.') }}</td>
+                                                                <td>{{ number_format($val->weight_calc,2,',','.') }}</td>
                                                                 <td>Ekor</td>
                                                             </tr>
                                                             @endforeach
@@ -149,19 +149,19 @@
                                                         @foreach ($data->recording_bw as $item)
                                                         <tr>
                                                             <td colspan="3" class="text-right">Rata-rata Berat</td>
-                                                            <td>{{ $item->avg_weight }}</td>
+                                                            <td>{{ number_format($item->avg_weight, 2, ',', '.') }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Jumlah Ekor</td>
-                                                            <td>{{ $item->total_chick }}</td>
+                                                            <td>{{ number_format($item->total_chick, 0, ',', '.') }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Jumlah Berat</td>
-                                                            <td>{{ $item->total_calc }}</td>
+                                                            <td>{{ number_format($item->total_calc, 2, ',', '.') }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Bobot Rataan</td>
-                                                            <td>{{ $item->value }}</td>
+                                                            <td>{{ number_format($item->value, 2, ',', '.') }}</td>
                                                         </tr>
                                                         @endforeach
                                                     </tfoot>
