@@ -298,7 +298,7 @@
 
                 feather.replace();
             },
-            order: [[0, 'asc']],
+            order: [[2, 'desc']],
         });
 
         function setupDropdownFilter(selector, column, $table) {
