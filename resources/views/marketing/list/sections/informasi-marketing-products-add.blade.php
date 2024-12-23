@@ -29,9 +29,7 @@
         </thead>
         <tbody data-repeater-list="marketing_products">
             <tr class="text-center" data-repeater-item>
-                @if(@$is_return)
-                <input type="hidden" name="marketing_product_id">
-                @endif
+                <input type="hidden" name="marketing_product_id" required>
                 <td class="pt-2 pb-3">
                     @if (@$is_realization || @$is_return)
                         <input type="hidden" name="warehouse_id" required>
@@ -220,9 +218,8 @@
         products.forEach((product, i) => {
             $('#marketing-product-repeater-1').find('button[data-repeater-create]').trigger('click');
 
-            if('{{ @$is_return }}') {
-                $(`input[name="marketing_products[${i}][marketing_product_id]"]`).val(product.marketing_product_id);
-            }
+            $(`input[name="marketing_products[${i}][marketing_product_id]"]`).val(product.marketing_product_id);
+
             $(`select[name="marketing_products[${i}][warehouse_id]"]`).append(`<option value="${product.warehouse_id}" selected>${product.warehouse.name}</option>`).trigger('change');
             $(`select[name="marketing_products[${i}][product_id]"]`).append(`<option value="${product.product.product_id}" selected>${product.product.name}</option>`).trigger('change');
 

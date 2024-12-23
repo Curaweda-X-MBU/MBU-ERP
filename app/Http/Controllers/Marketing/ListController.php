@@ -403,18 +403,23 @@ class ListController extends Controller
                     }
 
                     $marketing->update([
-                        'sold_at'          => date('Y-m-d', strtotime($input['sold_at'])),
-                        'doc_reference'    => $docReferencePath,
-                        'realized_at'      => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
-                        'notes'            => $input['notes'],
-                        'sales_id'         => $input['sales_id'] ?? null,
-                        'tax'              => $input['tax'],
-                        'discount'         => Parser::parseLocale($input['discount']),
-                        'marketing_status' => array_search(
-                            'Realisasi',
-                            Constants::MARKETING_STATUS
-                        ),
+                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference' => $docReferencePath,
+                        'realized_at'   => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
+                        'notes'         => $input['notes'],
+                        'sales_id'      => $input['sales_id'] ?? null,
+                        'tax'           => $input['tax'],
+                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
+
+                    if ($input['realized_at']) {
+                        $marketing->update([
+                            'marketing_status' => array_search(
+                                'Realisasi',
+                                Constants::MARKETING_STATUS
+                            ),
+                        ]);
+                    }
 
                     $marketing->marketing_delivery_vehicles()->delete();
                     if ($req->has('marketing_delivery_vehicles')) {
@@ -438,7 +443,6 @@ class ListController extends Controller
                     }
 
                     if ($req->has('marketing_products')) {
-                        $marketing->marketing_products()->delete();
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
@@ -447,7 +451,7 @@ class ListController extends Controller
                             $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice  = $price     * $weightTotal;
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['price']      = $price;
@@ -455,8 +459,6 @@ class ListController extends Controller
                             $arrProduct[$key]['qty']        = $qty;
                             MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
-
-                        MarketingProduct::insert($arrProduct);
                     }
 
                     $marketing->marketing_addit_prices()->delete();
