@@ -55,7 +55,7 @@
                     <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
                 <td class="pt-2 pb-3">
-                    <input type="hidden" name="uom_id"required>
+                    <input type="hidden" name="uom_id" required>
                     <input name="uom_name" class="form-control" disabled>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
@@ -160,10 +160,8 @@
             const $marketingWarehouseSelect = $row.find('.marketing_warehouse_select');
             const $marketingProductSelect = $row.find('.marketing_product_select');
             const warehouseIdRoute = '{{ route("data-master.warehouse.search-kandang") }}';
-            const uomIdRoute = '{{ route("data-master.uom.search") }}';
             // ? START :: SELECT2 :: REINITIALIZE
             initSelect2($marketingWarehouseSelect, 'Pilih Kandang', warehouseIdRoute);
-            initSelect2($uomSelect, 'Pilih Satuan', uomIdRoute);
             // START :: MARKETING PRODUCT + STOCK UPDATE
             $marketingProductSelect.html('<option disabled selected>Pilih Kandang terlebih dahulu</option>');
             $marketingWarehouseSelect.on('change', function(e) {

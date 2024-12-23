@@ -146,16 +146,39 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                         <table class="table table-borderless">
                             <tbody class="text-right">
                                 <tr>
-                                    <td>Total Sudah Dibayar:</td>
-                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale(
-                                            $data->marketing_payments
-                                            ->filter(fn($payment) => $payment->verify_status == 2)
-                                            ->sum('payment_nominal') ?? 0
-                                        )  }}</td>
+                                    <td>Nominal Sebelum Pajak:</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->sub_total) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Nominal Biaya Lainnya:</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">+ Rp. {{ \App\Helpers\Parser::toLocale($data->marketing_addit_prices->sum('price')) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Nominal Diskon:</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">- Rp. {{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Pajak:</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">+ {{ \App\Helpers\Parser::toLocale($data->tax) }} %</td>
+                                </tr>
+
+                                <!-- Garis Horizontal -->
+                                <tr>
+                                    <td colspan="2">
+                                        <hr>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Nominal Pembelian:</td>
                                     <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-success">Total Sudah Dibayar:</td>
+                                    <td class="font-weight-bolder text-success" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale(
+                                            $data->marketing_payments
+                                            ->filter(fn($payment) => $payment->verify_status == 2)
+                                            ->sum('payment_nominal') ?? 0
+                                        )  }}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-danger">Sisa Belum Dibayar:</td>

@@ -70,12 +70,19 @@
                                 <th>customer_id</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
+                                <th>Nominal Penjualan (Rp)</th>
+                                <th>Nominal Sudah Bayar (Rp)</th>
+                                <th>Nominal Sisa Bayar (Rp)</th>
                                 <th>Status Pembayaran</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
                                 @foreach ($data as $item)
+                                @php
+                                    $nominalPenjualan = $item->grand_total;
+                                    $nominalSisaBayar = $item->marketing_payments->sum('payment_nominal');
+                                @endphp
                                     <tr>
                                         <td>{{ $item->grand_total }}</td>
                                         <td>{{ $item->is_paid }}</td>
@@ -85,6 +92,9 @@
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
@@ -128,10 +138,12 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
+                                                    @if ($item->marketing_status != 4)
                                                     <a class="dropdown-item" href="{{ route('marketing.list.realization', $item->marketing_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
-                                                        <span>Tambah Realisasi</span>
-                                                    </a>
+                                                            <span>Tambah Realisasi</span>
+                                                        </a>
+                                                    @endif
                                                     <a class="dropdown-item" href="{{ route('marketing.list.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
@@ -141,8 +153,7 @@
                                                         <span>Retur</span>
                                                     </a>
                                                     <a class="dropdown-item item-delete-button text-danger"
-                                                        href="{{ route('marketing.list.delete', $item->marketing_id) }}"
-                                                    >
+                                                        href="{{ route('marketing.list.delete', $item->marketing_id) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
@@ -163,23 +174,23 @@
                                         <td>
                                             Total Penjualan:
                                         </td>
-                                        <td class="font-weight-boder" style="font-size: 1.2em">
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">
                                             Rp. <span id="grand_total">0,00</span>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>
+                                        <td class="text-success">
                                             Total Sudah Dibayar:
                                         </td>
-                                        <td class="font-weight-boder text-success" style="font-size: 1.2em">
+                                        <td class="font-weight-bolder text-success" style="font-size: 1.2em">
                                             Rp. <span id="is_paid">0,00</span>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>
+                                        <td class="text-danger">
                                             Total Belum Dibayar:
                                         </td>
-                                        <td class="font-weight-boder text-danger" style="font-size: 1.2em">
+                                        <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
                                             Rp. <span id="not_paid">0,00</span>
                                         </td>
                                     </tr>
@@ -287,7 +298,7 @@
 
                 feather.replace();
             },
-            order: [[0, 'desc']],
+            order: [[0, 'asc']],
         });
 
         function setupDropdownFilter(selector, column, $table) {
@@ -328,8 +339,8 @@
             });
             setupDropdownFilter('#filterCompany', 7, $table);
         });
-        setupDropdownFilter('#filterPaymentStatus', 8, $table);
-        setupDropdownFilter('#filterMarketingStatus', 9, $table);
+        setupDropdownFilter('#filterPaymentStatus', 11, $table);
+        setupDropdownFilter('#filterMarketingStatus', 12, $table);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');
