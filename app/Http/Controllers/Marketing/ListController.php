@@ -358,7 +358,7 @@ class ListController extends Controller
         try {
             $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             if ($marketing->marketing_delivery_vehicles()->exists()) {
-                $data->load('marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
+                $data->load('marketing_delivery_vehicles.marketing_product.product', 'marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
             }
 
             $param = [
@@ -425,16 +425,16 @@ class ListController extends Controller
                             $qty = Parser::parseLocale($value['qty']);
 
                             $arrVehicle[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'plat_number'  => $value['plat_number'],
-                                'qty'          => $qty,
-                                'uom_id'       => $value['uom_id'],
-                                'exit_at'      => date('Y-m-d H:i', strtotime($value['exit_at'])),
-                                'sender_id'    => $value['sender_id'],
-                                'driver_name'  => $value['driver_name'],
+                                'marketing_id'         => $marketing->marketing_id,
+                                'plat_number'          => $value['plat_number'],
+                                'marketing_product_id' => $value['marketing_product_id'],
+                                'qty'                  => $qty,
+                                'uom_id'               => $value['uom_id'],
+                                'exit_at'              => date('Y-m-d H:i', strtotime($value['exit_at'])),
+                                'sender_id'            => $value['sender_id'],
+                                'driver_name'          => $value['driver_name'],
                             ];
                         }
-
                         MarketingDeliveryVehicle::insert($arrVehicle);
                     }
 
@@ -451,15 +451,10 @@ class ListController extends Controller
                             $totalPrice  = $price     * $qty;
                             $productPrice += $totalPrice;
 
-                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
-                            $arrProduct[$key]['product_id']   = $value['product_id'];
-                            $arrProduct[$key]['price']        = $price;
-                            $arrProduct[$key]['weight_avg']   = $weightAvg;
-                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
-                            $arrProduct[$key]['qty']          = $qty;
-                            $arrProduct[$key]['weight_total'] = $weightTotal;
-                            $arrProduct[$key]['total_price']  = $totalPrice;
+                            $arrProduct[$key]['price']      = $price;
+                            $arrProduct[$key]['weight_avg'] = $weightAvg;
+                            $arrProduct[$key]['qty']        = $qty;
+                            MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
 
                         MarketingProduct::insert($arrProduct);
