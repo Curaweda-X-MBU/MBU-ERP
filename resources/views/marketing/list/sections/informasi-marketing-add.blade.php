@@ -42,8 +42,12 @@
     <div class="col-md-2 mt-1">
         <label for="doc_reference" class="form-label">Referensi Dokumen</label>
         <div class="input-group">
-            <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1">
-            <input type="file" id="transparentFileUpload" name="doc_reference">
+            @if (@$is_realization || @$is_return || @$is_edit)
+                <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1" value="{{ $data->doc_reference }}">
+            @else
+                <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1">
+            @endif
+                <input type="file" id="transparentFileUpload" name="doc_reference">
             <div class="input-group-append">
                 <span class="input-group-text"> <i data-feather="upload"></i> </span>
             </div>

@@ -150,13 +150,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $createdMarketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
 
                     $createdMarketing->update([
@@ -217,10 +216,11 @@ class ListController extends Controller
     public function edit(Request $req, Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
+            $data  = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices.uom']);
             $param = [
-                'title' => 'Penjualan > Edit',
-                'data'  => $data,
+                'title'   => 'Penjualan > Edit',
+                'data'    => $data,
+                'is_edit' => true,
             ];
 
             if ($req->isMethod('post')) {
@@ -308,13 +308,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 
@@ -509,13 +508,12 @@ class ListController extends Controller
                         $success['success'] = 'Data Berhasil disimpan sebagai draft';
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 

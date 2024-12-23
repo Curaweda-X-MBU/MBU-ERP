@@ -30,14 +30,16 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                <a href="{{ isset($data->realized_at) ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
+                @if ($data->marketing_status != 4)
+                <a href="{{ $data->marketing_status == 4 ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
                 </a>
+                @endif
                 @php
                     $roleAccess = Auth::user()->role;
                 @endphp
-                @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->marketing_status != 3)
+                @if ($roleAccess->hasPermissionTo('marketing.list.approve') && $data->marketing_status != 3 && $data->marketing_status != 4)
                     <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
                         <i data-feather="check" class="mr-50"></i>
                         Approve
