@@ -172,7 +172,6 @@
                 $('#sales_id').append(`<option value="${marketing.sales_id}" selected>${marketing.sales.name}</option>`).trigger('change');
             }
 
-            console.log(marketing);
             // TAX
             $('#tax').val(marketing.tax ?? 0);
             $('#tax_mask').val(parseNumToLocale(marketing.tax ?? '')).trigger('input');

@@ -11,6 +11,8 @@ use App\Models\Marketing\MarketingPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Spatie\SimpleExcel\SimpleExcelReader;
 
 class ListPaymentController extends Controller
 {
@@ -76,6 +78,34 @@ class ListPaymentController extends Controller
             return redirect()
                 ->back()
                 ->with($success);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function batch(Request $req)
+    {
+        try {
+            if ($req->isMethod('post')) {
+                if ($req->hasFile('payment_csv')) {
+                    $file = $req->file('payment_csv');
+
+                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $extension    = 'csv';
+                    $tempFileName = $originalName.'.'.$extension;
+                    $tempPath     = $file->storeAs('tmp', $tempFileName, 'local');
+                    $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))->getRows();
+
+                    $param = [
+                        'title' => 'Penjualan > Payment',
+                        'data'  => $rows,
+                    ];
+
+                    Storage::disk('local')->delete($tempPath);
+
+                    return view('marketing.list.payment.batch', $param);
+                }
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

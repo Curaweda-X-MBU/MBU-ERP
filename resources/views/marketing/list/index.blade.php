@@ -81,7 +81,9 @@
                                 @foreach ($data as $item)
                                 @php
                                     $nominalPenjualan = $item->grand_total;
-                                    $nominalSisaBayar = $item->marketing_payments->sum('payment_nominal');
+                                    $nominalSisaBayar = $item->marketing_payments
+                                        ->filter(fn($payment) => ( $payment->verify_status == 2 ))
+                                        ->sum('payment_nominal');
                                 @endphp
                                     <tr>
                                         <td>{{ $item->grand_total }}</td>
@@ -167,7 +169,10 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                        <div class="col-12 col-md-6 my-1">
+                            @include('marketing.list.sections.batch-upload-modal')
+                        </div>
+                        <div class="col-12 col-md-6 my-1">
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>
@@ -216,7 +221,7 @@
 
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
-<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 
 <script>
     $(function () {
