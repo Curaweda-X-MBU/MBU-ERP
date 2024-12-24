@@ -71,12 +71,12 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">{{$title}}</h4>
-            </div>
-            <div class="card-body">
-                <div class="container-fluid">
-                    <form id="paymentBatchForm" action="{{-- route('marketing.list.payment.batch.add') --}}" method="post" enctype="multipart/form-data">
+            <form id="paymentBatchForm" action="{{-- route('marketing.list.payment.batch.add') --}}" method="post" enctype="multipart/form-data">
+                <div class="card-header">
+                    <h4 class="card-title">{{$title}}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="container-fluid">
                         <section id="payment-batch-repeater-1">
                             <div class="collapse-default" data-repeater-list="payment_batch_upload">
                                 {{-- Repeater --}}
@@ -159,9 +159,13 @@
                                 {{-- Repeater --}}
                             </div>
                         </section>
-                    </form>
+                    </div>
                 </div>
-            </div>
+                <div class="card-footer text-right">
+                    <button type="button" id="allocateButton" class="btn btn-warning">Alokasi Otomatis</button>
+                    <button type="submit" id="submitButton" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -117,8 +117,6 @@
 
         // STATUS
         $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
-
-        // TODO: FILE UPLOAD
     }
     // ? END :: EDIT VALUES
 </script>

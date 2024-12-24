@@ -245,7 +245,7 @@
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#qty').prop('max', chose.qty);
                     $(`select[name="marketing_products[${i}][product_id]"]`).closest('tr').find('#current_stock').text(parseNumToLocale(chose.qty).split(',')[0]);
                 }
-                if ('{{@$is_edit}}') {
+                if ('{{@$is_return && @$is_edit}}') {
                     $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.return_qty).trigger('input');
                 } else {
                     $(`input[name="marketing_products[${i}][qty]"]`).siblings('#qty_mask').val(product.qty).trigger('input');
