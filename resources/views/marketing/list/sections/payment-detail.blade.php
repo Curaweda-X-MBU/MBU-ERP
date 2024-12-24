@@ -111,7 +111,7 @@
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="doc_reference">Upload Dokumen</label>
+                <label for="document_path">Upload Dokumen</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <div class="input-group">

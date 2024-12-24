@@ -86,25 +86,39 @@ class ListPaymentController extends Controller
     public function batch(Request $req)
     {
         try {
-            if ($req->isMethod('post')) {
-                if ($req->hasFile('payment_csv')) {
-                    $file = $req->file('payment_csv');
+            if ($req->hasFile('payment_csv')) {
+                $file = $req->file('payment_csv');
 
-                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $extension    = 'csv';
-                    $tempFileName = $originalName.'.'.$extension;
-                    $tempPath     = $file->storeAs('tmp', $tempFileName, 'local');
-                    $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))->getRows();
+                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension    = 'csv';
+                $tempFileName = $originalName.'.'.$extension;
+                $tempPath     = $file->storeAs('tmp', $tempFileName, 'local');
+                $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))->getRows();
 
-                    $param = [
-                        'title' => 'Penjualan > Payment',
-                        'data'  => $rows,
-                    ];
+                $data = Marketing::with(['customer', 'company', 'marketing_payments'])
+                    ->whereNull('marketing_return_id')
+                    ->where('marketing_status', '>=', 3)
+                    ->get()->map(function($marketing) {
+                        $marketing->is_paid = $marketing->marketing_payments
+                            ->filter(function($payment) {
+                                return $payment->verify_status == 2;
+                            })
+                            ->sum('payment_nominal');
 
-                    Storage::disk('local')->delete($tempPath);
+                        return $marketing;
+                    });
 
-                    return view('marketing.list.payment.batch', $param);
-                }
+                $param = [
+                    'title'    => 'Penjualan > Payment > Batch Upload',
+                    'data'     => $data,
+                    'payments' => $rows,
+                ];
+
+                Storage::disk('local')->delete($tempPath);
+
+                return view('marketing.list.payment.batch', $param);
+            } else {
+                throw new \Exception('Tidak ada file csv');
             }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
