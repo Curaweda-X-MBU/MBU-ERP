@@ -67,6 +67,7 @@
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+<link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
 
 <div class="row">
     <div class="col-12">
@@ -97,9 +98,8 @@
                                                 <tbody>
                                                     <tr>
                                                         <td>
-                                                            <label for="id_marketing">No. DO<i class="text-danger">*</i></label>
-                                                            <input type="hidden" name="marketing_id">
-                                                            <select name="id_marketing" class="form-control marketing_id_select" required>
+                                                            <label for="marketing_id">No. DO<i class="text-danger">*</i></label>
+                                                            <select name="marketing_id" class="form-control marketing_id_select">
                                                             </select>
                                                             <small class="text-danger invalid" style="opacity: 0;">DO tidak ditemukan</small>
                                                         </td>
@@ -176,6 +176,7 @@
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
 <script>
     $(document).ready(function() {
@@ -200,7 +201,7 @@
 
         function updateSisaBayar(rowIdx) {
             const $row = $(`.row-scope[data-index="${rowIdx}"]`);
-            const marketing_id = $row.find('input[name*="marketing_id"]').val();
+            const marketing_id = $row.find('select[name*="marketing_id"]').val();
             const marketing = @json($data).find((item) => item.marketing_id == marketing_id);;
             if (marketing) {
                 // using payment_nominal_mask instead because of race situation
@@ -242,13 +243,16 @@
 
                 const bankIdRoute = '{{ route("data-master.bank.search") }}';
                 const $bankSelect = $row.find('.bank_id_select');
-                initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
+                initSelect2($bankSelect, 'Pilih Bank', bankIdRoute, '', { allowClear: true });
 
                 const $marketingSelect = $row.find('.marketing_id_select');
                 initSelect2($marketingSelect, 'Pilih DO');
 
                 initNumeralMask('.numeral-mask')
-                $('.flatpickr-basic').flatpickr(dateOpt);
+                $('.flatpickr-basic').flatpickr({
+                    ...dateOpt,
+                    allowInput: true,
+                });
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
@@ -280,11 +284,10 @@
             // id_marketing
             if (marketingIds.includes(payment.do_number.toLowerCase())) {
                 const marketingId = payment.do_number.split('.').splice(-1)[0];
-                $row.find('select[name*="id_marketing"]').append(`<option value="${marketingId}" selected>${payment.do_number}</option>`).trigger('change');
-                $row.find('select[name*="id_marketing"]').attr('readonly', true);
-                $row.find('input[name*="marketing_id"]').val(marketingId);
+                $row.find('select[name*="marketing_id"]').append(`<option value="${marketingId}" selected>${payment.do_number}</option>`).trigger('change');
+                $row.find('select[name*="marketing_id"]').attr('readonly', true);
             } else {
-                const selectedMarketings = $('select[name*="id_marketing"]')
+                const selectedMarketings = $('select[name*="marketing_id"]')
                     .map(function() {
                         if ($(this).val()) {
                             return $(this).val().toString();
@@ -292,9 +295,9 @@
                     }).get();
                 const availableMarketings = marketings.filter((marketing) => !selectedMarketings.includes(marketing.marketing_id.toString()));
                 availableMarketings.forEach(function(marketing) {
-                    $row.find('select[name*="id_marketing"]').append(`<option value="${marketing.marketing_id}">${marketing.id_marketing}</option>`).val('');
+                    $row.find('select[name*="marketing_id"]').append(`<option value="${marketing.marketing_id}">${marketing.id_marketing}</option>`).val('');
                 })
-                $row.find('select[name*="id_marketing"]').siblings('.invalid').css('opacity', 1);
+                $row.find('select[name*="marketing_id"]').siblings('.invalid').css('opacity', 1);
             }
 
             // payment_method
@@ -317,14 +320,11 @@
                         if (data.length > 0) {
                             const bank = data[0];
                             $row.find('select[name*="bank_id"]').append(`<option value="${bank.id}">${bank.text}</option>`);
-                            $row.find('select[name*="bank_id"]').attr('readonly', true);
                         } else {
                             $row.find('select[name*="bank_id"]').siblings('.invalid').css('opacity', 1);
                         }
                     }
                 });
-            } else {
-                $row.find('select[name*="bank_id"]').attr('readonly', true);
             }
 
             // payment_reference
@@ -360,9 +360,8 @@
                 updateIsInvalid(i);
             });
 
-            $row.on('select2:select', 'select[name*="id_marketing"], select[name*="payment_method"], select[name*="bank_id"]', function() {
-                $row.find('.collapse-title').text(`DO #${i + 1} | DO.MBU.${$row.find('select[name*="id_marketing"]').val()}`);
-                $row.find('input[name*="marketing_id"]').val($row.find('select[name*="id_marketing"]').val());
+            $row.on('select2:select', 'select[name*="marketing_id"], select[name*="payment_method"], select[name*="bank_id"]', function() {
+                $row.find('.collapse-title').text(`DO #${i + 1} | DO.MBU.${$row.find('select[name*="marketing_id"]').val()}`);
                 $(this).siblings('.invalid').css('opacity', 0);
                 updateSisaBayar(i);
                 updateIsInvalid(i);
@@ -372,58 +371,101 @@
             updateIsInvalid(i);
         });
 
-        $('#allocateButton').on('click', function() {
+        $('#submitButton').on('click', function (e) {
+            const $form = $('#paymentBatchForm');
+
+            if (!$form[0].checkValidity()) {
+                return;
+            }
+
+            e.preventDefault();
+            const $paymentLefts = $('.sisa-bayar');
+            const paymentLefts = $paymentLefts.map(function() {
+                return parseLocaleToNum($(this).text());
+            }).get();
+
+            const is_invalid = paymentLefts.some((i) => i < 0);
+
+            if (is_invalid) {
+                confirmCallback({
+                    title: 'Submit',
+                    text: 'Masih ada pembayaran berlebih! Tetap lanjutkan?',
+                    footer: '<i class="text-center">Data pada DO yang tidak ditemukan akan hangus.</i>',
+                    icon: 'warning',
+                    confirmText: 'Lanjutkan',
+                    confirmClass: 'btn-warning',
+                }, function() {
+                    $form.trigger('submit');
+                });
+            } else {
+                confirmCallback({
+                    title: 'Submit',
+                    text: 'Data sudah sesuai.',
+                    footer: '<i class="text-center">Data pada DO yang tidak ditemukan akan hangus.</i>',
+                    icon: 'info',
+                    confirmText: 'Lanjutkan',
+                    confirmClass: 'btn-primary',
+                }, function() {
+                    $form.trigger('submit');
+                });
+            }
+        });
+
+        $('#allocateButton').on('click', function () {
             const $rows = $('.row-scope');
 
-            // filter affected rows
-            const $validRows = $rows.filter(function() {
+            // Filter rows with valid marketing selections
+            const $validRows = $rows.filter(function () {
                 return $(this).find('.marketing_id_select').val();
             });
 
-            // pass all overpayments down
-            let over = 0;
-            $validRows.each(function(i) {
+            let overpayment = 0;
+
+            $validRows.each(function (index) {
                 const $row = $(this);
 
-                console.log(`-------------------#${i}---------------------`);
-                const $payment = $row.find('input[name*="payment_nominal"]');
-                const $paymentMask = $row.find('.payment_nominal_mask');
-                const payment = parseLocaleToNum($paymentMask.val());
-                const paymentLeft = parseLocaleToNum($row.find('.sisa-bayar').text());
-
-                console.log('initial payment : ', payment);
-                console.log('initial payment left : ', paymentLeft);
-
-                $paymentMask.val(
-                    parseNumToLocale(payment + over)
-                        .split(',')[0]
-                ).trigger('input');
-                $payment.val(payment + over);
-
-                const newPaymentLeft = paymentLeft - over;
-
-                console.log('payment + over : ', payment + over);
-                console.log('payment left - over: ', newPaymentLeft);
-
-                // if last row, nowhere to pass overpayments, stop
-                if (i + 1 !== $validRows.length) {
-                    if (newPaymentLeft < 0) {
-                        over = Math.abs(newPaymentLeft);
-                        $paymentMask.val(
-                            parseNumToLocale(payment - Math.abs(newPaymentLeft))
-                                .split(',')[0]
-                        ).trigger('input');
-
-                        console.log('OVERPAYMENT!')
-                        console.log('payment - paymentLeft : ', payment - Math.abs(newPaymentLeft));
-                    } else {
-                        console.log('NOT OVERPAID!')
-                        over = 0;
-                    }
-                    console.log('new over : ', over);
-                }
-                console.log(`------------------------------------------`);
+                allocateRow($row, index, false);
             });
+
+            // if there's still excess payment, run once again;
+            if (overpayment > 0) {
+                $validRows.each(function (index) {
+                    const $row = $(this);
+
+                    allocateRow($row, index, true);
+                });
+            }
+
+            function allocateRow($row, index, isLastPass) {
+                const $paymentInput = $row.find('input[name*="payment_nominal"]');
+                const $paymentDisplay = $row.find('.payment_nominal_mask');
+                const $paymentLeftDisplay = $row.find('.sisa-bayar');
+
+                const initialPayment = parseLocaleToNum($paymentDisplay.val());
+                const initialPaymentLeft = parseLocaleToNum($paymentLeftDisplay.text());
+
+                let adjustedPayment = initialPayment + overpayment;
+                let newPaymentLeft = initialPaymentLeft - overpayment;
+
+                if (isLastPass && $validRows.length === index + 1) {
+                } else {
+                    if (newPaymentLeft < 0) {
+                        overpayment = Math.abs(newPaymentLeft);
+                        adjustedPayment = adjustedPayment + newPaymentLeft;
+                        newPaymentLeft = 0;
+                    } else {
+                        overpayment = 0;
+                    }
+                }
+
+                updatePayment($paymentInput, $paymentDisplay, adjustedPayment);
+            }
+
+            function updatePayment($input, $display, value) {
+                const formattedValue = parseNumToLocale(value);
+                $display.val(formattedValue.split(',')[0]).trigger('input');
+                $input.val(value);
+            }
         });
     });
 </script>
