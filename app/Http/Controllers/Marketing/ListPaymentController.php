@@ -93,33 +93,36 @@ class ListPaymentController extends Controller
                 $extension    = 'csv';
                 $tempFileName = $originalName.'.'.$extension;
                 $tempPath     = $file->storeAs('tmp', $tempFileName, 'local');
-                $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))->getRows();
+                $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))
+                    ->getRows()
+                    ->toArray();
 
                 $data = Marketing::with(['customer', 'company', 'marketing_payments'])
                     ->whereNull('marketing_return_id')
                     ->where('marketing_status', '>=', 3)
                     ->get()->map(function($marketing) {
-                        $marketing->is_paid = $marketing->marketing_payments
-                            ->filter(function($payment) {
-                                return $payment->verify_status == 2;
-                            })
-                            ->sum('payment_nominal');
-
-                        return $marketing;
-                    });
+                        return [
+                            'marketing_id'     => $marketing->marketing_id,
+                            'id_marketing'     => $marketing->id_marketing,
+                            'marketing_status' => $marketing->marketing_status,
+                            'grand_total'      => $marketing->grand_total,
+                            'is_paid'          => $marketing->marketing_payments
+                                ->where('verify_status', 2)
+                                ->sum('payment_nominal'),
+                        ];
+                    })->toArray();
 
                 $param = [
-                    'title'    => 'Penjualan > Payment > Batch Upload',
                     'data'     => $data,
                     'payments' => $rows,
                 ];
 
                 Storage::disk('local')->delete($tempPath);
 
-                return view('marketing.list.payment.batch', $param);
-            } else {
-                throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
+                return view('marketing.list.payment.batch', array_merge(['title' => 'Penjualan > Payment > Batch Upload'], $param));
             }
+
+            throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
         } catch (\Exception $e) {
             return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
         }
@@ -128,11 +131,10 @@ class ListPaymentController extends Controller
     public function batchAdd(Request $req)
     {
         try {
-            $count = 0;
-            DB::transaction(function() use ($req, $count) {
+            $count = DB::transaction(function() use ($req) {
                 $paymentBatches = ($req->all('payment_batch_upload')['payment_batch_upload']);
-
-                $arrPayments = [];
+                $arrPayments    = [];
+                $processedCount = 0;
 
                 foreach ($paymentBatches as $key => $value) {
                     // skip if no marketing_id
@@ -163,18 +165,20 @@ class ListPaymentController extends Controller
                             Constants::MARKETING_VERIFY_PAYMENT_STATUS
                         ),
                     ];
+
+                    $processedCount += 1;
                 }
 
                 MarketingPayment::insert($arrPayments);
 
-                $count += 1;
+                return $processedCount;
             });
 
             $success = ['success' => "Sebanyak {$count} Data Berhasil diupload"];
 
             return redirect()->route('marketing.list.index')->with($success);
         } catch (\Exception $e) {
-            return redirect()->roue('marketing.list.index')->with('error', $e->getMessage())->withInput();
+            return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
         }
     }
 

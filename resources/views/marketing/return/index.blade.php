@@ -86,20 +86,24 @@
                                                         <i data-feather="more-vertical"></i>
                                                     </button>
                                                     <div class="dropdown-menu">
+                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.detail'))
                                                         <a class="dropdown-item" href="{{ route('marketing.return.detail', $item->marketing_id) }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
                                                         </a>
+                                                        @endif
                                                         <a class="dropdown-item" href="">
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
                                                         </a>
+                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.delete'))
                                                         <a class="dropdown-item item-delete-button text-danger"
                                                             href="{{ route('marketing.return.delete', $item->marketing_return_id) }}"
                                                         >
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </td>

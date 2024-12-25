@@ -18,6 +18,12 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">{{$title}}</h4>
+                <div>
+                    <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left" class="mr-50"></i>
+                        Kembali
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row row-cols-2 row-cols-md-4">
@@ -44,11 +50,13 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                 </div>
                 <div class="row row-cols-3 row-cols-md-4 justify-content-end">
                     <!-- Button Tambah Pembayaran -->
+                    @if (auth()->user()->role->hasPermissionTo('marketing.list.payment.add'))
                     <div class="col-md-2 mt-2">
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#paymentAdd">
                             <i data-feather="plus"></i> Tambah Pembayaran
                         </button>
                     </div>
+                    @endif
                 </div>
 
                 <!-- Modal -->
@@ -106,18 +114,22 @@ $statusMarketing = App\Constants::MARKETING_STATUS;
                                                             <span>Edit</span>
                                                         </a>
                                                     @endif
+                                                    @if ($roleAccess->hasPermissionTo('marketing.list.payment.detail'))
                                                     <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-bs-toggle="modal" data-bs-target="#paymentDetail" data-payment-id="{{ $item->marketing_payment_id }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
+                                                    @endif
                                                     <a class="dropdown-item" href="">
                                                         <i data-feather="download" class="mr-50"></i>
                                                         <span>Unduh Dokumen</span>
                                                     </a>
+                                                    @if ($roleAccess->hasPermissionTo('marketing.list.payment.delete'))
                                                     <a class="dropdown-item item-delete-button text-danger" href="{{ route('marketing.list.payment.delete', $item->marketing_payment_id) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </td>
