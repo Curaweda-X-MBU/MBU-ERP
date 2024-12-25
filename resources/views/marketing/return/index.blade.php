@@ -13,7 +13,13 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect"
+                        type="button"
+                        id="exportDropdown"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
                         Export
                     </button>
                     <div class="dropdown-menu" aria-labelledby="exportDropdown">

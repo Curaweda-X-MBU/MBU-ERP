@@ -83,10 +83,11 @@
                                 <button type="button" id="addButton" data-repeater-create style="position: absolute; opacity: 0;" tabindex="-1"></button>
                                 <div class="card rounded-lg mb-1 row-scope" data-repeater-item>
                                     <input type="hidden" name="row" disabled>
+                                    <input type="hidden" name="invalid">
                                     <div class="card-header color-header collapsed rounded-lg" role="button">
                                         <span class="lead collapse-title">DO #</span>
                                         <div class="float-right lead">
-                                            <span>Sisa Bayar |</span>
+                                            <span>Sisa Bayar | Rp.</span>
                                             <span class="sisa-bayar">0,00</span>
                                         </div>
                                     </div>
@@ -145,10 +146,10 @@
                                                             <input name="transaction_number" type="text" class="form-control" placeholder="Masukkan No. Transaksi" readonly>
                                                         </td>
                                                         <td>
-                                                            <label for="payment_nomiinal">Nominal Pembayaran<i class="text-danger">*</i></label>
+                                                            <label for="payment_nominal">Nominal Pembayaran<i class="text-danger">*</i></label>
                                                             <input name="payment_nominal" type="number" id="payment_nominal" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                                                             <input type="text" class="form-control numeral-mask payment_nominal_mask" placeholder="0" required>
-                                                            <small class="text-danger invalid" style="opacity: 0;">Melebihi sisa belum bayar. Alokasikan?</small>
+                                                            <small class="text-danger invalid" style="opacity: 0;">Melebihi sisa belum bayar</small>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -194,6 +195,7 @@
             const is_invalid = invalids.includes(1);
 
             $row.find('.color-header').toggleClass('red', is_invalid).trigger('validate');
+            $row.find('input[name*="invalid"]').val(is_invalid);
         }
 
         function updateSisaBayar(rowIdx) {
@@ -201,11 +203,13 @@
             const marketing_id = $row.find('input[name*="marketing_id"]').val();
             const marketing = @json($data).find((item) => item.marketing_id == marketing_id);;
             if (marketing) {
-                const $payment = $row.find('input[name*="payment_nominal"]');
-                const payment = $payment.val();
+                // using payment_nominal_mask instead because of race situation
+                // const $payment = $row.find('input[name*="payment_nominal"]');
+                const $payment = $row.find('.payment_nominal_mask');
+                const payment = parseLocaleToNum($payment.val());
                 const paymentLeft = marketing.grand_total - marketing.is_paid - payment;
                 const paymentLeftLocale = parseNumToLocale(paymentLeft);
-                $row.find('.sisa-bayar').text(`Rp. ${paymentLeftLocale}`);
+                $row.find('.sisa-bayar').text(paymentLeftLocale);
 
                 // alokasi dan warning
                 if (paymentLeft < 0) {
@@ -351,6 +355,11 @@
                 updateIsInvalid(i);
             });
 
+            $row.find('input[name*="payment_at"]').on('change', function() {
+                $(this).siblings('.invalid').css('opacity', 0);
+                updateIsInvalid(i);
+            });
+
             $row.on('select2:select', 'select[name*="id_marketing"], select[name*="payment_method"], select[name*="bank_id"]', function() {
                 $row.find('.collapse-title').text(`DO #${i + 1} | DO.MBU.${$row.find('select[name*="id_marketing"]').val()}`);
                 $row.find('input[name*="marketing_id"]').val($row.find('select[name*="id_marketing"]').val());
@@ -361,6 +370,60 @@
 
             updateSisaBayar(i);
             updateIsInvalid(i);
+        });
+
+        $('#allocateButton').on('click', function() {
+            const $rows = $('.row-scope');
+
+            // filter affected rows
+            const $validRows = $rows.filter(function() {
+                return $(this).find('.marketing_id_select').val();
+            });
+
+            // pass all overpayments down
+            let over = 0;
+            $validRows.each(function(i) {
+                const $row = $(this);
+
+                console.log(`-------------------#${i}---------------------`);
+                const $payment = $row.find('input[name*="payment_nominal"]');
+                const $paymentMask = $row.find('.payment_nominal_mask');
+                const payment = parseLocaleToNum($paymentMask.val());
+                const paymentLeft = parseLocaleToNum($row.find('.sisa-bayar').text());
+
+                console.log('initial payment : ', payment);
+                console.log('initial payment left : ', paymentLeft);
+
+                $paymentMask.val(
+                    parseNumToLocale(payment + over)
+                        .split(',')[0]
+                ).trigger('input');
+                $payment.val(payment + over);
+
+                const newPaymentLeft = paymentLeft - over;
+
+                console.log('payment + over : ', payment + over);
+                console.log('payment left - over: ', newPaymentLeft);
+
+                // if last row, nowhere to pass overpayments, stop
+                if (i + 1 !== $validRows.length) {
+                    if (newPaymentLeft < 0) {
+                        over = Math.abs(newPaymentLeft);
+                        $paymentMask.val(
+                            parseNumToLocale(payment - Math.abs(newPaymentLeft))
+                                .split(',')[0]
+                        ).trigger('input');
+
+                        console.log('OVERPAYMENT!')
+                        console.log('payment - paymentLeft : ', payment - Math.abs(newPaymentLeft));
+                    } else {
+                        console.log('NOT OVERPAID!')
+                        over = 0;
+                    }
+                    console.log('new over : ', over);
+                }
+                console.log(`------------------------------------------`);
+            });
         });
     });
 </script>
