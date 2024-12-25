@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function() {
             Route::group(['prefix' => 'payment'], function() {
                 Route::get('/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'index'])->name('marketing.list.payment.index')->middleware('permission:marketing.list.payment.index');
                 Route::post('/batch', [App\Http\Controllers\Marketing\ListPaymentController::class, 'batch'])->name('marketing.list.payment.batch')->middleware('permission:marketing.list.payment.approve')->middleware('permission:marketing.list.payment.add');
+                Route::post('/batch/add', [App\Http\Controllers\Marketing\ListPaymentController::class, 'batchAdd'])->name('marketing.list.payment.batch.add')->middleware('permission:marketing.list.payment.approve')->middleware('permission:marketing.list.payment.add');
                 Route::post('/add/{marketing}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'add'])->name('marketing.list.payment.add')->middleware('permission:marketing.list.payment.add');
                 Route::any('/edit/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'edit'])->name('marketing.list.payment.edit')->middleware('permission:marketing.list.payment.edit');
                 Route::get('/detail/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'detail'])->name('marketing.list.payment.detail')->middleware('permission:marketing.list.payment.detail');

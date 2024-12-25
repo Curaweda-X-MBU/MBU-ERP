@@ -118,10 +118,63 @@ class ListPaymentController extends Controller
 
                 return view('marketing.list.payment.batch', $param);
             } else {
-                throw new \Exception('Tidak ada file csv');
+                throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
             }
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function batchAdd(Request $req)
+    {
+        try {
+            $count = 0;
+            DB::transaction(function() use ($req, $count) {
+                $paymentBatches = ($req->all('payment_batch_upload')['payment_batch_upload']);
+
+                $arrPayments = [];
+
+                foreach ($paymentBatches as $key => $value) {
+                    // skip if no marketing_id
+                    if (empty($value['marketing_id']) || $value['marketing_id'] === '') {
+                        continue;
+                    }
+
+                    $docPath = '';
+                    if (isset($value['document_path'])) {
+                        $docUrl = FileHelper::upload($value['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                        if (! $docUrl['status']) {
+                            return redirect()->back()->with('error', $docUrl['message'].' '.$value['document_path'])->withInput();
+                        }
+                        $docPath = $docUrl['url'];
+                    }
+
+                    $arrPayments[] = [
+                        'marketing_id'       => $value['marketing_id'],
+                        'document_path'      => $docPath,
+                        'transaction_number' => $value['transaction_number'],
+                        'payment_reference'  => $value['payment_reference'],
+                        'payment_method'     => $value['payment_method'],
+                        'bank_id'            => $value['bank_id'] ?? null,
+                        'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
+                        'payment_nominal'    => $value['payment_nominal'],
+                        'verify_status'      => array_search(
+                            'Terverifikasi',
+                            Constants::MARKETING_VERIFY_PAYMENT_STATUS
+                        ),
+                    ];
+                }
+
+                MarketingPayment::insert($arrPayments);
+
+                $count += 1;
+            });
+
+            $success = ['success' => "Sebanyak {$count} Data Berhasil diupload"];
+
+            return redirect()->route('marketing.list.index')->with($success);
+        } catch (\Exception $e) {
+            return redirect()->roue('marketing.list.index')->with('error', $e->getMessage())->withInput();
         }
     }
 
