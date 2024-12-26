@@ -301,7 +301,7 @@ class ListPaymentController extends Controller
                     ]);
                 }
 
-                $success = ['success' => 'Payment berhasil disetujui'];
+                $success = ['success' => 'Pembayaran berhasil disetujui'];
             } else {
                 $payment->update([
                     'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
@@ -309,7 +309,7 @@ class ListPaymentController extends Controller
                     'approval_notes' => $input['approval_notes'],
                 ]);
 
-                $success = ['success' => 'Payment berhasil ditolak'];
+                $success = ['success' => 'Pembayaran berhasil ditolak'];
             }
 
             DB::commit(); // Commit transaksi jika semua berhasil

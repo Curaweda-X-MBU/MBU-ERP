@@ -32,9 +32,18 @@ class ReturnPaymentController extends Controller
             $data->is_returned = $marketing->marketing_return->marketing_return_payments
                 ->where('verify_status', 2)
                 ->sum('payment_nominal');
+
+            $data->return_sub_total = (($marketing->marketing_return->total_return
+                - $marketing->marketing_addit_prices->sum('price'))
+                + $marketing->discount)
+                / (1 + ($marketing->tax / 100));
+
+            $payments = $marketing->marketing_return->marketing_return_payments;
+
             $param = [
-                'title' => 'Penjualan > Retur > Payment',
-                'data'  => $data,
+                'title'    => 'Penjualan > Retur > Payment',
+                'data'     => $data,
+                'payments' => $payments,
             ];
 
             return view('marketing.return.payment.index', $param);
@@ -92,20 +101,10 @@ class ReturnPaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(Marketing $marketing)
+    public function detail(MarketingReturnPayment $payment)
     {
         try {
-            $data = $marketing->load([
-                'company',
-                'customer',
-                'sales',
-                'marketing_products.warehouse',
-                'marketing_products.product',
-                'marketing_products.uom',
-                'marketing_addit_prices',
-                'marketing_delivery_vehicles.uom',
-                'marketing_delivery_vehicles.sender',
-            ]);
+            $data = $payment->load(['bank', 'recipient_bank']);
 
             return $data;
         } catch (\Exception $e) {
@@ -118,6 +117,7 @@ class ReturnPaymentController extends Controller
      */
     public function edit(Request $req, Marketing $marketing)
     {
+        return 'Not yet implemented';
         try {
             $data = $marketing->load(['approver', 'marketing', 'bank']);
 
@@ -168,7 +168,7 @@ class ReturnPaymentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(MarketingPayment $payment)
+    public function delete(MarketingReturnPayment $payment)
     {
         try {
             $payment->delete();
@@ -181,34 +181,56 @@ class ReturnPaymentController extends Controller
         }
     }
 
-    public function approve(Request $req, MarketingPayment $marketingPayment)
+    public function approve(Request $req, MarketingReturnPayment $payment)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $payment = $marketingPayment->get();
+            $input = $req->all();
 
             $success = [];
 
-            if ($input['is_approved'] === 0) {
+            if ($input['is_approved'] == 1) {
+                $payment->update([
+                    'is_approved'    => array_search('Disetujui', Constants::MARKETING_APPROVAL),
+                    'approver_id'    => Auth::id(),
+                    'approved_at'    => date('Y-m-d H:i:s'),
+                    'approval_notes' => $input['approval_notes'],
+                    'verify_status'  => array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
+                ]);
+
+                $totalReturn   = $payment->marketing_return->total_return;
+                $totalPayments = $payment->marketing_return
+                    ->marketing_return_payments
+                    ->filter(fn ($p) => $p->verify_status == 2)
+                    ->sum('payment_nominal');
+
+                if ($totalReturn === $totalPayments) {
+                    $payment->marketing_return->update([
+                        'payment_return_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } else {
+                    $payment->marketing_return->update([
+                        'payment_return_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                }
+
+                $success = ['success' => 'Pembayaran berhasil disetujui'];
+            } else {
                 $payment->update([
                     'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
                     'approver_id'    => Auth::id(),
                     'approval_notes' => $input['approval_notes'],
                 ]);
 
-                $success = ['success' => 'Payment berhasil ditolak'];
-            } else {
-                $payment->update([
-                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id' => Auth::id(),
-                    'approved_at' => date('Y-m-d H:i:s'),
-                ]);
-
-                $success = ['success' => 'Payment berhasil disetujui'];
+                $success = ['success' => 'Pembayaran berhasil ditolak'];
             }
 
-            return redirect()->route('marketing.list.payment.index')->with($success);
+            DB::commit();
+
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }

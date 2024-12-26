@@ -504,7 +504,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
