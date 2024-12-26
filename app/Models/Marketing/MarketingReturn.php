@@ -37,7 +37,7 @@ class MarketingReturn extends Model
         return $this->belongsTo(User::class, 'approver_id', 'user_id');
     }
 
-    public function marketting_return_payments()
+    public function marketing_return_payments()
     {
         return $this->hasMany(MarketingReturnPayment::class, 'marketing_return_id', 'marketing_return_id');
     }

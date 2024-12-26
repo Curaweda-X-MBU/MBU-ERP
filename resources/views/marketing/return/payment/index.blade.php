@@ -2,7 +2,8 @@
 @section('title', $title)
 @section('content')
 @php
- $VerifikasiPembayaran = 2;
+$VerifikasiPembayaran = 2;
+$statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
 @endphp
 <div class="row">
     <div class="col-12">
@@ -38,13 +39,15 @@
 
                 {{-- add payment button --}}
                 <div class="mt-2 text-right">
-                    <button type="button" class="btn btn-icon btn-primary" data-toggle="modal" data-target="#returnPayment">
+                    <button type="button" class="btn btn-icon btn-primary" data-toggle="modal" data-target="#paymentAdd">
                         <i data-feather="plus"></i> Tambah Pembayaran
                     </button>
                 </div>
 
                 {{-- Include Modal --}}
-                @include('marketing.return.add-payment')
+                @include('marketing.return.payment.add')
+                {{--@include('marketing.return.payment.detail')--}}
+                {{--@include('marketing.return.payment.edit')--}}
 
                 <!-- BEGIN: Table-->
                 <div class="card-datatable">

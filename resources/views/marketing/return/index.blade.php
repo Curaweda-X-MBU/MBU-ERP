@@ -92,7 +92,7 @@
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
-                                                        <a class="dropdown-item" href="">
+                                                        <a class="dropdown-item" href="{{ route('marketing.return.payment.index', $item->marketing_id) }}">
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
                                                         </a>

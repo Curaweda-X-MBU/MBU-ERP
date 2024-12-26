@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Constants;
 use App\Helpers\FileHelper;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingPayment;
+use App\Models\Marketing\MarketingReturnPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +21,19 @@ class ReturnPaymentController extends Controller
     public function index(Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['customer', 'company', 'marketing_payments']);
+            if (Constants::MARKETING_RETURN_STATUS[$marketing->marketing_return->return_status] !== 'Disetujui') {
+                throw new \Exception('Status Retur belum disetujui');
+            }
+
+            $data          = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices', 'marketing_return']);
+            $data->is_paid = $marketing->marketing_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
+            $data->is_returned = $marketing->marketing_return->marketing_return_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
             $param = [
-                'title' => 'Penjualan > Payment',
+                'title' => 'Penjualan > Retur > Payment',
                 'data'  => $data,
             ];
 
@@ -42,24 +54,26 @@ class ReturnPaymentController extends Controller
 
                 $docPath = '';
                 if ($req->hasFile('document_path')) {
-                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_RETURN_PAYMENT_DOC_PATH);
                     if (! $docUrl['status']) {
                         return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                     }
                     $docPath = $docUrl['url'];
                 }
 
-                MarketingPayment::create([
-                    'marketing_id'       => $marketing->marketing_id,
-                    'payment_method'     => $input['payment_method'],
-                    'bank_id'            => $input['bank_id'] ?? null,
-                    'payment_reference'  => $input['payment_reference'],
-                    'transaction_number' => $input['transaction_number'],
-                    'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
-                    'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                    'document_path'      => $docPath,
-                    'notes'              => $input['notes'],
-                    'verify_status'      => array_search(
+                MarketingReturnPayment::create([
+                    'marketing_return_id' => $marketing->marketing_return_id,
+                    'payment_method'      => $input['payment_method'],
+                    'bank_id'             => $input['bank_id']           ?? null,
+                    'recipient_bank_id'   => $input['recipient_bank_id'] ?? null,
+                    'payment_reference'   => $input['payment_reference'],
+                    'transaction_number'  => $input['transaction_number'],
+                    'payment_nominal'     => Parser::parseLocale($input['payment_nominal']),
+                    'bank_admin_fees'     => Parser::parseLocale($input['payment_nominal']),
+                    'payment_at'          => date('Y-m-d', strtotime($input['payment_at'])),
+                    'document_path'       => $docPath,
+                    'notes'               => $input['notes'],
+                    'verify_status'       => array_search(
                         'Diajukan',
                         Constants::MARKETING_VERIFY_PAYMENT_STATUS
                     ),
@@ -132,7 +146,7 @@ class ReturnPaymentController extends Controller
                         'bank_id'            => $input['bank_id'],
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
-                        'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
+                        'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],

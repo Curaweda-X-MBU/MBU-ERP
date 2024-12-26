@@ -38,10 +38,10 @@
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="marketing_nominal">Nominal Penjualan</label>
+                <label for="return_nominal">Nominal Retur</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input type="text" class="form-control" id="marketing_nominal" value="Rp. {{ number_format($data->grand_total, 2, '.', ',') }}" disabled>
+                <input type="text" class="form-control" id="return_nominal" value="Rp. {{ number_format($data->grand_total, 2, '.', ',') }}" disabled>
             </div>
         </div>
         <div class="col-12 row">
@@ -60,10 +60,19 @@
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="bank_id" id="own_bank_label">Akun Bank<i id="bank_required_label" class="text-danger"></i></label>
+                <label for="bank_id">Akun Bank<i id="bank_required_label" class="text-danger"></i></label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <select name="bank_id" class="form-control" id="own_bank_id" {{ isset($is_detail) ? 'disabled' : '' }}>
+                </select>
+            </div>
+        </div>
+        <div class="col-12 row">
+            <div class="col-12 col-lg-6 d-flex align-items-center p-0">
+                <label for="recipient_bank_id">Bank Penerima<i id="recipient_bank_required_label" class="text-danger"></i></label>
+            </div>
+            <div class="col-12 col-lg-6 d-flex align-items-center p-0">
+                <select name="recipient_bank_id" class="form-control" id="recipient_bank_id" {{ isset($is_detail) ? 'disabled' : '' }}>
                 </select>
             </div>
         </div>
@@ -92,9 +101,19 @@
                 <label for="payment_amount">Nominal Pembayaran<i class="text-danger">*</i></label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input name="payment_nominal" type="number" id="payment_nominal" max="{{ $data->grand_total - $data->is_paid }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                <input name="payment_nominal" type="number" id="payment_nominal" max="{{ $data->marketing_return->total_return - $data->is_returned }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                 <input name="payment_nominal_mask" type="text" class="form-control numeral-mask" id="payment_nominal_mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
-                <span id="invalid_payment_nominal" class="text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+                <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+            </div>
+        </div>
+        <div class="col-12 row">
+            <div class="col-12 col-lg-6 d-flex align-items-center p-0">
+                <label for="bank_admin_fees">Biaya Admin Bank<i class="text-danger">*</i></label>
+            </div>
+            <div class="col-12 col-lg-6 d-flex align-items-center p-0">
+                <input name="bank_admin_fees" type="number" id="bank_admin_fees" max="{{ $data->marketing_return->total_return - $data->is_returned }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                <input name="bank_admin_fees_mask" type="text" class="form-control numeral-mask" id="bank_admin_fees_mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
+                <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi nominal pembayaran</span>
             </div>
         </div>
         <div class="col-12 row">
@@ -154,19 +173,41 @@
         var $paymentSelect = $('#payment_method');
         var bankIdRoute = '{{ route("data-master.bank.search") }}';
         var $bankSelect = $('#own_bank_id');
+        var $recipientBankSelect = $('#recipient_bank_id');
         initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
         initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
+        initSelect2($recipientBankSelect, 'Pilih Bank', bankIdRoute);
 
-        var credit = parseFloat("{{ $data->grand_total - $data->is_paid }}");
+        var credit = parseFloat("{{ $data->marketing_return->total_return - $data->is_returned }}");
+        let nominal = 0;
         $('#payment_nominal_mask').on('input', function() {
             const val = parseLocaleToNum($(this).val());
 
+            nominal = val;
+
             $(this).siblings('#payment_nominal').val(val);
             if (val > credit) {
-                $(this).siblings('#invalid_payment_nominal').css('opacity', 1);
+                $(this).siblings('.invalid').css('opacity', 1);
             } else {
-                $(this).siblings('#invalid_payment_nominal').css('opacity', 0);
+                $(this).siblings('.invalid').css('opacity', 0);
             }
+
+            checkBankAdminNominal($('#bank_admin_fees_mask'));
+        });
+
+        function checkBankAdminNominal($this) {
+            const val = parseLocaleToNum($this.val());
+
+            $this.siblings('#bank_admin_fees').val(val);
+            if (val > nominal) {
+                $this.siblings('.invalid').css('opacity', 1);
+            } else {
+                $this.siblings('.invalid').css('opacity', 0);
+            }
+        }
+
+        $('#bank_admin_fees_mask').on('input', function() {
+            checkBankAdminNominal($(this));
         });
 
         if ('{{ isset($is_detail) }}') {
@@ -177,9 +218,11 @@
                 const paymentId = $marketingPayment.val();
                 const $paymentMethod = $this.find('#payment_method');
                 const $ownBank = $this.find('#own_bank_id');
+                const $recipientBank = $this.find('#recipient_bank_id');
                 const $refNumber = $this.find('#ref_number');
                 const $transactionNumber = $this.find('#transaction_number');
                 const $paymentNominal = $this.find('#payment_nominal_mask');
+                const $bankAdminNominal = $this.find('#bank_admin_fees_mask');
                 const $paymentAt = $this.find('#payment_at');
                 const $notes = $this.find('#notes');
                 const route = '{{ route('marketing.return.payment.detail', ':id') }}'
@@ -189,9 +232,11 @@
                 }).then(function(result) {
                     $paymentMethod.val(result.payment_method);
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
+                    $recipientBank.append(`<option value="${result.recipient_bank ? result.recipient_bank_id : ''}" selected>${result.recipient_bank ? [result.recipient_bank.alias, result.recipient_bank.account_number, result.recipient_bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominal.val(parseNumToLocale(result.payment_nominal));
+                    $bankAdminNominal.val(parseNumToLocale(result.bank_admin_fees));
                     $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
                     $notes.text(result.notes ?? '-');
                 });
@@ -206,21 +251,25 @@
                 const paymentId = $marketingPayment.val();
                 const $paymentMethod = $this.find('#payment_method');
                 const $ownBank = $this.find('#own_bank_id');
+                const $recipientBank = $this.find('#recipient_bank_id');
                 const $refNumber = $this.find('#ref_number');
                 const $transactionNumber = $this.find('#transaction_number');
                 const $paymentNominal = $this.find('#payment_nominal_mask');
+                const $bankAdminNominal = $this.find('#bank_admin_fees_mask');
                 const $paymentAt = $this.find('#payment_at');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
+                const route = '{{ route('marketing.return.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     $paymentMethod.val(result.payment_method);
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $recipientBank.append(`<option value="${result.recipient_bank ? result.recipient_bank_id : ''}" selected>${result.recipient_bank ? [result.recipient_bank.alias, result.recipient_bank.account_number, result.recipient_bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominal.val(parseNumToLocale(result.payment_nominal));
+                    $bankAdminNominal.val(parseNumToLocale(result.bank_admin_fees));
                     $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
                     $notes.text(result.notes ?? '-');
                 });
