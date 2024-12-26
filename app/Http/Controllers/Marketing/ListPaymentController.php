@@ -26,7 +26,10 @@ class ListPaymentController extends Controller
                 throw new \Exception('Status Penjualan belum final');
             }
 
-            $data  = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
+            $data          = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
+            $data->is_paid = $marketing->marketing_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
             $param = [
                 'title' => 'Penjualan > Payment',
                 'data'  => $data,

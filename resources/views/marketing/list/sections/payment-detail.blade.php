@@ -92,7 +92,7 @@
                 <label for="payment_amount">Nominal Pembayaran<i class="text-danger">*</i></label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input name="payment_nominal" type="number" id="payment_nominal" max="{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                <input name="payment_nominal" type="number" id="payment_nominal" max="{{ $data->grand_total - $data->is_paid }}" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                 <input name="payment_nominal_mask" type="text" class="form-control numeral-mask" id="payment_nominal_mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
                 <span id="invalid_payment_nominal" class="text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
             </div>
@@ -159,7 +159,7 @@
         initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
         initSelect2($('#recipient_bank_id'), 'Pilih Bank');
 
-        var credit = parseFloat("{{ $data->grand_total - $data->marketing_payments->sum('payment_nominal') }}");
+        var credit = parseFloat("{{ $data->grand_total - $data->is_paid }}");
         $('#payment_nominal_mask').on('input', function() {
             const val = parseLocaleToNum($(this).val());
 
