@@ -1,3 +1,7 @@
+@php
+$paymentLeft = $data->grand_total - $data->is_paid;
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/animate/animate.css')}}" />
@@ -41,7 +45,7 @@
                 <label for="marketing_nominal">Nominal Penjualan</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input type="text" class="form-control" id="marketing_nominal" value="Rp. {{ number_format($data->grand_total, 2, '.', ',') }}" disabled>
+                <input type="text" class="form-control" id="marketing_nominal" value="Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}" disabled>
             </div>
         </div>
         <div class="col-12 row">
@@ -89,10 +93,10 @@
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="payment_amount">Nominal Pembayaran<i class="text-danger">*</i></label>
+                <label for="payment_nominal">Nominal Pembayaran<i class="text-danger">*</i></label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input name="payment_nominal" type="number" max="{{ $data->grand_total - $data->is_paid }}" class="payment_nominal position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
+                <input name="payment_nominal" type="number" max="{{ $paymentLeft }}" class="payment_nominal position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                 <input name="payment_nominal_mask" type="text" class="payment_nominal_mask form-control numeral-mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
                 <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
             </div>
@@ -157,7 +161,7 @@
         initSelect2($bankSelect, 'Pilih Bank', bankIdRoute);
         initSelect2($paymentSelect, 'Pilih Metode Pembayaran');
 
-        var credit = parseFloat("{{ $data->grand_total - $data->is_paid }}");
+        let credit = "{{ $paymentLeft }}";
         $('.payment_nominal_mask').on('input', function() {
             const val = parseLocaleToNum($(this).val());
             console.log(val);
@@ -183,12 +187,12 @@
                 const $paymentNominal = $this.find('.payment_nominal_mask');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('marketing.return.payment.detail', ':id') }}'
+                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    $paymentMethod.val(result.payment_method);
+                    $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
@@ -217,10 +221,12 @@
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    $paymentMethod.val(result.payment_method);
+                    credit = (@js($paymentLeft) > 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
+                    $paymentNominal.siblings('.payment_nominal').attr('max', credit);
                     $paymentNominal.val(parseNumToLocale(result.payment_nominal));
                     $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
                     $notes.text(result.notes ?? '-');

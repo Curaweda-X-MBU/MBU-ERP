@@ -258,6 +258,22 @@ class ListPaymentController extends Controller
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],
                     ]);
+
+                    $grandTotal    = $payment->marketing->grand_total;
+                    $totalPayments = $payment->marketing
+                        ->marketing_payments
+                        ->filter(fn ($p) => $p->verify_status == 2)
+                        ->sum('payment_nominal');
+
+                    if ($grandTotal === $totalPayments) {
+                        $payment->marketing->update([
+                            'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
+                    } else {
+                        $payment->marketing->update([
+                            'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
+                    }
                 });
 
                 $success = ['success' => 'Data Berhasil diubah'];
