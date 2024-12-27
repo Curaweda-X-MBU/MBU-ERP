@@ -51,10 +51,11 @@
                 }
 
                 $this.find('.total').val(0);
+                const categoryCode = $('#product_category_code').val();
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Kondisi",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=BRO&can_be_purchased=0`, 
+                        url: `{{ route("data-master.product.search") }}?product_category-category_code=${categoryCode}&can_be_purchased=0`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {
@@ -98,7 +99,7 @@
         };
 
         const $repeaterDepletion = $('#depletion').repeater(optDepletion);
-        $('.add-depletion').trigger('click');
+        // $('.add-depletion').trigger('click');
 
         const dataRecording = @json($data);
         

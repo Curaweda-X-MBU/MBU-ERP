@@ -85,6 +85,7 @@
                                                         @else
                                                         <input type="text" class="form-control" placeholder="Produk" id="product_category_name" readonly>
                                                         <input type="hidden" id="product_category_id" name="product_category_id">
+                                                        <input type="hidden" id="product_category_code">
                                                         @endif
                                                     </div>
                                                 </div>
@@ -142,7 +143,7 @@
                                             <span style="font-size: 15px;"><b>Deplesi</b></span>
                                             @include('project.recording.depletion')
                                         </li>
-                                        <li class="mb-2">
+                                        <li class="mb-2" id="egg-section">
                                             <span style="font-size: 15px;"><b>Telur</b></span>
                                             @include('project.recording.egg')
                                         </li>
@@ -254,7 +255,15 @@
                                 const selectedData = e.params.data.data;
                                 setEmpty($(this).val());
                                 $('#product_category_name').val(selectedData.product_category.name);
+                                $('#product_category_code').val(selectedData.product_category.category_code);
                                 $('#product_category_id').val(selectedData.product_category_id);
+
+                                if (selectedData.product_category.category_code === 'TLR') {
+                                    $('#egg-section').css('display', 'block');
+                                } else {
+                                    $('#egg-section').css('display', 'none');
+                                }
+
                                 const warehouses = selectedData.kandang.warehouse;
                                 if (warehouses.length > 0) {
                                     warehouses.forEach(val => {
@@ -278,6 +287,7 @@
                                 $('#product_category_id').val('');
                                 $('#warehouse_name').val('');
                                 $('#warehouse_id').val('');
+                                $('#egg-section').css('display', 'none');
                             }
 
                             var numeralMask = $('.numeral-mask');
