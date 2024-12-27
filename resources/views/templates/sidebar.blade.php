@@ -106,8 +106,30 @@
                     </ul>
                 </li>
                 @endif
-                @if (hasAccess($collection, 'expense.index', $roleAccess))
-                <li id="{{ ltrim(parse_url(route('expense.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('expense.index') }}"><i data-feather="pie-chart"></i><span class="menu-title text-truncate" data-i18n="Expense">Biaya</span></a>
+                @if (hasAccess($collection, 'expense', $roleAccess))
+                <li class="nav-item has-sub {{ Request::segment(1)=='expense'?'sidebar-group-active':'' }}">
+                    <a class="d-flex align-items-center" href="#">
+                        <i data-feather="pie-chart"></i>
+                        <span class="menu-title text-truncate" data-i18n="Expense">Biaya</span>
+                    </a>
+                    <ul class="menu-content">
+                        @if ($roleAccess->hasPermissionTo('expense.list.index'))
+                            <li id="{{ ltrim(parse_url(route('expense.list.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('expense.list.index') }}">
+                                    <i data-feather="circle"></i>
+                                    <span class="menu-item text-truncate" data-i18n="Expense List">List Biaya</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if ($roleAccess->hasPermissionTo('expense.recap.index'))
+                            <li id="{{ ltrim(parse_url(route('expense.recap.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('expense.recap.index') }}">
+                                    <i data-feather="circle"></i>
+                                    <span class="menu-item text-truncate" data-i18n="Expense Rekap">Rekap Biaya</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
                 </li>
                 @endif
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
