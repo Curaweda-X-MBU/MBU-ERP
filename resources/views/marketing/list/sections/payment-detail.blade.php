@@ -132,7 +132,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex flex-column align-items-start p-0 offset-lg-6">
                 <label for="notes">Catatan</label>
-                <textarea name="notes" class="form-control" id="notes" {{ isset($is_detail) ? 'disabled' : '' }}></textarea>
+                <textarea name="notes" class="notes form-control" {{ isset($is_detail) ? 'disabled' : '' }}></textarea>
             </div>
         </div>
     </div>
@@ -164,7 +164,6 @@ $paymentLeft = $data->grand_total - $data->is_paid;
         let credit = "{{ $paymentLeft }}";
         $('.payment_nominal_mask').on('input', function() {
             const val = parseLocaleToNum($(this).val());
-            console.log(val);
 
             $(this).siblings('.payment_nominal').val(val);
             if (val > credit) {
@@ -186,7 +185,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $transactionNumber = $this.find('.transaction_number');
                 const $paymentNominal = $this.find('.payment_nominal_mask');
                 const $paymentAt = $this.find('.payment_at');
-                const $notes = $this.find('#notes');
+                const $notes = $this.find('.notes');
                 const route = '{{ route('marketing.list.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',

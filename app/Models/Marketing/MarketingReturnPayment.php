@@ -36,7 +36,7 @@ class MarketingReturnPayment extends Model
 
     public function marketing_return()
     {
-        return $this->belongsTo(MarketingReturn::class, 'marketing_id', 'marketing_id');
+        return $this->belongsTo(MarketingReturn::class, 'marketing_return_id', 'marketing_return_id');
     }
 
     public function approver()
