@@ -78,7 +78,7 @@ class ReturnPaymentController extends Controller
                     'payment_reference'   => $input['payment_reference'],
                     'transaction_number'  => $input['transaction_number'],
                     'payment_nominal'     => Parser::parseLocale($input['payment_nominal']),
-                    'bank_admin_fees'     => Parser::parseLocale($input['payment_nominal']),
+                    'bank_admin_fees'     => Parser::parseLocale($input['bank_admin_fees']),
                     'payment_at'          => date('Y-m-d', strtotime($input['payment_at'])),
                     'document_path'       => $docPath,
                     'notes'               => $input['notes'],
@@ -115,15 +115,16 @@ class ReturnPaymentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $req, Marketing $marketing)
+    public function edit(Request $req, MarketingReturnPayment $payment)
     {
-        return 'Not yet implemented';
         try {
-            $data = $marketing->load(['approver', 'marketing', 'bank']);
+            $data = $payment->load(['bank', 'recipient_bank']);
 
             if ($req->isMethod('post')) {
                 DB::transaction(function() use ($req, $data) {
                     $input = $req->all();
+
+                    dd($input);
 
                     $existingDoc = $data->document_path ?? null;
                     $docPath     = '';

@@ -138,6 +138,7 @@ class Constants
         1 => 'Tempo',
         2 => 'Dibayar Sebagian',
         3 => 'Dibayar Penuh',
+        4 => 'Dibayar Lebih',
     ];
 
     public const MARKETING_VERIFY_PAYMENT_STATUS = [

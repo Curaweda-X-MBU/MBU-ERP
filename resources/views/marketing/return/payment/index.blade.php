@@ -9,7 +9,8 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
 
 <script>
     function setDetail(e) {
-        $('input[name="marketing_payment_id"]').val($(e).data('payment-id')).trigger('change');
+        console.log($(e).data('payment-id'));
+        $('input[name="marketing_return_payment_id"]').val($(e).data('payment-id')).trigger('change');
     }
 </script>
 
@@ -61,8 +62,8 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
 
                 <!-- Modal -->
                 @include('marketing.return.payment.add')
-                {{--@include('marketing.return.payment.detail')--}}
-                {{--@include('marketing.return.payment.edit')--}}
+                @include('marketing.return.payment.detail')
+                @include('marketing.return.payment.edit')
 
                 <!-- BEGIN: Table-->
                 <div class="card-datatable">
@@ -109,13 +110,13 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                                             $roleAccess = Auth::user()->role;
                                                         @endphp
                                                         @if ($roleAccess->hasPermissionTo('marketing.return.payment.edit'))
-                                                            <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-bs-target="#paymentEdit" data-payment-id="{{ $item->marketing_return_payment_id }}">
+                                                            <a class="dropdown-item" role="button" onclick="return setDetail(this)" data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->marketing_return_payment_id }}">
                                                                 <i data-feather="edit" class="mr-50"></i>
                                                                 <span>Edit</span>
                                                             </a>
                                                         @endif
                                                         @if ($roleAccess->hasPermissionTo('marketing.return.payment.detail'))
-                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-bs-target="#paymentDetail" data-payment-id="{{ $item->marketing_return_payment_id }}">
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)" data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->marketing_return_payment_id }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
                                                         </a>
@@ -184,7 +185,7 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                 </tr>
                                 <tr>
                                     <td class="text-danger">Sisa Belum Dibayar:</td>
-                                    <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->total_return - ($data->is_returned ?? 0)) }}</td> </tr>
+                                    <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->marketing_return->total_return - ($data->is_returned ?? 0)) }}</td> </tr>
                             </tbody>
                         </table>
                     </div>
