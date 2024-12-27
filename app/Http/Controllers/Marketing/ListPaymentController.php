@@ -169,6 +169,27 @@ class ListPaymentController extends Controller
                         ),
                     ];
 
+                    $marketing   = Marketing::find($value['marketing_id']);
+                    $grandTotal  = $marketing->grand_total;
+                    $totalIsPaid = $marketing->marketing_payments
+                        ->filter(fn ($p) => $p->verify_status == 2)
+                        ->sum('payment_nominal');
+                    $totalPayments = $totalIsPaid + $value['payment_nominal'];
+
+                    if ($grandTotal === $totalPayments) {
+                        $marketing->update([
+                            'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
+                    } elseif ($grandTotal < $totalPayments) {
+                        $marketing->update([
+                            'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
+                    } else {
+                        $marketing->update([
+                            'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
+                    }
+
                     $processedCount += 1;
                 }
 
@@ -232,7 +253,7 @@ class ListPaymentController extends Controller
                         'bank_id'            => $input['bank_id'],
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
-                        'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
+                        'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],

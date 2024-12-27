@@ -110,8 +110,11 @@
                                                 @case(2)
                                                     <div class="badge badge-pill badge-success">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
-                                                @default
+                                                @case(3)
                                                     <div class="badge badge-pill badge-primary">{{ $statusPayment[$item->payment_status] }}</div>
+                                                    @break
+                                                @default
+                                                    <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->payment_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>
