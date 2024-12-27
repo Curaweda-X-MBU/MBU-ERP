@@ -51,10 +51,11 @@
                 }
 
                 $this.find('.total').val(0);
+                const categoryCode = $('#product_category_code').val();
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Kondisi",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=TLR`, 
+                        url: `{{ route("data-master.product.search") }}?product_category-category_code=${categoryCode}`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {
@@ -104,7 +105,7 @@
         };
 
         const $repeateregg = $('#egg').repeater(optegg);
-        $('.add-egg').trigger('click');
+        // $('.add-egg').trigger('click');
 
         const dataRecording = @json($data);
         

@@ -73,9 +73,7 @@ class RecordingController extends Controller
                 if (! $req->has('stock')) {
                     return redirect()->back()->with('error', 'Persedian harus diisi');
                 }
-                if (! $req->has('nonstock')) {
-                    return redirect()->back()->with('error', 'Non Persedian harus diisi');
-                }
+
                 if (! $req->has('bw')) {
                     return redirect()->back()->with('error', 'Body Weight harus diisi');
                 }
@@ -85,17 +83,13 @@ class RecordingController extends Controller
                     'kandang',
                     'purchase_item.product.product_category',
                 ])->find($input['project_id']);
-                $docProdId = false;
-                $eggProdId = false;
 
+                $parentProduct = false;
                 foreach ($project->purchase_item as $key => $value) {
+                    $parentProduct = $value->product_id;
                     if ($value->product->product_category->category_code
-                        && $value->product->product_category->category_code === 'BRO') {
-                        $docProdId = $value->product_id;
-                    }
-                    if ($value->product->product_category->category_code
-                        && $value->product->product_category->category_code === 'TLR') {
-                        $eggProdId = $value->product_id;
+                        && ! in_array($value->product->product_category->category_code, ['RAW', 'GNR'])) {
+                        $parentProduct = $value->product_id;
                     }
                 }
 
@@ -146,7 +140,7 @@ class RecordingController extends Controller
                     ]);
                 }
 
-                $arrNonstock = $input['nonstock'];
+                $arrNonstock = $input['nonstock'] ?? [];
                 foreach ($arrNonstock as $key => $value) {
                     $nonstockVal = $value['value'];
                     $replaceNode = str_replace('.', '', $nonstockVal);
@@ -177,7 +171,7 @@ class RecordingController extends Controller
                 }
 
                 if ($req->has('depletions')) {
-                    $this->insertRecordingDepletionAndEgg($input['depletions'], $input['warehouse_id'], $docProdId, $strtotime, $project, $recording->recording_id);
+                    $this->insertRecordingDepletionAndEgg($input['depletions'], $input['warehouse_id'], $parentProduct, $strtotime, $project, $recording->recording_id);
                 }
 
                 if ($req->has('eggs')) {
