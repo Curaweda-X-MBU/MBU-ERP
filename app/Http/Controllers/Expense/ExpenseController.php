@@ -14,7 +14,23 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > List',
             ];
 
-            return view('expense.index', $param);
+            return view('expense.list.index', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function recap()
+    {
+        try {
+            $param = [
+                'title' => 'Biaya > List',
+            ];
+
+            return view('expense.recap.index', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -30,7 +46,7 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > Tambah',
             ];
 
-            return view('expense.add', $param);
+            return view('expense.list.add', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -46,7 +62,7 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > Detail',
             ];
 
-            return view('expense.detail', $param);
+            return view('expense.list.detail', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -62,7 +78,7 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > Edit',
             ];
 
-            return view('expense.edit', $param);
+            return view('expense.list.edit', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
