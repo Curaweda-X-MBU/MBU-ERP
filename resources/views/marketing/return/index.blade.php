@@ -13,7 +13,13 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect"
+                        type="button"
+                        id="exportDropdown"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
                         Export
                     </button>
                     <div class="dropdown-menu" aria-labelledby="exportDropdown">
@@ -80,20 +86,24 @@
                                                         <i data-feather="more-vertical"></i>
                                                     </button>
                                                     <div class="dropdown-menu">
+                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.detail'))
                                                         <a class="dropdown-item" href="{{ route('marketing.return.detail', $item->marketing_id) }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
                                                         </a>
-                                                        <a class="dropdown-item" href="">
+                                                        @endif
+                                                        <a class="dropdown-item" href="{{ route('marketing.return.payment.index', $item->marketing_id) }}">
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
                                                         </a>
+                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.delete'))
                                                         <a class="dropdown-item item-delete-button text-danger"
                                                             href="{{ route('marketing.return.delete', $item->marketing_return_id) }}"
                                                         >
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </td>

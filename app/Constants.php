@@ -161,6 +161,8 @@ class Constants
 
     public const MARKETING_PAYMENT_DOC_PATH = 'marketing-payment-doc';
 
+    public const MARKETING_RETURN_PAYMENT_DOC_PATH = 'marketing-return-payment-doc';
+
     public const MARKETING_APPROVAL = [
         0 => 'Tidak Disetujui',
         1 => 'Disetujui',

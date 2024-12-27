@@ -504,7 +504,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
@@ -529,8 +529,9 @@ class ListController extends Controller
      */
     public function searchMarketing(Request $req)
     {
-        $search      = $req->input('q');
-        $query       = Marketing::with(['customer', 'company'])->where('id_marketing', 'like', "%{$search}%");
+        $search = $req->input('q');
+        $query  = Marketing::with(['customer', 'company'])
+            ->where('id_marketing', 'like', "%{$search}%");
         $queryParams = $req->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {

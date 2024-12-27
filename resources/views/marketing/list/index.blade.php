@@ -54,7 +54,9 @@
                             <button id="exportPdf" class="dropdown-item w-100">PDF</button>
                         </ul>
                     </div>
+                    @if (auth()->user()->role->hasPermissionTo('marketing.list.add'))
                     <a href="{{ route('marketing.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
+                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -81,7 +83,9 @@
                                 @foreach ($data as $item)
                                 @php
                                     $nominalPenjualan = $item->grand_total;
-                                    $nominalSisaBayar = $item->marketing_payments->sum('payment_nominal');
+                                    $nominalSisaBayar = $item->marketing_payments
+                                        ->filter(fn($payment) => ( $payment->verify_status == 2 ))
+                                        ->sum('payment_nominal');
                                 @endphp
                                     <tr>
                                         <td>{{ $item->grand_total }}</td>
@@ -136,27 +140,31 @@
                                                 <div class="dropdown-menu">
                                                     <a class="dropdown-item" href="{{ route('marketing.list.detail', $item->marketing_id) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
-                                                        <span>Lihat Detail</span>
+                                                        <span>Detail</span>
                                                     </a>
-                                                    @if ($item->marketing_status != 4)
+                                                    @if ($item->marketing_status != 4 && auth()->user()->role->hasPermissionTo('marketing.list.realization'))
                                                     <a class="dropdown-item" href="{{ route('marketing.list.realization', $item->marketing_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
-                                                            <span>Tambah Realisasi</span>
+                                                            <span>Realisasi</span>
                                                         </a>
                                                     @endif
                                                     <a class="dropdown-item" href="{{ route('marketing.list.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
-                                                        <span>Tambah Pembayaran</span>
+                                                        <span>Pembayaran</span>
                                                     </a>
+                                                    @if ($item->marketing_status == 4 && auth()->user()->role->hasPermissionTo('marketing.return.add'))
                                                     <a class="dropdown-item" href="{{ route('marketing.return.add', $item->marketing_id) }}">
                                                         <i data-feather="corner-down-left" class="mr-50"></i>
                                                         <span>Retur</span>
                                                     </a>
+                                                    @endif
+                                                    @if (auth()->user()->role->hasPermissionTo('marketing.list.delete'))
                                                     <a class="dropdown-item item-delete-button text-danger"
                                                         href="{{ route('marketing.list.delete', $item->marketing_id) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </td>
@@ -167,7 +175,12 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                        <div class="col-12 col-md-6 my-1">
+                            @if (auth()->user()->role->hasPermissionTo('marketing.list.payment.add') && auth()->user()->role->hasPermissionTo('marketing.list.payment.approve'))
+                            @include('marketing.list.sections.batch-upload-modal')
+                            @endif
+                        </div>
+                        <div class="col-12 col-md-6 my-1">
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>
@@ -216,7 +229,7 @@
 
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
-<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 
 <script>
     $(function () {

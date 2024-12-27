@@ -11,6 +11,8 @@ use App\Models\Marketing\MarketingPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Spatie\SimpleExcel\SimpleExcelReader;
 
 class ListPaymentController extends Controller
 {
@@ -24,7 +26,10 @@ class ListPaymentController extends Controller
                 throw new \Exception('Status Penjualan belum final');
             }
 
-            $data  = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
+            $data          = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
+            $data->is_paid = $marketing->marketing_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
             $param = [
                 'title' => 'Penjualan > Payment',
                 'data'  => $data,
@@ -78,6 +83,105 @@ class ListPaymentController extends Controller
                 ->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function batch(Request $req)
+    {
+        try {
+            if ($req->hasFile('payment_csv')) {
+                $file = $req->file('payment_csv');
+
+                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension    = 'csv';
+                $tempFileName = $originalName.'.'.$extension;
+                $tempPath     = $file->storeAs('tmp', $tempFileName, 'local');
+                $rows         = SimpleExcelReader::create(storage_path('app/'.$tempPath))
+                    ->getRows()
+                    ->toArray();
+
+                $data = Marketing::with(['customer', 'company', 'marketing_payments'])
+                    ->whereNull('marketing_return_id')
+                    ->where('marketing_status', '>=', 3)
+                    ->get()->map(function($marketing) {
+                        return [
+                            'marketing_id'     => $marketing->marketing_id,
+                            'id_marketing'     => $marketing->id_marketing,
+                            'marketing_status' => $marketing->marketing_status,
+                            'grand_total'      => $marketing->grand_total,
+                            'is_paid'          => $marketing->marketing_payments
+                                ->where('verify_status', 2)
+                                ->sum('payment_nominal'),
+                        ];
+                    })->toArray();
+
+                $param = [
+                    'data'     => $data,
+                    'payments' => $rows,
+                ];
+
+                Storage::disk('local')->delete($tempPath);
+
+                return view('marketing.list.payment.batch', array_merge(['title' => 'Penjualan > Payment > Batch Upload'], $param));
+            }
+
+            throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
+        } catch (\Exception $e) {
+            return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function batchAdd(Request $req)
+    {
+        try {
+            $count = DB::transaction(function() use ($req) {
+                $paymentBatches = ($req->all('payment_batch_upload')['payment_batch_upload']);
+                $arrPayments    = [];
+                $processedCount = 0;
+
+                foreach ($paymentBatches as $key => $value) {
+                    // skip if no marketing_id
+                    if (empty($value['marketing_id']) || $value['marketing_id'] === '') {
+                        continue;
+                    }
+
+                    $docPath = '';
+                    if (isset($value['document_path'])) {
+                        $docUrl = FileHelper::upload($value['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                        if (! $docUrl['status']) {
+                            return redirect()->back()->with('error', $docUrl['message'].' '.$value['document_path'])->withInput();
+                        }
+                        $docPath = $docUrl['url'];
+                    }
+
+                    $arrPayments[] = [
+                        'marketing_id'       => $value['marketing_id'],
+                        'document_path'      => $docPath,
+                        'transaction_number' => $value['transaction_number'],
+                        'payment_reference'  => $value['payment_reference'],
+                        'payment_method'     => $value['payment_method'],
+                        'bank_id'            => $value['bank_id'] ?? null,
+                        'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
+                        'payment_nominal'    => $value['payment_nominal'],
+                        'verify_status'      => array_search(
+                            'Terverifikasi',
+                            Constants::MARKETING_VERIFY_PAYMENT_STATUS
+                        ),
+                    ];
+
+                    $processedCount += 1;
+                }
+
+                MarketingPayment::insert($arrPayments);
+
+                return $processedCount;
+            });
+
+            $success = ['success' => "Sebanyak {$count} Data Berhasil diupload"];
+
+            return redirect()->route('marketing.list.index')->with($success);
+        } catch (\Exception $e) {
+            return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
         }
     }
 
@@ -197,7 +301,7 @@ class ListPaymentController extends Controller
                     ]);
                 }
 
-                $success = ['success' => 'Payment berhasil disetujui'];
+                $success = ['success' => 'Pembayaran berhasil disetujui'];
             } else {
                 $payment->update([
                     'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
@@ -205,7 +309,7 @@ class ListPaymentController extends Controller
                     'approval_notes' => $input['approval_notes'],
                 ]);
 
-                $success = ['success' => 'Payment berhasil ditolak'];
+                $success = ['success' => 'Pembayaran berhasil ditolak'];
             }
 
             DB::commit(); // Commit transaksi jika semua berhasil

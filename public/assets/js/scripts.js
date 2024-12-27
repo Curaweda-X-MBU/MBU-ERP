@@ -101,11 +101,15 @@ function confirmDelete(
  * <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
  *
  */
-function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
+function confirmCallback(
+    { title, text, footer, icon, confirmText, confirmClass },
+    cb,
+) {
     Swal.fire({
         title: title,
         text: text,
         icon: icon,
+        footer: footer ? footer : "",
         showCancelButton: true,
         confirmButtonText: confirmText,
         customClass: {

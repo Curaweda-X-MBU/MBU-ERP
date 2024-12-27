@@ -101,6 +101,11 @@ Route::middleware('auth')->group(function() {
                 Route::get('/detail/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'detail'])->name('marketing.list.payment.detail')->middleware('permission:marketing.list.payment.detail');
                 Route::get('/delete/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'delete'])->name('marketing.list.payment.delete')->middleware('permission:marketing.list.payment.delete');
                 Route::post('/approve/{payment}', [App\Http\Controllers\Marketing\ListPaymentController::class, 'approve'])->name('marketing.list.payment.approve')->middleware('permission:marketing.list.payment.approve');
+
+                Route::group(['prefix' => 'batch'], function() {
+                    Route::post('/', [App\Http\Controllers\Marketing\ListPaymentController::class, 'batch'])->name('marketing.list.payment.batch')->middleware('permission:marketing.list.payment.approve')->middleware('permission:marketing.list.payment.add');
+                    Route::post('/add', [App\Http\Controllers\Marketing\ListPaymentController::class, 'batchAdd'])->name('marketing.list.payment.batch.add')->middleware('permission:marketing.list.payment.approve')->middleware('permission:marketing.list.payment.add');
+                });
             });
         });
 

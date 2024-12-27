@@ -135,9 +135,7 @@ class ReturnController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
 
                     $grandTotal = $subTotal + $additPrice;
 
