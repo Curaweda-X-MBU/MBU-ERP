@@ -153,7 +153,13 @@ class NonstockController extends Controller
         $nonstocks = $nonstocks->get();
 
         return response()->json($nonstocks->map(function($nonstock) {
-            return ['id' => $nonstock->nonstock_id, 'text' => $nonstock->name, 'data' => $nonstock];
+            return [
+                'id'       => $nonstock->nonstock_id,
+                'text'     => $nonstock->name,
+                'uom_id'   => $nonstock->uom_id,
+                'uom_name' => $nonstock->uom->name,
+                'data'     => $nonstock,
+            ];
         }));
     }
 }

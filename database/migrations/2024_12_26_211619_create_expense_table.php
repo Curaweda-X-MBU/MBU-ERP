@@ -42,14 +42,12 @@ return new class extends Migration
             $table->id('expense_item_id');
             $table->unsignedBigInteger('expense_id');
             $table->string('sub_category');
-            $table->string('price_nominal');
+            $table->double('qty');
+            $table->string('uom');
+            $table->bigInteger('price');
+            $table->bigInteger('total_price');
 
             $table->foreign('expense_id')->references('expense_id')->on('expenses')->onUpdate('no action')->onDelete('no action');
-        });
-
-        Schema::create('expense_sub_categories', function(Blueprint $table) {
-            $table->id('expense_sub_category_id');
-            $table->string('name');
         });
     }
 

@@ -2,8 +2,11 @@
     <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
-                <th class="col-6">Sub Kategori</th>
-                <th class="col-6">Nominal Seluruh Kandang</th>
+                <th>Sub Kategori<i class="text-danger">*</i></th>
+                <th>QTY<i class="text-danger">*</i></th>
+                <th>UOM</th>
+                <th>Harga Satuan (Rp)</th>
+                <th>Nominal Seluruh Kandang (Rp)<i class="text-danger">*</i></th>
                 <th class="col-1">
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
                         <i data-feather="plus"></i>
@@ -11,17 +14,17 @@
                 </th>
             </tr>
         </thead>
-        <tbody data-repeater-list="expense">
+        <tbody data-repeater-list="expense_items">
             <tr data-repeater-item>
                 <td>
-                    <select id="sub_category_id" class="form-control sub-category-select">
-                        <option value="">Pilih Sub Kategori</option>
-                        <option value="Air">Air</option>
-                        <option value="Listrik">Listrik</option>
-                        <option value="Gas">Gas</option>
-                    </select>
+                    <select class="form-control sub-category-select"></select>
                 </td>
-                <td><input type="text" id="total-amount-all-farms" class="form-control numeral-mask text-right" value="0"></td>
+                <td><input type="text" class="form-control numeral-mask" value="0"></td>
+                <td>
+                    <input class="form-control uom" disabled></input>
+                </td>
+                <td><input type="text" class="form-control numeral-mask text-right" value="0" disabled></td>
+                <td><input type="text" class="form-control numeral-mask text-right total-amount-all-farms" value="0"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>
@@ -39,7 +42,7 @@
 <script>
     function updateTotal() {
         let total = 0;
-        $('input[id="total-amount-all-farms"]').each(function() {
+        $('.total-amount-all-farms').each(function() {
             const value = $(this).val() || '0';
             total += parseLocaleToNum(value);
         });
@@ -47,7 +50,7 @@
     }
 
     const expenseRepeater = $("#expense-repeater-1").repeater({
-        initEmpty: false,
+        initEmpty: true,
         defaultValues: {
             'total-amount-all-farms': '0'
         },
@@ -56,7 +59,12 @@
             $row.slideDown();
 
             const $subCategorySelect = $row.find('.sub-category-select');
-            initSelect2($subCategorySelect, 'Pilih Sub Kategori');
+            const subCategoryIdRoute = '{{ route("data-master.nonstock.search") }}';
+            initSelect2($subCategorySelect, 'Pilih Sub Kategori', subCategoryIdRoute, 'nonStock');
+            $subCategorySelect.on('select2:select', function(){
+                const data = $(this).select2('data')[0];
+                $row.find('input.uom').val(data.uom_name);
+            })
 
             const $numeralInput = $row.find('.numeral-mask');
             initNumeralMask($numeralInput);
@@ -74,16 +82,13 @@
         }
     });
 
-    // Initialize existing components
-    $('.sub-category-select').each(function() {
-        initSelect2($(this), 'Pilih Sub Kategori');
-    });
+    $('button[data-repeater-create]').trigger('click');
 
     // Initialize numeral mask for existing inputs
     initNumeralMask('.numeral-mask');
 
     // Add input event listener to existing inputs
-    $(document).on('input', 'input[id="total-amount-all-farms"]', function() {
+    $(document).on('input', '.total-amount-all-farms', function() {
         updateTotal();
     });
 
