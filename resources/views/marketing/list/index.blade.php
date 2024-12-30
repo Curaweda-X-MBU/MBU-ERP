@@ -92,9 +92,9 @@
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
+                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
+                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
@@ -171,10 +171,10 @@
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>
-                                        <td>
+                                        <td class="text-primary">
                                             Total Penjualan:
                                         </td>
-                                        <td class="font-weight-bolder" style="font-size: 1.2em">
+                                        <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
                                             Rp. <span id="grand_total">0,00</span>
                                         </td>
                                     </tr>
