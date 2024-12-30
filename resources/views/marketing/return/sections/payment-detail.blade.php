@@ -277,9 +277,10 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     credit = (@js($paymentLeft) > 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
                     if (result.verify_status == 2) {
                         credit += result.payment_nominal;
+                        $paymentNominal.attr('max', credit);
                     }
                     $paymentMethod.val(result.payment_method).trigger('change');
-                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $recipientBank.append(`<option value="${result.recipient_bank ? result.recipient_bank_id : ''}" selected>${result.recipient_bank ? [result.recipient_bank.alias, result.recipient_bank.account_number, result.recipient_bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
