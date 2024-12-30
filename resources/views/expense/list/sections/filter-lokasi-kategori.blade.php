@@ -9,8 +9,8 @@
         <label for="category_id" class="form-label">Kategori</label>
         <select name="category_id" id="category_id" class="form-control">
             <option value="">Pilih Kategori</option>
-            <option value="1">BOP (Biaya Operasional)</option>
-            <option value="2">Biaya Diluar BOP</option>
+            <option value="bop">BOP (Biaya Operasional)</option>
+            <option value="non-bop">Biaya Diluar BOP</option>
         </select>
     </div>
 </div>
@@ -34,9 +34,7 @@
     initSelect2($('#location_id'), 'Pilih Lokasi', locationIdRoute);
     initSelect2($('#category_id'), 'Pilih Kategori');
 
-    // Kandang mapping
-    $('#location_id').on('change', function () {
-        const locationId = $(this).val();
+    function renderHatcheryButtons(locationId) {
         const container = $('#hatcheryButtonsContainer');
         container.empty();
 
@@ -61,5 +59,35 @@
                 container.append(button);
             });
         }
+    }
+
+    function updateContainerVisibility() {
+        const categoryId = $('#category_id').val();
+        const locationId = $('#location_id').val();
+        const container = $('#hatcheryButtonsContainer');
+
+        if (categoryId === 'bop') {
+            container.show();
+            if (locationId) {
+                renderHatcheryButtons(locationId);
+            }
+        } else {
+            container.hide();
+            container.empty();
+        }
+    }
+
+    $('#category_id').on('change', function() {
+        updateContainerVisibility();
+    });
+
+    $('#location_id').on('change', function() {
+        if ($('#category_id').val() === 'bop') {
+            renderHatcheryButtons($(this).val());
+        }
+    });
+
+    $(document).ready(function() {
+        updateContainerVisibility();
     });
 </script>

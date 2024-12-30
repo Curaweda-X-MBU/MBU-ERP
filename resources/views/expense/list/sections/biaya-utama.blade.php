@@ -1,4 +1,8 @@
 <div class="table-responsive mt-2">
+    <div class="row bg-primary d-flex justify-content-center align-items-center py-1 text-white px-2">
+        <p class="col-md-6 mb-0">Biaya Utama</p>
+        <p class="col-md-6 mb-0 text-right"><span id="total-biaya-utama">0,00</span></p>
+    </div>
     <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
@@ -35,18 +39,30 @@
     </table>
 </div>
 
-<script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
-    function updateTotal() {
+    function calculateUnitPrice($row) {
+        const qty = parseLocaleToNum($row.find('input.numeral-mask').eq(0).val() || '0');
+        const totalAmount = parseLocaleToNum($row.find('input.total-amount-all-farms').val() || '0');
+
+        if (qty > 0) {
+            const unitPrice = totalAmount / qty;
+            $row.find('input.text-right').eq(0).val(parseNumToLocale(unitPrice));
+        } else {
+            $row.find('input.text-right').eq(0).val('');
+        }
+    }
+
+    function calculateBiayaUtama() {
         let total = 0;
         $('.total-amount-all-farms').each(function() {
             const value = $(this).val() || '0';
             total += parseLocaleToNum(value);
         });
-        $('#total-expense').text(parseNumToLocale(total));
+        $('#total-biaya-utama').text(parseNumToLocale(total));
     }
 
     const expenseRepeater = $("#expense-repeater-1").repeater({
@@ -70,7 +86,8 @@
             initNumeralMask($numeralInput);
 
             $numeralInput.on('input', function() {
-                updateTotal();
+                calculateUnitPrice($row);
+                calculateBiayaUtama();
             });
 
             if (feather) {
@@ -83,15 +100,4 @@
     });
 
     $('button[data-repeater-create]').trigger('click');
-
-    // Initialize numeral mask for existing inputs
-    initNumeralMask('.numeral-mask');
-
-    // Add input event listener to existing inputs
-    $(document).on('input', '.total-amount-all-farms', function() {
-        updateTotal();
-    });
-
-    // Initial total calculation
-    updateTotal();
 </script>
