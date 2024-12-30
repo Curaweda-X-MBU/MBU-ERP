@@ -7,7 +7,6 @@ use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Marketing\Marketing;
-use App\Models\Marketing\MarketingPayment;
 use App\Models\Marketing\MarketingReturnPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -121,10 +120,8 @@ class ReturnPaymentController extends Controller
             $data = $payment->load(['bank', 'recipient_bank']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $data) {
+                DB::transaction(function() use ($req, $payment) {
                     $input = $req->all();
-
-                    dd($input);
 
                     $existingDoc = $data->document_path ?? null;
                     $docPath     = '';
@@ -142,12 +139,14 @@ class ReturnPaymentController extends Controller
                         $docPath = $existingDoc;
                     }
 
-                    MarketingPayment::create([
+                    $payment->update([
                         'payment_method'     => $input['payment_method'],
-                        'bank_id'            => $input['bank_id'],
+                        'bank_id'            => $input['bank_id']           ?? null,
+                        'recipient_bank_id'  => $input['recipient_bank_id'] ?? null,
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
                         'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
+                        'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],
@@ -156,7 +155,7 @@ class ReturnPaymentController extends Controller
                 $success = ['success' => 'Data Berhasil diubah'];
 
                 return redirect()
-                    ->route('marketing.list.payment.index')
+                    ->back()
                     ->with($success);
             }
 

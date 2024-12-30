@@ -174,6 +174,14 @@ class ReturnController extends Controller
                 'marketing_delivery_vehicles.sender',
                 'marketing_return',
             ]);
+            $data->marketing_delivery_vehicles->map(fn ($v) => $v->marketing_product_name = $v->marketing_product->product->name);
+            $data->is_paid = $marketing->marketing_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
+            $data->is_returned = $marketing->marketing_return->marketing_return_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
+
             $param = [
                 'title' => 'Penjualan > Retur > Detail',
                 'data'  => $data,

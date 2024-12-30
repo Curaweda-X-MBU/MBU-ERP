@@ -9,7 +9,6 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
 
 <script>
     function setDetail(e) {
-        console.log($(e).data('payment-id'));
         $('input[name="marketing_return_payment_id"]').val($(e).data('payment-id')).trigger('change');
     }
 </script>

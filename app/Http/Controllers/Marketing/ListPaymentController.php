@@ -295,7 +295,33 @@ class ListPaymentController extends Controller
     public function delete(MarketingPayment $payment)
     {
         try {
-            $payment->delete();
+            DB::transaction(function() use ($payment) {
+                $payment->delete();
+
+                $marketing     = $payment->marketing;
+                $grandTotal    = $marketing->grand_total;
+                $totalPayments = $marketing->marketing_payments
+                    ->filter(fn ($p) => $p->verify_status == 2)
+                    ->sum('payment_nominal');
+
+                if ($grandTotal === $totalPayments) {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } elseif ($grandTotal < $totalPayments) {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } elseif ($totalPayments === 0) {
+                    $marketing->update([
+                        'payment_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } else {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                }
+            });
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->back()->with($success);
