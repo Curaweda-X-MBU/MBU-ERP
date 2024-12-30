@@ -12,7 +12,8 @@
                 <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     @include('expense.list.sections.filter-lokasi-kategori')
-                    @include('expense.list.sections.expense-add')
+                    @include('expense.list.sections.biaya-utama')
+                    @include('expense.list.sections.biaya-lainnya')
                     <div class="row justify-content-end mr-2 mt-3">
                         <p class="col-6 col-md-2">Total Biaya Keseluruhan:</p>
                         <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-expense">0,00</span></p>
@@ -27,5 +28,13 @@
         </div>
     </div>
 </div>
+
+<script>
+    const totalUtama = parseLocaleToNum($('#total-biaya-utama').text() || '0');
+    const totalLainnya = parseLocaleToNum($('#total-biaya-lainnya').text() || '0');
+
+    const totalKeseluruhan = totalUtama + totalLainnya;
+    $('#total-expense').text(parseNumToLocale(totalKeseluruhan));
+</script>
 
 @endsection
