@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable()->after('total_price');
         });
 
-        Schema::rename('expense_items', 'main_prices');
+        Schema::rename('expense_items', 'expense_main_prices');
 
         Schema::create('expense_addit_prices', function(Blueprint $table) {
             $table->id('expense_addit_price_id');
@@ -38,19 +38,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('main_prices', function(Blueprint $table) {
-            if (Schema::hasColumn('main_prices', 'payment_status')) {
+        Schema::table('expense_main_prices', function(Blueprint $table) {
+            if (Schema::hasColumn('expense_main_prices', 'payment_status')) {
                 $table->dropColumn('payment_status');
             }
-            if (Schema::hasColumn('main_prices', 'notes')) {
+            if (Schema::hasColumn('expense_main_prices', 'notes')) {
                 $table->dropColumn('notes');
             }
-            if (Schema::hasColumn('main_prices', 'price')) {
+            if (Schema::hasColumn('expense_main_prices', 'price')) {
                 $table->dropColumn('price');
             }
         });
 
-        Schema::rename('main_prices', 'expense_items');
+        Schema::rename('expense_main_prices', 'expense_items');
 
         Schema::dropIfExists('expense_addit_prices');
     }
