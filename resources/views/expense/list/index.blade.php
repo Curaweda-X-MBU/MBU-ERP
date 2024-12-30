@@ -2,28 +2,51 @@
     $title = 'Biaya > List';
     $data = [
         [
+            'expense_id' => 1,
+            'id_expense' => 'BO.1',
+            'is_approved' => null,
+            'approval_notes' => 'BO.1 Sudah Bagus',
             'location' => 'Singaparna',
             'category' => 1,
             'created_at' => '25-Dec-2024',
             'created_by' => 'Agus Saripudin',
             'grand_total' => 8020000,
+            'payment_status' => 1,
             'expense_status' => 2,
-        ],
-        [
+            'expense_payment' => [
+                'payment_nominal' => []
+                ]
+            ],
+            [
+            'expense_id' => 2,
+            'id_expense' => 'NB.1',
+            'is_approved' => 0,
+            'approval_notes' => 'NB.1 Sudah Bagus',
             'location' => 'Pangandaran',
             'category' => 2,
             'created_at' => '25-Dec-2024',
             'created_by' => 'Zaenaludin',
             'grand_total' => 8020000,
+            'payment_status' => 2,
             'expense_status' => 1,
+            'expense_payment' => [
+                'payment_nominal' => [1000000, 1000000]
+                ]
         ],
         [
+            'expense_id' => 3,
+            'id_expense' => 'NB.2',
+            'is_approved' => 1,
             'location' => 'Pangandaran',
             'category' => 2,
             'created_at' => '25-Dec-2024',
             'created_by' => 'Agus Abdul Jalil',
             'grand_total' => 8020000,
+            'payment_status' => 3,
             'expense_status' => 0,
+            'expense_payment' => [
+                'payment_nominal' => [1000000, 1000000, 6020000]
+            ]
         ],
     ];
 @endphp
@@ -52,19 +75,26 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
-                                <th>#</th>
+                                <th>ID</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
                                 <th>Tanggal</th>
                                 <th>Nama Pengaju</th>
-                                <th>Nominal</th>
-                                <th>Status</th>
+                                <th>Nominal Biaya (Rp)</th>
+                                <th>Nominal Sudah Bayar (Rp)</th>
+                                <th>Nominal Sisa Bayar (Rp)</th>
+                                <th>Status Pembayaran</th>
+                                <th>Status Biaya</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
-                                @foreach ($data as $index => $item)
+                                @foreach ($data as $item)
+                                @php
+                                    $nominalBiaya = $item['grand_total'];
+                                    $nominalSisaBayar = array_sum($item['expense_payment']['payment_nominal']);
+                                @endphp
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item['id_expense'] }}</td>
                                         <td>{{ $item['location'] }}</td>
                                         <td>
                                             @switch($item['category'])
@@ -80,7 +110,24 @@
                                         </td>
                                         <td>{{ date('d-M-Y', strtotime($item['created_at'])) }}</td>
                                         <td>{{ $item['created_by'] }}</td>
-                                        <td>Rp. {{ \App\Helpers\Parser::toLocale($item['grand_total']) }}</td>
+                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($nominalBiaya) }}</td>
+                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
+                                        <td>
+                                            @php
+                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                            @endphp
+                                            @switch($item['payment_status'])
+                                                @case(1)
+                                                    <div class="badge badge-pill badge-warning">{{ $statusPayment[$item['payment_status']] }}</div>
+                                                    @break
+                                                @case(2)
+                                                    <div class="badge badge-pill badge-success">{{ $statusPayment[$item['payment_status']] }}</div>
+                                                    @break
+                                                @default
+                                                    <div class="badge badge-pill badge-primary">{{ $statusPayment[$item['payment_status']] }}</div>
+                                            @endswitch
+                                        </td>
                                         <td class="text-center">
                                             @switch($item['expense_status'])
                                                 @case(0)
@@ -105,14 +152,20 @@
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="">
+                                                    <a class="dropdown-item" href="{{ route('expense.list.detail', $item['expense_id']) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
                                                     <a class="dropdown-item" href="">
-                                                        <i data-feather="message-square" class="mr-50"></i>
-                                                        <span>Catatan</span>
+                                                        <i data-feather="credit-card" class="mr-50"></i>
+                                                        <span>Tambah Pembayaran</span>
                                                     </a>
+                                                    @if (@$item['approval_notes'] && @$item['is_approved'] === 0)
+                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item['approval_notes'] }}">
+                                                            <i data-feather="message-square" class="mr-50"></i>
+                                                            <span>Catatan Persetujuan</span>
+                                                        </a>
+                                                    @endif
                                                     <a class="dropdown-item item-delete-button text-danger" href="">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
@@ -126,6 +179,23 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Catatan -->
+<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Catatan Persetujuan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="notesContent">-</p>
             </div>
         </div>
     </div>
@@ -167,7 +237,7 @@
             drawCallback: function( settings ) {
                 feather.replace();
             },
-            order: [[3, 'desc']],
+            order: [[0, 'desc']],
         });
 
         $('#exportExcel').on('click', function() {
@@ -189,6 +259,15 @@
                 confirmClass: 'btn-danger',
             }, function() {
                 window.location.href = e.target.href;
+            });
+        });
+
+        $(document).ready(function() {
+            $('#notesModal').on('show.bs.modal', function(event) {
+                var button = $(event.relatedTarget);
+                var notes = button.data('notes') || '-';
+                var modal = $(this);
+                modal.find('#notesContent').text(notes);
             });
         });
     });

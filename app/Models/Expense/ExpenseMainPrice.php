@@ -5,7 +5,7 @@ namespace App\Models\Expense;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ExpenseItem extends Model
+class ExpenseMainPrice extends Model
 {
     use HasFactory;
 
@@ -17,6 +17,7 @@ class ExpenseItem extends Model
         'expense_id',
         'sub_category',
         'price_nominal',
+        'notes',
     ];
 
     public function expense()

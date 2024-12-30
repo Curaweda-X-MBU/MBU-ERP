@@ -44,8 +44,13 @@ class Expense extends Model
         return $this->hasMany(ExpenseKandang::class, 'expense_id', 'expense_id');
     }
 
-    public function expense_items()
+    public function expense_main_prices()
     {
-        return $this->hasMany(ExpenseKandang::class, 'expense_id', 'expense_id');
+        return $this->hasMany(ExpenseMainPrice::class, 'expense_id', 'expense_id');
+    }
+
+    public function expense_addit_prices()
+    {
+        return $this->hasMany(ExpenseAdditPrice::class, 'expense_id', 'expense_id');
     }
 }
