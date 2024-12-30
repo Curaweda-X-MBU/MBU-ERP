@@ -15,11 +15,14 @@ return new class extends Migration
             if (Schema::hasColumn('expense_items', 'price')) {
                 $table->dropColumn('price');
             }
-            $table->tinyInteger('payment_status');
             $table->text('notes')->nullable()->after('total_price');
         });
 
         Schema::rename('expense_items', 'expense_main_prices');
+
+        Schema::table('expenses', function(Blueprint $table) {
+            $table->tinyInteger('payment_status')->after('grand_total');
+        });
 
         Schema::create('expense_addit_prices', function(Blueprint $table) {
             $table->id('expense_addit_price_id');
@@ -39,14 +42,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('expense_main_prices', function(Blueprint $table) {
-            if (Schema::hasColumn('expense_main_prices', 'payment_status')) {
-                $table->dropColumn('payment_status');
-            }
             if (Schema::hasColumn('expense_main_prices', 'notes')) {
                 $table->dropColumn('notes');
             }
             if (Schema::hasColumn('expense_main_prices', 'price')) {
                 $table->dropColumn('price');
+            }
+        });
+
+        Schema::table('expenses', function(Blueprint $table) {
+            if (Schema::hasColumn('expenses', 'payment_status')) {
+                $table->dropColumn('payment_status');
             }
         });
 
