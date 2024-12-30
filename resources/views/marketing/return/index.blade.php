@@ -1,6 +1,12 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
+@php
+    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+    $statusReturn = App\Constants::MARKETING_RETURN_STATUS;
+@endphp
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -54,28 +60,28 @@
                                             <td class="text-center">
                                                 @switch($item->payment_return_status)
                                                     @case(1)
-                                                        <div class="badge badge-pill badge-warning">Tempo</div>
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_return_status] }}</div>
                                                         @break
                                                     @case(2)
-                                                        <div class="badge badge-pill badge-success">Dibayar Sebagian</div>
+                                                        <div class="badge badge-pill badge-success">{{ $statusPayment[$item->payment_return_status] }}</div>
                                                         @break
                                                     @case(3)
-                                                        <div class="badge badge-pill badge-info">Dibayar Penuh</div>
+                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$item->payment_return_status] }}</div>
                                                         @break
                                                     @default
-                                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                                        <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->payment_return_status] }}</div>
                                                 @endswitch
                                             </td>
                                             <td class="text-center">
                                                 @switch($item->return_status)
-                                                    @case(1)
-                                                        <div class="badge badge-pill badge-warning">Diajukan</div>
+                                                    @case(0)
+                                                        <div class="badge badge-pill badge-danger">{{ $statusReturn[$item->return_status] }}</div>
                                                         @break
-                                                    @case(2)
-                                                        <div class="badge badge-pill badge-info">Disetujui</div>
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusReturn[$item->return_status] }}</div>
                                                         @break
                                                     @default
-                                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                                        <div class="badge badge-pill badge-primary">{{ $statusReturn[$item->return_status] }}</div>
                                                 @endswitch
                                             </td>
                                             <td>
@@ -117,6 +123,39 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table table-borderless">
+                                <tbody class="text-right">
+                                    <tr>
+                                        <td>
+                                            Total Retur:
+                                        </td>
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">
+                                            Rp. <span id="total_return">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-success">
+                                            Total Sudah Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-success" style="font-size: 1.2em">
+                                            Rp. <span id="is_returned">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-danger">
+                                            Total Belum Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
+                                            Rp. <span id="not_returned">0,00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,7 +177,7 @@
 
 <script>
     $(function () {
-        $('#datatable').DataTable({
+        var $table = $('#datatable').DataTable({
             dom: 'B<"d-flex justify-content-between"lf>rtip',
             buttons: [
                 {
@@ -157,6 +196,26 @@
                 },
             ],
             drawCallback: function( settings ) {
+                let totalReturnSum = 0;
+                let isReturnedSum = 0;
+
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const totalReturn = parseLocaleToNum(data[5]);
+                    const isReturned = parseLocaleToNum(data[6]);
+
+                    totalReturnSum += totalReturn;
+                    isReturnedSum += isReturned;
+                });
+
+                const $totalReturn = $('#total_return');
+                const $isReturned = $('#is_returned');
+                const $notReturned = $('#not_returned');
+
+                $totalReturn.text(parseNumToLocale(totalReturnSum));
+                $isReturned.text(parseNumToLocale(isReturnedSum));
+                $notReturned.text(parseNumToLocale(totalReturnSum - isReturnedSum));
+
                 feather.replace();
             },
             order: [[0, 'desc']],

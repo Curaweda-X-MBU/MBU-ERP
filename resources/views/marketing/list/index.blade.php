@@ -111,11 +111,14 @@
                                         </td>
                                         <td>
                                             @switch($item->marketing_status)
+                                                @case(0)
+                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$item->marketing_status] }}</div>
+                                                    @break
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusMarketing[$item->marketing_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$item->marketing_status] }}</div>
+                                                    <div class="badge badge-pill badge-info">{{ $statusMarketing[$item->marketing_status] }}</div>
                                                     @break
                                                 @case(3)
                                                     <div class="badge badge-pill badge-success">{{ $statusMarketing[$item->marketing_status] }}</div>
@@ -303,7 +306,7 @@
 
                 feather.replace();
             },
-            order: [[2, 'desc']],
+            order: [[0, 'desc']],
         });
 
         function setupDropdownFilter(selector, column, $table) {
