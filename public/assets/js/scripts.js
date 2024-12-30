@@ -214,13 +214,34 @@ function initFlatpickrDate($selector) {
  * - year: 'numeric',
  * - month: 'short',
  */
-function parseDateToString(datestring, separator = "-") {
-    const dateOpt = {
-        day: "2-digit",
-        year: "numeric",
-        month: "short",
-    };
+function parseDateToString(datestring, format = "d-M-Y") {
+    const date = new Date(datestring);
 
-    const date = new Date(datestring).toLocaleDateString("en-GB", dateOpt);
-    return date.replace(/ /g, separator);
+    if (date.toString() === "Invalid Date")
+        if (isNaN(date.getTime())) {
+            return "Invalid Date";
+        }
+
+    let formattedDate;
+
+    if (format === "d-M-Y") {
+        // Format to d-M-Y
+        const options = {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        };
+        formattedDate = date.toLocaleDateString("en-GB", options);
+        return formattedDate.replace(/(\d{2}) (\w{3}) (\d{4})/, "$1-$2-$3");
+    } else if (format === "Y-m-d") {
+        // Format to Y-m-d
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+
+        formattedDate = `${year}-${month}-${day}`;
+        return formattedDate;
+    } else {
+        return "Invalid Format"; // Handle unsupported formats
+    }
 }

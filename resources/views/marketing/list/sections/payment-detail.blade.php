@@ -98,7 +98,9 @@ $paymentLeft = $data->grand_total - $data->is_paid;
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <input name="payment_nominal" type="number" max="{{ $paymentLeft }}" class="payment_nominal position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                 <input name="payment_nominal_mask" type="text" class="payment_nominal_mask form-control numeral-mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
-                <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+                @if (empty($is_detail))
+                    <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+                @endif
             </div>
         </div>
         <div class="col-12 row">
@@ -107,9 +109,9 @@ $paymentLeft = $data->grand_total - $data->is_paid;
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 @if (isset($is_detail))
-                    <input name="payment_at" type="text" class="form-control" id="payment_at" value="{{ now()->format('d-M-Y') }}" disabled>
+                    <input name="payment_at" type="text" class="payment_at form-control" value="{{ now() }}" disabled>
                 @else
-                    <input name="payment_at" class="form-control flatpickr-basic" id="payment_at" value="{{ now()->format('d-M-Y') }}" required>
+                    <input name="payment_at" class="payment_at form-control flatpickr-basic" value="{{ now() }}" required>
                 @endif
             </div>
         </div>
@@ -151,9 +153,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 
     (function() {
         initNumeralMask('.numeral-mask');
-
-        var dateOpt = { dateFormat: 'd-M-Y' };
-        $('.flatpickr-basic').flatpickr(dateOpt);
+        initFlatpickrDate($('.flatpickr-basic'));
 
         var $paymentSelect = $('.payment_method');
         var bankIdRoute = '{{ route("data-master.bank.search") }}';
@@ -183,7 +183,8 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $ownBank = $this.find('.own_bank_id');
                 const $refNumber = $this.find('.ref_number');
                 const $transactionNumber = $this.find('.transaction_number');
-                const $paymentNominal = $this.find('.payment_nominal_mask');
+                const $paymentNominalMask = $this.find('.payment_nominal_mask');
+                const $paymentNominal = $this.find('.payment_nominal');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('.notes');
                 const $approvalNotes = $('#approveForm').find('.approval_notes');
@@ -196,8 +197,9 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
-                    $paymentNominal.val(parseNumToLocale(result.payment_nominal));
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentNominalMask.val(parseNumToLocale(result.payment_nominal)).trigger('input');
+                    $paymentNominal.val(result.payment_nominal).trigger('input');
+                    $paymentAt.val(parseDateToString(result.payment_at));
                     $notes.text(result.notes ?? '-');
                     $approvalNotes.text(result.approval_notes ?? '');
                 });
@@ -214,7 +216,8 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $ownBank = $this.find('.own_bank_id');
                 const $refNumber = $this.find('.ref_number');
                 const $transactionNumber = $this.find('.transaction_number');
-                const $paymentNominal = $this.find('.payment_nominal_mask');
+                const $paymentNominalMask = $this.find('.payment_nominal_mask');
+                const $paymentNominal = $this.find('.payment_nominal');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('#notes');
                 const route = '{{ route('marketing.list.payment.detail', ':id') }}'
@@ -222,15 +225,22 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    credit = (@js($paymentLeft) > 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    if (result.verify_status == 2) {
+                        credit += result.payment_nominal;
+                        $paymentNominal.attr('max', credit);
+                    }
                     $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominal.siblings('.payment_nominal').attr('max', credit);
-                    $paymentNominal.val(parseNumToLocale(result.payment_nominal));
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentNominalMask.val(parseNumToLocale(result.payment_nominal)).trigger('input');
+                    $paymentNominal.val(result.payment_nominal).trigger('input');
+                    $paymentAt.val(result.payment_at);
                     $notes.text(result.notes ?? '-');
+
+                    initFlatpickrDate($('.flatpickr-basic'));
                 });
             })
         }

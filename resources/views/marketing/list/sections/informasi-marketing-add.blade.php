@@ -30,7 +30,7 @@
         @if(@$is_return)
             <input name="sold_at" id="sold_at" class="form-control" readonly>
         @else
-            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now()->format('d-M-Y') }}">
+            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now() }}">
         @endif
     </div>
     <!-- Status -->
@@ -94,24 +94,23 @@
         // CUSTOMER
         $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');
 
-        // SOLD AT
-        const dateOpt = {
-            day: '2-digit',
-            year: 'numeric',
-            month: 'short',
-        };
-        const soldAt = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
-        $('#sold_at').val(soldAt.replace(/ /g, '-'));
+        // DATES
+        $('#sold_at').val(marketing.sold_at);
+        if ('{{ @$is_return }}') {
+            $('#sold_at').val(parseDateToString(marketing.sold_at));
+        }
         if (marketing.realized_at) {
-            $('#realized_at').val(parseDateToString(marketing.realized_at));
+            $('#realized_at').val(marketing.realized_at);
         }
 
         if (marketing.marketing_return) {
-            $('#realized_at').val(parseDateToString(marketing.marketing_return.return_at));
+            $('#return_at').val(marketing.marketing_return.return_at);
         }
 
         // STATUS
         $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
+
+        initFlatpickrDate($('.flatpickr-basic'));
     }
     // ? END :: EDIT VALUES
 </script>

@@ -92,7 +92,6 @@
             }
         }
 
-        const dateOpt = { dateFormat: 'd-M-Y' };
         const optPaymentBatch = {
             initEmpty: true,
             show: function() {
@@ -124,10 +123,7 @@
                 initSelect2($marketingSelect, 'Pilih DO');
 
                 initNumeralMask('.numeral-mask')
-                $('.flatpickr-basic').flatpickr({
-                    ...dateOpt,
-                    allowInput: true,
-                });
+                initFlatpickrDate($('.flatpickr-basic'));
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
@@ -211,12 +207,11 @@
             $row.find('input[name*="transaction_number"]').val(payment.transaction_number);
 
             // payment_at
-            const payment_at = new Date(payment.payment_date);
-            const dateOptions = { day: '2-digit', year: 'numeric', month: 'short' };
-            if (payment_at.toString() === 'Invalid Date') {
+            const payment_at = parseDateToString(payment.payment_date, 'Y-m-d');
+            if (payment_at === 'Invalid Date') {
                 $row.find('input[name*="payment_at"]').siblings('.invalid').css('opacity', 1);
             } else {
-                $row.find('input[name*="payment_at"]').val(payment_at.toLocaleDateString('en-GB', dateOptions).replace(/ /g, '-'));
+                $row.find('input[name*="payment_at"]').val(payment_at);
             }
 
             // payment_nominal

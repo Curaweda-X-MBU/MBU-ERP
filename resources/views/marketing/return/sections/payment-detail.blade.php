@@ -173,8 +173,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
     (function() {
         initNumeralMask('.numeral-mask');
 
-        var dateOpt = { dateFormat: 'd-M-Y' };
-        $('.flatpickr-basic').flatpickr(dateOpt);
+        initFlatpickrDate($('.flatpickr-basic'));
 
         var $paymentSelect = $('.payment_method');
         var bankIdRoute = '{{ route("data-master.bank.search") }}';
@@ -247,7 +246,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $bankAdminNominalMask.val(parseNumToLocale(result.bank_admin_fees)).trigger('input');
                     $bankAdminNominal.val(result.bank_admin_fees).trigger('input');
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentAt.val(parseDateToString(result.payment_at));
                     $notes.text(result.notes ?? '-');
                     $approvalNotes.text(result.approval_notes ?? '');
                 });
@@ -276,7 +275,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    credit = (@js($paymentLeft) > 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
                     if (result.verify_status == 2) {
                         credit += result.payment_nominal;
                         $paymentNominal.attr('max', credit);
@@ -290,8 +289,10 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $bankAdminNominalMask.val(parseNumToLocale(result.bank_admin_fees)).trigger('input');
                     $bankAdminNominal.val(result.bank_admin_fees).trigger('input');
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentAt.val(result.payment_at);
                     $notes.text(result.notes ?? '-');
+
+                    initFlatpickrDate($('.flatpickr-basic'));
                 });
             })
         }
