@@ -37,9 +37,28 @@ class Marketing extends Model
         'grand_total',
         'payment_status',
         'marketing_status',
-        'is_returned',
         'created_by',
     ];
+
+    protected $appends = ['is_paid', 'is_returned'];
+
+    public function getIsPaidAttribute()
+    {
+        return $this->marketing_payments
+            ->where('verify_status', 2)
+            ->sum('payment_nominal');
+    }
+
+    public function getIsReturnedAttribute()
+    {
+        if ($this->marketing_return) {
+            return $this->marketing_return->marketing_return_payments
+                ->where('verify_status', 2)
+                ->sum('payment_nominal');
+        }
+
+        return 0;
+    }
 
     public function marketing_return()
     {

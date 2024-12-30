@@ -142,11 +142,13 @@ class Constants
     ];
 
     public const MARKETING_VERIFY_PAYMENT_STATUS = [
+        0 => 'Ditolak',
         1 => 'Diajukan',
         2 => 'Terverifikasi',
     ];
 
     public const MARKETING_STATUS = [
+        0 => 'Ditolak',
         1 => 'Diajukan',
         2 => 'Penawaran',
         3 => 'Final',
@@ -154,6 +156,7 @@ class Constants
     ];
 
     public const MARKETING_RETURN_STATUS = [
+        0 => 'Ditolak',
         1 => 'Diajukan',
         2 => 'Disetujui',
     ];

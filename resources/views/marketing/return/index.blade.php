@@ -1,12 +1,6 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
-@php
-    $statusReturPembayaran = 1;
-    $statusRetur = 2;
-
-    // dd($data);
-@endphp
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -36,11 +30,13 @@
                                 <th>No. DO</th>
                                 <th>No Faktur Retur</th>
                                 <th>Tanggal Retur</th>
-                                <th class="col-2">Pelanggan</th>
+                                <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
+                                <th>Nominal Retur (Rp)</th>
+                                <th>Nominal Sudah Bayar (Rp)</th>
+                                <th>Nominal Sisa Bayar (Rp)</th>
                                 <th>Status Retur Pembayaran</th>
                                 <th>Status Retur</th>
-                                <th>Total Retur (Rp)</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
@@ -52,6 +48,9 @@
                                             <td>{{ date('d-M-Y', strtotime($item->return_at)) }}</td>
                                             <td>{{ $item->marketing->customer->name }}</td>
                                             <td>{{ $item->marketing->company->alias }}</td>
+                                            <td class="text-primary">{{ \App\Helpers\Parser::toLocale($item->total_return) }}</td>
+                                            <td class="text-success">{{ \App\Helpers\Parser::toLocale($item->is_returned) }}</td>
+                                            <td class="text-danger" >{{ \App\Helpers\Parser::toLocale($item->total_return - $item->is_returned) }}</td>
                                             <td class="text-center">
                                                 @switch($item->payment_return_status)
                                                     @case(1)
@@ -79,7 +78,6 @@
                                                         <div class="badge badge-pill badge-secondary">N/A</div>
                                                 @endswitch
                                             </td>
-                                            <td>{{ \App\Helpers\Parser::toLocale($item->total_return) }}</td>
                                             <td>
                                                 <div class="dropdown dropleft">
                                                     <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
@@ -92,10 +90,12 @@
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
+                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.payment.index'))
                                                         <a class="dropdown-item" href="{{ route('marketing.return.payment.index', $item->marketing_id) }}">
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
                                                         </a>
+                                                        @endif
                                                         @if (auth()->user()->role->hasPermissionTo('marketing.return.delete'))
                                                         <a class="dropdown-item item-delete-button text-danger"
                                                             href="{{ route('marketing.return.delete', $item->marketing_return_id) }}"

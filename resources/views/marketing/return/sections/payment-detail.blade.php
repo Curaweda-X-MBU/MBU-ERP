@@ -232,6 +232,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                 const $bankAdminNominal = $this.find('.bank_admin_fees');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('.notes');
+                const $approvalNotes = $('#approveForm').find('.approval_notes');
                 const route = '{{ route('marketing.return.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
@@ -248,6 +249,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     $bankAdminNominal.val(result.bank_admin_fees).trigger('input');
                     $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
                     $notes.text(result.notes ?? '-');
+                    $approvalNotes.text(result.approval_notes ?? '');
                 });
             });
         }

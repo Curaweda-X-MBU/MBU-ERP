@@ -27,15 +27,7 @@ class ListController extends Controller
         try {
             $data = Marketing::with(['customer', 'company', 'marketing_payments'])
                 ->whereNull('marketing_return_id')
-                ->get()->map(function($marketing) {
-                    $marketing->is_paid = $marketing->marketing_payments
-                        ->filter(function($payment) {
-                            return $payment->verify_status == 2;
-                        })
-                        ->sum('payment_nominal');
-
-                    return $marketing;
-                });
+                ->get();
 
             $param = [
                 'title' => 'Penjualan > List',

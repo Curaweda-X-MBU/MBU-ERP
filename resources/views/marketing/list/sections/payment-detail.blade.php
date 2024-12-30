@@ -173,7 +173,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
             }
         });
 
-        if ('{{ isset($is_detail) }}') {
+        if ('{{ @$is_detail }}') {
             const $this = $('#detail');
             var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
 
@@ -186,6 +186,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentNominal = $this.find('.payment_nominal_mask');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('.notes');
+                const $approvalNotes = $('#approveForm').find('.approval_notes');
                 const route = '{{ route('marketing.list.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
@@ -198,11 +199,12 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     $paymentNominal.val(parseNumToLocale(result.payment_nominal));
                     $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
                     $notes.text(result.notes ?? '-');
+                    $approvalNotes.text(result.approval_notes ?? '');
                 });
             });
         }
 
-        if ('{{ isset($is_edit) }}') {
+        if ('{{ @$is_edit }}') {
             const $this = $('#edit');
             var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
 

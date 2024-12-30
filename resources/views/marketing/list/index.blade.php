@@ -2,6 +2,11 @@
 @section('title', $title)
 @section('content')
 
+@php
+    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+    $statusMarketing = App\Constants::MARKETING_STATUS;
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
 
 <style>
@@ -64,8 +69,6 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead>
-                                <th>Grand Total</th>
-                                <th>Is Paid</th>
                                 <th>No.DO</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
@@ -81,28 +84,17 @@
                             </thead>
                             <tbody>
                                 @foreach ($data as $item)
-                                @php
-                                    $nominalPenjualan = $item->grand_total;
-                                    $nominalSisaBayar = $item->marketing_payments
-                                        ->filter(fn($payment) => ( $payment->verify_status == 2 ))
-                                        ->sum('payment_nominal');
-                                @endphp
                                     <tr>
-                                        <td>{{ $item->grand_total }}</td>
-                                        <td>{{ $item->is_paid }}</td>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
-                                        <td>{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
+                                        <td class="text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
+                                        <td class="text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
+                                        <td class="text-danger">{{ \App\Helpers\Parser::toLocale($item->grand_total - $item->is_paid) }}</td>
                                         <td>
-                                            @php
-                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
-                                            @endphp
                                             @switch($item->payment_status)
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_status] }}</div>
@@ -118,9 +110,6 @@
                                             @endswitch
                                         </td>
                                         <td>
-                                            @php
-                                                $statusMarketing = App\Constants::MARKETING_STATUS;
-                                            @endphp
                                             @switch($item->marketing_status)
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusMarketing[$item->marketing_status] }}</div>
@@ -286,8 +275,8 @@
                     });
 
                     $('#customer_slice').on('select2:select change', function() {
-                        $table.columns(5).search('').draw();
-                        $table.columns(5).search($(this).val() ?? '').draw();
+                        $table.columns(3).search('').draw();
+                        $table.columns(3).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -297,8 +286,8 @@
 
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseFloat(data[0]) || 0;
-                    const isPaid = parseFloat(data[1]) || 0;
+                    const grandTotal = parseLocaleToNum(data[6]);
+                    const isPaid = parseLocaleToNum(data[7]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
@@ -342,9 +331,7 @@
             });
         }
 
-        $table.columns(0).visible(false);
-        $table.columns(1).visible(false);
-        $table.columns(5).visible(false);
+        $table.columns(3).visible(false);
 
         $.ajax({
             method: 'get',
@@ -353,10 +340,10 @@
             result.forEach(function(company) {
                 $('#filterCompany').append(`<a class="dropdown-item">${company.alias}</a>`);
             });
-            setupDropdownFilter('#filterCompany', 7, $table);
+            setupDropdownFilter('#filterCompany', 5, $table);
         });
-        setupDropdownFilter('#filterPaymentStatus', 11, $table);
-        setupDropdownFilter('#filterMarketingStatus', 12, $table);
+        setupDropdownFilter('#filterPaymentStatus', 9, $table);
+        setupDropdownFilter('#filterMarketingStatus', 10, $table);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');

@@ -92,6 +92,9 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                             <td>{{ $item->payment_reference ?? '-' }}</td>
                                             <td>
                                                 @switch($item->verify_status)
+                                                    @case(0)
+                                                        <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->verify_status] }}</div>
+                                                        @break
                                                     @case(1)
                                                         <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->verify_status] }}</div>
                                                         @break
