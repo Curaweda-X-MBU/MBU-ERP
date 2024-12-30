@@ -9,9 +9,9 @@ class ExpenseAdditPrice extends Model
 {
     use HasFactory;
 
-    protected $table = 'expense_items';
+    protected $table = 'expense_addit_prices';
 
-    protected $primaryKey = 'expense_item_id';
+    protected $primaryKey = 'expense_addit_price_id';
 
     protected $fillable = [
         'expense_id',

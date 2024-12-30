@@ -11,7 +11,20 @@ class ExpenseController extends Controller
     public function index()
     {
         try {
-            $data  = Expense::with('location');
+            $currentUserId = auth()->id();
+
+            $data = Expense::with(['location', 'expense_payments', 'created_user'])
+                ->where(function($query) use ($currentUserId) {
+                    $query->where('expense_status', '!=', 0)
+                        ->orWhere(function($subQuery) use ($currentUserId) {
+                            $subQuery->where('expense_status', 0)
+                                ->whereHas('created_user', function($userQuery) use ($currentUserId) {
+                                    $userQuery->where('user_id', $currentUserId);
+                                });
+                        });
+                })
+                ->get();
+
             $param = [
                 'title' => 'Biaya > List',
                 'data'  => $data,

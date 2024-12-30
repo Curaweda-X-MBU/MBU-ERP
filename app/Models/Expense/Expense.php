@@ -18,6 +18,7 @@ class Expense extends Model
     protected $primaryKey = 'expense_id';
 
     protected $fillable = [
+        'id_expense',
         'is_approved',
         'approver_id',
         'approval_notes',
@@ -29,6 +30,11 @@ class Expense extends Model
         'expense_status',
         'created_by',
     ];
+
+    public function created_user()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
 
     public function approver()
     {
@@ -53,5 +59,10 @@ class Expense extends Model
     public function expense_addit_prices()
     {
         return $this->hasMany(ExpenseAdditPrice::class, 'expense_id', 'expense_id');
+    }
+
+    public function expense_payments()
+    {
+        return $this->hasMany(ExpensePayment::class, 'expense_id', 'expense_id');
     }
 }
