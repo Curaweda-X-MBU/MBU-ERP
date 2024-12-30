@@ -186,3 +186,41 @@ function initSelect2(
         });
     }
 }
+
+/** Initialize flatpickr DATE
+ * - Takes a jquery element as parameter : $('selector')
+ * ? Display format d-M-Y
+ * ? Value format Y-m-d
+ */
+function initFlatpickrDate($selector) {
+    $selector.flatpickr({
+        altInput: true,
+        altFormat: "d-M-Y",
+        allowInput: true,
+        dateFormat: "Y-m-d",
+        onOpen: function (selectedDates, dateStr, instance) {
+            $(instance.altInput).prop("readonly", true);
+        },
+        onClose: function (selectedDates, dateStr, instance) {
+            $(instance.altInput).prop("readonly", false);
+            $(instance.altInput).blur();
+        },
+    });
+}
+
+/** Parse a datestring to locale date string for display
+ * Options :
+ * - day: '2-digit',
+ * - year: 'numeric',
+ * - month: 'short',
+ */
+function parseDateToString(datestring, separator = "-") {
+    const dateOpt = {
+        day: "2-digit",
+        year: "numeric",
+        month: "short",
+    };
+
+    const date = new Date(datestring).toLocaleDateString("en-GB", dateOpt);
+    return date.replace(/ /g, separator);
+}

@@ -38,9 +38,10 @@
                                 <th>Tanggal Retur</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
+                                <th>Nominal Pembayaran (Rp)</th>
                                 <th>Nominal Retur (Rp)</th>
-                                <th>Nominal Sudah Bayar (Rp)</th>
-                                <th>Nominal Sisa Bayar (Rp)</th>
+                                <th>Nominal Sudah Retur (Rp)</th>
+                                <th>Nominal Sisa Retur (Rp)</th>
                                 <th>Status Retur Pembayaran</th>
                                 <th>Status Retur</th>
                                 <th>Aksi</th>
@@ -54,6 +55,7 @@
                                             <td>{{ date('d-M-Y', strtotime($item->return_at)) }}</td>
                                             <td>{{ $item->marketing->customer->name }}</td>
                                             <td>{{ $item->marketing->company->alias }}</td>
+                                            <td class="text-warning">{{ \App\Helpers\Parser::toLocale($item->marketing->is_paid) }}</td>
                                             <td class="text-primary">{{ \App\Helpers\Parser::toLocale($item->total_return) }}</td>
                                             <td class="text-success">{{ \App\Helpers\Parser::toLocale($item->is_returned) }}</td>
                                             <td class="text-danger" >{{ \App\Helpers\Parser::toLocale($item->total_return - $item->is_returned) }}</td>
@@ -96,7 +98,10 @@
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
-                                                        @if (auth()->user()->role->hasPermissionTo('marketing.return.payment.index'))
+                                                        @if (
+                                                            auth()->user()->role->hasPermissionTo('marketing.return.payment.index')
+                                                            && $item->return_status == array_search('Disetujui', \App\Constants::MARKETING_RETURN_STATUS)
+                                                            )
                                                         <a class="dropdown-item" href="{{ route('marketing.return.payment.index', $item->marketing_id) }}">
                                                             <i data-feather="credit-card" class="mr-50"></i>
                                                             <span>Pembayaran Retur</span>
@@ -125,9 +130,17 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-12 col-md-6 offset-md-6">
                             <table class="table table-borderless">
                                 <tbody class="text-right">
+                                    <tr>
+                                        <td class="text-warning">
+                                            Total Terbayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-warning" style="font-size: 1.2em">
+                                            Rp. <span id="is_paid">0,00</span>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td>
                                             Total Retur:
@@ -138,7 +151,7 @@
                                     </tr>
                                     <tr>
                                         <td class="text-success">
-                                            Total Sudah Dibayar:
+                                            Total Sudah Diretur:
                                         </td>
                                         <td class="font-weight-bolder text-success" style="font-size: 1.2em">
                                             Rp. <span id="is_returned">0,00</span>
@@ -146,7 +159,7 @@
                                     </tr>
                                     <tr>
                                         <td class="text-danger">
-                                            Total Belum Dibayar:
+                                            Total Belum Diretur:
                                         </td>
                                         <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
                                             Rp. <span id="not_returned">0,00</span>
@@ -196,22 +209,27 @@
                 },
             ],
             drawCallback: function( settings ) {
+                let isPaidSum = 0;
                 let totalReturnSum = 0;
                 let isReturnedSum = 0;
 
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const totalReturn = parseLocaleToNum(data[5]);
-                    const isReturned = parseLocaleToNum(data[6]);
+                    const isPaid = parseLocaleToNum(data[5]);
+                    const totalReturn = parseLocaleToNum(data[6]);
+                    const isReturned = parseLocaleToNum(data[7]);
 
+                    isPaidSum += isPaid;
                     totalReturnSum += totalReturn;
                     isReturnedSum += isReturned;
                 });
 
+                const $isPaid = $('#is_paid');
                 const $totalReturn = $('#total_return');
                 const $isReturned = $('#is_returned');
                 const $notReturned = $('#not_returned');
 
+                $isPaid.text(parseNumToLocale(isPaidSum));
                 $totalReturn.text(parseNumToLocale(totalReturnSum));
                 $isReturned.text(parseNumToLocale(isReturnedSum));
                 $notReturned.text(parseNumToLocale(totalReturnSum - isReturnedSum));

@@ -64,7 +64,7 @@
     @if (@$is_return)
     <div class="col-md-2 mt-1">
         <label for="return_at" class="form-label">Tanggal Retur<i class="text-danger">*</i></label>
-        <input id="return_at" name="return_at" class="form-control flatpickr-basic" aria-desribedby="realized_at" placeholder="Pilih Tanggal" required>
+        <input id="return_at" name="return_at" class="form-control flatpickr-basic" aria-desribedby="return_at" placeholder="Pilih Tanggal" required>
     </div>
     @endif
 </div>
@@ -78,10 +78,7 @@
         })
     });
 
-    // ? START :: FLATPICKR ::  SOLD AT
-    const dateOpt = { dateFormat: 'd-M-Y' };
-    $('.flatpickr-basic').flatpickr(dateOpt);
-    // ? END :: FLATPICKR ::  SOLD AT
+    initFlatpickrDate($('.flatpickr-basic'));
 
     // ? START :: SELECT2
     const customerIdRoute = '{{ route("data-master.customer.search") }}';
@@ -106,13 +103,11 @@
         const soldAt = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
         $('#sold_at').val(soldAt.replace(/ /g, '-'));
         if (marketing.realized_at) {
-            const realizedAt = new Date(marketing.realized_at).toLocaleDateString('en-GB', dateOpt);
-            $('#realized_at').val(realizedAt.replace(/ /g, '-'));
+            $('#realized_at').val(parseDateToString(marketing.realized_at));
         }
 
         if (marketing.marketing_return) {
-            const returnAt = new Date(marketing.marketing_return.return_at).toLocaleDateString('en-GB', dateOpt);
-            $('#return_at').val(returnAt.replace(/ /g, '-'));
+            $('#realized_at').val(parseDateToString(marketing.marketing_return.return_at));
         }
 
         // STATUS
