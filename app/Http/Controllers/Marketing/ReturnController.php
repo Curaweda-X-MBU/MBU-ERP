@@ -23,7 +23,8 @@ class ReturnController extends Controller
     public function index()
     {
         try {
-            $data  = MarketingReturn::with('marketing')->get();
+            $data = MarketingReturn::with('marketing')->get();
+
             $param = [
                 'title' => 'Penjualan > Retur',
                 'data'  => $data,
@@ -174,6 +175,8 @@ class ReturnController extends Controller
                 'marketing_delivery_vehicles.sender',
                 'marketing_return',
             ]);
+            $data->marketing_delivery_vehicles->map(fn ($v) => $v->marketing_product_name = $v->marketing_product->product->name);
+
             $param = [
                 'title' => 'Penjualan > Retur > Detail',
                 'data'  => $data,
@@ -314,28 +317,18 @@ class ReturnController extends Controller
 
     public function approve(Request $req, MarketingReturn $return)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $success = [];
+            $input = $req->all();
 
-            if ($input['is_approved'] == 0) {
-                $return->update([
-                    'is_approved'    => 0,
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
+            $success       = ['success' => 'Retur berhasil ditolak'];
+            $approved_at   = null;
+            $return_status = array_search('Ditolak', Constants::MARKETING_RETURN_STATUS);
 
-                $success = ['success' => 'Retur berhasil ditolak'];
-            } else {
-                $return->update([
-                    'is_approved'    => 1,
-                    'approver_id'    => Auth::id(),
-                    'return_status'  => array_search('Disetujui', Constants::MARKETING_RETURN_STATUS),
-                    'approved_at'    => date('Y-m-d H:i:s'),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Retur berhasil disetujui'];
+            if ($input['is_approved'] == 1) {
+                $success       = ['success' => 'Retur berhasil disetujui'];
+                $approved_at   = now()->format('Y-m-d H:i:s');
+                $return_status = array_search('Disetujui', Constants::MARKETING_RETURN_STATUS);
 
                 $return->marketing->marketing_products->each(function($product) {
                     $input = [];
@@ -355,8 +348,20 @@ class ReturnController extends Controller
                 });
             }
 
+            $return->update([
+                'is_approved'    => 0,
+                'approver_id'    => Auth::id(),
+                'approval_notes' => $input['approval_notes'],
+                'approved_at'    => $approved_at,
+                'return_status'  => $return_status,
+            ]);
+
+            DB::commit();
+
             return redirect()->route('marketing.return.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }

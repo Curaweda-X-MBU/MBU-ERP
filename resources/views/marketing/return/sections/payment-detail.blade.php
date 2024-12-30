@@ -107,7 +107,9 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <input name="payment_nominal" type="number" max="{{ $paymentLeft }}" class="payment_nominal position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                 <input name="payment_nominal_mask" type="text" class="payment_nominal_mask form-control numeral-mask" placeholder="0" {{ isset($is_detail) ? 'disabled' : 'required' }}>
-                <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+                @if (empty($is_detail))
+                    <span class="invalid text-danger text-right small position-absolute" style="bottom: -1rem; right: 0; font-size: 80%; opacity: 0;">Melebihi sisa belum dibayar</span>
+                @endif
             </div>
         </div>
         <div class="col-12 row">
@@ -171,8 +173,7 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
     (function() {
         initNumeralMask('.numeral-mask');
 
-        var dateOpt = { dateFormat: 'd-M-Y' };
-        $('.flatpickr-basic').flatpickr(dateOpt);
+        initFlatpickrDate($('.flatpickr-basic'));
 
         var $paymentSelect = $('.payment_method');
         var bankIdRoute = '{{ route("data-master.bank.search") }}';
@@ -200,8 +201,6 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
             const val = parseLocaleToNum($this.val());
 
             const nominal = parseLocaleToNum($this.closest('form').find('.payment_nominal_mask').val());
-
-            console.log(val, nominal)
 
             $this.siblings('.bank_admin_fees').val(val).attr('max', nominal);
             if (val > nominal) {
@@ -232,12 +231,12 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                 const $bankAdminNominal = $this.find('.bank_admin_fees');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('.notes');
+                const $approvalNotes = $('#approveForm').find('.approval_notes');
                 const route = '{{ route('marketing.return.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    console.log(result);
                     $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $recipientBank.append(`<option value="${result.recipient_bank ? result.recipient_bank_id : ''}" selected>${result.recipient_bank ? [result.recipient_bank.alias, result.recipient_bank.account_number, result.recipient_bank.owner].join(' - ') : '-'}</option>`);
@@ -247,8 +246,9 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $bankAdminNominalMask.val(parseNumToLocale(result.bank_admin_fees)).trigger('input');
                     $bankAdminNominal.val(result.bank_admin_fees).trigger('input');
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentAt.val(parseDateToString(result.payment_at));
                     $notes.text(result.notes ?? '-');
+                    $approvalNotes.text(result.approval_notes ?? '');
                 });
             });
         }
@@ -275,9 +275,13 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
-                    credit = (@js($paymentLeft) > 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
+                    if (result.verify_status == 2) {
+                        credit += result.payment_nominal;
+                        $paymentNominal.attr('max', credit);
+                    }
                     $paymentMethod.val(result.payment_method).trigger('change');
-                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
                     $recipientBank.append(`<option value="${result.recipient_bank ? result.recipient_bank_id : ''}" selected>${result.recipient_bank ? [result.recipient_bank.alias, result.recipient_bank.account_number, result.recipient_bank.owner].join(' - ') : '-'}</option>`);
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
@@ -285,8 +289,10 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $bankAdminNominalMask.val(parseNumToLocale(result.bank_admin_fees)).trigger('input');
                     $bankAdminNominal.val(result.bank_admin_fees).trigger('input');
-                    $paymentAt.val(new Date(result.payment_at).toLocaleDateString('en-GB', { day: '2-digit', year: 'numeric', month: 'short' }).replace(/ /g, '-'));
+                    $paymentAt.val(result.payment_at);
                     $notes.text(result.notes ?? '-');
+
+                    initFlatpickrDate($('.flatpickr-basic'));
                 });
             })
         }

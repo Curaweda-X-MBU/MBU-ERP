@@ -125,7 +125,6 @@
             });
         }
 
-        const dateOpt = { dateFormat: 'd-M-Y' };
         const dateTimeOpt = { dateFormat: 'd-M-Y H:i', enableTime: true };
         const optMarketingDeliveryVehicles = {
             initEmpty: true,
@@ -162,7 +161,6 @@
 
                 initNumeralMask('.numeral-mask');
                 $('.flatpickr-datetime').flatpickr(dateTimeOpt);
-                $('.flatpickr-basic').flatpickr(dateOpt);
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }

@@ -26,10 +26,7 @@ class ListPaymentController extends Controller
                 throw new \Exception('Status Penjualan belum final');
             }
 
-            $data          = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
-            $data->is_paid = $marketing->marketing_payments
-                ->where('verify_status', 2)
-                ->sum('payment_nominal');
+            $data  = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices']);
             $param = [
                 'title' => 'Penjualan > Payment',
                 'data'  => $data,
@@ -269,6 +266,10 @@ class ListPaymentController extends Controller
                         $payment->marketing->update([
                             'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
+                    } elseif ($grandTotal < $totalPayments) {
+                        $payment->marketing->update([
+                            'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
+                        ]);
                     } else {
                         $payment->marketing->update([
                             'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
@@ -295,7 +296,33 @@ class ListPaymentController extends Controller
     public function delete(MarketingPayment $payment)
     {
         try {
-            $payment->delete();
+            DB::transaction(function() use ($payment) {
+                $payment->delete();
+
+                $marketing     = $payment->marketing;
+                $grandTotal    = $marketing->grand_total;
+                $totalPayments = $marketing->marketing_payments
+                    ->filter(fn ($p) => $p->verify_status == 2)
+                    ->sum('payment_nominal');
+
+                if ($grandTotal < $totalPayments) {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } elseif ($grandTotal === $totalPayments) {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } elseif ($grandTotal > $totalPayments) {
+                    $marketing->update([
+                        'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                } else {
+                    $marketing->update([
+                        'payment_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
+                }
+            });
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->back()->with($success);
@@ -332,6 +359,10 @@ class ListPaymentController extends Controller
                     $payment->marketing->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
+                } elseif ($grandTotal < $totalPayments) {
+                    $payment->marketing->update([
+                        'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
                 } else {
                     $payment->marketing->update([
                         'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
@@ -344,6 +375,7 @@ class ListPaymentController extends Controller
                     'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
                     'approver_id'    => Auth::id(),
                     'approval_notes' => $input['approval_notes'],
+                    'verify_status'  => array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
                 ]);
 
                 $success = ['success' => 'Pembayaran berhasil ditolak'];

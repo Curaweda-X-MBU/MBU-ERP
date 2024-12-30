@@ -7,7 +7,6 @@ use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Marketing\Marketing;
-use App\Models\Marketing\MarketingPayment;
 use App\Models\Marketing\MarketingReturnPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,13 +24,7 @@ class ReturnPaymentController extends Controller
                 throw new \Exception('Status Retur belum disetujui');
             }
 
-            $data          = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices', 'marketing_return']);
-            $data->is_paid = $marketing->marketing_payments
-                ->where('verify_status', 2)
-                ->sum('payment_nominal');
-            $data->is_returned = $marketing->marketing_return->marketing_return_payments
-                ->where('verify_status', 2)
-                ->sum('payment_nominal');
+            $data = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices', 'marketing_return']);
 
             $data->return_sub_total = (($marketing->marketing_return->total_return
                 - $marketing->marketing_addit_prices->sum('price'))
@@ -121,10 +114,8 @@ class ReturnPaymentController extends Controller
             $data = $payment->load(['bank', 'recipient_bank']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $data) {
+                DB::transaction(function() use ($req, $payment) {
                     $input = $req->all();
-
-                    dd($input);
 
                     $existingDoc = $data->document_path ?? null;
                     $docPath     = '';
@@ -142,12 +133,14 @@ class ReturnPaymentController extends Controller
                         $docPath = $existingDoc;
                     }
 
-                    MarketingPayment::create([
+                    $payment->update([
                         'payment_method'     => $input['payment_method'],
-                        'bank_id'            => $input['bank_id'],
+                        'bank_id'            => $input['bank_id']           ?? null,
+                        'recipient_bank_id'  => $input['recipient_bank_id'] ?? null,
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
                         'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
+                        'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],
@@ -156,7 +149,7 @@ class ReturnPaymentController extends Controller
                 $success = ['success' => 'Data Berhasil diubah'];
 
                 return redirect()
-                    ->route('marketing.list.payment.index')
+                    ->back()
                     ->with($success);
             }
 
@@ -175,7 +168,7 @@ class ReturnPaymentController extends Controller
             $payment->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
-            return $success;
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
 
@@ -188,43 +181,24 @@ class ReturnPaymentController extends Controller
         try {
             $input = $req->all();
 
-            $success = [];
+            $success       = [];
+            $verify_status = '';
 
             if ($input['is_approved'] == 1) {
-                $payment->update([
-                    'is_approved'    => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approved_at'    => date('Y-m-d H:i:s'),
-                    'approval_notes' => $input['approval_notes'],
-                    'verify_status'  => array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
-                ]);
-
-                $totalReturn   = $payment->marketing_return->total_return;
-                $totalPayments = $payment->marketing_return
-                    ->marketing_return_payments
-                    ->filter(fn ($p) => $p->verify_status == 2)
-                    ->sum('payment_nominal');
-
-                if ($totalReturn === $totalPayments) {
-                    $payment->marketing_return->update([
-                        'payment_return_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } else {
-                    $payment->marketing_return->update([
-                        'payment_return_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                }
-
-                $success = ['success' => 'Pembayaran berhasil disetujui'];
+                $success       = ['success' => 'Pembayaran berhasil disetujui'];
+                $verify_status = array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
             } else {
-                $payment->update([
-                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Pembayaran berhasil ditolak'];
+                $success       = ['success' => 'Pembayaran berhasil ditolak'];
+                $verify_status = array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
             }
+
+            $payment->update([
+                'is_approved'    => $input['is_approved'],
+                'approver_id'    => Auth::id(),
+                'approval_notes' => $input['approval_notes'],
+                'approved_at'    => now()->format('Y-m-d H:i:s'),
+                'verify_status'  => $verify_status,
+            ]);
 
             DB::commit();
 

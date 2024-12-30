@@ -27,15 +27,7 @@ class ListController extends Controller
         try {
             $data = Marketing::with(['customer', 'company', 'marketing_payments'])
                 ->whereNull('marketing_return_id')
-                ->get()->map(function($marketing) {
-                    $marketing->is_paid = $marketing->marketing_payments
-                        ->filter(function($payment) {
-                            return $payment->verify_status == 2;
-                        })
-                        ->sum('payment_nominal');
-
-                    return $marketing;
-                });
+                ->get();
 
             $param = [
                 'title' => 'Penjualan > List',
@@ -554,32 +546,34 @@ class ListController extends Controller
      */
     public function approve(Request $req, Marketing $marketing)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $success = [];
+            $input = $req->all();
 
-            if ($input['is_approved'] == 0) {
-                $marketing->update([
-                    'is_approved'    => 0,
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
+            $success          = ['success' => 'Penjualan berhasil ditolak'];
+            $approved_at      = null;
+            $marketing_status = array_search('Ditolak', Constants::MARKETING_STATUS);
 
-                $success = ['success' => 'Data berhasil ditolak'];
-            } else {
-                $marketing->update([
-                    'is_approved'      => 1,
-                    'approver_id'      => Auth::id(),
-                    'marketing_status' => $input['marketing_status'],
-                    'approved_at'      => date('Y-m-d H:i:s'),
-                    'approval_notes'   => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Data berhasil disetujui'];
+            if ($input['is_approved'] == 1) {
+                $success          = ['success' => 'Penjualan berhasil disetujui'];
+                $approved_at      = date('Y-m-d H:i:s');
+                $marketing_status = $input['marketing_status'];
             }
+
+            $marketing->update([
+                'is_approved'      => $input['is_approved'],
+                'approver_id'      => Auth::id(),
+                'approval_notes'   => $input['approval_notes'],
+                'approved_at'      => $approved_at,
+                'marketing_status' => $marketing_status,
+            ]);
+
+            DB::commit();
 
             return redirect()->route('marketing.list.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
