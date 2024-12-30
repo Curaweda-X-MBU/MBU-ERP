@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Expense;
 
 use App\Http\Controllers\Controller;
+use App\Models\Expense\Expense;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -10,8 +11,10 @@ class ExpenseController extends Controller
     public function index()
     {
         try {
+            $data  = Expense::with('location');
             $param = [
                 'title' => 'Biaya > List',
+                'data'  => $data,
             ];
 
             return view('expense.list.index', $param);

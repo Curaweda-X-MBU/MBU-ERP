@@ -25,6 +25,7 @@ class Expense extends Model
         'location_id',
         'category',
         'grand_total',
+        'payment_status',
         'expense_status',
         'created_by',
     ];
