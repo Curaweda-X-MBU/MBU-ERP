@@ -138,18 +138,34 @@ class Constants
         1 => 'Tempo',
         2 => 'Dibayar Sebagian',
         3 => 'Dibayar Penuh',
+        4 => 'Dibayar Lebih',
+    ];
+
+    public const MARKETING_VERIFY_PAYMENT_STATUS = [
+        0 => 'Ditolak',
+        1 => 'Diajukan',
+        2 => 'Terverifikasi',
     ];
 
     public const MARKETING_STATUS = [
+        0 => 'Ditolak',
         1 => 'Diajukan',
         2 => 'Penawaran',
         3 => 'Final',
         4 => 'Realisasi',
     ];
 
+    public const MARKETING_RETURN_STATUS = [
+        0 => 'Ditolak',
+        1 => 'Diajukan',
+        2 => 'Disetujui',
+    ];
+
     public const MARKETING_DOC_REFERENCE_PATH = 'marketing-doc-reference';
 
     public const MARKETING_PAYMENT_DOC_PATH = 'marketing-payment-doc';
+
+    public const MARKETING_RETURN_PAYMENT_DOC_PATH = 'marketing-return-payment-doc';
 
     public const MARKETING_APPROVAL = [
         0 => 'Tidak Disetujui',
@@ -190,4 +206,14 @@ class Constants
     ];
 
     public const CATEGORY_PRODUCT_RECORDING = ['DOC', 'TLR'];
+
+    public const REVISION_STATUS = [
+        0 => 'Tidak ada perubahan',
+        1 => 'Menunggu persetujuan',
+        2 => 'Disetujui',
+        3 => 'Selesai',
+        4 => 'Ditolak',
+    ];
+
+    public const REVISION_DOC_PATH = 'recording-revision-doc';
 }

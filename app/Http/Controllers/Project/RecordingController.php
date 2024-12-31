@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Project;
 
 use App\Constants;
+use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
@@ -26,20 +27,30 @@ class RecordingController extends Controller
             $param = ['title' => 'Project > Recording'];
             $data  = Recording::with('project');
             if ($req->isMethod('post')) {
-                $projectId   = $req->project_id;
-                $period      = $req->period;
-                $whereClause = [];
-                if ($projectId != 0) {
-                    $whereClause['project_id'] = $projectId;
-                    $whereClause['project']    = Project::with('kandang')->find($projectId);
-                }
-                if ($period != 0) {
-                    $whereClause['period'] = $period;
-                }
-                $param['param'] = $whereClause;
-                $data->whereHas('project', function($query) use ($whereClause) {
-                    unset($whereClause['project']);
-                    $query->where($whereClause);
+                $projectId                 = $req->project_id;
+                $period                    = $req->period;
+                $whereClause               = [];
+                $whereClause['project_id'] = $projectId;
+                $whereClause['project']    = Project::with('kandang')->find($projectId);
+                $whereClause['period']     = $period;
+                $param['param']            = $whereClause;
+
+                $filteredWhereClause = array_filter($whereClause, function($value, $key) {
+                    if ($key === 'project') {
+                        return false;
+                    }
+                    if ($key === 'period' && $value == 0) {
+                        return false;
+                    }
+                    if ($key === 'project_id' && $value == 0) {
+                        return false;
+                    }
+
+                    return true;
+                }, ARRAY_FILTER_USE_BOTH);
+
+                $data->whereHas('project', function($query) use ($filteredWhereClause) {
+                    $query->where($filteredWhereClause);
                 });
             }
             $param['data'] = $data->get();
@@ -79,7 +90,7 @@ class RecordingController extends Controller
 
                 foreach ($project->purchase_item as $key => $value) {
                     if ($value->product->product_category->category_code
-                        && $value->product->product_category->category_code === 'DOC') {
+                        && $value->product->product_category->category_code === 'BRO') {
                         $docProdId = $value->product_id;
                     }
                     if ($value->product->product_category->category_code
@@ -107,7 +118,8 @@ class RecordingController extends Controller
                         'warehouse_id' => $input['warehouse_id'],
                     ])->first();
 
-                    if ($generalStock && $generalStock->quantity < $value['decrease_stock']) {
+                    $valDecrease = str_replace('.', '', $value['decrease_stock']);
+                    if ($generalStock && $generalStock->quantity < $valDecrease) {
                         DB::rollback();
 
                         return redirect()->back()->withErrors($validator)->withInput();
@@ -117,7 +129,7 @@ class RecordingController extends Controller
                         'product_id'   => $value['product_id'],
                         'stock_date'   => date('Y-m-d', $strtotime),
                         'warehouse_id' => $input['warehouse_id'],
-                        'decrease'     => $value['decrease_stock'],
+                        'decrease'     => $valDecrease,
                         'stocked_by'   => 'Recording',
                         'notes'        => 'Persediaan Project '.$project->kandang->name,
                     ]);
@@ -130,7 +142,7 @@ class RecordingController extends Controller
                     RecordingStock::create([
                         'recording_id'         => $recording->recording_id,
                         'product_warehouse_id' => $generalStock->product_warehouse_id,
-                        'decrease'             => $value['decrease_stock'],
+                        'decrease'             => $valDecrease,
                     ]);
                 }
 
@@ -240,22 +252,97 @@ class RecordingController extends Controller
     public function detail(Request $req)
     {
         try {
-            $recordingId = $req->id;
-            $data        = Recording::with([
-                'recording_stock',
-                'recording_nonstock',
-                'recording_bw.recordingBwList',
-                'recording_depletion',
-                'recording_egg',
-                'project',
-            ])->find($recordingId);
-
+            $data  = $this->getById($req->id);
             $param = [
                 'title' => 'Project > Recording > Detail',
                 'data'  => $data,
             ];
 
             return view('project.recording.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function getById($recordingId)
+    {
+        $data = Recording::with([
+            'recording_stock.product_warehouse.product.uom',
+            'recording_nonstock.nonstock.uom',
+            'recording_bw.recordingBwList',
+            'recording_depletion.product_warehouse.product',
+            'recording_egg.product_warehouse.product.uom',
+            'project',
+        ])->findOrFail($recordingId);
+
+        return $data;
+    }
+
+    public function edit(Request $req)
+    {
+        try {
+            $data = $this->getById($req->id);
+            if ($data->revision_status !== 2) {
+                return redirect()->back()->with('error', 'Data recording tidak bisa dirubah, silahkan ajukan perubahan data')->withInput();
+            }
+            $param = [
+                'title' => 'Project > Recording > Ubah',
+                'data'  => $data,
+            ];
+
+            return view('project.recording.add', $param);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function revisionApproval(Request $req)
+    {
+        try {
+            $id        = $req->id;
+            $status    = $req->revision_status;
+            $recording = Recording::findOrFail($id);
+            $recording->update([
+                'revision_status' => $status,
+            ]);
+
+            $message = 'Perubahan data berhasil disetujui';
+            if ($status == 4) {
+                $message = 'Perubahan berhasil ditolak';
+            }
+            $success = ['success' => $message];
+
+            return redirect()->route('project.recording.index')->with($success);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function revisionSubmission(Request $req)
+    {
+        try {
+            $id        = $req->id;
+            $recording = Recording::findOrFail($id);
+            $document  = '';
+            if ($req->has('document_revision')) {
+                $docUrl = FileHelper::upload($req->file('document_revision'), constants::REVISION_DOC_PATH);
+                if (! $docUrl['status']) {
+                    return redirect()->back()->with('error', $docUrl['message'])->withInput();
+                }
+                $document = $docUrl['url'];
+            }
+
+            $recording->update([
+                'revision_status'   => 1,
+                'document_revision' => $document,
+            ]);
+
+            $success = ['success' => 'Perubahan berhasil diajukan'];
+
+            return redirect()->route('project.recording.index')->with($success);
+
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

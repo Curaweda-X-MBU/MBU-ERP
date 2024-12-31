@@ -15,8 +15,19 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $superAdmin = Role::query()->update(['guard_name' => 'web']);
-        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
+        $roles = [
+            ['name' => 'Super Admin', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Admin Marketing', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Admin Finance', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Manager Marketing', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Manager Finance', 'company_id' => 1, 'guard_name' => 'web'],
+        ];
+        Role::query()->update(['guard_name' => 'web']);
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role['name']], ['company_id' => $role['company_id']], ['guard_name' => $role['guard_name']]);
+        }
+
         // $adminFarm = Role::create(['name' => 'Admin Farm']);
         // $managerArea = Role::create(['name' => 'Manager Area']);
         // $staffAudit = Role::create(['name' => 'Staff Audit']);
@@ -74,17 +85,30 @@ class RolesAndPermissionsSeeder extends Seeder
             'marketing.list.delete',
             'marketing.list.realization',
             'marketing.list.approve',
-            'marketing.payment.index',
-            'marketing.payment.add',
-            'marketing.payment.edit',
-            'marketing.payment.detail',
-            'marketing.payment.delete',
-            'marketing.payment.approve',
+            'marketing.list.payment.index',
+            'marketing.list.payment.add',
+            'marketing.list.payment.edit',
+            'marketing.list.payment.detail',
+            'marketing.list.payment.delete',
+            'marketing.list.payment.approve',
             'marketing.return.index',
             'marketing.return.add',
             'marketing.return.edit',
             'marketing.return.detail',
             'marketing.return.delete',
+            'marketing.return.approve',
+            'marketing.return.payment.index',
+            'marketing.return.payment.add',
+            'marketing.return.payment.edit',
+            'marketing.return.payment.detail',
+            'marketing.return.payment.delete',
+            'marketing.return.payment.approve',
+            'expense.index',
+            'expense.add',
+            'expense.edit',
+            'expense.detail',
+            'expense.delete',
+            'expense.approve',
             'purchase.index',
             'purchase.add',
             'purchase.copy',
@@ -179,10 +203,83 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::create(['name' => $permission]);
         }
 
+        $adminMarketingPermissions = [
+            'marketing.list.index',
+            'marketing.list.add',
+            'marketing.list.edit',
+            'marketing.list.detail',
+            'marketing.list.delete',
+            'marketing.list.realization',
+            'marketing.return.index',
+            'marketing.return.add',
+            'marketing.return.edit',
+            'marketing.return.detail',
+            'marketing.return.delete',
+        ];
+
+        $adminFinancePermissions = [
+            'marketing.list.index',
+            'marketing.list.detail',
+            'marketing.list.payment.index',
+            'marketing.list.payment.add',
+            'marketing.list.payment.detail',
+            'marketing.return.index',
+            'marketing.return.detail',
+            'marketing.return.payment.index',
+            'marketing.return.payment.add',
+            'marketing.return.payment.detail',
+        ];
+
+        $managerMarketingPermissions = [
+            'marketing.list.index',
+            'marketing.list.edit',
+            'marketing.list.detail',
+            'marketing.list.approve',
+            'marketing.list.payment.index',
+            'marketing.list.payment.edit',
+            'marketing.list.payment.detail',
+            'marketing.list.payment.approve',
+            'marketing.return.index',
+            'marketing.return.edit',
+            'marketing.return.detail',
+            'marketing.return.payment.index',
+            'marketing.return.payment.edit',
+            'marketing.return.payment.detail',
+            'marketing.return.payment.approve',
+        ];
+
+        $managerFinancePermissions = [
+            'marketing.list.index',
+            'marketing.list.add',
+            'marketing.list.payment.index',
+            'marketing.list.payment.add',
+            'marketing.list.payment.detail',
+            'marketing.list.payment.approve',
+            'marketing.return.index',
+            'marketing.return.add',
+            'marketing.return.detail',
+            'marketing.return.payment.index',
+            'marketing.return.payment.add',
+            'marketing.return.payment.detail',
+            'marketing.return.payment.approve',
+        ];
+
         // Assign permissions to roles
-        $superAdmin->givePermissionTo($permissions);
-        $user = User::find(1);
-        $user->assignRole('Super Admin');
+        Role::find(1)->givePermissionTo($permissions);
+        Role::find(2)->givePermissionTo($adminMarketingPermissions);
+        Role::find(3)->givePermissionTo($adminFinancePermissions);
+        Role::find(4)->givePermissionTo($managerMarketingPermissions);
+        Role::find(5)->givePermissionTo($managerFinancePermissions);
+        $user1 = User::find(1);
+        $user1->assignRole('Super Admin');
+        $user2 = User::find(2);
+        $user2->assignRole('Admin Marketing');
+        $user3 = User::find(3);
+        $user3->assignRole('Admin Finance');
+        $user4 = User::find(4);
+        $user4->assignRole('Manager Marketing');
+        $user5 = User::find(5);
+        $user5->assignRole('Manager Finance');
         // $adminFarm->givePermissionTo($permissions);
         // $managerArea->givePermissionTo(['project.list', 'pembelian.submit']);
         // $staffAudit->givePermissionTo(['audit.access', 'pembelian.submit']);

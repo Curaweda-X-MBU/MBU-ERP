@@ -1,6 +1,16 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
+@php
+    $action = route('project.recording.add');
+    if (isset($data)) {
+        $action = route('project.recording.edit', $data->recording_id);
+    } else {
+        $data = null;
+    }
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
@@ -10,7 +20,7 @@
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 
 
-                <form class="form form-horizontal" id="formAudit" method="post" action="{{ route('project.recording.add') }}">
+                <form class="form form-horizontal" id="formAudit" method="post" action="{{ $action }}">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -27,8 +37,12 @@
                                                         <label for="company_id" class="float-right">Unit Bisnis</label>
                                                     </div>
                                                     <div class="col-sm-9">
+                                                        @if ($data)
+                                                        <input type="text" class="form-control" value="{{ $data->project->kandang->company->name??'' }}" readonly>
+                                                        @else
                                                         <select name="company_id" id="company_id" class="form-control" required>
                                                         </select>
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="row mt-1">
@@ -36,9 +50,13 @@
                                                         <label for="project_id" class="float-right">Project</label>
                                                     </div>
                                                     <div class="col-sm-9">
+                                                        @if ($data)
+                                                        <input type="text" class="form-control" value="{{ $data->project->kandang->name??'' }}" readonly>
+                                                        @else
                                                         <select name="project_id" id="project_id" class="form-control" required>
                                                             <option disabled selected>Pilih unit bisnis terlebih dahulu</option>
                                                         </select>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -48,8 +66,12 @@
                                                         <label for="product_category_id" class="float-right">Kategori Produk</label>
                                                     </div>
                                                     <div class="col-sm-9">
+                                                        @if ($data)
+                                                        <input type="text" class="form-control" value="{{ $data->project->product_category->name??'' }}" readonly>
+                                                        @else
                                                         <input type="text" class="form-control" placeholder="Produk" id="product_category_name" readonly>
                                                         <input type="hidden" id="product_category_id" name="product_category_id">
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="row mt-1">
@@ -57,8 +79,17 @@
                                                         <label for="warehouse_id" class="float-right">Gudang</label>
                                                     </div>
                                                     <div class="col-sm-9">
+                                                        @if ($data)
+                                                        @foreach ($data->project->kandang->warehouse??[] as $item)
+                                                            @if ($item->type === 2)
+                                                            <input type="text" class="form-control" readonly value="{{ $item->name }}">
+                                                            <input type="hidden" id="warehouse_id" value="{{ $item->warehouse_id }}">
+                                                            @endif
+                                                        @endforeach
+                                                        @else
                                                         <input type="text" class="form-control" placeholder="Gudang" id="warehouse_name" readonly>
                                                         <input type="hidden" id="warehouse_id" name="warehouse_id">
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -68,7 +99,11 @@
                                                         <label for="record_datetime" class="float-right">Tanggal Record</label>
                                                     </div>
                                                     <div class="col-sm-9">
+                                                        @if ($data)
+                                                        <input type="text" class="form-control" value="{{ date('d-M-Y H:i', strtotime($data->record_datetime)) }}" readonly>
+                                                        @else
                                                         <input type="text" class="form-control flatpickr-basic" name="record_datetime" placeholder="Tanggal Record" required>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>

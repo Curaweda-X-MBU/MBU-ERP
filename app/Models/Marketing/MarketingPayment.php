@@ -13,10 +13,11 @@ class MarketingPayment extends Model
 
     protected $table = 'marketing_payments';
 
-    protected $priaryKey = 'marketing_payment_id';
+    protected $primaryKey = 'marketing_payment_id';
 
     protected $fillable = [
         'payment_method',
+        'is_approved',
         'approver_id',
         'approved_at',
         'approval_notes',
@@ -24,9 +25,11 @@ class MarketingPayment extends Model
         'payment_nominal',
         'payment_reference',
         'transaction_number',
+        'payment_at',
         'document_path',
         'notes',
         'marketing_id',
+        'verify_status',
     ];
 
     public function approver()

@@ -3,6 +3,7 @@
 namespace App\Models\DataMaster;
 
 use App\Models\Marketing\MarketingPayment;
+use App\Models\Marketing\MarketingReturnPayment;
 use App\Models\Purchase\PurchaseItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,16 @@ class Bank extends Model
 
     public function marketing_payment()
     {
-        return $this->hasManu(MarketingPayment::class, 'bank_id');
+        return $this->hasMany(MarketingPayment::class, 'bank_id');
+    }
+
+    public function marketing_return_payment()
+    {
+        return $this->hasMany(MarketingReturnPayment::class, 'bank_id');
+    }
+
+    public function marketing_return_payment_recipient()
+    {
+        return $this->hasMany(MarketingReturnPayment::class, 'recipient_bank_id', 'bank_id');
     }
 }

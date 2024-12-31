@@ -19,6 +19,7 @@ class DevelopmentSeeder extends Seeder
             KandangSeeder::class,
             WarehouseSeeder::class,
             CustomerSeeder::class,
+            ProductWarehouseSeeder::class,
         ]);
     }
 }

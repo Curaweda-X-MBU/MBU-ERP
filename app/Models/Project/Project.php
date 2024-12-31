@@ -82,4 +82,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectChickIn::class, 'project_id');
     }
+
+    public function recording()
+    {
+        return $this->hasMany(Recording::class, 'project_id');
+    }
 }

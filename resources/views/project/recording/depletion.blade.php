@@ -54,7 +54,7 @@
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Kondisi",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=DOC&can_be_purchased=0`, 
+                        url: `{{ route("data-master.product.search") }}?product_category-category_code=BRO&can_be_purchased=0`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {
@@ -99,5 +99,16 @@
 
         const $repeaterDepletion = $('#depletion').repeater(optDepletion);
         $('.add-depletion').trigger('click');
+
+        const dataRecording = @json($data);
+        
+        if (dataRecording && dataRecording.recording_depletion) {
+            const dataDepletion = dataRecording.recording_depletion;
+            $repeaterDepletion.setList(dataDepletion);
+
+            for (let i = 0; i < dataDepletion.length; i++) {
+                $(`select[name="depletions[${i}][product_id]"]`).append(`<option value="${dataDepletion[i].product_warehouse.product_id}" selected>${dataDepletion[i].product_warehouse.product.name}</option>`);
+            }
+        }
     });
 </script>
