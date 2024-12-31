@@ -12,6 +12,12 @@
         color: white;
         background: linear-gradient(118deg, #A87670, #e589a0);
     }
+
+    #paymentBatchForm .collapsing {
+        -webkit-transition: none;
+        transition: none;
+        display: none;
+    }
 </style>
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
