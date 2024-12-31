@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('expenses', function(Blueprint $table) {
-            $table->foreign('created_by')->references('user_id')->on('users')->onUpdate('no action')->onDelete('no action');
+        Schema::table('projects', function(Blueprint $table) {
+            $table->dropForeign('projects_fcr_fcr_id');
+            $table->dropColumn('fcr_id');
+            $table->dropColumn('target_depletion');
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('expenses', function(Blueprint $table) {
-            $table->dropForeign(['created_by']);
-        });
+        //
     }
 };

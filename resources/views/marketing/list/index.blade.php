@@ -91,9 +91,9 @@
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
-                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
-                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
-                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->grand_total - $item->is_paid) }}</td>
+                                        <td class="text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
+                                        <td class="text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
+                                        <td class="text-danger">{{ \App\Helpers\Parser::toLocale($item->grand_total - $item->is_paid) }}</td>
                                         <td>
                                             @switch($item->payment_status)
                                                 @case(1)
@@ -179,10 +179,10 @@
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>
-                                        <td class="text-primary">
+                                        <td>
                                             Total Penjualan:
                                         </td>
-                                        <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
+                                        <td class="font-weight-bolder" style="font-size: 1.2em">
                                             Rp. <span id="grand_total">0,00</span>
                                         </td>
                                     </tr>

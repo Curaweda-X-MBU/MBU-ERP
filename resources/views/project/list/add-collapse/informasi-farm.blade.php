@@ -93,7 +93,8 @@
                                 <label for="period" class="float-right">Periode</label>
                             </div>
                             <div class="col-sm-9">
-                                <input type="number" id="period" class="{{$errors->has('period')?'is-invalid':''}} form-control" name="period" placeholder="Periode" value="{{ $period }}">
+                                <input type="number" id="period" class="{{$errors->has('period')?'is-invalid':''}} form-control" placeholder="Periode" value="{{ $period }}" readonly>
+                                <input type="hidden" name="period" value="{{ $period }}">
                                 @if ($errors->has('period'))
                                     <span class="text-danger small">{{ $errors->first('period') }}</span>
                                 @endif
@@ -164,12 +165,16 @@
                 $('#capacity').val('');
                 $('#farm_type option').first().prop('selected', true);
                 $('#pic').val('');
+                $('#period').val('');
+                $('input[name="period"]').val('');
             } else {
                 $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 $('#error-kandang').html('');
                 $('#capacity').val(res.data.capacity);
                 $('#farm_type').val(res.data.type);
                 $('#pic').val(res.data.user.name);
+                $('#period').val(res.data.latest_period+1);
+                $('input[name="period"]').val(res.data.latest_period+1);
             }
 
         });

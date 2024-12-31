@@ -177,8 +177,8 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-primary">Nominal Pembelian:</td>
-                                    <td class="font-weight-bolder text-primary" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
+                                    <td>Nominal Pembelian:</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-success">Total Sudah Dibayar:</td>
