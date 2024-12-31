@@ -6,7 +6,6 @@ use App\Constants;
 use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
-use App\Models\DataMaster\Product;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
@@ -26,7 +25,7 @@ class ListController extends Controller
     public function index()
     {
         try {
-            $data = Marketing::with(['customer', 'company'])
+            $data = Marketing::with(['customer', 'company', 'marketing_payments'])
                 ->whereNull('marketing_return_id')
                 ->get();
 
@@ -142,13 +141,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $createdMarketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
 
                     $createdMarketing->update([
@@ -300,13 +298,12 @@ class ListController extends Controller
                         }
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 
@@ -350,7 +347,7 @@ class ListController extends Controller
         try {
             $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             if ($marketing->marketing_delivery_vehicles()->exists()) {
-                $data->load('marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
+                $data->load('marketing_delivery_vehicles.marketing_product.product', 'marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
             }
 
             $param = [
@@ -396,18 +393,23 @@ class ListController extends Controller
                     }
 
                     $marketing->update([
-                        'sold_at'          => date('Y-m-d', strtotime($input['sold_at'])),
-                        'doc_reference'    => $docReferencePath,
-                        'realized_at'      => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
-                        'notes'            => $input['notes'],
-                        'sales_id'         => $input['sales_id'] ?? null,
-                        'tax'              => $input['tax'],
-                        'discount'         => Parser::parseLocale($input['discount']),
-                        'marketing_status' => array_search(
-                            'Realisasi',
-                            Constants::MARKETING_STATUS
-                        ),
+                        'sold_at'       => date('Y-m-d', strtotime($input['sold_at'])),
+                        'doc_reference' => $docReferencePath,
+                        'realized_at'   => $input['realized_at'] ? date('Y-m-d', strtotime($input['realized_at'])) : null,
+                        'notes'         => $input['notes'],
+                        'sales_id'      => $input['sales_id'] ?? null,
+                        'tax'           => $input['tax'],
+                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
+
+                    if ($input['realized_at']) {
+                        $marketing->update([
+                            'marketing_status' => array_search(
+                                'Realisasi',
+                                Constants::MARKETING_STATUS
+                            ),
+                        ]);
+                    }
 
                     $marketing->marketing_delivery_vehicles()->delete();
                     if ($req->has('marketing_delivery_vehicles')) {
@@ -417,21 +419,20 @@ class ListController extends Controller
                             $qty = Parser::parseLocale($value['qty']);
 
                             $arrVehicle[$key] = [
-                                'marketing_id' => $marketing->marketing_id,
-                                'plat_number'  => $value['plat_number'],
-                                'qty'          => $qty,
-                                'uom_id'       => $value['uom_id'],
-                                'exit_at'      => date('Y-m-d H:i', strtotime($value['exit_at'])),
-                                'sender_id'    => $value['sender_id'],
-                                'driver_name'  => $value['driver_name'],
+                                'marketing_id'         => $marketing->marketing_id,
+                                'plat_number'          => $value['plat_number'],
+                                'marketing_product_id' => $value['marketing_product_id'],
+                                'qty'                  => $qty,
+                                'uom_id'               => $value['uom_id'],
+                                'exit_at'              => date('Y-m-d H:i', strtotime($value['exit_at'])),
+                                'sender_id'            => $value['sender_id'],
+                                'driver_name'          => $value['driver_name'],
                             ];
                         }
-
                         MarketingDeliveryVehicle::insert($arrVehicle);
                     }
 
                     if ($req->has('marketing_products')) {
-                        $marketing->marketing_products()->delete();
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
@@ -440,21 +441,14 @@ class ListController extends Controller
                             $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $totalPrice  = $price     * $weightTotal;
                             $productPrice += $totalPrice;
 
-                            $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
-                            $arrProduct[$key]['warehouse_id'] = $value['warehouse_id'];
-                            $arrProduct[$key]['product_id']   = $value['product_id'];
-                            $arrProduct[$key]['price']        = $price;
-                            $arrProduct[$key]['weight_avg']   = $weightAvg;
-                            $arrProduct[$key]['uom_id']       = $value['uom_id'];
-                            $arrProduct[$key]['qty']          = $qty;
-                            $arrProduct[$key]['weight_total'] = $weightTotal;
-                            $arrProduct[$key]['total_price']  = $totalPrice;
+                            $arrProduct[$key]['price']      = $price;
+                            $arrProduct[$key]['weight_avg'] = $weightAvg;
+                            $arrProduct[$key]['qty']        = $qty;
+                            MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
-
-                        MarketingProduct::insert($arrProduct);
                     }
 
                     $marketing->marketing_addit_prices()->delete();
@@ -501,13 +495,12 @@ class ListController extends Controller
                         $success['success'] = 'Data Berhasil disimpan sebagai draft';
                     }
 
-                    $subTotal = isset($input['tax'])
-                        ? $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount'])
-                        : $productPrice                                           - Parser::parseLocale($input['discount']);
+                    $subTotal         = $productPrice;
+                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotal + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
                 });
 
@@ -528,8 +521,9 @@ class ListController extends Controller
      */
     public function searchMarketing(Request $req)
     {
-        $search      = $req->input('q');
-        $query       = Marketing::with(['customer', 'company'])->where('id_marketing', 'like', "%{$search}%");
+        $search = $req->input('q');
+        $query  = Marketing::with(['customer', 'company'])
+            ->where('id_marketing', 'like', "%{$search}%");
         $queryParams = $req->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {
@@ -552,56 +546,36 @@ class ListController extends Controller
      */
     public function approve(Request $req, Marketing $marketing)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $success = [];
+            $input = $req->all();
 
-            if ($input['is_approved'] == 0) {
-                $marketing->update([
-                    'is_approved'    => 0,
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
+            $success          = ['success' => 'Penjualan berhasil ditolak'];
+            $approved_at      = null;
+            $marketing_status = array_search('Ditolak', Constants::MARKETING_STATUS);
 
-                $success = ['success' => 'Data berhasil ditolak'];
-            } else {
-                $marketing->update([
-                    'is_approved'      => 1,
-                    'approver_id'      => Auth::id(),
-                    'marketing_status' => $input['marketing_status'],
-                    'approved_at'      => date('Y-m-d H:i:s'),
-                    'approval_notes'   => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Data berhasil disetujui'];
+            if ($input['is_approved'] == 1) {
+                $success          = ['success' => 'Penjualan berhasil disetujui'];
+                $approved_at      = date('Y-m-d H:i:s');
+                $marketing_status = $input['marketing_status'];
             }
+
+            $marketing->update([
+                'is_approved'      => $input['is_approved'],
+                'approver_id'      => Auth::id(),
+                'approval_notes'   => $input['approval_notes'],
+                'approved_at'      => $approved_at,
+                'marketing_status' => $marketing_status,
+            ]);
+
+            DB::commit();
 
             return redirect()->route('marketing.list.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
-    }
-
-    public function searchProductByKandang(Request $req)
-    {
-        $kandangId = $req->id;
-
-        $products = Product::whereHas('product_warehouse.warehouse.kandang', function($q) use ($kandangId) {
-            $q->where('kandang_id', $kandangId);
-        })->with(['product_warehouse' => function($q) {
-            $q->select('product_id', 'quantity');
-        }])->get();
-
-        $val = $products->map(function($product) {
-            return [
-                'id'   => $product->product_id,
-                'text' => $product->name,
-                'qty'  => $product->product_warehouse->sum('quantity'),
-                'data' => $product,
-            ];
-        });
-
-        return response()->json($val);
     }
 
     public function searchProductByWarehouse(Request $req)

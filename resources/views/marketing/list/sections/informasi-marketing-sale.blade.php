@@ -168,7 +168,9 @@
             $('#catatan').text(marketing.notes);
 
             // SALES
-            $('#sales_id').append(`<option value="${marketing.sales_id}" selected>${marketing.sales.name}</option>`).trigger('change');
+            if (marketing.sales) {
+                $('#sales_id').append(`<option value="${marketing.sales_id}" selected>${marketing.sales.name}</option>`).trigger('change');
+            }
 
             // TAX
             $('#tax').val(marketing.tax ?? 0);

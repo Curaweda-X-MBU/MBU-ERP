@@ -30,7 +30,7 @@
         @if(@$is_return)
             <input name="sold_at" id="sold_at" class="form-control" readonly>
         @else
-            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now()->format('d-M-Y') }}">
+            <input name="sold_at" id="sold_at" class="form-control flatpickr-basic" aria-desribedby="sold_at" placeholder="Pilih Tanggal" value="{{ now() }}">
         @endif
     </div>
     <!-- Status -->
@@ -42,8 +42,12 @@
     <div class="col-md-2 mt-1">
         <label for="doc_reference" class="form-label">Referensi Dokumen</label>
         <div class="input-group">
-            <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1">
-            <input type="file" id="transparentFileUpload" name="doc_reference">
+            @if (@$is_realization || @$is_return || @$is_edit)
+                <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1" value="{{ $data->doc_reference }}">
+            @else
+                <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1">
+            @endif
+                <input type="file" id="transparentFileUpload" name="doc_reference">
             <div class="input-group-append">
                 <span class="input-group-text"> <i data-feather="upload"></i> </span>
             </div>
@@ -60,7 +64,7 @@
     @if (@$is_return)
     <div class="col-md-2 mt-1">
         <label for="return_at" class="form-label">Tanggal Retur<i class="text-danger">*</i></label>
-        <input id="return_at" name="return_at" class="form-control flatpickr-basic" aria-desribedby="realized_at" placeholder="Pilih Tanggal" required>
+        <input id="return_at" name="return_at" class="form-control flatpickr-basic" aria-desribedby="return_at" placeholder="Pilih Tanggal" required>
     </div>
     @endif
 </div>
@@ -74,10 +78,7 @@
         })
     });
 
-    // ? START :: FLATPICKR ::  SOLD AT
-    const dateOpt = { dateFormat: 'd-M-Y' };
-    $('.flatpickr-basic').flatpickr(dateOpt);
-    // ? END :: FLATPICKR ::  SOLD AT
+    initFlatpickrDate($('.flatpickr-basic'));
 
     // ? START :: SELECT2
     const customerIdRoute = '{{ route("data-master.customer.search") }}';
@@ -93,28 +94,23 @@
         // CUSTOMER
         $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');
 
-        // SOLD AT
-        const dateOpt = {
-            day: '2-digit',
-            year: 'numeric',
-            month: 'short',
-        };
-        const soldAt = new Date(marketing.sold_at).toLocaleDateString('en-GB', dateOpt);
-        $('#sold_at').val(soldAt.replace(/ /g, '-'));
+        // DATES
+        $('#sold_at').val(marketing.sold_at);
+        if ('{{ @$is_return }}') {
+            $('#sold_at').val(parseDateToString(marketing.sold_at));
+        }
         if (marketing.realized_at) {
-            const realizedAt = new Date(marketing.realized_at).toLocaleDateString('en-GB', dateOpt);
-            $('#realized_at').val(realizedAt.replace(/ /g, '-'));
+            $('#realized_at').val(marketing.realized_at);
         }
 
         if (marketing.marketing_return) {
-            const returnAt = new Date(marketing.marketing_return.return_at).toLocaleDateString('en-GB', dateOpt);
-            $('#return_at').val(returnAt.replace(/ /g, '-'));
+            $('#return_at').val(marketing.marketing_return.return_at);
         }
 
         // STATUS
         $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
 
-        // TODO: FILE UPLOAD
+        initFlatpickrDate($('.flatpickr-basic'));
     }
     // ? END :: EDIT VALUES
 </script>

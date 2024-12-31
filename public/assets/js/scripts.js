@@ -101,11 +101,15 @@ function confirmDelete(
  * <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
  *
  */
-function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
+function confirmCallback(
+    { title, text, footer, icon, confirmText, confirmClass },
+    cb,
+) {
     Swal.fire({
         title: title,
         text: text,
         icon: icon,
+        footer: footer ? footer : "",
         showCancelButton: true,
         confirmButtonText: confirmText,
         customClass: {
@@ -129,10 +133,18 @@ function confirmCallback({ title, text, icon, confirmText, confirmClass }, cb) {
  * @param {string} [placeholder=Pilih]
  * @param {*} routePath
  * @param {string} [type]
+ * @param {Object} [opts]
  */
-function initSelect2($component, placeholder = "Pilih", routePath, type = "") {
+function initSelect2(
+    $component,
+    placeholder = "Pilih",
+    routePath,
+    type = "",
+    opts,
+) {
     if (routePath) {
         $component.select2({
+            ...opts,
             placeholder: placeholder,
             ajax: {
                 url: routePath,
@@ -169,7 +181,67 @@ function initSelect2($component, placeholder = "Pilih", routePath, type = "") {
         });
     } else {
         $component.select2({
+            ...opts,
             placeholder: placeholder,
         });
+    }
+}
+
+/** Initialize flatpickr DATE
+ * - Takes a jquery element as parameter : $('selector')
+ * ? Display format d-M-Y
+ * ? Value format Y-m-d
+ */
+function initFlatpickrDate($selector) {
+    $selector.flatpickr({
+        altInput: true,
+        altFormat: "d-M-Y",
+        allowInput: true,
+        dateFormat: "Y-m-d",
+        onOpen: function (selectedDates, dateStr, instance) {
+            $(instance.altInput).prop("readonly", true);
+        },
+        onClose: function (selectedDates, dateStr, instance) {
+            $(instance.altInput).prop("readonly", false);
+            $(instance.altInput).blur();
+        },
+    });
+}
+
+/** Parse a datestring to locale date string for display
+ * Options :
+ * - day: '2-digit',
+ * - year: 'numeric',
+ * - month: 'short',
+ */
+function parseDateToString(datestring, format = "d-M-Y") {
+    const date = new Date(datestring);
+
+    if (date.toString() === "Invalid Date")
+        if (isNaN(date.getTime())) {
+            return "Invalid Date";
+        }
+
+    let formattedDate;
+
+    if (format === "d-M-Y") {
+        // Format to d-M-Y
+        const options = {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        };
+        formattedDate = date.toLocaleDateString("en-GB", options);
+        return formattedDate.replace(/(\d{2}) (\w{3}) (\d{4})/, "$1-$2-$3");
+    } else if (format === "Y-m-d") {
+        // Format to Y-m-d
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+
+        formattedDate = `${year}-${month}-${day}`;
+        return formattedDate;
+    } else {
+        return "Invalid Format"; // Handle unsupported formats
     }
 }

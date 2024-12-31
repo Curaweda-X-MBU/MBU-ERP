@@ -15,10 +15,16 @@ $is_edit = true;
 
 <script>
     function handleEdit() {
+            const $form = $('#editForm');
+
+            if (!$form[0].checkValidity()) {
+                return;
+            }
+
         setTimeout(function() {
             const route = @js(route('marketing.list.payment.edit', ':id'));
             const id = $('input[name="marketing_payment_id"]').val();
-            $('#editForm').attr('action', route.replace(':id', id)).trigger('submit');
+            $form.attr('action', route.replace(':id', id)).trigger('submit');
 
         }, 0);
     }

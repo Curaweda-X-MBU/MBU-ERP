@@ -152,7 +152,7 @@ class CompanyController extends Controller
         $companies = Company::where('name', 'like', "%{$search}%")->get();
 
         return response()->json($companies->map(function($company) {
-            return ['id' => $company->company_id, 'text' => $company->name];
+            return ['id' => $company->company_id, 'text' => $company->name, 'alias' => $company->alias];
         }));
     }
 }

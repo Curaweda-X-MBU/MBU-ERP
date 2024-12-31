@@ -50,7 +50,7 @@ $is_detail = true;
                         <div class="row mx-auto">
                             <div class="col-12 col-lg-6 d-flex flex-column align-items-start p-0 offset-lg-6">
                                 <label for="approval_notes">Catatan Persetujuan</label>
-                                <textarea name="approval_notes" class="form-control" id="approval_notes"></textarea>
+                                <textarea name="approval_notes" class="approval_notes form-control"></textarea>
                             </div>
                         </div>
                     </div>
