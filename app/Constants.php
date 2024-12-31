@@ -172,6 +172,18 @@ class Constants
         1 => 'Disetujui',
     ];
 
+    public const EXPENSE_CATEGORY = [
+        1 => 'Biaya Operasional',
+        2 => 'Bukan BOP',
+    ];
+
+    public const EXPENSE_STATUS = [
+        0 => 'Draft',
+        1 => 'Pengajuan',
+        2 => 'Disetujui',
+        3 => 'Ditolak',
+    ];
+
     public const RECORDING_STATUS = [
         1 => 'Pengajuan',
         2 => 'Disetujui',
