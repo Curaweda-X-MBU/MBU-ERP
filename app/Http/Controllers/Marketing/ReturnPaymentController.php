@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Constants;
 use App\Helpers\FileHelper;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Marketing\Marketing;
-use App\Models\Marketing\MarketingPayment;
+use App\Models\Marketing\MarketingReturnPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +20,23 @@ class ReturnPaymentController extends Controller
     public function index(Marketing $marketing)
     {
         try {
-            $data  = $marketing->load(['customer', 'company', 'marketing_payments']);
+            if (Constants::MARKETING_RETURN_STATUS[$marketing->marketing_return->return_status] !== 'Disetujui') {
+                throw new \Exception('Status Retur belum disetujui');
+            }
+
+            $data = $marketing->load(['customer', 'company', 'marketing_payments', 'marketing_addit_prices', 'marketing_return']);
+
+            $data->return_sub_total = (($marketing->marketing_return->total_return
+                - $marketing->marketing_addit_prices->sum('price'))
+                + $marketing->discount)
+                / (1 + ($marketing->tax / 100));
+
+            $payments = $marketing->marketing_return->marketing_return_payments;
+
             $param = [
-                'title' => 'Penjualan > Payment',
-                'data'  => $data,
+                'title'    => 'Penjualan > Retur > Payment',
+                'data'     => $data,
+                'payments' => $payments,
             ];
 
             return view('marketing.return.payment.index', $param);
@@ -42,24 +56,26 @@ class ReturnPaymentController extends Controller
 
                 $docPath = '';
                 if ($req->hasFile('document_path')) {
-                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_RETURN_PAYMENT_DOC_PATH);
                     if (! $docUrl['status']) {
                         return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                     }
                     $docPath = $docUrl['url'];
                 }
 
-                MarketingPayment::create([
-                    'marketing_id'       => $marketing->marketing_id,
-                    'payment_method'     => $input['payment_method'],
-                    'bank_id'            => $input['bank_id'] ?? null,
-                    'payment_reference'  => $input['payment_reference'],
-                    'transaction_number' => $input['transaction_number'],
-                    'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
-                    'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                    'document_path'      => $docPath,
-                    'notes'              => $input['notes'],
-                    'verify_status'      => array_search(
+                MarketingReturnPayment::create([
+                    'marketing_return_id' => $marketing->marketing_return_id,
+                    'payment_method'      => $input['payment_method'],
+                    'bank_id'             => $input['bank_id']           ?? null,
+                    'recipient_bank_id'   => $input['recipient_bank_id'] ?? null,
+                    'payment_reference'   => $input['payment_reference'],
+                    'transaction_number'  => $input['transaction_number'],
+                    'payment_nominal'     => Parser::parseLocale($input['payment_nominal']),
+                    'bank_admin_fees'     => Parser::parseLocale($input['bank_admin_fees']),
+                    'payment_at'          => date('Y-m-d', strtotime($input['payment_at'])),
+                    'document_path'       => $docPath,
+                    'notes'               => $input['notes'],
+                    'verify_status'       => array_search(
                         'Diajukan',
                         Constants::MARKETING_VERIFY_PAYMENT_STATUS
                     ),
@@ -78,20 +94,10 @@ class ReturnPaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function detail(Marketing $marketing)
+    public function detail(MarketingReturnPayment $payment)
     {
         try {
-            $data = $marketing->load([
-                'company',
-                'customer',
-                'sales',
-                'marketing_products.warehouse',
-                'marketing_products.product',
-                'marketing_products.uom',
-                'marketing_addit_prices',
-                'marketing_delivery_vehicles.uom',
-                'marketing_delivery_vehicles.sender',
-            ]);
+            $data = $payment->load(['bank', 'recipient_bank']);
 
             return $data;
         } catch (\Exception $e) {
@@ -102,13 +108,13 @@ class ReturnPaymentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $req, Marketing $marketing)
+    public function edit(Request $req, MarketingReturnPayment $payment)
     {
         try {
-            $data = $marketing->load(['approver', 'marketing', 'bank']);
+            $data = $payment->load(['bank', 'recipient_bank']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $data) {
+                DB::transaction(function() use ($req, $payment) {
                     $input = $req->all();
 
                     $existingDoc = $data->document_path ?? null;
@@ -127,12 +133,14 @@ class ReturnPaymentController extends Controller
                         $docPath = $existingDoc;
                     }
 
-                    MarketingPayment::create([
+                    $payment->update([
                         'payment_method'     => $input['payment_method'],
-                        'bank_id'            => $input['bank_id'],
+                        'bank_id'            => $input['bank_id']           ?? null,
+                        'recipient_bank_id'  => $input['recipient_bank_id'] ?? null,
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
-                        'payment_nominal'    => str_replace(',', '', $input['payment_nominal'] ?? 0),
+                        'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
+                        'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],
@@ -141,7 +149,7 @@ class ReturnPaymentController extends Controller
                 $success = ['success' => 'Data Berhasil diubah'];
 
                 return redirect()
-                    ->route('marketing.list.payment.index')
+                    ->back()
                     ->with($success);
             }
 
@@ -154,47 +162,50 @@ class ReturnPaymentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(MarketingPayment $payment)
+    public function delete(MarketingReturnPayment $payment)
     {
         try {
             $payment->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
-            return $success;
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
 
         }
     }
 
-    public function approve(Request $req, MarketingPayment $marketingPayment)
+    public function approve(Request $req, MarketingReturnPayment $payment)
     {
+        DB::beginTransaction();
         try {
-            $input   = $req->all();
-            $payment = $marketingPayment->get();
+            $input = $req->all();
 
-            $success = [];
+            $success       = [];
+            $verify_status = '';
 
-            if ($input['is_approved'] === 0) {
-                $payment->update([
-                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                ]);
-
-                $success = ['success' => 'Payment berhasil ditolak'];
+            if ($input['is_approved'] == 1) {
+                $success       = ['success' => 'Pembayaran berhasil disetujui'];
+                $verify_status = array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
             } else {
-                $payment->update([
-                    'is_approved' => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id' => Auth::id(),
-                    'approved_at' => date('Y-m-d H:i:s'),
-                ]);
-
-                $success = ['success' => 'Payment berhasil disetujui'];
+                $success       = ['success' => 'Pembayaran berhasil ditolak'];
+                $verify_status = array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
             }
 
-            return redirect()->route('marketing.list.payment.index')->with($success);
+            $payment->update([
+                'is_approved'    => $input['is_approved'],
+                'approver_id'    => Auth::id(),
+                'approval_notes' => $input['approval_notes'],
+                'approved_at'    => now()->format('Y-m-d H:i:s'),
+                'verify_status'  => $verify_status,
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with($success);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }

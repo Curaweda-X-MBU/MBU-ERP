@@ -2,6 +2,11 @@
 @section('title', $title)
 @section('content')
 
+@php
+    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+    $statusMarketing = App\Constants::MARKETING_STATUS;
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
 
 <style>
@@ -54,7 +59,9 @@
                             <button id="exportPdf" class="dropdown-item w-100">PDF</button>
                         </ul>
                     </div>
+                    @if (auth()->user()->role->hasPermissionTo('marketing.list.add'))
                     <a href="{{ route('marketing.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
+                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -62,8 +69,6 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead>
-                                <th>Grand Total</th>
-                                <th>Is Paid</th>
                                 <th>No.DO</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
@@ -79,26 +84,17 @@
                             </thead>
                             <tbody>
                                 @foreach ($data as $item)
-                                @php
-                                    $nominalPenjualan = $item->grand_total;
-                                    $nominalSisaBayar = $item->marketing_payments->sum('payment_nominal');
-                                @endphp
                                     <tr>
-                                        <td>{{ $item->grand_total }}</td>
-                                        <td>{{ $item->is_paid }}</td>
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
-                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
-                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
-                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
+                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
+                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
+                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->grand_total - $item->is_paid) }}</td>
                                         <td>
-                                            @php
-                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
-                                            @endphp
                                             @switch($item->payment_status)
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_status] }}</div>
@@ -106,20 +102,23 @@
                                                 @case(2)
                                                     <div class="badge badge-pill badge-success">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
-                                                @default
+                                                @case(3)
                                                     <div class="badge badge-pill badge-primary">{{ $statusPayment[$item->payment_status] }}</div>
+                                                    @break
+                                                @default
+                                                    <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->payment_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>
-                                            @php
-                                                $statusMarketing = App\Constants::MARKETING_STATUS;
-                                            @endphp
                                             @switch($item->marketing_status)
+                                                @case(0)
+                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$item->marketing_status] }}</div>
+                                                    @break
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusMarketing[$item->marketing_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusMarketing[$item->marketing_status] }}</div>
+                                                    <div class="badge badge-pill badge-info">{{ $statusMarketing[$item->marketing_status] }}</div>
                                                     @break
                                                 @case(3)
                                                     <div class="badge badge-pill badge-success">{{ $statusMarketing[$item->marketing_status] }}</div>
@@ -136,27 +135,31 @@
                                                 <div class="dropdown-menu">
                                                     <a class="dropdown-item" href="{{ route('marketing.list.detail', $item->marketing_id) }}">
                                                         <i data-feather='eye' class="mr-50"></i>
-                                                        <span>Lihat Detail</span>
+                                                        <span>Detail</span>
                                                     </a>
-                                                    @if ($item->marketing_status != 4)
+                                                    @if ($item->marketing_status != 4 && auth()->user()->role->hasPermissionTo('marketing.list.realization'))
                                                     <a class="dropdown-item" href="{{ route('marketing.list.realization', $item->marketing_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
-                                                            <span>Tambah Realisasi</span>
+                                                            <span>Realisasi</span>
                                                         </a>
                                                     @endif
                                                     <a class="dropdown-item" href="{{ route('marketing.list.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
-                                                        <span>Tambah Pembayaran</span>
+                                                        <span>Pembayaran</span>
                                                     </a>
+                                                    @if ($item->marketing_status == 4 && auth()->user()->role->hasPermissionTo('marketing.return.add'))
                                                     <a class="dropdown-item" href="{{ route('marketing.return.add', $item->marketing_id) }}">
                                                         <i data-feather="corner-down-left" class="mr-50"></i>
                                                         <span>Retur</span>
                                                     </a>
+                                                    @endif
+                                                    @if (auth()->user()->role->hasPermissionTo('marketing.list.delete'))
                                                     <a class="dropdown-item item-delete-button text-danger"
                                                         href="{{ route('marketing.list.delete', $item->marketing_id) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </td>
@@ -167,7 +170,12 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                        <div class="col-12 col-md-6 my-1">
+                            @if (auth()->user()->role->hasPermissionTo('marketing.list.payment.add') && auth()->user()->role->hasPermissionTo('marketing.list.payment.approve'))
+                            @include('marketing.list.sections.batch-upload-modal')
+                            @endif
+                        </div>
+                        <div class="col-12 col-md-6 my-1">
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>
@@ -216,7 +224,7 @@
 
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
-<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+<script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 
 <script>
     $(function () {
@@ -270,8 +278,8 @@
                     });
 
                     $('#customer_slice').on('select2:select change', function() {
-                        $table.columns(5).search('').draw();
-                        $table.columns(5).search($(this).val() ?? '').draw();
+                        $table.columns(3).search('').draw();
+                        $table.columns(3).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -281,8 +289,8 @@
 
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseFloat(data[0]) || 0;
-                    const isPaid = parseFloat(data[1]) || 0;
+                    const grandTotal = parseLocaleToNum(data[6]);
+                    const isPaid = parseLocaleToNum(data[7]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
@@ -298,7 +306,7 @@
 
                 feather.replace();
             },
-            order: [[2, 'desc']],
+            order: [[0, 'desc']],
         });
 
         function setupDropdownFilter(selector, column, $table) {
@@ -326,9 +334,7 @@
             });
         }
 
-        $table.columns(0).visible(false);
-        $table.columns(1).visible(false);
-        $table.columns(5).visible(false);
+        $table.columns(3).visible(false);
 
         $.ajax({
             method: 'get',
@@ -337,10 +343,10 @@
             result.forEach(function(company) {
                 $('#filterCompany').append(`<a class="dropdown-item">${company.alias}</a>`);
             });
-            setupDropdownFilter('#filterCompany', 7, $table);
+            setupDropdownFilter('#filterCompany', 5, $table);
         });
-        setupDropdownFilter('#filterPaymentStatus', 11, $table);
-        setupDropdownFilter('#filterMarketingStatus', 12, $table);
+        setupDropdownFilter('#filterPaymentStatus', 9, $table);
+        setupDropdownFilter('#filterMarketingStatus', 10, $table);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');
