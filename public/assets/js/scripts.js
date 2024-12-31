@@ -167,15 +167,6 @@ function initSelect2(
                                 uom_name: item.uom_name ? item.uom_name : "",
                             })),
                         };
-                    } else if (type === 'nonStock') {
-                        return {
-                            results: data.map((item) => ({
-                                id: item.id,
-                                text: item.text,
-                                uom_id: item.uom_id ? item.uom_id : null,
-                                uom_name: item.uom_name ? item.uom_name : "",
-                            })),
-                        };
                     } else {
                         return {
                             results: data.map((item) => ({
