@@ -135,7 +135,7 @@
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Penjualan</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td class="text-primary">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
+                                            <td>Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Sudah Bayar</b></td>
