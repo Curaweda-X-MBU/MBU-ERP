@@ -24,22 +24,16 @@ class ListController extends Controller
 {
     private const VALIDATION_RULES = [
         'product_category_id' => 'required',
-        'kandang_id'          => 'required',
-        'capacity'            => 'required',
         'farm_type'           => 'required',
         'period'              => 'required',
-        'pic'                 => 'required',
         // 'fcr_id'              => 'required',
         // 'target_depletion'    => 'required',
     ];
 
     private const VALIDATION_MESSAGES = [
         'product_category_id' => 'Kategori Produk tidak boleh kosong',
-        'kandang_id'          => 'Kandang tidak boleh kosong',
-        'capacity'            => 'Kapasitas tidak boleh kosong',
         'farm_type'           => 'Tipe Kandang tidak boleh kosong',
         'period'              => 'Periode tidak boleh kosong',
-        'pic'                 => 'Penaggung jawab tidak boleh kosong',
         // 'fcr_id'              => 'FCR tidak boleh kosong',
         // 'target_depletion'    => 'Target Deplesi tidak boleh kosong',
     ];
@@ -87,13 +81,6 @@ class ListController extends Controller
                     if (isset($input['product_category_id'])) {
                         $input['product_category_name'] = ProductCategory::find($req->input('product_category_id'))->name;
                     }
-                    if (isset($input['kandang_id'])) {
-                        $input['kandang_name'] = Kandang::find($req->input('kandang_id'))->name;
-                    }
-                    // if (isset($input['fcr_id'])) {
-                    //     $fcr               = Fcr::with('uom')->find($req->input('fcr_id'));
-                    //     $input['fcr_name'] = $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name;
-                    // }
                     if (isset($input['recording'])) {
                         foreach ($input['recording'] as $key => $value) {
                             $input['recording'][$key]['uom_name'] = Uom::find($value['uom_id'])->name;
@@ -104,41 +91,45 @@ class ListController extends Controller
                         ->withErrors($validator)
                         ->withInput($input);
                 }
+                if (! $req->has('kandang_id')) {
+                    return redirect()->back()->with('error', 'Data kandang harus dipilih')->withInput($input);
+                }
 
                 if (! $req->has('budget')) {
                     return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($input);
                 }
 
                 DB::transaction(function() use ($req) {
-                    $project = Project::create([
-                        'product_category_id' => $req->input('product_category_id'),
-                        'kandang_id'          => $req->input('kandang_id'),
-                        'capacity'            => $req->input('capacity'),
-                        'farm_type'           => $req->input('farm_type'),
-                        'period'              => $req->input('period'),
-                        'pic'                 => $req->input('pic'),
-                        // 'fcr_id'              => $req->input('fcr_id'),
-                        // 'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget'   => $req->input('total_budget'),
-                        'chickin_status' => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
-                        'project_status' => array_search('Pengajuan', Constants::PROJECT_STATUS),
-                        'created_by'     => Auth::user()->user_id ?? '',
-                    ]);
+                    $arrKandang = $req->input('kandang_id');
+                    for ($i = 0; $i < count($arrKandang); $i++) {
+                        $dtKandang = Kandang::with('user')->find($arrKandang[$i]);
+                        $project   = Project::create([
+                            'product_category_id' => $req->input('product_category_id'),
+                            'kandang_id'          => $arrKandang[$i],
+                            'capacity'            => $dtKandang->capacity ?? 0,
+                            'farm_type'           => $req->input('farm_type'),
+                            'period'              => $req->input('period'),
+                            'pic'                 => $dtKandang->user->name ?? '',
+                            'total_budget'        => $req->input('total_budget'),
+                            'chickin_status'      => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
+                            'project_status'      => array_search('Pengajuan', Constants::PROJECT_STATUS),
+                            'created_by'          => Auth::user()->user_id ?? '',
+                        ]);
 
-                    $kandang = Kandang::findOrFail($project->kandang_id);
-                    $kandang->update([
-                        'project_status' => true,
-                    ]);
+                        $dtKandang->update([
+                            'project_status' => true,
+                        ]);
 
-                    $projectId = $project->project_id;
-                    if ($req->has('budget')) {
-                        $arrBudget = $req->input('budget');
-                        foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
-                            $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
-                            $arrBudget[$key]['project_id'] = $projectId;
+                        $projectId = $project->project_id;
+                        if ($req->has('budget')) {
+                            $arrBudget = $req->input('budget');
+                            foreach ($arrBudget as $key => $value) {
+                                $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                                $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
+                                $arrBudget[$key]['project_id'] = $projectId;
+                            }
+                            ProjectBudget::insert($arrBudget);
                         }
-                        ProjectBudget::insert($arrBudget);
                     }
                 });
 
