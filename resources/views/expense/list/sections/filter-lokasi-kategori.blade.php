@@ -1,16 +1,16 @@
 <div class="row">
     <!-- Lokasi -->
     <div class="col-md-2 mt-1">
-        <label for="location_id" class="form-label">Lokasi</label>
+        <label for="location_id" class="form-label">Lokasi<i class="text-danger">*</i></label>
         <select name="location_id" id="location_id" class="form-control"></select>
     </div>
     <!-- Kategori -->
     <div class="col-md-2 mt-1">
-        <label for="category_id" class="form-label">Kategori</label>
+        <label for="category_id" class="form-label">Kategori<i class="text-danger">*</i></label>
         <select name="category_id" id="category_id" class="form-control">
             <option value="">Pilih Kategori</option>
-            <option value="bop">BOP (Biaya Operasional)</option>
-            <option value="non-bop">Biaya Diluar BOP</option>
+            <option value="1">BOP (Biaya Operasional)</option>
+            <option value="2">Biaya Diluar BOP</option>
         </select>
     </div>
 </div>
