@@ -418,6 +418,10 @@ class ListController extends Controller
                             'total_received'      => $receivedItem,
                             'amount_received'     => $receivedItemAmount,
                         ]);
+                    } else {
+                        DB::rollback();
+
+                        return redirect()->back()->with('error', 'Penerimaan produk harus diisi');
                     }
 
                     $receivedPurchaseAmount    += $receivedItemAmount;

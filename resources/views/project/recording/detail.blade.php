@@ -28,6 +28,14 @@
                                                 </div>
                                                 <div class="row mt-1">
                                                     <div class="col-sm-3 col-form-label">
+                                                        <label for="location_id" class="float-right">Lokasi Farm</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <input type="text" class="form-control" readonly value="{{ $data->project->kandang->location->name??'' }}">
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 col-form-label">
                                                         <label for="project_id" class="float-right">Project</label>
                                                     </div>
                                                     <div class="col-sm-9">
@@ -56,9 +64,7 @@
                                                         @endforeach
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-6 mt-1">
-                                                <div class="row">
+                                                <div class="row mt-1">
                                                     <div class="col-sm-3 col-form-label">
                                                         <label for="record_datetime" class="float-right">Tanggal Record</label>
                                                     </div>
@@ -66,15 +72,17 @@
                                                         <input type="text" class="form-control flatpickr-basic" value="{{ date('d-M-Y H:i', strtotime($data->record_datetime))}}" readonly>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            @if ($data->document_revision)
-                                            <div class="col-md-6 mt-1">
-                                                <div class="text-right">
-                                                    Dokumen perubahan data recording<br>
-                                                    <a class="btn btn-success btn-sm" href="{{ route('file.show', ['filename' => $data->document_revision]) }}" target="_blank">Download</a>
+                                                @if ($data->document_revision)
+                                                <div class="row">
+                                                    <div class="col-md-12 mt-1">
+                                                        <div class="text-right">
+                                                            Dokumen perubahan data recording<br>
+                                                            <a class="btn btn-success btn-sm" href="{{ route('file.show', ['filename' => $data->document_revision]) }}" target="_blank">Download</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                @endif
                                             </div>
-                                            @endif
                                         </div>
                                     </div>
 
