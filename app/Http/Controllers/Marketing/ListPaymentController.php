@@ -105,13 +105,10 @@ class ListPaymentController extends Controller
                     ->whereNull('marketing_return_id')
                     ->whereIn('id_marketing', $doNumbers)
                     ->where('marketing_status', '>=', 3)
-                    ->get(['id_marketing', 'grand_total'])
+                    ->get(['marketing_id', 'id_marketing', 'grand_total'])
                     ->keyBy('id_marketing');
 
                 // === SERVER-SIDE RENDERING ===
-                // ADDITIONAL PARAMS VALIDATION
-                $hasPaymentMethodInvalid = false;
-                $hasBankAccountInvalid   = false;
                 // == GENERAL VALIDATION ==
                 // Sort csv data
                 usort($rows, function($a, $b) {
@@ -127,8 +124,14 @@ class ListPaymentController extends Controller
                 $foundRows    = [];
                 $notFoundRows = [];
 
-                $validPayments        = ['transfer', 'cash', 'card', 'cheque'];
-                $validBankAccounts    = Bank::pluck('account_number')->toArray();
+                $validPayments = ['transfer', 'cash', 'card', 'cheque'];
+
+                $banks = Bank::get()->map(fn ($bank) => [
+                    'bank_id'        => $bank->bank_id,
+                    'account_number' => $bank->account_number,
+                    'text'           => $bank->alias.' - '.$bank->account_number.' - '.$bank->owner,
+                ])->keyBy('bank_id')->toArray();
+                $validBankAccounts    = Bank::pluck('account_number', 'bank_id')->toArray();
                 $validBankAccountsSet = array_flip($validBankAccounts);
 
                 function validateDateFormat($date)
@@ -142,22 +145,27 @@ class ListPaymentController extends Controller
                 foreach ($rows as $row) {
                     if (in_array($row['do_number'], $idMarketingValues)) {
                         // == COLUMNS VALIDATION ==
+                        $row['has_invalid'] = false;
+
                         // Payment method
                         if (! empty($row['payment_method'])) {
                             if (! in_array(strtolower($row['payment_method']), $validPayments)) {
                                 $row['payment_method_invalid'] = 'Metode ('.$row['payment_method'].') tidak valid.';
-                                $hasPaymentMethodInvalid       = true;
+                                $row['has_invalid']            = true;
                             }
                         } else {
                             $row['payment_method_invalid'] = 'Metode pembayaran tidak boleh kosong.';
-                            $hasPaymentMethodInvalid       = true;
+                            $row['has_invalid']            = true;
                         }
 
                         // Bank account
                         if (! empty($row['bank_account'])) {
-                            if (! isset($validBankAccountsSet[$row['bank_account']])) {
+                            $bankId = $validBankAccountsSet[$row['bank_account']];
+                            if (! isset($bankId)) {
                                 $row['bank_account_invalid'] = 'Rekening ('.$row['bank_account'].') tidak ditemukan.';
-                                $hasBankAccountInvalid       = true;
+                                $row['has_invalid']          = true;
+                            } else {
+                                $row['bank_id'] = $bankId;
                             }
                         }
 
@@ -170,32 +178,27 @@ class ListPaymentController extends Controller
                             $row['payment_date_invalid'] = 'Tanggal tidak boleh kosong.';
                         }
 
-                        // Assign not_paid
+                        // Assign not_paid marketing informations
                         $idMarketing = strtoupper($row['do_number']);
                         if (isset($marketings[$idMarketing])) {
-                            $row['not_paid'] = $marketings[$idMarketing]->not_paid;
+                            $row['marketing_id'] = $marketings[$idMarketing]->marketing_id;
+                            $row['not_paid']     = $marketings[$idMarketing]->not_paid;
+                            if ($row['not_paid'] - $row['payment_nominal'] < 0) {
+                                $row['has_invalid'] = true;
+                            }
                         }
 
                         $foundRows[] = $row;
                     } else {
                         $notFoundRows[] = [
                             'id_marketing' => $row['do_number'],
-                            'invalid'      => true,
-                            'message'      => $row['do_number'].' tidak valid.',
+                            'message'      => $row['do_number'].' tidak ditemukan.',
                         ];
                     }
                 }
 
-                $banks = null;
-                if ($hasBankAccountInvalid) {
-                    $banks = Bank::get()->map(fn ($bank) => [
-                        'id'   => $bank->bank_id,
-                        'text' => $bank->alias.' - '.$bank->account_number.' - '.$bank->owner,
-                    ])->toArray();
-                }
-
                 $param = [
-                    'marketings' => $marketings->toArray(),
+                    // 'marketings' => $marketings->toArray(),
                     'payments'   => $foundRows,
                     'not_founds' => $notFoundRows,
                     'banks'      => $banks,

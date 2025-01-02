@@ -51,45 +51,56 @@
     }
 </style>
 
-<input type="hidden" name="row" disabled>
-<input type="hidden" name="invalid">
-<div class="card-header color-header collapsed rounded-lg" role="button">
-    <span class="lead collapse-title">DO #</span>
+@php
+$initialPaymentLeft = $payment['not_paid'] - $payment['payment_nominal'];
+$initialPaymentLeftLocale = \App\Helpers\Parser::toLocale($initialPaymentLeft);
+@endphp
+
+<input type="hidden" name="invalid" disabled>
+<div class="card-header color-header collapsed rounded-lg {{ $payment['has_invalid'] ? 'red' : '' }}" role="button">
+    <span class="lead collapse-title">DO # {{ $index }} | {{ strtoupper($payment['do_number']) }}</span>
     <div class="float-right lead">
         <span>Sisa Bayar | Rp.</span>
-        <span class="sisa-bayar">0,00</span>
+        <span class="sisa-bayar">{{ $initialPaymentLeftLocale }}</span>
     </div>
 </div>
-<div id="collapsible" role="tabpanel" aria-labelledby="heading" class="collapsible collapse" aria-expanded="false">
+<div id="collapsible" role="tabpanel" aria-labelledby="heading" class="collapsible collapse" aria-expanded="false" data-index="{{ $index }}">
     <div class="card-body p-2">
         <table class="table table-borderless w-100">
             <tbody>
                 <tr>
                     <td>
-                        <label for="marketing_id">No. DO<i class="text-danger">*</i></label>
-                        <select name="marketing_id" class="form-control marketing_id_select">
-                        </select>
-                        <small class="text-danger invalid" style="opacity: 0;">DO tidak ditemukan</small>
+                        <label for="id_marketing">No. DO<i class="text-danger">*</i></label>
+                        <input type="hidden" name="payment_batch_upload[{{ $index }}][marketing_id]" value="{{ $payment['marketing_id'] }}">
+                        <input type="text" name="payment_batch_upload[{{ $index }}][id_marketing]" class="form-control" value="{{ $payment['do_number'] }}" readonly>
                     </td>
                     <td>
                         <label for="payment_method">Metode Pembayaran<i class="text-danger">*</i></label>
-                        <select name="payment_method" class="form-control payment_method_select" required>
+                        @if (isset($payment['payment_method_invalid']))
+                        <select name="payment_batch_upload[{{ $index }}][payment_method]" class="form-control payment_method_select" required>
                             <option value="" selected hidden>Pilih Pembayaran</option>
                             <option value="Transfer">Transfer</option>
                             <option value="Cash">Cash</option>
                             <option value="Card">Card</option>
                             <option value="Cheque">Cheque</option>
                         </select>
-                        <small class="text-danger invalid" style="opacity: 0;"></small>
+                        <small class="text-danger invalid">{{ $payment['payment_method_invalid'] }}</small>
+                        @else
+                        <input type="text" name="payment_batch_upload[{{ $index }}][payment_method]" class="form-control" value="{{ $payment['payment_method'] }}" readonly>
+                        @endif
                     </td>
                     <td>
                         <label for="payment_reference">Referensi Pembayaran</label>
-                        <input name="payment_reference" type="text" class="form-control" placeholder="Masukkan Referensi" readonly>
+                        <input name="payment_batch_upload[{{ $index }}][payment_reference]" type="text" class="form-control" value="{{ $payment['payment_reference'] }}" readonly>
                     </td>
                     <td>
                         <label for="payment_at">Tanggal Bayar<i class="text-danger">*</i></label>
-                        <input name="payment_at" class="form-control flatpickr-basic" id="payment_at" required>
-                        <small class="text-danger invalid" style="opacity: 0;">Format tanggal salah</small>
+                        @if (isset($payment['payment_date_invalid']))
+                        <input name="payment_batch_upload[{{ $index }}][payment_at]" class="form-control flatpickr-basic" required>
+                        <small class="text-danger invalid">{{ $payment['payment_date_invalid'] }}</small>
+                        @else
+                        <input name="payment_batch_upload[{{ $index }}][payment_at]" class="form-control" value="{{ $payment['payment_date'] }}" readonly>
+                        @endif
                     </td>
                 </tr>
                 <tr>
@@ -97,7 +108,7 @@
                         <label for="document_path">Upload Dokumen</label>
                         <div class="input-group">
                             <input type="text" placeholder="Upload" class="file-name form-control">
-                            <input type="file" name="document_path" class="transparent-file-upload">
+                            <input type="file" name="payment_batch_upload[{{ $index }}][document_path]" class="transparent-file-upload">
                             <div class="input-group-append" style="pointer-events: none;">
                                 <span class="input-group-text btn btn-primary">Upload</span>
                             </div>
@@ -105,22 +116,39 @@
                     </td>
                     <td>
                         <label for="bank_id">Akun Bank</label>
-                        <select name="bank_id" class="form-control bank_id_select">
+                        @if (isset($payment['bank_account_invalid']))
+                        <select name="payment_batch_upload[{{ $index }}][bank_id]" class="form-control bank_id_select">
+                            <option value="" selected></option>
+                            @foreach ($banks as $bank)
+                                <option value="{{ $bank['bank_id'] }}">{{ $bank['text'] }}</option>
+                            @endforeach
                         </select>
-                        <small class="text-danger invalid" style="opacity: 0;"></small>
+                        <small class="text-danger invalid">{{ $payment['bank_account_invalid'] }}</small>
+                        @else
+                        <input type="text" class="form-control" value="{{ @$banks[$payment['bank_id']]['text'] ?: '-' }}" readonly>
+                        @endif
                     </td>
                     <td>
                         <label for="transaction_number">Nomor Transaksi</label>
-                        <input name="transaction_number" type="text" class="form-control" placeholder="Masukkan No. Transaksi" readonly>
+                        <input name="payment_batch_upload[{{ $index }}][transaction_number]" type="text" class="form-control" value="{{ $payment['transaction_number'] }}" readonly>
                     </td>
                     <td>
                         <label for="payment_nominal">Nominal Pembayaran<i class="text-danger">*</i></label>
-                        <input name="payment_nominal" type="number" id="payment_nominal" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
-                        <input type="text" class="form-control numeral-mask payment_nominal_mask" placeholder="0" required>
-                        <small class="text-danger invalid" style="opacity: 0;">Melebihi sisa belum bayar</small>
+                        <input type="text" name="payment_batch_upload[{{ $index }}][payment_nominal_mask]" class="payment_nominal_mask form-control numeral-mask" placeholder="0" value="{{ \App\Helpers\Parser::toLocale($payment['payment_nominal']) }}" required>
+                        <small class="text-danger invalid" style="opacity: {{ $initialPaymentLeft < 0 ? '1' : '0' }};">Melebihi sisa belum bayar</small>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    $(function() {
+        const $row = $('.collapsible[data-index="{{ $index }}"]');
+        initSelect2($row.find('.bank_id_select'), 'Pilih Bank');
+        initSelect2($row.find('.payment_method'), 'Pilih Pembayaran');
+
+        // calculate sisa-bayar
+    });
+</script>
