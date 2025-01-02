@@ -16,7 +16,9 @@ class ExpenseMainPrice extends Model
     protected $fillable = [
         'expense_id',
         'sub_category',
-        'price_nominal',
+        'qty',
+        'uom',
+        'total_price',
         'notes',
     ];
 

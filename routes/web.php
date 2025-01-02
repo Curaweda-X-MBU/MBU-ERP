@@ -136,6 +136,7 @@ Route::middleware('auth')->group(function() {
             Route::get('/detail/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'detail'])->name('expense.list.detail')->middleware('permission:expense.list.detail');
             Route::get('/delete/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'delete'])->name('expense.list.delete')->middleware('permission:expense.list.delete');
             Route::post('/approve/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.list.approve')->middleware('permission:expense.list.approve');
+            Route::get('/search', [App\Http\Controllers\Expense\ExpenseController::class, 'searchExpense'])->name('expense.list.search');
         });
         Route::group(['prefix' => 'recap'], function() {
             Route::get('/', [App\Http\Controllers\Expense\ExpenseController::class, 'recap'])->name('expense.recap.index')->middleware('permission:expense.recap.index');
