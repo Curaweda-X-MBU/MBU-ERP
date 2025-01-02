@@ -2,40 +2,6 @@
 @section('title', $title)
 @section('content')
 @php
-    $data = [
-        'expense_id' => 1,
-        'id_expense' => 'BO.1',
-        'location' => 'Singaparna',
-        'category' => 1,
-        'created_at' => '25-Dec-2024',
-        'created_by' => 'Agus Saripudin',
-        'grand_total' => 8020000,
-        'payment_status' => 1,
-        'expense_status' => 2,
-        'expense_payment' => [
-            'payment_nominal' => []
-        ],
-        'main_prices' => [
-            [
-                'main_price_id' => 2,
-                'expense_id' => 1,
-                'sub_category' => 'Air',
-                'qty' => 10000,
-                'uom' => 'Liter',
-                'total_price' => 10000000,
-                'notes' => 'Biaya Utama',
-            ],
-        ],
-        'addit_prices' => [
-            [
-                'addit_price_id' => 2,
-                'name' => 'Pajak',
-                'price' => 1000000,
-                'notes' => 'Biaya Lainnya',
-            ],
-        ]
-    ];
-
     $nominalBiaya = $data['grand_total'];
     $nominalSisaBayar = array_sum($data['expense_payment']['payment_nominal']) ?? '0,00';
     $roleAccess = Auth::user()->role;

@@ -71,11 +71,20 @@ class ExpenseController extends Controller
         }
     }
 
-    public function detail(Request $id)
+    public function detail(Expense $expense)
     {
         try {
+            $data = $expense->load([
+                'created_user',
+                'location',
+                'expense_kandang',
+                'expense_main_prices',
+                'expense_addit_prices',
+            ]);
+
             $param = [
                 'title' => 'Biaya > Detail',
+                'data'  => $data,
             ];
 
             return view('expense.list.detail', $param);
