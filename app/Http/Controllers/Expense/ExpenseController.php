@@ -87,7 +87,7 @@ class ExpenseController extends Controller
         }
     }
 
-    public function edit(Request $req, $id)
+    public function edit(Request $req, Expense $id)
     {
         try {
             $param = [

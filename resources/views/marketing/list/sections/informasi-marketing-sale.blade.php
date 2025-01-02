@@ -143,7 +143,11 @@
                 initNumeralMask('.numeral-mask');
             },
             hide: function(deleteElement) {
-                confirmDelete($(this), deleteElement);
+                confirmDelete($(this), () => {
+                    deleteElement();
+                    $('#total_sebelum_pajak').trigger('change');
+                    $('#total_setelah_pajak').trigger('change');
+                });
             },
         };
         // ? END :: REPEATER OPTS :: MARKETING ADDIT PRICES

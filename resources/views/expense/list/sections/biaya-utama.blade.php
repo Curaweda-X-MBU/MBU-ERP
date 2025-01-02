@@ -27,7 +27,7 @@
                 <td>
                     <input class="form-control uom" disabled></input>
                 </td>
-                <td><input type="text" class="form-control numeral-mask text-right" value="0" disabled></td>
+                <td><input type="text" class="form-control numeral-mask text-right unit-price" value="0" disabled></td>
                 <td><input type="text" class="form-control numeral-mask text-right total-amount-all-farms" value="0"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -44,60 +44,62 @@
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
-    function calculateUnitPrice($row) {
-        const qty = parseLocaleToNum($row.find('input.numeral-mask').eq(0).val() || '0');
-        const totalAmount = parseLocaleToNum($row.find('input.total-amount-all-farms').val() || '0');
+    $(function() {
+        function calculateUnitPrice($row) {
+            const qty = parseLocaleToNum($row.find('input.numeral-mask').eq(0).val() || '0');
+            const totalAmount = parseLocaleToNum($row.find('input.total-amount-all-farms').val() || '0');
 
-        if (qty > 0) {
-            const unitPrice = totalAmount / qty;
-            $row.find('input.text-right').eq(0).val(parseNumToLocale(unitPrice));
-        } else {
-            $row.find('input.text-right').eq(0).val('');
-        }
-    }
-
-    function calculateBiayaUtama() {
-        let total = 0;
-        $('.total-amount-all-farms').each(function() {
-            const value = $(this).val() || '0';
-            total += parseLocaleToNum(value);
-        });
-        $('#total-biaya-utama').text(parseNumToLocale(total));
-    }
-
-    const expenseRepeater = $("#expense-repeater-1").repeater({
-        initEmpty: true,
-        defaultValues: {
-            'total-amount-all-farms': '0'
-        },
-        show: function() {
-            const $row = $(this);
-            $row.slideDown();
-
-            const $subCategorySelect = $row.find('.sub-category-select');
-            const subCategoryIdRoute = '{{ route("data-master.nonstock.search") }}';
-            initSelect2($subCategorySelect, 'Pilih Sub Kategori', subCategoryIdRoute, 'nonStock');
-            $subCategorySelect.on('select2:select', function(){
-                const data = $(this).select2('data')[0];
-                $row.find('input.uom').val(data.uom_name);
-            })
-
-            const $numeralInput = $row.find('.numeral-mask');
-            initNumeralMask($numeralInput);
-
-            $numeralInput.on('input', function() {
-                calculateUnitPrice($row);
-                calculateBiayaUtama();
-            });
-
-            if (feather) {
-            feather.replace({ width: 14, height: 14 });
+            if (qty > 0) {
+                const unitPrice = totalAmount / qty;
+                $row.find('input.unit-price').val(parseNumToLocale(unitPrice));
+            } else {
+                $row.find('input.unit-price').val('');
             }
-        },
-        hide: function(deleteElement) {
-            confirmDelete($(this), deleteElement);
         }
-    });
 
-    $('button[data-repeater-create]').trigger('click');
+        function calculateBiayaUtama() {
+            let total = 0;
+            $('.total-amount-all-farms').each(function() {
+                const value = $(this).val() || '0';
+                total += parseLocaleToNum(value);
+            });
+            $('#total-biaya-utama').text(parseNumToLocale(total)).trigger('change');
+        }
+
+        const expenseRepeater = $("#expense-repeater-1").repeater({
+            initEmpty: true,
+            show: function() {
+                const $row = $(this);
+                $row.slideDown();
+
+                const $subCategorySelect = $row.find('.sub-category-select');
+                const subCategoryIdRoute = '{{ route("data-master.nonstock.search") }}';
+                initSelect2($subCategorySelect, 'Pilih Sub Kategori', subCategoryIdRoute, 'nonStock');
+                $subCategorySelect.on('select2:select', function(){
+                    const data = $(this).select2('data')[0];
+                    $row.find('input.uom').val(data.uom_name);
+                })
+
+                const $numeralInput = $row.find('.numeral-mask');
+                initNumeralMask($numeralInput);
+
+                $numeralInput.on('input', function() {
+                    calculateUnitPrice($row);
+                    calculateBiayaUtama();
+                });
+
+                if (feather) {
+                    feather.replace({ width: 14, height: 14 });
+                }
+            },
+            hide: function(deleteElement) {
+                confirmDelete($(this), () => {
+                    deleteElement();
+                    calculateBiayaUtama();
+                });
+            }
+        });
+
+        $('#expense-repeater-1 button[data-repeater-create]').trigger('click');
+    });
 </script>
