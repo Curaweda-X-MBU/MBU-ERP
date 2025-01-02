@@ -65,6 +65,9 @@
                                                 $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                                             @endphp
                                             @switch($item->payment_status)
+                                                @case(0)
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusPayment[$item->payment_status] }}</div>
+                                                    @break
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
@@ -76,21 +79,21 @@
                                             @endswitch
                                         </td>
                                         <td class="text-center">
+                                            @php
+                                                    $statusExpense = App\Constants::EXPENSE_STATUS;
+                                            @endphp
                                             @switch($item->expense_status)
                                                 @case(0)
-                                                    <div class="badge badge-pill badge-secondary">Draft</div>
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(1)
-                                                    <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-primary">Disetujui</div>
-                                                    @break
-                                                @case(3)
-                                                    <div class="badge badge-pill badge-danger">Ditolak</div>
+                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @default
-                                                    <div class="badge badge-pill badge-secondary">N/A</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>
@@ -103,7 +106,7 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="">
+                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', 1) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
                                                     </a>

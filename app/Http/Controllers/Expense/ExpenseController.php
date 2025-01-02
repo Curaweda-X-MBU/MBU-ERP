@@ -183,6 +183,7 @@ class ExpenseController extends Controller
                 'expense_kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
+                'expense_payments',
             ]);
 
             $param = [

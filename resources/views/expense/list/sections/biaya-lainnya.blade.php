@@ -7,8 +7,8 @@
         <thead>
             <tr class="bg-light text-center">
                 <th>Nama Biaya</th>
-                <th>Nominal Seluruh Kandang</th>
-                <th>Keterangan</th>
+                <th>Nominal Biaya (Rp)</th>
+                <th>Catatan</th>
                 <th class="col-1">
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Biaya Lainnya">
                         <i data-feather="plus"></i>
@@ -18,9 +18,9 @@
         </thead>
         <tbody data-repeater-list="expense_items">
             <tr data-repeater-item>
-                <td><input type="text" class="form-control"></td>
-                <td><input type="text" class="form-control numeral-mask text-center total-amount-all-farms-2" value="0"></td>
-                <td><input type="text" class="form-control"></td>
+                <td><input name="name" type="text" class="form-control" placeholder="Masukkan nama biaya"></td>
+                <td><input name="price" type="text" class="form-control numeral-mask text-right total-amount-all-farms-2" value="0" placeholder="0"></td>
+                <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>
