@@ -6,7 +6,7 @@ use App\Constants;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Area;
 use App\Models\DataMaster\Company;
-use App\Models\DataMaster\Fcr;
+// use App\Models\DataMaster\Fcr;
 use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\Location;
 use App\Models\DataMaster\ProductCategory;
@@ -29,8 +29,8 @@ class ListController extends Controller
         'farm_type'           => 'required',
         'period'              => 'required',
         'pic'                 => 'required',
-        'fcr_id'              => 'required',
-        'target_depletion'    => 'required',
+        // 'fcr_id'              => 'required',
+        // 'target_depletion'    => 'required',
     ];
 
     private const VALIDATION_MESSAGES = [
@@ -40,8 +40,8 @@ class ListController extends Controller
         'farm_type'           => 'Tipe Kandang tidak boleh kosong',
         'period'              => 'Periode tidak boleh kosong',
         'pic'                 => 'Penaggung jawab tidak boleh kosong',
-        'fcr_id'              => 'FCR tidak boleh kosong',
-        'target_depletion'    => 'Target Deplesi tidak boleh kosong',
+        // 'fcr_id'              => 'FCR tidak boleh kosong',
+        // 'target_depletion'    => 'Target Deplesi tidak boleh kosong',
     ];
 
     public function index(Request $req)
@@ -90,10 +90,10 @@ class ListController extends Controller
                     if (isset($input['kandang_id'])) {
                         $input['kandang_name'] = Kandang::find($req->input('kandang_id'))->name;
                     }
-                    if (isset($input['fcr_id'])) {
-                        $fcr               = Fcr::with('uom')->find($req->input('fcr_id'));
-                        $input['fcr_name'] = $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name;
-                    }
+                    // if (isset($input['fcr_id'])) {
+                    //     $fcr               = Fcr::with('uom')->find($req->input('fcr_id'));
+                    //     $input['fcr_name'] = $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name;
+                    // }
                     if (isset($input['recording'])) {
                         foreach ($input['recording'] as $key => $value) {
                             $input['recording'][$key]['uom_name'] = Uom::find($value['uom_id'])->name;
@@ -117,12 +117,12 @@ class ListController extends Controller
                         'farm_type'           => $req->input('farm_type'),
                         'period'              => $req->input('period'),
                         'pic'                 => $req->input('pic'),
-                        'fcr_id'              => $req->input('fcr_id'),
-                        'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget'        => $req->input('total_budget'),
-                        'chickin_status'      => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
-                        'project_status'      => array_search('Pengajuan', Constants::PROJECT_STATUS),
-                        'created_by'          => Auth::user()->user_id ?? '',
+                        // 'fcr_id'              => $req->input('fcr_id'),
+                        // 'target_depletion'    => $req->input('target_depletion'),
+                        'total_budget'   => $req->input('total_budget'),
+                        'chickin_status' => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
+                        'project_status' => array_search('Pengajuan', Constants::PROJECT_STATUS),
+                        'created_by'     => Auth::user()->user_id ?? '',
                     ]);
 
                     $kandang = Kandang::findOrFail($project->kandang_id);
@@ -156,7 +156,7 @@ class ListController extends Controller
     public function edit(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param   = [
                 'title'              => 'Project > List > Ubah',
                 'data'               => $project,
@@ -184,9 +184,9 @@ class ListController extends Controller
                         'farm_type'           => $req->input('farm_type'),
                         'period'              => $req->input('period'),
                         'pic'                 => $req->input('pic'),
-                        'fcr_id'              => $req->input('fcr_id'),
-                        'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget'        => $req->input('total_budget'),
+                        // 'fcr_id'              => $req->input('fcr_id'),
+                        // 'target_depletion'    => $req->input('target_depletion'),
+                        'total_budget' => $req->input('total_budget'),
                     ]);
 
                     $projectId = $project->project_id;
@@ -216,7 +216,7 @@ class ListController extends Controller
     public function copy(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param   = [
                 'title'              => 'Project > List > Copy',
                 'data'               => $project,
@@ -234,7 +234,7 @@ class ListController extends Controller
     public function detail(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'fcr', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param   = [
                 'title' => 'Project > List > Detail',
                 'data'  => $project,
@@ -301,9 +301,9 @@ class ListController extends Controller
             if ($key === 'project_status_not') {
                 $projects->whereNot('project_status', $value);
             } else {
-                if ($key === 'company_id') {
+                if ($key === 'location_id') {
                     $projects->whereHas('kandang', function($query) use ($value) {
-                        $query->where('company_id', $value);
+                        $query->where('kandang.location_id', $value);
                     });
                 } elseif ($key !== 'q') {
                     $projects->where($key, $value);

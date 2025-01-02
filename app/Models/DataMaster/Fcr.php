@@ -35,8 +35,8 @@ class Fcr extends Model
         return $this->belongsTo(Uom::class, 'uom_id');
     }
 
-    public function project()
-    {
-        return $this->hasMany(Project::class, 'kandang_id');
-    }
+    // public function project()
+    // {
+    //     return $this->hasMany(Project::class, 'kandang_id');
+    // }
 }

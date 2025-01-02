@@ -6,6 +6,7 @@ use App\Models\DataMaster\Bank;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class MarketingReturnPayment extends Model
 {
@@ -34,9 +35,48 @@ class MarketingReturnPayment extends Model
         'verify_status',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function(MarketingReturnPayment $payment) {
+            if ($payment->isDirty(['is_approved', 'payment_nominal'])) {
+                DB::beginTransaction();
+                try {
+                    $marketing_return = MarketingReturn::find($payment->marketing_return_id);
+                    $marketing_return->update([
+                        'payment_return_status' => $marketing_return->calculatePaymentStatus(),
+                    ]);
+                    $marketing_return->save();
+
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    throw $e;
+                }
+            }
+        });
+
+        static::deleted(function(MarketingReturnPayment $payment) {
+            DB::beginTransaction();
+            try {
+                $marketing_return = MarketingReturn::find($payment->marketing_return_id);
+                $marketing_return->update([
+                    'payment_return_status' => $marketing_return->calculatePaymentStatus(),
+                ]);
+                $marketing_return->save();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+        });
+    }
+
     public function marketing_return()
     {
-        return $this->belongsTo(MarketingReturn::class, 'marketing_id', 'marketing_id');
+        return $this->belongsTo(MarketingReturn::class, 'marketing_return_id', 'marketing_return_id');
     }
 
     public function approver()

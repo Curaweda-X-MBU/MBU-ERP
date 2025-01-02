@@ -222,8 +222,11 @@ class KandangController extends Controller
 
     public function searchKandang(Request $request)
     {
-        $search      = $request->input('q');
-        $query       = Kandang::with(['user'])->where('name', 'like', "%{$search}%");
+        $search = $request->input('q');
+        $query  = Kandang::with([
+            'user',
+            'project',
+        ])->where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {
@@ -234,7 +237,12 @@ class KandangController extends Controller
 
         return response()->json(
             $data->map(function($val) {
-                $active = $val->project_status ? ' ( Aktif )' : '';
+                $active               = $val->project_status ? ' ( Aktif )' : '';
+                $val['latest_period'] = 0;
+                if (count($val->project) > 0) {
+                    $project              = collect($val->project)->sortByDesc('period')->first();
+                    $val['latest_period'] = $project->period;
+                }
 
                 return [
                     'id'   => $val->kandang_id,

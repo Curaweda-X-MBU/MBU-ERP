@@ -3,7 +3,16 @@
 @section('content')
 @php
     $nominalPenjualan = $data->grand_total;
-    $nominalSisaBayar = $data->marketing_payments->sum('payment_nominal');
+    $nominalSudahBayar = $data->is_paid;
+    $nominalSisaBayar = $nominalPenjualan - $nominalSudahBayar;
+
+    $nominalReturPenjualan = $data->marketing_return->total_return;
+    $nominalReturSudahBayar = $data->is_returned;
+    $nominalReturSisaBayar = $nominalReturPenjualan - $nominalReturSudahBayar;
+
+    $statusMarketing = App\Constants::MARKETING_STATUS;
+    $statusReturn = App\Constants::MARKETING_RETURN_STATUS;
+    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
 @endphp
 <style>
     .color-header {
@@ -57,24 +66,10 @@
                 <div class="card-datatable">
                     <div class="table-responsive mb-2">
                         <div class="col-12">
-                            <div class="row">
-                                <div class="col-md-6">
+                            <div class="row" style="row-gap: 1rem;">
+                                <!-- BEGIN :: General Table -->
+                                <div class="col-12">
                                     <table class="table table-striped w-100">
-                                        <tr>
-                                            <td style="width: 25%"><b>No. DO</b></td>
-                                            <td style="width: 5%">:</td>
-                                            <td>{{ $data->id_marketing }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="width: 25%"><b>Tanggal Penjualan</b></td>
-                                            <td style="width: 5%">:</td>
-                                            <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="width: 25%"><b>Tanggal Realisasi</b></td>
-                                            <td style="width: 5%">:</td>
-                                            <td>{{ @$data->realized_at ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
-                                        </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nama Pelanggan</b></td>
                                             <td style="width: 5%">:</td>
@@ -84,6 +79,11 @@
                                             <td style="width: 25%"><b>Unit Bisnis</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>{{ $data->company->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nama Sales</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ @$data->sales->name ? $data->sales->name : '-' }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Referensi Dokumen</b></td>
@@ -100,11 +100,6 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nama Sales</b></td>
-                                            <td style="width: 5%">:</td>
-                                            <td>{{ @$data->sales->name ? $data->sales->name : '-' }}</td>
-                                        </tr>
-                                        <tr>
                                             <td style="width: 25%"><b>Catatan</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
@@ -117,10 +112,6 @@
                                                 @endif
                                             </td>
                                         </tr>
-                                    </table>
-                                </div>
-                                <div>
-                                    <table class="table table-striped w-100">
                                         <tr>
                                             <td style="width: 25%"><b>Pajak</b></td>
                                             <td style="width: 5%">:</td>
@@ -131,6 +122,32 @@
                                             <td style="width: 5%">:</td>
                                             <td>Rp. {{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
                                         </tr>
+                                    </table>
+                                </div>
+                                <!-- END :: General Table -->
+                                <!-- BEGIN :: Marketing Table -->
+                                <div class="col-12 col-md-6">
+                                    <table class="table table-striped w-100">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="3">Detail Penjualan</th>
+                                            </tr>
+                                        </thead>
+                                        <tr>
+                                            <td style="width: 25%"><b>No. DO</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->id_marketing }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Penjualan</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Realisasi</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ @$data->realized_at ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
+                                        </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Penjualan</b></td>
                                             <td style="width: 5%">:</td>
@@ -139,20 +156,17 @@
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Sudah Bayar</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td class="text-success">Rp. {{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
+                                            <td class="text-success">Rp. {{ \App\Helpers\Parser::toLocale($nominalSudahBayar) }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Sisa Bayar</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
+                                            <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Status Pembayaran</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
-                                                @php
-                                                    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
-                                                @endphp
                                                 @switch($data->payment_status)
                                                     @case(1)
                                                         <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
@@ -160,8 +174,11 @@
                                                     @case(2)
                                                         <div class="badge badge-pill badge-success">{{ $statusPayment[$data->payment_status] }}</div>
                                                         @break
-                                                    @default
+                                                    @case(3)
                                                         <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
                                                 @endswitch
                                             </td>
                                         </tr>
@@ -169,9 +186,6 @@
                                             <td style="width: 25%"><b>Status Penjualan</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
-                                                @php
-                                                    $statusMarketing = App\Constants::MARKETING_STATUS;
-                                                @endphp
                                                 @switch($data->marketing_status)
                                                     @case(1)
                                                         <div class="badge badge-pill badge-warning">{{ $statusMarketing[$data->marketing_status] }}</div>
@@ -189,6 +203,75 @@
                                         </tr>
                                     </table>
                                 </div>
+                                <!-- END :: Marketing Table -->
+                                <!-- BEGIN :: Return Table -->
+                                <div class="col-12 col-md-6">
+                                    <table class="table table-striped w-100">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="3">Detail Retur</th>
+                                            </tr>
+                                        </thead>
+                                        <tr>
+                                            <td style="width: 25%"><b>No. Faktur</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->marketing_return->invoice_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Retur</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->marketing_return->return_at)) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Retur</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>Rp. {{ \App\Helpers\Parser::toLocale($nominalReturPenjualan) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Sudah Bayar</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td class="text-success">Rp. {{ \App\Helpers\Parser::toLocale($nominalReturSudahBayar) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Nominal Sisa Bayar</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalReturSisaBayar) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Status Pembayaran</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @switch($data->marketing_return->payment_return_status)
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->marketing_return->payment_return_status] }}</div>
+                                                        @break
+                                                    @case(2)
+                                                        <div class="badge badge-pill badge-success">{{ $statusPayment[$data->marketing_return->payment_return_status] }}</div>
+                                                        @break
+                                                    @case(3)
+                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->marketing_return->payment_return_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->marketing_return->payment_return_status] }}</div>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Status Retur</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @switch($data->marketing_return->return_status)
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusReturn[$data->marketing_return->return_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-primary">{{ $statusReturn[$data->marketing_return->return_status] }}</div>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <!-- END :: Return Table -->
                                 <!-- Modal -->
                                 <div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
@@ -315,8 +398,9 @@
                                                 <thead>
                                                     <th>No</th>
                                                     <th>No. Polisi</th>
+                                                    <th>Produk</th>
                                                     <th>Jumlah</th>
-                                                    <th>uom</th>
+                                                    <th>UoM</th>
                                                     <th>Waktu Keluar Kandang</th>
                                                     <th>Nama Pengirim</th>
                                                     <th>Nama Driver</th>
@@ -327,16 +411,17 @@
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->plat_number }}</td>
+                                                                <td>{{ $item->marketing_product_name }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                                 <td>{{ $item->uom->name }}</td>
-                                                                <td>{{ $item->exit_at }}</td>
+                                                                <td>{{ date('d-M-Y', strtotime($item->exit_at)) }}</td>
                                                                 <td>{{ $item->sender->name }}</td>
                                                                 <td>{{ $item->driver_name }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @else
                                                     <tr>
-                                                        <td class="text-center" colspan="7">Belum ada data armada angkut</td>
+                                                        <td class="text-center" colspan="8">Belum ada data armada angkut</td>
                                                     </tr>
                                                     @endif
                                                 </tbody>
