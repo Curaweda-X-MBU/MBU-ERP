@@ -13,6 +13,8 @@
             <option value="non-bop">Biaya Diluar BOP</option>
         </select>
     </div>
+    <!-- Kandang hidden array -->
+    <input type="hidden" name="selected_kandangs" value="[]">
 </div>
 
 <!-- container kandang -->
@@ -20,74 +22,85 @@
 
 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 <script>
-    const dataKandang = {
-        "1": [
-            { "id": 1, "name": "Kandang 1", "status": "Aktif" },
-            { "id": 2, "name": "Kandang 2", "status": "Tidak Aktif" },
-            { "id": 3, "name": "Kandang 3", "status": "Aktif" },
-            { "id": 4, "name": "Kandang 4", "status": "Tidak Aktif" },
-        ]
-    };
+    $(function() {
+        // Initialize Select2
+        const locationIdRoute = '{{ route("data-master.location.search") }}';
+        const kandangIdRoute = `{{ route('data-master.kandang.search') }}?location_id=:id`;
+        const $locationSelect = $('#location_id');
+        const $categorySelect = $('#category_id');
+        initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute);
+        initSelect2($('#category_id'), 'Pilih Kategori');
 
-    // Initialize Select2
-    const locationIdRoute = '{{ route("data-master.location.search") }}';
-    initSelect2($('#location_id'), 'Pilih Lokasi', locationIdRoute);
-    initSelect2($('#category_id'), 'Pilih Kategori');
+        let selectedKandangs; // array
 
-    function renderHatcheryButtons(locationId) {
-        const container = $('#hatcheryButtonsContainer');
-        container.empty();
+        function renderHatcheryButtons(data) {
+            const $container = $('#hatcheryButtonsContainer');
+            const $kandangInput = $('input[name="selected_kandangs"]');
 
-        if (dataKandang[locationId]) {
-            dataKandang[locationId].forEach(kandang => {
-                const button = $('<button>', {
-                    class: `btn mr-1 mt-1 rounded-pill ${kandang.status === "Aktif" ? "btn-outline-secondary" : "btn-outline-danger"}`,
-                    text: kandang.name,
-                    click: function (e) {
-                        e.preventDefault();
-                        if ($(this).hasClass('btn-outline-primary')) {
-                            $(this)
-                                .removeClass('btn-outline-primary')
-                                .addClass(kandang.status === "Aktif" ? "btn-outline-secondary" : "btn-outline-danger");
-                        } else {
-                            $(this)
-                                .removeClass('btn-outline-secondary btn-outline-danger')
-                                .addClass('btn-outline-primary');
+            $container.empty();
+            $kandangInput.val('[]');
+            selectedKandangs = [];
+
+            if (data) {
+                const kandangs = data.map(kandang => kandang.data);
+
+                const buttons = [];
+                kandangs.forEach(kandang => {
+                    const status = !!kandang.project_status;
+
+                    const button = $('<button>', {
+                        class: `kandang_select btn mr-1 mt-1 rounded-pill waves-effect ${status ? "btn-outline-secondary" : "btn-outline-danger"}`,
+                        text: kandang.name,
+                        click: function (e) {
+                            e.preventDefault();
+                            if ($(this).hasClass('btn-outline-primary')) {
+                                // Unselected
+                                $(this)
+                                    .removeClass('btn-outline-primary')
+                                    .addClass(status ? "btn-outline-secondary" : "btn-outline-danger");
+
+                                selectedKandangs = selectedKandangs.filter((id) => id !== kandang.kandang_id);
+                            } else {
+                                // Selected
+                                $(this)
+                                    .removeClass('btn-outline-secondary btn-outline-danger')
+                                    .addClass('btn-outline-primary');
+
+                                selectedKandangs.push(kandang.kandang_id);
+                            }
+
+                            $kandangInput.val(JSON.stringify(selectedKandangs));
                         }
+                    }).attr('data-active', status);
+                    buttons.push(button);
+                });
+
+                // Sort button by project_status
+                buttons.sort(function(a, b) {
+                    const aActive = $(a).data('active') ? 1 : 0;
+                    const bActive = $(b).data('active') ? 1 : 0;
+                    return bActive - aActive;
+                });
+
+                // Append after sort so active kandang would be shown first
+                buttons.forEach((button) => $container.append(button));
+            }
+        }
+
+        $(document).on('select2:select', '#category_id, #location_id', function() {
+            const category_id = $categorySelect.val();
+            const location_id = $locationSelect.val();
+            if (category_id.toLowerCase() === 'bop' && location_id) {
+                // Fetch kandangs
+                $.getJSON(kandangIdRoute.replace(':id', location_id), function(data) {
+                    if (data.length) {
+                        renderHatcheryButtons(data);
                     }
                 });
-                container.append(button);
-            });
-        }
-    }
-
-    function updateContainerVisibility() {
-        const categoryId = $('#category_id').val();
-        const locationId = $('#location_id').val();
-        const container = $('#hatcheryButtonsContainer');
-
-        if (categoryId === 'bop') {
-            container.show();
-            if (locationId) {
-                renderHatcheryButtons(locationId);
+            } else {
+                // Delete kandangs
+                renderHatcheryButtons(null);
             }
-        } else {
-            container.hide();
-            container.empty();
-        }
-    }
-
-    $('#category_id').on('change', function() {
-        updateContainerVisibility();
-    });
-
-    $('#location_id').on('change', function() {
-        if ($('#category_id').val() === 'bop') {
-            renderHatcheryButtons($(this).val());
-        }
-    });
-
-    $(document).ready(function() {
-        updateContainerVisibility();
+        });
     });
 </script>
