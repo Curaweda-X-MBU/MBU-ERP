@@ -10,89 +10,99 @@
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
 <div class="row">
-    <!-- Lokasi -->
-    <div class="col-md-2 mt-1">
-        <label for="location_id" class="form-label">Lokasi</label>
-        <select name="location_id" id="location_id" class="form-control"></select>
-    </div>
-    <!-- Kategori -->
-    <div class="col-md-10 mt-1">
-        <label for="start_date" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
-        <div class="row align-items-center">
-            <div class="col-md-2">
-                <input type="date" class="form-control flatpickr-basic" name="start_date" placeholder="Pilih Tanggal Mulai">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">{{$title}}</div>
+                <div class="float-right">
+                    <button data-toggle="modal" data-target="#recapExpense" id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Rekap</button>
+                    {{-- Include Modal --}}
+                    @include('expense.recap.sections.modal-recap')
+                </div>
             </div>
-            <span style="font-size: 1.2rem;">-</span>
-            <div class="col-md-2">
-                <input type="date" class="form-control flatpickr-basic" name="start_date" placeholder="Pilih Tanggal Selesai">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Lokasi -->
+                    <div class="col-md-2 mt-1">
+                        <label for="location_id" class="form-label">Lokasi</label>
+                        <select name="location_id" id="location_id" class="form-control"></select>
+                    </div>
+                    <!-- Kategori -->
+                    <div class="col-md-10 mt-1">
+                        <label for="start_date" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <input type="date" class="form-control flatpickr-basic" name="start_date" placeholder="Pilih Tanggal Mulai">
+                            </div>
+                            <span style="font-size: 1.2rem;">-</span>
+                            <div class="col-md-2">
+                                <input type="date" class="form-control flatpickr-basic" name="start_date" placeholder="Pilih Tanggal Selesai">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- container kandang -->
+                <div id="hatcheryButtonsContainer" class="mt-1"></div>
+
+                {{-- START :: table --}}
+                <div class="table-responsive mt-2">
+                    <table id="datatable" class="table table-bordered">
+                        <thead>
+                            <tr class="bg-light text-center">
+                                <th>Kategori</th>
+                                <th>Sub Kategori</th>
+                                <th>Status</th>
+                                <th>Nominal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-center">
+                                <td>Biaya Operational</td>
+                                <td>Listrik</td>
+                                <td>
+                                    @switch($status)
+                                        @case(1)
+                                            <div class="badge badge-pill badge-primary">Dibayar</div>
+                                            @break
+                                        @case(2)
+                                            <div class="badge badge-pill badge-danger">Belum Dibayar</div>
+                                            @break
+                                        @default
+                                            <div class="badge badge-pill badge-secondary">N/A</div>
+                                    @endswitch
+                                </td>
+                                <td class="total-nominal">15.000,00</td>
+                            </tr>
+                            <tr class="text-center">
+                                <td>Biaya Operational</td>
+                                <td>Listrik</td>
+                                <td>
+                                    @switch($status)
+                                        @case(1)
+                                            <div id="status" class="badge badge-pill badge-primary">Dibayar</div>
+                                            @break
+                                        @case(2)
+                                            <div id="status" class="badge badge-pill badge-danger">Belum Dibayar</div>
+                                            @break
+                                        @default
+                                            <div id="status" class="badge badge-pill badge-secondary">N/A</div>
+                                    @endswitch
+                                </td>
+                                <td class="total-nominal">177.000,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {{-- END :: table  --}}
+
+                <div class="row justify-content-end mr-2 mt-3">
+                    <p class="col-6 col-md-2">Total Sebelum Pajak</p>
+                    <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">0,00</span></p>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- container kandang -->
-<div id="hatcheryButtonsContainer" class="mt-1"></div>
-
-{{-- START :: table --}}
-<div class="table-responsive mt-2">
-    <table id="datatable" class="table table-bordered">
-        <thead>
-            <tr class="bg-light text-center">
-                <th>Kategori<i class="text-danger">*</i></th>
-                <th>Sub Kategori<i class="text-danger">*</i></th>
-                <th>Status</th>
-                <th>Nominal</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="text-center">
-                <td>Biaya Operational</td>
-                <td>Listrik</td>
-                <td>
-                    @switch($status)
-                        @case(1)
-                            <div class="badge badge-pill badge-primary">Dibayar</div>
-                            @break
-                        @case(2)
-                            <div class="badge badge-pill badge-danger">Belum Dibayar</div>
-                            @break
-                        @default
-                            <div class="badge badge-pill badge-secondary">N/A</div>
-                    @endswitch
-                </td>
-                <td class="total-nominal">15.000,00</td>
-            </tr>
-            <tr class="text-center">
-                <td>Biaya Operational</td>
-                <td>Listrik</td>
-                <td>
-                    @switch($status)
-                        @case(1)
-                            <div id="status" class="badge badge-pill badge-primary">Dibayar</div>
-                            @break
-                        @case(2)
-                            <div id="status" class="badge badge-pill badge-danger">Belum Dibayar</div>
-                            @break
-                        @default
-                            <div id="status" class="badge badge-pill badge-secondary">N/A</div>
-                    @endswitch
-                </td>
-                <td class="total-nominal">177.000,00</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-{{-- END :: table  --}}
-
-<div class="row justify-content-end mr-2 mt-3">
-    <p class="col-6 col-md-2">Total Sebelum Pajak</p>
-    <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">0,00</span></p>
-</div>
-
-<div class="col-12 mt-3">
-    <button data-toggle="modal" data-target="#recapExpense" id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Recap</button>
-    {{-- Include Modal --}}
-    @include('expense.recap.sections.modal-recap')
 </div>
 
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
