@@ -23,6 +23,7 @@
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
                                 <th>expense_id</th>
+                                <th>expense_status</th>
                                 <th>ID</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
@@ -43,6 +44,7 @@
                                 @endphp
                                     <tr>
                                         <td>{{ $item->expense_id }}</td>
+                                        <td>{{ $item->expense_status == 0 ? 0 : 1 }}</td>
                                         <td>{{ $item->id_expense }}</td>
                                         <td>{{ $item->location->name }}</td>
                                         <td>
@@ -108,7 +110,7 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', 1) }}">
+                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', $item->expense_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
                                                     </a>
@@ -186,13 +188,13 @@
                     },
                 },
             ],
-            drawCallback: function( settings ) {
+            drawCallback: function(settings) {
                 feather.replace();
             },
-            order: [[0, 'desc']],
+            order: [[1, 'asc'], [0, 'desc']],
         });
 
-        $table.columns(0).visible(false);
+        $table.columns([0, 1]).visible(false);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');

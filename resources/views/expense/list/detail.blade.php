@@ -31,21 +31,25 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header pb-0">
                 <h4 class="card-title">{{ $title }}</h4>
+            </div>
+            <div class="card-header">
                 <div>
-                    <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
-                        <i data-feather="edit-2" class="mr-50"></i>
-                        Edit
-                    </a>
-                    <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
-                        <i data-feather="check" class="mr-50"></i>
-                        Approve
-                    </a>
                     <a href="{{ route('expense.list.index') }}" class="btn btn-outline-secondary">
                         <i data-feather="arrow-left" class="mr-50"></i>
                         Kembali
                     </a>
+                    <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
+                        <i data-feather="edit-2" class="mr-50"></i>
+                        Edit
+                    </a>
+                    @if ($data->expense_status != 2 && $data->expense_status != 0)
+                        <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
+                            <i data-feather="check" class="mr-50"></i>
+                            Approve
+                        </a>
+                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -55,6 +59,11 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <table class="table table-striped w-100">
+                                        <tr>
+                                            <td style="width: 25%"><b>ID</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->id_expense }}</td>
+                                        </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Lokasi</b></td>
                                             <td style="width: 5%">:</td>
@@ -297,7 +306,7 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form id="approveForm" method="post" action="">
+            <form id="approveForm" method="post" action="{{ route('expense.list.approve', $data->expense_id) }}">
             {{csrf_field()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Biaya </h4>
