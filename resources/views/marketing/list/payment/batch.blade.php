@@ -46,7 +46,7 @@
                                     <div class="card-header color-header rounded-lg gray">
                                         <span class="lead collapse-title">Sebanyak {{ count($not_founds) }} DO tidak ditemukan</span>
                                     </div>
-                                    <div id="collapsible" role="tabpanel" aria-labelledby="heading" class="collapsible collapse" aria-expanded="false">
+                                    <div id="collapsibleInvalid" role="tabpanel" aria-labelledby="heading" class="collapsible collapse" aria-expanded="false">
                                         <div class="card-body p-2 row row-cols-4">
                                             @foreach ($not_founds as $index => $invalid)
                                             <span>{{ $index + 1 }}. {{ $invalid['id_marketing'] }}</span>
@@ -87,6 +87,9 @@
     // $('.card-header').on('click', function() {
     //     $(this).siblings('.collapsible').collapse('toggle');
     // });
+    $('#collapsibleInvalid').siblings('.card-header').on('click', function() {
+        $('#collapsibleInvalid').collapse('toggle');
+    });
 
     function updateSisaBayar($row, $this, notPaid) {
         const $header = $row.siblings('.color-header');

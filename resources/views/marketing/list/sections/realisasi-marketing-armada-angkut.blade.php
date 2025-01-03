@@ -100,6 +100,7 @@
 
             const val = parseLocaleToNum($this.val());
 
+            console.log(val);
             $qty.val(val);
 
             // cross check
@@ -147,6 +148,9 @@
                 $productSelect.on('select2:select', function() {
                     setField($(this));
                 });
+
+                // set default value to prevent NaN error when calculating combined qty
+                $row.find('input[name*="qty"]').val(0);
 
                 $row.find('.qty_mask').on('input', function() {
                     updateQty($(this));
