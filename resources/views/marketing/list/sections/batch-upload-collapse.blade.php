@@ -56,7 +56,6 @@ $initialPaymentLeft = $payment['not_paid'] - $payment['payment_nominal'];
 $initialPaymentLeftLocale = \App\Helpers\Parser::toLocale($initialPaymentLeft);
 @endphp
 
-<input type="hidden" name="invalid" disabled>
 <div class="card-header color-header collapsed rounded-lg {{ $payment['has_invalid'] ? 'red' : '' }}" role="button">
     <span class="lead collapse-title">DO # {{ $index }} | {{ strtoupper($payment['do_number']) }}</span>
     <div class="float-right lead">
@@ -147,8 +146,27 @@ $initialPaymentLeftLocale = \App\Helpers\Parser::toLocale($initialPaymentLeft);
     $(function() {
         const $row = $('.collapsible[data-index="{{ $index }}"]');
         initSelect2($row.find('.bank_id_select'), 'Pilih Bank');
-        initSelect2($row.find('.payment_method'), 'Pilih Pembayaran');
+        initSelect2($row.find('.payment_method_select'), 'Pilih Pembayaran');
+        initFlatpickrDate($row.find('.flatpickr-basic'));
+        initNumeralMask('input[name="payment_batch_upload[{{ $index }}][payment_nominal_mask]"]');
+
+        $(`select[name="${$row.find('.bank_id_select').attr('name')}"], select[name="${$row.find('.payment_method_select').attr('name')}"]`).on('select2:select', function() {
+            $(this).siblings('.invalid').css('opacity', 0);
+            updateIsInvalid($row);
+        });
 
         // calculate sisa-bayar
+        $row.find('.payment_nominal_mask').on('input', function() {
+            updateSisaBayar($row, $(this), parseFloat('{{ $payment['not_paid']}}'));
+            updateIsInvalid($row);
+        });
+
+        if ('{{ $payment['has_invalid'] }}') {
+            $row.collapse('show');
+        }
+
+        $row.siblings('.card-header').on('click', function() {
+            $row.collapse('toggle');
+        });
     });
 </script>
