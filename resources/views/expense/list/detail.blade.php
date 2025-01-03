@@ -80,6 +80,11 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <td style="width: 25%"><b>Kandang yang dipilih</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->expense_kandang?->map(fn($kandang) => $kandang->kandang->name ?? '')->join(', ') ?: '-' }}</td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>Tanggal</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>{{ date('d-M-Y', strtotime($data->created_at)) }}</td>
@@ -105,7 +110,7 @@
                                             <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Status Biaya</b></td>
+                                            <td style="width: 25%"><b>Status Pembayaran</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
                                                 @php

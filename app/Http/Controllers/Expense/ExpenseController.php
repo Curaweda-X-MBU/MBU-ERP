@@ -80,27 +80,34 @@ class ExpenseController extends Controller
                 DB::transaction(function() use ($req) {
                     $input             = $req->all();
                     $category          = $input['category'];
+                    $expenseStatus     = $input['expense_status'];
                     $expenseMainPrice  = 0;
                     $expenseAdditPrice = 0;
+                    $expenseID         = 0;
 
-                    if ($input['expense_status'] == 0) {
-                        Expense::create([
+                    if ($expenseStatus == 0) {
+                        $createdExpense = Expense::create([
+                            'location_id'    => $input['location_id'],
+                            'category'       => $category,
+                            'payment_status' => 0,
+                            'expense_status' => 0,
+                            'grand_total'    => 0,
+                            'created_by'     => Auth::id(),
+                        ]);
+
+                        $expenseID = $createdExpense->expense_id;
+                    } else {
+                        $createdExpense = Expense::create([
                             'location_id'    => $input['location_id'],
                             'category'       => $category,
                             'payment_status' => 1,
-                            'expense_status' => 0,
+                            'expense_status' => 1,
+                            'grand_total'    => 0,
                             'created_by'     => Auth::id(),
                         ]);
-                    }
 
-                    $createdExpense = Expense::create([
-                        'location_id'    => $input['location_id'],
-                        'category'       => $category,
-                        'payment_status' => 1,
-                        'expense_status' => 1,
-                        'grand_total'    => 0,
-                        'created_by'     => Auth::id(),
-                    ]);
+                        $expenseID = $createdExpense->expense_id;
+                    }
 
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
                     if (count($selectedKandangs) > 0) {
@@ -110,7 +117,7 @@ class ExpenseController extends Controller
                         foreach ($selectedKandangs as $key => $value) {
                             if ($category == 1) {
                                 $create                         = true;
-                                $arrKandang[$key]['expense_id'] = $createdExpense->expense_id;
+                                $arrKandang[$key]['expense_id'] = $expenseID;
                                 $arrKandang[$key]['kandang_id'] = $value;
                             }
                         }
@@ -126,7 +133,7 @@ class ExpenseController extends Controller
 
                             $expenseMainPrice += $totalPrice;
 
-                            $arrMainPrices[$key]['expense_id']   = $createdExpense->expense_id;
+                            $arrMainPrices[$key]['expense_id']   = $expenseID;
                             $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
                             $arrMainPrices[$key]['qty']          = $qty;
                             $arrMainPrices[$key]['uom']          = $value['uom'];
@@ -149,7 +156,7 @@ class ExpenseController extends Controller
 
                             if ($name && $price) {
                                 $create                             = true;
-                                $arrAdditPrices[$key]['expense_id'] = $createdExpense->expense_id;
+                                $arrAdditPrices[$key]['expense_id'] = $expenseID;
                                 $arrAdditPrices[$key]['name']       = $name;
                                 $arrAdditPrices[$key]['price']      = $price;
                                 $arrAdditPrices[$key]['notes']      = $value['notes'] ?? null;
@@ -160,12 +167,18 @@ class ExpenseController extends Controller
                         }
                     }
 
-                    $prefix      = $category == 1 ? 'BO' : 'NB';
-                    $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
-                    $idExpense   = "{$prefix}.{$incrementId}";
+                    if ($expenseStatus == 1) {
+                        $prefix      = $category == 1 ? 'BO' : 'NB';
+                        $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
+                        $idExpense   = "{$prefix}.{$incrementId}";
+
+                        $createdExpense->update([
+                            'id_expense'  => $idExpense,
+                            'grand_total' => $expenseMainPrice + $expenseAdditPrice,
+                        ]);
+                    }
 
                     $createdExpense->update([
-                        'id_expense'  => $idExpense,
                         'grand_total' => $expenseMainPrice + $expenseAdditPrice,
                     ]);
                 });
@@ -192,7 +205,7 @@ class ExpenseController extends Controller
             $data = $expense->load([
                 'created_user',
                 'location',
-                'expense_kandang',
+                'expense_kandang.kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
                 'expense_payments',
@@ -240,23 +253,32 @@ class ExpenseController extends Controller
                     $expenseMainPrice  = 0;
                     $expenseAdditPrice = 0;
 
+                    if ($input['expense_status'] == 1) {
+                        $expense->update([
+                            'location_id'    => $input['location_id'],
+                            'payment_status' => 1,
+                            'expense_status' => 1,
+                        ]);
+                    }
+
                     $expense->update([
                         'location_id' => $input['location_id'],
                     ]);
 
                     $expense->expense_kandang()->delete();
-                    if ($req->has('expense_kandang')) {
-                        $arrKandang = $req->input('expense_kandang');
-                        $create     = false;
+                    $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
+                    if (count($selectedKandangs) > 0) {
+                        $create = false;
 
-                        foreach ($arrKandang as $key => $value) {
+                        $arrKandang = [];
+                        foreach ($selectedKandangs as $key => $value) {
                             if ($expense->category == 1) {
                                 $create                         = true;
                                 $arrKandang[$key]['expense_id'] = $expense->expense_id;
-                                $arrKandang[$key]['kandang_id'] = $value['kandang_id'];
+                                $arrKandang[$key]['kandang_id'] = $value;
                             }
-                            ExpenseKandang::insert($arrKandang);
                         }
+                        ExpenseKandang::insert($arrKandang);
                     }
 
                     if ($req->has('expense_main_prices')) {
@@ -304,7 +326,12 @@ class ExpenseController extends Controller
                         }
                     }
 
+                    $prefix      = $expense->category == 1 ? 'BO' : 'NB';
+                    $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
+                    $idExpense   = "{$prefix}.{$incrementId}";
+
                     $expense->update([
+                        'id_expense'  => $idExpense,
                         'grand_total' => $expenseMainPrice + $expenseAdditPrice,
                     ]);
                 });
