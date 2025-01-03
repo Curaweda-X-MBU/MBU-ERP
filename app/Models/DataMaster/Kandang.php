@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Expense\ExpenseKandang;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Ph\PhComplaint;
 use App\Models\Ph\PhPerformance;
@@ -44,6 +45,11 @@ class Kandang extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'pic', 'user_id');
+    }
+
+    public function expense_kandang()
+    {
+        return $this->hasMany(ExpenseKandang::class, 'kandang_id');
     }
 
     public function ph_complaint()

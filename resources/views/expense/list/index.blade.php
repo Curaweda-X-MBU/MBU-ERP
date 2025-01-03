@@ -22,6 +22,7 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
+                                <th>expense_id</th>
                                 <th>ID</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
@@ -41,6 +42,7 @@
                                     $nominalSisaBayar = $item->expense_payments->sum('payment_nominal');
                                 @endphp
                                     <tr>
+                                        <td>{{ $item->expense_id }}</td>
                                         <td>{{ $item->id_expense }}</td>
                                         <td>{{ $item->location->name }}</td>
                                         <td>
@@ -62,7 +64,7 @@
                                         <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
                                         <td>
                                             @php
-                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                                $statusPayment = App\Constants::EXPENSE_PAYMENT_STATUS;
                                             @endphp
                                             @switch($item->payment_status)
                                                 @case(0)
@@ -166,7 +168,7 @@
 
 <script>
     $(function () {
-        $('#datatable').DataTable({
+        const $table = $('#datatable').DataTable({
             dom: 'B<"d-flex justify-content-between"lf>rtip',
             buttons: [
                 {
@@ -189,6 +191,8 @@
             },
             order: [[0, 'desc']],
         });
+
+        $table.columns(0).visible(false);
 
         $('#exportExcel').on('click', function() {
             $('.datatable-hidden-excel-button').trigger('click');

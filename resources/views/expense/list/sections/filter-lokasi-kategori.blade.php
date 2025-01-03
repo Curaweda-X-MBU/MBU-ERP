@@ -2,12 +2,12 @@
     <!-- Lokasi -->
     <div class="col-md-2 mt-1">
         <label for="location_id" class="form-label">Lokasi<i class="text-danger">*</i></label>
-        <select name="location_id" id="location_id" class="form-control"></select>
+        <select name="location_id" id="location_id" class="form-control" required></select>
     </div>
     <!-- Kategori -->
     <div class="col-md-2 mt-1">
         <label for="category_id" class="form-label">Kategori<i class="text-danger">*</i></label>
-        <select name="category" id="category_id" class="form-control">
+        <select name="category" id="category_id" class="form-control" required>
             <option value="">Pilih Kategori</option>
             <option value="1">BOP (Biaya Operasional)</option>
             <option value="2">Biaya Diluar BOP</option>

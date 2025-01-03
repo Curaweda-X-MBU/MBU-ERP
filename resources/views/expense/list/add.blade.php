@@ -9,7 +9,7 @@
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form class="form-horizontal" method="post" action="{{ route('expense.list.add') }}" enctype="multipart/form-data">
+                <form id="expense-form" class="form-horizontal" method="post" action="{{ route('expense.list.add') }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <input type="hidden" name="expense_status" value="1">
                     @include('expense.list.sections.filter-lokasi-kategori')
@@ -44,6 +44,12 @@
         });
 
         $('#draftForm').on('click', function() {
+            const $form = $('#expense-form');
+
+            if (!$form[0].checkValidity()) {
+                return;
+            }
+
             $('input[name="expense_status"]').val('0');
             $('form').trigger('submit');
         });

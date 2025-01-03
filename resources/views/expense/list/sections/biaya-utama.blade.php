@@ -22,14 +22,14 @@
         <tbody data-repeater-list="expense_main_prices">
             <tr data-repeater-item>
                 <td>
-                    <select name="sub_category" class="form-control sub-category-select"></select>
+                    <select name="sub_category" class="form-control sub-category-select" required></select>
                 </td>
-                <td><input name="qty" type="text" class="form-control numeral-mask" value="0" placeholder="0"></td>
+                <td><input name="qty" type="text" class="form-control numeral-mask" value="0" placeholder="0" required></td>
                 <td>
                     <input name="uom" class="form-control uom" readonly></input>
                 </td>
                 <td><input type="text" class="unit-price form-control numeral-mask text-right" value="0" disabled></td>
-                <td><input name="total_price" type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0"></td>
+                <td><input name="total_price" type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0" required></td>
                 <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
