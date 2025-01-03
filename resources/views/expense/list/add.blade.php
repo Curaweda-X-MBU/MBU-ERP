@@ -11,6 +11,7 @@
             <div class="card-body">
                 <form class="form-horizontal" method="post" action="{{ route('expense.list.add') }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
+                    <input type="hidden" name="expense_status" value="1">
                     @include('expense.list.sections.filter-lokasi-kategori')
                     @include('expense.list.sections.biaya-utama')
                     @include('expense.list.sections.biaya-lainnya')
@@ -40,6 +41,11 @@
             const totalKeseluruhan = totalUtama + totalLainnya;
 
             $('#total-expense').text(parseNumToLocale(totalKeseluruhan));
+        });
+
+        $('#draftForm').on('click', function() {
+            $('input[name="expense_status"]').val('0');
+            $('form').trigger('submit');
         });
     });
 </script>
