@@ -160,7 +160,7 @@ class ListPaymentController extends Controller
 
                         // Bank account
                         if (! empty($row['bank_account'])) {
-                            $bankId = $validBankAccountsSet[$row['bank_account']];
+                            $bankId = @$validBankAccountsSet[$row['bank_account']];
                             if (! isset($bankId)) {
                                 $row['bank_account_invalid'] = 'Rekening ('.$row['bank_account'].') tidak ditemukan.';
                                 $row['has_invalid']          = true;
