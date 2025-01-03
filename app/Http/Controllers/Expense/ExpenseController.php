@@ -83,11 +83,21 @@ class ExpenseController extends Controller
                     $expenseMainPrice  = 0;
                     $expenseAdditPrice = 0;
 
+                    if ($input['expense_status'] == 0) {
+                        Expense::create([
+                            'location_id'    => $input['location_id'],
+                            'category'       => $category,
+                            'payment_status' => 1,
+                            'expense_status' => 0,
+                            'created_by'     => Auth::id(),
+                        ]);
+                    }
+
                     $createdExpense = Expense::create([
                         'location_id'    => $input['location_id'],
                         'category'       => $category,
                         'payment_status' => 1,
-                        'expense_status' => 0,
+                        'expense_status' => 1,
                         'created_by'     => Auth::id(),
                     ]);
 
@@ -199,7 +209,6 @@ class ExpenseController extends Controller
                 ->withInput();
         }
     }
-
 
     public function edit(Request $req, Expense $expense)
     {
