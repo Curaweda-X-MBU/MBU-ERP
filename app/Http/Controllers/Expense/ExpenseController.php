@@ -200,6 +200,7 @@ class ExpenseController extends Controller
         }
     }
 
+
     public function edit(Request $req, Expense $expense)
     {
         try {

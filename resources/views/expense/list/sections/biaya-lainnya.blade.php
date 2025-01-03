@@ -36,39 +36,41 @@
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
-    function calculateBiayaLainnya() {
-        let total = 0;
-        $('.total-amount-all-farms-2').each(function() {
-            const value = $(this).val() || '0';
-            total += parseLocaleToNum(value);
-        });
-        $('#total-biaya-lainnya').text(parseNumToLocale(total));
-    }
-
-    const expenseRepeater2 = $("#expense-repeater-2").repeater({
-        initEmpty: true,
-        defaultValues: {
-            'total-amount-all-farms-2': '0'
-        },
-        show: function() {
-            const $row = $(this);
-            $row.slideDown();
-
-            const $numeralInput = $row.find('.numeral-mask');
-            initNumeralMask($numeralInput);
-
-            $numeralInput.on('input', function() {
-                calculateBiayaLainnya();
+    $(function() {
+        function calculateBiayaLainnya() {
+            let total = 0;
+            $('.total-amount-all-farms-2').each(function() {
+                const value = $(this).val() || '0';
+                total += parseLocaleToNum(value);
             });
-
-            if (feather) {
-            feather.replace({ width: 14, height: 14 });
-            }
-        },
-        hide: function(deleteElement) {
-            confirmDelete($(this), deleteElement);
+            $('#total-biaya-lainnya').text(parseNumToLocale(total)).trigger('change');
         }
-    });
 
-    $('button[data-repeater-create]').trigger('click');
+        const expenseRepeater2 = $("#expense-repeater-2").repeater({
+            initEmpty: true,
+            show: function() {
+                const $row = $(this);
+                $row.slideDown();
+
+                const $numeralInput = $row.find('.numeral-mask');
+                initNumeralMask($numeralInput);
+
+                $numeralInput.on('input', function() {
+                    calculateBiayaLainnya();
+                });
+
+                if (feather) {
+                    feather.replace({ width: 14, height: 14 });
+                }
+            },
+            hide: function(deleteElement) {
+                confirmDelete($(this), () => {
+                    deleteElement();
+                    calculateBiayaLainnya();
+                });
+            }
+        });
+
+        $('#expense-repeater-2 button[data-repeater-create]').trigger('click');
+    });
 </script>

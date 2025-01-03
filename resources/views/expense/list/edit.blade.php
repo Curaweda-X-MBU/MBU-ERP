@@ -9,7 +9,7 @@
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
+                <form class="form-horizontal" method="post" action="{{ route('expense.list.edit', $data->expense_id) }}" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     @include('expense.list.sections.filter-lokasi-kategori')
                     @include('expense.list.sections.biaya-utama')
