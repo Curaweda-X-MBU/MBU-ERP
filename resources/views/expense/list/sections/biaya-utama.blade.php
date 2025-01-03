@@ -10,7 +10,8 @@
                 <th>QTY<i class="text-danger">*</i></th>
                 <th>UOM</th>
                 <th>Harga Satuan (Rp)</th>
-                <th>Nominal Seluruh Kandang (Rp)<i class="text-danger">*</i></th>
+                <th>Total Biaya (Rp)<i class="text-danger">*</i></th>
+                <th>Catatan</th>
                 <th class="col-1">
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
                         <i data-feather="plus"></i>
@@ -23,12 +24,13 @@
                 <td>
                     <select class="form-control sub-category-select"></select>
                 </td>
-                <td><input type="text" class="form-control numeral-mask" value="0"></td>
+                <td><input name="qty" type="text" class="form-control numeral-mask" value="0" placeholder="0"></td>
                 <td>
-                    <input class="form-control uom" disabled></input>
+                    <input name="uom" class="form-control uom" disabled></input>
                 </td>
-                <td><input type="text" class="form-control numeral-mask text-right unit-price" value="0" disabled></td>
-                <td><input type="text" class="form-control numeral-mask text-right total-amount-all-farms" value="0"></td>
+                <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="0" disabled></td>
+                <td><input name="total_price" type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0"></td>
+                <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>

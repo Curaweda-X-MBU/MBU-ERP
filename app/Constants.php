@@ -177,6 +177,14 @@ class Constants
         2 => 'Bukan BOP',
     ];
 
+    public const EXPENSE_PAYMENT_STATUS = [
+        0 => 'Draft',
+        1 => 'Tempo',
+        2 => 'Dibayar Sebagian',
+        3 => 'Dibayar Penuh',
+        4 => 'Dibayar Lebih',
+    ];
+
     public const EXPENSE_STATUS = [
         0 => 'Draft',
         1 => 'Pengajuan',
