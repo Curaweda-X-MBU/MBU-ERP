@@ -7,7 +7,7 @@
     <!-- Kategori -->
     <div class="col-md-2 mt-1">
         <label for="category_id" class="form-label">Kategori<i class="text-danger">*</i></label>
-        <select name="category_id" id="category_id" class="form-control">
+        <select name="category" id="category_id" class="form-control">
             <option value="">Pilih Kategori</option>
             <option value="1">BOP (Biaya Operasional)</option>
             <option value="2">Biaya Diluar BOP</option>
@@ -90,7 +90,7 @@
         $(document).on('select2:select', '#category_id, #location_id', function() {
             const category_id = $categorySelect.val();
             const location_id = $locationSelect.val();
-            if (category_id.toLowerCase() === 'bop' && location_id) {
+            if (category_id.toLowerCase() == 1 && location_id) {
                 // Fetch kandangs
                 $.getJSON(kandangIdRoute.replace(':id', location_id), function(data) {
                     if (data.length) {

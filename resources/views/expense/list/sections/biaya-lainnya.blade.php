@@ -1,7 +1,7 @@
 <div class="table-responsive mt-2">
     <div class="row bg-primary d-flex justify-content-center align-items-center py-1 text-white px-2">
         <p class="col-md-6 mb-0">Biaya Lainnya</p>
-        <p class="col-md-6 mb-0 text-right"><span id="total-biaya-lainnya">0,00</span></p>
+        <p class="col-md-6 mb-0 text-right">Rp. <span id="total-biaya-lainnya">0,00</span></p>
     </div>
     <table id="expense-repeater-2" class="table table-bordered">
         <thead>
@@ -16,7 +16,7 @@
                 </th>
             </tr>
         </thead>
-        <tbody data-repeater-list="expense_items">
+        <tbody data-repeater-list="expense_addit_prices">
             <tr data-repeater-item>
                 <td><input name="name" type="text" class="form-control" placeholder="Masukkan nama biaya"></td>
                 <td><input name="price" type="text" class="form-control numeral-mask text-right total-amount-all-farms-2" value="0" placeholder="0"></td>

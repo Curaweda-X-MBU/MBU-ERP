@@ -83,26 +83,38 @@ class ExpenseController extends Controller
                     $expenseMainPrice  = 0;
                     $expenseAdditPrice = 0;
 
+                    if ($input['expense_status'] == 0) {
+                        Expense::create([
+                            'location_id'    => $input['location_id'],
+                            'category'       => $category,
+                            'payment_status' => 1,
+                            'expense_status' => 0,
+                            'created_by'     => Auth::id(),
+                        ]);
+                    }
+
                     $createdExpense = Expense::create([
                         'location_id'    => $input['location_id'],
                         'category'       => $category,
                         'payment_status' => 1,
-                        'expense_status' => 0,
+                        'expense_status' => 1,
+                        'grand_total'    => 0,
                         'created_by'     => Auth::id(),
                     ]);
 
-                    if ($req->has('expense_kandang')) {
-                        $arrKandang = $req->input('expense_kandang');
-                        $create     = false;
+                    $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
+                    if (count($selectedKandangs) > 0) {
+                        $create = false;
 
-                        foreach ($arrKandang as $key => $value) {
+                        $arrKandang = [];
+                        foreach ($selectedKandangs as $key => $value) {
                             if ($category == 1) {
                                 $create                         = true;
                                 $arrKandang[$key]['expense_id'] = $createdExpense->expense_id;
-                                $arrKandang[$key]['kandang_id'] = $value['kandang_id'];
+                                $arrKandang[$key]['kandang_id'] = $value;
                             }
-                            ExpenseKandang::insert($arrKandang);
                         }
+                        ExpenseKandang::insert($arrKandang);
                     }
 
                     if ($req->has('expense_main_prices')) {
@@ -199,7 +211,6 @@ class ExpenseController extends Controller
                 ->withInput();
         }
     }
-
 
     public function edit(Request $req, Expense $expense)
     {
