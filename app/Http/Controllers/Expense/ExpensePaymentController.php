@@ -18,16 +18,16 @@ class ExpensePaymentController extends Controller
     public function index(Expense $expense)
     {
         try {
-            // if (Constants::EXPENSE_STATUS[$expense->expense_status] !== 'Disetujui') {
-            //     throw new \Exception('Status Biaya belum disetujui');
-            // }
+            if (Constants::EXPENSE_STATUS[$expense->expense_status] !== 'Disetujui') {
+                throw new \Exception('Status Biaya belum disetujui');
+            }
 
             $data = $expense->load([
                 'created_user',
                 'location',
-                'expense_kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
+                'expense_payments',
             ]);
 
             $param = [
