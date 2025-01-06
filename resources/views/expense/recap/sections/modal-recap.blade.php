@@ -41,7 +41,7 @@
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/buttons.html5.min.js') }}"></script>
 
-<script>
+{{-- <script>
     let table = $('#datatable').DataTable({
     dom: 'Bt',
     buttons: [
@@ -110,4 +110,4 @@
     $('#exportPdf, #pdfRadio').on('click', function() {
         $('#pdfRadio').prop('checked', true);
     });
-</script>
+</script> --}}
