@@ -9,6 +9,13 @@
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
+<style>
+.custom-table-wrapper {
+    width: 100%;
+    overflow-x: scroll;
+}
+</style>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -137,24 +144,28 @@
 
     // START :: export
     let tableBOP = $('#datatableBOP').DataTable({
-    dom: 'Bt',
-    buttons: [
-        {
-            extend: 'excelHtml5',
-            className: 'd-none',
-            title: 'Rekap Biaya',
-            footer: true
-        },
-        {
-            extend: 'pdfHtml5',
-            className: 'd-none',
-            title: 'Rekap Biaya Operasional',
-            customize: function(doc) {
-                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
-            },
-            footer: true
-        }
-    ]
+        dom: '<"custom-table-wrapper"t>',
+        // buttons: [
+        //     {
+        //         extend: 'excelHtml5',
+        //         className: 'd-none',
+        //         title: 'Rekap Biaya',
+        //         footer: true
+        //     },
+        //     {
+        //         extend: 'pdfHtml5',
+        //         className: 'd-none',
+        //         title: 'Rekap Biaya Operasional',
+        //         customize: function(doc) {
+        //             doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+        //         },
+        //         footer: true
+        //     }
+        // ]
+    });
+
+    let tableNonBOP = $('#datatableNonBOP').DataTable({
+        dom: '<"custom-table-wrapper"t>',
     });
 
     // Event handler untuk tombol export

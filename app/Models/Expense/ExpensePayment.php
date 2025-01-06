@@ -16,7 +16,7 @@ class ExpensePayment extends Model
     protected $primaryKey = 'expense_payment_id';
 
     protected $fillable = [
-        'marketing_id',
+        'expense_id',
         'payment_method',
         'is_approved',
         'approver_id',

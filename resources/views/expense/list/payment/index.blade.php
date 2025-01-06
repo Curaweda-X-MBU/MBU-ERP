@@ -145,7 +145,7 @@
                             <tbody class="text-right">
                                 <tr>
                                     <td>Nominal Biaya Utama:</td>
-                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('total_price')) }}</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('price')) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Nominal Biaya Lainnya:</td>

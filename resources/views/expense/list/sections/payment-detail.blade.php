@@ -26,10 +26,10 @@ $paymentLeft = $data->grand_total - $data->is_paid;
     <div class="row col-12 col-sm-6" style="row-gap: 1em;">
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label class="align-baseline" for="do_number">No. DO</label>
+                <label class="align-baseline" for="do_number">ID</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input type="text" class="form-control" id="do_number" value="{{ $data->id_marketing }}" disabled>
+                <input type="text" class="form-control" id="do_number" value="{{ $data->id_expense }}" disabled>
             </div>
         </div>
         <div class="col-12 row">
@@ -72,7 +72,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="bank_id">Akun Bank<i id="bank_required_label" class="text-danger">*</i></label>
+                <label for="bank_id">Akun Bank</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <select name="bank_id" class="own_bank_id form-control" {{ isset($is_detail) ? 'disabled' : '' }}>
