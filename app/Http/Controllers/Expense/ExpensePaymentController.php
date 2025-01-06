@@ -8,7 +8,6 @@ use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\Expense\Expense;
 use App\Models\Expense\ExpensePayment;
-use App\Models\Marketing\MarketingPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +48,7 @@ class ExpensePaymentController extends Controller
 
                 $docPath = '';
                 if ($req->hasFile('document_path')) {
-                    $docUrl = FileHelper::upload($input['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
+                    $docUrl = FileHelper::upload($input['document_path'], Constants::EXPENSE_PAYMENT_DOC_PATH);
                     if (! $docUrl['status']) {
                         return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                     }
@@ -57,7 +56,7 @@ class ExpensePaymentController extends Controller
                 }
 
                 ExpensePayment::create([
-                    'marketing_id'       => $expense->marketing_id,
+                    'expense_id'         => $expense->expense_id,
                     'payment_method'     => $input['payment_method'],
                     'bank_id'            => $input['bank_id'] ?? null,
                     'payment_reference'  => $input['payment_reference'],
@@ -107,7 +106,7 @@ class ExpensePaymentController extends Controller
                             FileHelper::delete($existingDoc);
                         }
 
-                        $docUrl = FileHelper::upload($input['document_path'], constants::MARKETING_PAYMENT_DOC_PATH);
+                        $docUrl = FileHelper::upload($input['document_path'], constants::EXPENSE_PAYMENT_DOC_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                         }
@@ -127,22 +126,22 @@ class ExpensePaymentController extends Controller
                         'notes'              => $input['notes'],
                     ]);
 
-                    $grandTotal    = $payment->marketing->grand_total;
-                    $totalPayments = $payment->marketing
-                        ->marketing_payments
+                    $grandTotal    = $payment->expense->grand_total;
+                    $totalPayments = $payment->expense
+                        ->expense_payments
                         ->filter(fn ($p) => $p->verify_status == 2)
                         ->sum('payment_nominal');
 
                     if ($grandTotal === $totalPayments) {
-                        $payment->marketing->update([
+                        $payment->expense->update([
                             'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
                     } elseif ($grandTotal < $totalPayments) {
-                        $payment->marketing->update([
+                        $payment->expense->update([
                             'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
                     } else {
-                        $payment->marketing->update([
+                        $payment->expense->update([
                             'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
                     }
@@ -161,32 +160,32 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function delete(MarketingPayment $payment)
+    public function delete(ExpensePayment $payment)
     {
         try {
             DB::transaction(function() use ($payment) {
                 $payment->delete();
 
-                $marketing     = $payment->marketing;
-                $grandTotal    = $marketing->grand_total;
-                $totalPayments = $marketing->marketing_payments
+                $expense       = $payment->expense;
+                $grandTotal    = $expense->grand_total;
+                $totalPayments = $expense->expense_payments
                     ->filter(fn ($p) => $p->verify_status == 2)
                     ->sum('payment_nominal');
 
                 if ($grandTotal < $totalPayments) {
-                    $marketing->update([
+                    $expense->update([
                         'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 } elseif ($grandTotal === $totalPayments) {
-                    $marketing->update([
+                    $expense->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 } elseif ($grandTotal > $totalPayments) {
-                    $marketing->update([
+                    $expense->update([
                         'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 } else {
-                    $marketing->update([
+                    $expense->update([
                         'payment_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 }
@@ -200,7 +199,7 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function approve(Request $req, MarketingPayment $payment)
+    public function approve(Request $req, ExpensePayment $payment)
     {
         DB::beginTransaction();
         try {
@@ -217,22 +216,22 @@ class ExpensePaymentController extends Controller
                     'verify_status'  => array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
                 ]);
 
-                $grandTotal    = $payment->marketing->grand_total;
-                $totalPayments = $payment->marketing
-                    ->marketing_payments
+                $grandTotal    = $payment->expense->grand_total;
+                $totalPayments = $payment->expense
+                    ->expense_payments
                     ->filter(fn ($p) => $p->verify_status == 2)
                     ->sum('payment_nominal');
 
                 if ($grandTotal === $totalPayments) {
-                    $payment->marketing->update([
+                    $payment->expense->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 } elseif ($grandTotal < $totalPayments) {
-                    $payment->marketing->update([
+                    $payment->expense->update([
                         'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 } else {
-                    $payment->marketing->update([
+                    $payment->expense->update([
                         'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
                 }

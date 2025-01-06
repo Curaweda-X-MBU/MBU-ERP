@@ -41,7 +41,7 @@
                     <!-- Button Tambah Pembayaran -->
                     @if (auth()->user()->role->hasPermissionTo('expense.list.payment.add'))
                     <div class="col-md-2 mt-2">
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#expensePaymentAdd">
+                        <button type="button" class="btn btn-primary btn-sm p-1" data-toggle="modal" data-target="#expensePaymentAdd">
                             <i data-feather="plus"></i> Tambah Pembayaran
                         </button>
                     </div>
