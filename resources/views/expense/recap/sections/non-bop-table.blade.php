@@ -44,20 +44,3 @@
         </tbody>
     </table>
 </div>
-
-{{-- <script>
-    $(function() {
-        function calculateTotalBOP() {
-            let total = 0;
-
-            $('.table tbody tr').each(function() {
-                const nominal = $(this).find('.nominal-non-bop').text();
-                total += parseLocaleToNum(nominal);
-            });
-
-            $('#total-biaya-non-bop').text(parseNumToLocale(total));
-        }
-
-        calculateTotalBOP();
-    });
-</script> --}}
