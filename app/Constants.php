@@ -192,7 +192,7 @@ class Constants
         3 => 'Ditolak',
     ];
 
-    public const EXPENSE_PAYMENT_DOC_PATH = 'marketing-payment-doc';
+    public const EXPENSE_PAYMENT_DOC_PATH = 'expense-payment-doc';
 
     public const RECORDING_STATUS = [
         1 => 'Pengajuan',
