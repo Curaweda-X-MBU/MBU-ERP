@@ -87,6 +87,9 @@
     // $('.card-header').on('click', function() {
     //     $(this).siblings('.collapsible').collapse('toggle');
     // });
+    $('#collapsibleInvalid').siblings('.card-header').on('click', function() {
+        $('#collapsibleInvalid').collapse('toggle');
+    });
 
     $('#collapsibleInvalid').siblings('.card-header').on('click', function() {
         $('#collapsibleInvalid').collapse('toggle');
@@ -153,9 +156,9 @@
                 const paymentLeft = parseLocaleToNum($paymentLeft.text());
 
                 if (paymentLeft > 0 && totalOver > 0) {
-                    const add = totalOver > paymentLeft ? payment + Math.abs(paymentLeft) : payment + totalOver;
+                    const add = payment + Math.min(paymentLeft, totalOver);
                     $payment.val(parseNumToLocale(add)).trigger('input');
-                    totalOver -= add;
+                    totalOver -= Math.min(paymentLeft, totalOver);
                 }
             });
 

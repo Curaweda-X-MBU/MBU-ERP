@@ -211,8 +211,7 @@ class ListPaymentController extends Controller
 
             throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
         } catch (\Exception $e) {
-            dd($e);
-            // return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
+            return redirect()->route('marketing.list.index')->with('error', $e->getMessage())->withInput();
         }
     }
 
@@ -239,6 +238,8 @@ class ListPaymentController extends Controller
                         $docPath = $docUrl['url'];
                     }
 
+                    $paymentNominal = Parser::parseLocale($value['payment_nominal_mask']);
+
                     $arrPayments[] = [
                         'marketing_id'       => $value['marketing_id'],
                         'document_path'      => $docPath,
@@ -247,33 +248,33 @@ class ListPaymentController extends Controller
                         'payment_method'     => $value['payment_method'],
                         'bank_id'            => $value['bank_id'] ?? null,
                         'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
-                        'payment_nominal'    => $value['payment_nominal'],
+                        'payment_nominal'    => $paymentNominal,
                         'verify_status'      => array_search(
                             'Terverifikasi',
                             Constants::MARKETING_VERIFY_PAYMENT_STATUS
                         ),
                     ];
 
-                    $marketing   = Marketing::find($value['marketing_id']);
-                    $grandTotal  = $marketing->grand_total;
-                    $totalIsPaid = $marketing->marketing_payments
-                        ->filter(fn ($p) => $p->verify_status == 2)
-                        ->sum('payment_nominal');
-                    $totalPayments = $totalIsPaid + $value['payment_nominal'];
+                    $marketing     = Marketing::find($value['marketing_id']);
+                    $grandTotal    = $marketing->grand_total;
+                    $totalIsPaid   = $marketing->is_paid;
+                    $totalPayments = $totalIsPaid + $paymentNominal;
 
-                    if ($grandTotal === $totalPayments) {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
-                    } elseif ($grandTotal < $totalPayments) {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
+                    $paymentStatus = '';
+
+                    if ($grandTotal < $totalPayments) {
+                        $paymentStatus = 'Dibayar Lebih';
+                    } elseif ($grandTotal == $totalPayments) {
+                        $paymentStatus = 'Dibayar Penuh';
+                    } elseif ($grandTotal > $totalPayments && $totalPayments > 0) {
+                        $paymentStatus = 'Dibayar Sebagian';
                     } else {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
+                        $paymentStatus = 'Tempo';
                     }
+
+                    $marketing->update([
+                        'payment_status' => array_search($paymentStatus, Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
 
                     $processedCount += 1;
                 }
@@ -350,7 +351,7 @@ class ListPaymentController extends Controller
                         ->filter(fn ($p) => $p->verify_status == 2)
                         ->sum('payment_nominal');
 
-                    if ($grandTotal === $totalPayments) {
+                    if ($grandTotal == $totalPayments) {
                         $payment->marketing->update([
                             'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
@@ -397,7 +398,7 @@ class ListPaymentController extends Controller
                     $marketing->update([
                         'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
-                } elseif ($grandTotal === $totalPayments) {
+                } elseif ($grandTotal == $totalPayments) {
                     $marketing->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
@@ -443,7 +444,7 @@ class ListPaymentController extends Controller
                     ->filter(fn ($p) => $p->verify_status == 2)
                     ->sum('payment_nominal');
 
-                if ($grandTotal === $totalPayments) {
+                if ($grandTotal == $totalPayments) {
                     $payment->marketing->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
