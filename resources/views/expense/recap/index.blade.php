@@ -9,13 +9,6 @@
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
-<style>
-.custom-table-wrapper {
-    width: 100%;
-    overflow-x: scroll;
-}
-</style>
-
 <div class="row">
     <div class="col-12">
         <div class="card">

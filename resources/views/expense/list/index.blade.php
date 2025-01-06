@@ -171,7 +171,7 @@
 <script>
     $(function () {
         const $table = $('#datatable').DataTable({
-            dom: 'B<"d-flex justify-content-between"lf>rtip',
+            dom: 'B<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
             buttons: [
                 {
                     extend: 'excelHtml5',
