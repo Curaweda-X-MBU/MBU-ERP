@@ -12,13 +12,15 @@
     <table id="marketing-delivery-vehicles-repeater-1" class="table w-100">
         <thead>
             <tr class="text-center">
-                <th>No Polisi</th>
-                <th>Product</th>
-                <th>Jumlah</th>
-                <th>UOM</th>
-                <th>Waktu Keluar Kandang</th>
-                <th>Nama Pengirim</th>
-                <th>Nama Driver</th>
+                <th>No Polisi<i class="text-danger">*</i></th>
+                <th>Supplier<i class="text-danger">*</i></th>
+                <th>Product<i class="text-danger">*</i></th>
+                <th>Jumlah<i class="text-danger">*</i></th>
+                <th>UOM<i class="text-danger">*</i></th>
+                <th>Biaya Antar (Rp)<i class="text-danger">*</i></th>
+                <th>Waktu Keluar Kandang<i class="text-danger">*</i></th>
+                <th>Nama Pengirim<i class="text-danger">*</i></th>
+                <th>Nama Driver<i class="text-danger">*</i></th>
                 <th>
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Armada">
                         <i data-feather="plus"></i>
@@ -30,6 +32,11 @@
             <tr class="text-center" data-repeater-item>
                 <td class="py-2">
                     <input name="plat_number" type="text" class="form-control" placeholder="No Polisi" required>
+                </td>
+                <td>
+                    <select name="supplier_id" class="form-control supplier_select" required>
+                        <option value="">Pilih Vendor</option>
+                    </select>
                 </td>
                 <td class="py-2 position-relative">
                     <select name="marketing_product_id" class="form-control vehicle_product_select" required>
@@ -45,6 +52,9 @@
                 <td class="py-2">
                     <input name="uom_id" type="hidden">
                     <input name="uom_name" class="form-control uom_select" placeholder="Unit" disabled>
+                </td>
+                <td class="py-2">
+                    <input name="delivery_fee" type="text" class="form-control numeral-mask delivery_fee_mask" placeholder="Biaya" required>
                 </td>
                 <td class="py-2">
                     <input id="exit_at" name="exit_at" class="form-control flatpickr-datetime" placeholder="Waktu Keluar Kandang" required>
@@ -100,7 +110,6 @@
 
             const val = parseLocaleToNum($this.val());
 
-            console.log(val);
             $qty.val(val);
 
             // cross check
@@ -135,6 +144,10 @@
                 const $senderSelect = $row.find('.sender_select');
                 const senderIdRoute = '{{ route("user-management.user.search") }}';
                 initSelect2($senderSelect, 'Pilih Pengirim', senderIdRoute);
+
+                const $supplierSelect = $row.find('.supplier_select');
+                const supplierIdRoute = '{{ route("data-master.supplier.search") }}';
+                initSelect2($supplierSelect, 'Pilih Vendor', supplierIdRoute);
 
                 const $productSelect = $row.find('.vehicle_product_select');
                 initSelect2($productSelect, 'Pilih Produk');
@@ -184,12 +197,21 @@
 
                 $(`input[name="marketing_delivery_vehicles[${i}][plat_number]"]`).val(vehicle.plat_number);
 
-                $(`select[name="marketing_delivery_vehicles[${i}][marketing_product_id]"]`).append(`<option value="${vehicle.marketing_product_id}" selected>${vehicle.marketing_product.product.name}</option>`).trigger('change');
+                if (vehicle.supplier) {
+                    $(`select[name="marketing_delivery_vehicles[${i}][supplier_id]"]`).append(`<option value="${vehicle.supplier_id}" selected>${vehicle.supplier.name}</option>`).trigger('change');
+                }
+
+                if (vehicle.marketing_product) {
+                    $(`select[name="marketing_delivery_vehicles[${i}][marketing_product_id]"]`).append(`<option value="${vehicle.marketing_product_id}" selected>${vehicle.marketing_product.product.name}</option>`).trigger('change');
+                }
 
                 $(`input[name="marketing_delivery_vehicles[${i}][qty]"]`).val(vehicle.qty);
+                $(`input[name="marketing_delivery_vehicles[${i}][qty]"]`).siblings('.qty_mask').val(parseNumToLocale(vehicle.qty));
 
                 $(`input[name="marketing_delivery_vehicles[${i}][uom_id]"]`).val(vehicle.uom_id);
                 $(`input[name="marketing_delivery_vehicles[${i}][uom_name]"]`).val(vehicle.uom.name);
+
+                $(`input[name="marketing_delivery_vehicles[${i}][delivery_fee]"]`).val(parseNumToLocale(vehicle.delivery_fee));
 
                 const date = new Date(vehicle.exit_at);
                 const dateOptions = { day: '2-digit', year: 'numeric', month: 'short' };
