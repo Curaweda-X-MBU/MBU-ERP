@@ -347,7 +347,7 @@ class ListController extends Controller
         try {
             $data = $marketing->load(['company', 'customer', 'sales', 'marketing_products.warehouse', 'marketing_products.product', 'marketing_products.uom', 'marketing_addit_prices']);
             if ($marketing->marketing_delivery_vehicles()->exists()) {
-                $data->load('marketing_delivery_vehicles.marketing_product.product', 'marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender');
+                $data->load(['marketing_delivery_vehicles.marketing_product.product', 'marketing_delivery_vehicles.uom', 'marketing_delivery_vehicles.sender', 'marketing_delivery_vehicles.supplier']);
             }
 
             $param = [
@@ -378,6 +378,7 @@ class ListController extends Controller
                     $additPrice       = 0;
                     $existingDoc      = $marketing->doc_reference ?? null;
                     $docReferencePath = '';
+                    $deliveryFees     = 0;
 
                     if (isset($input['doc_reference'])) {
                         if ($existingDoc) {
@@ -416,14 +417,19 @@ class ListController extends Controller
                         $arrVehicle = $req->input('marketing_delivery_vehicles');
 
                         foreach ($arrVehicle as $key => $value) {
-                            $qty = Parser::parseLocale($value['qty']);
+                            $qty         = Parser::parseLocale($value['qty']);
+                            $deliveryFee = Parser::parseLocale($value['delivery_fee']);
+
+                            $deliveryFees += $deliveryFee;
 
                             $arrVehicle[$key] = [
                                 'marketing_id'         => $marketing->marketing_id,
                                 'plat_number'          => $value['plat_number'],
+                                'supplier_id'          => $value['supplier_id'],
                                 'marketing_product_id' => $value['marketing_product_id'],
                                 'qty'                  => $qty,
                                 'uom_id'               => $value['uom_id'],
+                                'delivery_fee'         => $deliveryFee,
                                 'exit_at'              => date('Y-m-d H:i', strtotime($value['exit_at'])),
                                 'sender_id'            => $value['sender_id'],
                                 'driver_name'          => $value['driver_name'],
@@ -500,7 +506,7 @@ class ListController extends Controller
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
-                        'grand_total' => $subTotalAfterTax + $additPrice,
+                        'grand_total' => $subTotalAfterTax + $additPrice + $deliveryFees,
                     ]);
                 });
 

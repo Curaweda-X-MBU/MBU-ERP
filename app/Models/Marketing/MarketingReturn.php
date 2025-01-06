@@ -44,7 +44,7 @@ class MarketingReturn extends Model
 
         if ($totalReturn < $totalPayments) {
             return array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS);
-        } elseif ($totalReturn === $totalPayments) {
+        } elseif ($totalReturn == $totalPayments) {
             return array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS);
         } elseif ($totalReturn > $totalPayments && $totalPayments > 0) {
             return array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);

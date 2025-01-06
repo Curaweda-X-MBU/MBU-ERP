@@ -107,7 +107,17 @@
                         const value = parseLocaleToNum($(elem).val());
                         return acc + value;
                     }, 0);
-                    $totalPiutang.text(parseNumToLocale(totalSetelahPajak + priceAllRow));
+
+                    let deliveryFees = 0
+                    if ('{{ @$is_realization }}') {
+                        deliveryFees = $('.delivery_fee_mask').get().reduce((cur, i) => {
+                            const fee = parseLocaleToNum($(i).val());
+
+                            return cur + fee;
+                        }, 0);
+                    }
+
+                    $totalPiutang.text(parseNumToLocale(totalSetelahPajak + priceAllRow + deliveryFees));
                 }, 0);
             });
         }
@@ -115,7 +125,7 @@
 
         // ? START :: CALCULATION ::  BEFORE TAX
         function calculateBeforeTax() {
-            $(document).on('change input', 'input[name="discount"], #tax_mask, #total_sebelum_pajak', function () {
+            $(document).on('change input', 'input[name="discount"], #tax_mask, #total_sebelum_pajak, input[name*="delivery_fee"]', function () {
                 const $totalSetelahPajak = $('#total_setelah_pajak');
                 const totalSebelumPajak = parseLocaleToNum($('#total_sebelum_pajak').text());
                 const tax = parseLocaleToNum($('#tax_mask').val());
@@ -126,6 +136,7 @@
                 } else {
                     total = totalSebelumPajak - discount;
                 }
+
                 $totalSetelahPajak.text(parseNumToLocale(total)).trigger('change');
             });
         }

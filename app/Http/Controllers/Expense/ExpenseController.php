@@ -63,6 +63,18 @@ class ExpenseController extends Controller
         }
     }
 
+    public function recapExport()
+    {
+        try {
+            //
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
     public function add(Request $req)
     {
         try {
