@@ -25,7 +25,6 @@ class Expense extends Model
         'approved_at',
         'location_id',
         'category',
-        'grand_total',
         'payment_status',
         'expense_status',
         'created_by',

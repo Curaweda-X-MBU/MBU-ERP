@@ -18,7 +18,7 @@ class ExpenseMainPrice extends Model
         'sub_category',
         'qty',
         'uom',
-        'total_price',
+        'price',
         'notes',
     ];
 
