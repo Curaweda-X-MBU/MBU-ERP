@@ -149,6 +149,7 @@ Route::middleware('auth')->group(function() {
         });
         Route::group(['prefix' => 'recap'], function() {
             Route::get('/', [App\Http\Controllers\Expense\ExpenseController::class, 'recap'])->name('expense.recap.index')->middleware('permission:expense.recap.index');
+            Route::post('/export', [App\Http\Controllers\Expense\ExpenseController::class, 'recapExport'])->name('expense.recap.export');
         });
     });
 
