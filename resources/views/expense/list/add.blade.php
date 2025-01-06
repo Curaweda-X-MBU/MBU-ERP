@@ -17,7 +17,7 @@
                     @include('expense.list.sections.biaya-lainnya')
                     <div class="row justify-content-end mr-2 mt-3">
                         <p class="col-6 col-md-2">Total Biaya Keseluruhan:</p>
-                        <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-expense">0,00</span></p>
+                        <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;">Rp. <span id="total-expense">0,00</span></p>
                     </div>
                     <div class="col-12 mt-3">
                         <a href="{{ route('expense.list.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>

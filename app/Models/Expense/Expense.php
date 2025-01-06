@@ -30,6 +30,15 @@ class Expense extends Model
         'created_by',
     ];
 
+    protected $append = [
+        'grand_total',
+    ];
+
+    public function getGrandTotalAttribute()
+    {
+        return $this->expense_main_prices->sum('price') + $this->expense_addit_prices->sum('price');
+    }
+
     public function created_user()
     {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
