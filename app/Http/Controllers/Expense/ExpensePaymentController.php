@@ -65,7 +65,7 @@ class ExpensePaymentController extends Controller
                     'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
                     'document_path'      => $docPath,
                     'notes'              => $input['notes'],
-                    'verify_status'      => 1,
+                    'verify_status'      => 1, // Diajukan
                 ]);
             });
 
@@ -125,26 +125,6 @@ class ExpensePaymentController extends Controller
                         'document_path'      => $docPath,
                         'notes'              => $input['notes'],
                     ]);
-
-                    $grandTotal    = $payment->expense->grand_total;
-                    $totalPayments = $payment->expense
-                        ->expense_payments
-                        ->filter(fn ($p) => $p->verify_status == 2)
-                        ->sum('payment_nominal');
-
-                    if ($grandTotal === $totalPayments) {
-                        $payment->expense->update([
-                            'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
-                    } elseif ($grandTotal < $totalPayments) {
-                        $payment->expense->update([
-                            'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
-                    } else {
-                        $payment->expense->update([
-                            'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
-                    }
                 });
 
                 $success = ['success' => 'Data Berhasil diubah'];
@@ -165,30 +145,6 @@ class ExpensePaymentController extends Controller
         try {
             DB::transaction(function() use ($payment) {
                 $payment->delete();
-
-                $expense       = $payment->expense;
-                $grandTotal    = $expense->grand_total;
-                $totalPayments = $expense->expense_payments
-                    ->filter(fn ($p) => $p->verify_status == 2)
-                    ->sum('payment_nominal');
-
-                if ($grandTotal < $totalPayments) {
-                    $expense->update([
-                        'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } elseif ($grandTotal === $totalPayments) {
-                    $expense->update([
-                        'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } elseif ($grandTotal > $totalPayments) {
-                    $expense->update([
-                        'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } else {
-                    $expense->update([
-                        'payment_status' => array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                }
             });
             $success = ['success' => 'Data Berhasil dihapus'];
 
@@ -205,48 +161,25 @@ class ExpensePaymentController extends Controller
         try {
             $input = $req->all();
 
-            $success = [];
+            $success       = [];
+            $verify_status = '';
+            $approved_at   = null;
 
             if ($input['is_approved'] == 1) {
-                $payment->update([
-                    'is_approved'    => array_search('Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approved_at'    => date('Y-m-d H:i:s'),
-                    'approval_notes' => $input['approval_notes'],
-                    'verify_status'  => array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
-                ]);
-
-                $grandTotal    = $payment->expense->grand_total;
-                $totalPayments = $payment->expense
-                    ->expense_payments
-                    ->filter(fn ($p) => $p->verify_status == 2)
-                    ->sum('payment_nominal');
-
-                if ($grandTotal === $totalPayments) {
-                    $payment->expense->update([
-                        'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } elseif ($grandTotal < $totalPayments) {
-                    $payment->expense->update([
-                        'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                } else {
-                    $payment->expense->update([
-                        'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                    ]);
-                }
-
-                $success = ['success' => 'Pembayaran berhasil disetujui'];
+                $success       = ['success' => 'Pembayaran berhasil disetujui'];
+                $verify_status = array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
+                $approved_at   = now()->format('Y-m-d H:i:s');
             } else {
-                $payment->update([
-                    'is_approved'    => array_search('Tidak Disetujui', Constants::MARKETING_APPROVAL),
-                    'approver_id'    => Auth::id(),
-                    'approval_notes' => $input['approval_notes'],
-                    'verify_status'  => array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS),
-                ]);
-
-                $success = ['success' => 'Pembayaran berhasil ditolak'];
+                $success       = ['success' => 'Pembayaran berhasil ditolak'];
+                $verify_status = array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
             }
+            $payment->update([
+                'is_approved'    => $input['is_approved'],
+                'approver_id'    => Auth::id(),
+                'approval_notes' => $input['approval_notes'],
+                'approved_at'    => $approved_at,
+                'verify_status'  => $verify_status,
+            ]);
 
             DB::commit(); // Commit transaksi jika semua berhasil
 

@@ -6,6 +6,7 @@ use App\Models\DataMaster\Bank;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ExpensePayment extends Model
 {
@@ -31,6 +32,45 @@ class ExpensePayment extends Model
         'notes',
         'verify_status',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function(ExpensePayment $payment) {
+            if ($payment->isDirty(['is_approved', 'payment_nominal'])) {
+                DB::beginTransaction();
+                try {
+                    $expense = Expense::find($payment->expense_id);
+                    $expense->update([
+                        'payment_status' => $expense->calculatePaymentStatus(),
+                    ]);
+                    $expense->save();
+
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    throw $e;
+                }
+            }
+        });
+
+        static::deleted(function(ExpensePayment $payment) {
+            DB::beginTransaction();
+            try {
+                $expense = Expense::find($payment->expense_id);
+                $expense->update([
+                    'payment_status' => $expense->calculatePaymentStatus(),
+                ]);
+                $expense->save();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+        });
+    }
 
     public function approver()
     {

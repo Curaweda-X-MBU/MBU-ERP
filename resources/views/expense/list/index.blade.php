@@ -40,7 +40,7 @@
                                 @foreach ($data as $item)
                                 @php
                                     $nominalBiaya = $item->grand_total;
-                                    $nominalSisaBayar = $item->expense_payments->sum('payment_nominal');
+                                    $nominalSisaBayar = $item->is_paid;
                                 @endphp
                                     <tr>
                                         <td>{{ $item->expense_id }}</td>
