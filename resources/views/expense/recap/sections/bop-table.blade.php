@@ -1,9 +1,9 @@
-<div class="table-responsive mt-2">
+<div class="table-responsive mt-2" style="overflow-x: hidden;">
     <div class="row bg-primary d-flex justify-content-center align-items-center py-1 text-white px-2">
         <p class="col-md-6 mb-0">Biaya Operasional (BOP)</p>
-        <p class="col-md-6 mb-0 text-right">Total: <span id="total-biaya-bop">0,00</span></p>
+        <p class="col-md-6 mb-0 text-right">Total: Rp <span id="total-biaya-bop">0,00</span></p>
     </div>
-    <table id="datatableBOP" class="table table-bordered">
+    <table id="datatableBOP" class="table table-bordered" style="margin: 0 0 !important;">
         <thead>
             <tr class="bg-light text-center">
                 <th>No</th>

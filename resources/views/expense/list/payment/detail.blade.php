@@ -18,10 +18,9 @@ $is_detail = true;
         setTimeout(function() {
             $('#is_approved').val(value);
 
-            const route = @js(route('marketing.list.payment.approve', ':id'));
-            const id = $('input[name="marketing_payment_id"]').val();
+            const route = @js(route('expense.list.payment.approve', ':id'));
+            const id = $('input[name="expense_payment_id"]').val();
             $('#approveForm').attr('action', route.replace(':id', id)).trigger('submit');
-
         }, 0);
     }
 </script>
@@ -34,17 +33,17 @@ $is_detail = true;
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title text-primary" id="paymentDetailLabel">Form Pembayaran</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; top: 16px; right: 30px;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: 16px; right: 30px;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    @include('marketing.list.sections.payment-detail')
+                    @include('expense.list.sections.payment-detail')
                 </div>
                 @php
                     $roleAccess = Auth::user()->role;
                 @endphp
-                @if ($roleAccess->hasPermissionTo('marketing.list.payment.approve'))
+                @if ($roleAccess->hasPermissionTo('expense.list.payment.approve'))
                 <div class="modal-footer" style="display: grid; grid-template-columns: 100%; align-items: baseline; justify-content: center; row-gap: 1rem;">
                     <div class="w-100 col-12 m-0">
                         <div class="row mx-auto">

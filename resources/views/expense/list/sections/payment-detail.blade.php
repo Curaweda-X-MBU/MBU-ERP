@@ -21,15 +21,15 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 @else
 <div class="row custom-modal-layout">
 @endif
-    <input type="hidden" name="marketing_payment_id" value="" disabled>
+    <input type="hidden" name="expense_payment_id" value="" disabled>
     {{-- Table kiri --}}
     <div class="row col-12 col-sm-6" style="row-gap: 1em;">
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label class="align-baseline" for="do_number">No. DO</label>
+                <label class="align-baseline" for="do_number">ID</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input type="text" class="form-control" id="do_number" value="{{ $data->id_marketing }}" disabled>
+                <input type="text" class="form-control" id="do_number" value="{{ $data->id_expense }}" disabled>
             </div>
         </div>
         <div class="col-12 row">
@@ -50,10 +50,10 @@ $paymentLeft = $data->grand_total - $data->is_paid;
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="marketing_nominal">Nominal Biaya</label>
+                <label for="expense_nominal">Nominal Biaya</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <input type="text" class="form-control" id="marketing_nominal" value="Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}" disabled>
+                <input type="text" class="form-control" id="expense_nominal" value="Rp. {{ \App\Helpers\Parser::toLocale($data->grand_total) }}" disabled>
             </div>
         </div>
         <div class="col-12 row">
@@ -72,7 +72,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
         </div>
         <div class="col-12 row">
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
-                <label for="bank_id">Akun Bank<i id="bank_required_label" class="text-danger">*</i></label>
+                <label for="bank_id">Akun Bank</label>
             </div>
             <div class="col-12 col-lg-6 d-flex align-items-center p-0">
                 <select name="bank_id" class="own_bank_id form-control" {{ isset($is_detail) ? 'disabled' : '' }}>
@@ -183,10 +183,10 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 
         if ('{{ @$is_detail }}') {
             const $this = $('#detail');
-            var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
+            var $expensePayment = $this.find('input[name="expense_payment_id"]');
 
-            $marketingPayment.on('change', function() {
-                const paymentId = $marketingPayment.val();
+            $expensePayment.on('change', function() {
+                const paymentId = $expensePayment.val();
                 const $paymentMethod = $this.find('.payment_method');
                 const $ownBank = $this.find('.own_bank_id');
                 const $refNumber = $this.find('.ref_number');
@@ -196,13 +196,13 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('.notes');
                 const $approvalNotes = $('#approveForm').find('.approval_notes');
-                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     $paymentMethod.val(result.payment_method).trigger('change');
-                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? [result.bank.alias, result.bank.account_number, result.bank.owner].join(' - ') : '-'}</option>`).trigger('change');
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominalMask.val(parseNumToLocale(result.payment_nominal)).trigger('input');
@@ -216,10 +216,10 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 
         if ('{{ @$is_edit }}') {
             const $this = $('#edit');
-            var $marketingPayment = $this.find('input[name="marketing_payment_id"]');
+            var $expensePayment = $this.find('input[name="expense_payment_id"]');
 
-            $marketingPayment.on('change', function() {
-                const paymentId = $marketingPayment.val();
+            $expensePayment.on('change', function() {
+                const paymentId = $expensePayment.val();
                 const $paymentMethod = $this.find('.payment_method');
                 const $ownBank = $this.find('.own_bank_id');
                 const $refNumber = $this.find('.ref_number');
@@ -228,7 +228,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentNominal = $this.find('.payment_nominal');
                 const $paymentAt = $this.find('.payment_at');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('marketing.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.payment.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
@@ -239,7 +239,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                         $paymentNominal.attr('max', credit);
                     }
                     $paymentMethod.val(result.payment_method).trigger('change');
-                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`);
+                    $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`).trigger('change');
                     $refNumber.val(result.payment_reference ?? '-');
                     $transactionNumber.val(result.transaction_number ?? '-');
                     $paymentNominal.siblings('.payment_nominal').attr('max', credit);
