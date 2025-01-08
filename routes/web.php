@@ -153,6 +153,10 @@ Route::middleware('auth')->group(function() {
         });
     });
 
+    Route::group(['prefix' => 'finance'], function() {
+        Route::get('/', [App\Http\Controllers\Finance\FinanceController::class, 'index'])->name('finance.index')->middleware('permission:finance.index');
+    });
+
     Route::group(['prefix' => 'purchase'], function() {
         Route::get('/', [App\Http\Controllers\Purchase\ListController::class, 'index'])->name('purchase.index')->middleware('permission:purchase.index');
         Route::any('/add', [App\Http\Controllers\Purchase\ListController::class, 'add'])->name('purchase.add')->middleware('permission:purchase.add');

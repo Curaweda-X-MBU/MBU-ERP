@@ -132,6 +132,10 @@
                     </ul>
                 </li>
                 @endif
+                @if (hasAccess($collection, 'finance.index', $roleAccess))
+                <li id="{{ ltrim(parse_url(route('finance.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('finance.index') }}"><i data-feather="credit-card"></i><span class="menu-title text-truncate" data-i18n="Keuangan">Keuangan</span></a>
+                </li>
+                @endif
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
                 <li id="{{ ltrim(parse_url(route('purchase.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('purchase.index') }}"><i data-feather="shopping-cart"></i><span class="menu-title text-truncate" data-i18n="Pembelian">Pembelian</span></a>
                 </li>
