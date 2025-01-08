@@ -90,12 +90,10 @@ class ExpenseController extends Controller
                 }
 
                 DB::transaction(function() use ($req) {
-                    $input             = $req->all();
-                    $category          = $input['category'];
-                    $expenseStatus     = $input['expense_status'];
-                    $expenseMainPrice  = 0;
-                    $expenseAdditPrice = 0;
-                    $expenseID         = 0;
+                    $input         = $req->all();
+                    $category      = $input['category'];
+                    $expenseStatus = $input['expense_status'];
+                    $expenseID     = 0;
 
                     if ($expenseStatus == 0) {
                         $createdExpense = Expense::create([
@@ -103,7 +101,6 @@ class ExpenseController extends Controller
                             'category'       => $category,
                             'payment_status' => 0,
                             'expense_status' => 0,
-                            'grand_total'    => 0,
                             'created_by'     => Auth::id(),
                         ]);
 
@@ -114,7 +111,6 @@ class ExpenseController extends Controller
                             'category'       => $category,
                             'payment_status' => 1,
                             'expense_status' => 1,
-                            'grand_total'    => 0,
                             'created_by'     => Auth::id(),
                         ]);
 
@@ -141,15 +137,13 @@ class ExpenseController extends Controller
 
                         foreach ($arrMainPrices as $key => $value) {
                             $qty        = Parser::parseLocale($value['qty']);
-                            $totalPrice = Parser::parseLocale($value['total_price']);
-
-                            $expenseMainPrice += $totalPrice;
+                            $totalPrice = Parser::parseLocale($value['price']);
 
                             $arrMainPrices[$key]['expense_id']   = $expenseID;
                             $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
                             $arrMainPrices[$key]['qty']          = $qty;
                             $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['total_price']  = $totalPrice;
+                            $arrMainPrices[$key]['price']        = $totalPrice;
                             $arrMainPrices[$key]['notes']        = $value['notes'];
                         }
 
@@ -163,8 +157,6 @@ class ExpenseController extends Controller
                         foreach ($arrAdditPrices as $key => $value) {
                             $name  = $value['name'] ?? null;
                             $price = Parser::parseLocale($value['price'] ?? null);
-
-                            $expenseAdditPrice += $price;
 
                             if ($name && $price) {
                                 $create                             = true;
@@ -185,14 +177,9 @@ class ExpenseController extends Controller
                         $idExpense   = "{$prefix}.{$incrementId}";
 
                         $createdExpense->update([
-                            'id_expense'  => $idExpense,
-                            'grand_total' => $expenseMainPrice + $expenseAdditPrice,
+                            'id_expense' => $idExpense,
                         ]);
                     }
-
-                    $createdExpense->update([
-                        'grand_total' => $expenseMainPrice + $expenseAdditPrice,
-                    ]);
                 });
 
                 $success = ['success' => 'Data Berhasil disimpan'];
@@ -261,21 +248,15 @@ class ExpenseController extends Controller
                 }
 
                 DB::transaction(function() use ($req, $expense) {
-                    $input             = $req->all();
-                    $expenseMainPrice  = 0;
-                    $expenseAdditPrice = 0;
+                    $input = $req->all();
 
-                    if ($input['expense_status'] == 1) {
+                    if ($expense->expense_status == 1) {
                         $expense->update([
                             'location_id'    => $input['location_id'],
                             'payment_status' => 1,
                             'expense_status' => 1,
                         ]);
                     }
-
-                    $expense->update([
-                        'location_id' => $input['location_id'],
-                    ]);
 
                     $expense->expense_kandang()->delete();
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
@@ -299,15 +280,13 @@ class ExpenseController extends Controller
 
                         foreach ($arrMainPrices as $key => $value) {
                             $qty        = Parser::parseLocale($value['qty']);
-                            $totalPrice = Parser::parseLocale($value['total_price']);
-
-                            $expenseMainPrice += $totalPrice;
+                            $totalPrice = Parser::parseLocale($value['price']);
 
                             $arrMainPrices[$key]['expense_id']   = $expense->expense_id;
                             $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
                             $arrMainPrices[$key]['qty']          = $qty;
                             $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['total_price']  = $totalPrice;
+                            $arrMainPrices[$key]['price']        = $totalPrice;
                             $arrMainPrices[$key]['notes']        = $value['notes'];
                         }
 
@@ -322,8 +301,6 @@ class ExpenseController extends Controller
                         foreach ($arrAdditPrices as $key => $value) {
                             $name  = $value['name'] ?? null;
                             $price = Parser::parseLocale($value['price'] ?? null);
-
-                            $expenseAdditPrice += $price;
 
                             if ($name && $price) {
                                 $create                             = true;
@@ -343,8 +320,7 @@ class ExpenseController extends Controller
                     $idExpense   = "{$prefix}.{$incrementId}";
 
                     $expense->update([
-                        'id_expense'  => $idExpense,
-                        'grand_total' => $expenseMainPrice + $expenseAdditPrice,
+                        'id_expense' => $idExpense,
                     ]);
                 });
 
