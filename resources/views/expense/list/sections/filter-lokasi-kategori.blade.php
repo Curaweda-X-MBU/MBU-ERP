@@ -73,7 +73,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 
         function renderHatcheryButtons(data) {
             $container.empty();
-            $kandangInput.val('[]');
+            $kandangInput.val('[]').trigger('input');
             selectedKandangs = [];
 
             if (data) {
@@ -122,7 +122,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
                 selectedKandangs.push($(this).data('kandang-id'));
             }
 
-            $kandangInput.val(JSON.stringify(selectedKandangs));
+            $kandangInput.val(JSON.stringify(selectedKandangs)).trigger('input');
         });
 
         $(document).on('select2:select', '#category_id, #location_id', function() {

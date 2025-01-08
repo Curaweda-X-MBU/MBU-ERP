@@ -40,10 +40,12 @@
                         <i data-feather="arrow-left" class="mr-50"></i>
                         Kembali
                     </a>
-                    <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
-                        <i data-feather="edit-2" class="mr-50"></i>
-                        Edit
-                    </a>
+                    @if ($data->expense_status != 2)
+                        <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
+                            <i data-feather="edit-2" class="mr-50"></i>
+                            Edit
+                        </a>
+                    @endif
                     @if ($data->expense_status != 2 && $data->expense_status != 0)
                         <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
                             <i data-feather="check" class="mr-50"></i>
@@ -193,6 +195,7 @@
                                                     <th>No</th>
                                                     <th>Sub Categori</th>
                                                     <th>Qty</th>
+                                                    <th>Total Qty</th>
                                                     <th>UOM</th>
                                                     <th>Harga Satuan</th>
                                                     <th>Nominal Biaya</th>
@@ -205,8 +208,9 @@
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->sub_category }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_qty) }}</td>
                                                                 <td>{{ $item->uom }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_price / $item->qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
                                                                 <td>
                                                                     @if ($item->notes)

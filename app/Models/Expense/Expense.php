@@ -34,6 +34,7 @@ class Expense extends Model
     protected $append = [
         'grand_total',
         'is_paid',
+        'total_qty',
     ];
 
     public function getGrandTotalAttribute()
@@ -44,6 +45,11 @@ class Expense extends Model
     public function getIsPaidAttribute()
     {
         return $this->expense_payments->where('verify_status', 2)->sum('payment_nominal');
+    }
+
+    public function getTotalQtyAttribute()
+    {
+        return $this->expense_main_prices->sum('total_qty');
     }
 
     public function calculatePaymentStatus()
