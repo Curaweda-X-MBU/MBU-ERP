@@ -139,7 +139,7 @@
                 @if (hasAccess($collection, 'report', $roleAccess))
                 <li class="nav-item has-sub {{ Request::segment(1)=='report'?'sidebar-group-active':'' }}">
                     <a class="d-flex align-items-center" href="#">
-                        <i data-feather="file-text"></i>
+                        <i data-feather="book"></i>
                         <span class="menu-title text-truncate" data-i18n="Report">Laporan</span>
                     </a>
                     <ul class="menu-content">
