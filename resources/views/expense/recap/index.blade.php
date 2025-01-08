@@ -12,14 +12,51 @@
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
 
 <script>
+    function resetFilters() {
+        const $locationSelect = $('#location_id');
+        const $container = $('#hatcheryButtonsContainer');
+        const $kandangInput = $('input[name="selected_kandangs"]');
+        const $startDate = $('#start_date');
+        const $endDate = $('#end_date');
+
+        $locationSelect.val('').trigger('change');
+        $container.empty();
+        $kandangInput.val('[]').trigger('input');
+        $startDate.val('').trigger('input');
+        $endDate.val('').trigger('input');
+        $startDate.siblings('.input.flatpickr-basic').val('').trigger('input');
+        $endDate.siblings('.input.flatpickr-basic').val('').trigger('input');
+    }
+
     function searchRecap() {
         const locationId = $('#location_id').val();
         const startDate = $('#start_date').val();
         const endDate = $('#end_date').val();
 
         const selectedKandangs = JSON.parse($('input[name="selected_kandangs"]').val());
+
+        if (!startDate || startDate == '') {
+            Swal.fire({
+                title: 'Filter',
+                text: 'Isi Tanggal Mulai',
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonText: 'Ok',
+                customClass: {
+                    confirmButton: "btn mr-1 btn-warning",
+                },
+                buttonsStyling: false,
+            }).then(function (result) {
+                if (result.value) {
+                    return;
+                }
+            });
+
+            return;
+        }
 
         // Query parameters
         const params = new URLSearchParams();
@@ -70,7 +107,8 @@
                         </div>
                     </div>
                     <div class="col-12 mt-1">
-                        <button type="button" class="btn btn-outline-primary waves-effect" onclick="searchRecap()">Cari</button>
+                        <button type="button" class="btn btn-outline-primary waves-effect mr-1" onclick="searchRecap()">Cari</button>
+                        <button type="button" class="btn btn-outline-warning waves-effect" onclick="resetFilters()">Reset</button>
                     </div>
                     <input type="hidden" name="selected_kandangs" value="[]">
                 </div>
@@ -93,6 +131,8 @@
 
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+<script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
+
 <script>
     // flatpickr
     initFlatpickrDate($('.flatpickr-basic'));
@@ -101,11 +141,9 @@
         const locationIdRoute = '{{ route("data-master.location.search") }}';
         const kandangIdRoute = `{{ route('data-master.kandang.search') }}?location_id=:id`;
         const $locationSelect = $('#location_id');
-        const $categorySelect = $('#category_id');
         const $container = $('#hatcheryButtonsContainer');
         const $kandangInput = $('input[name="selected_kandangs"]');
-        initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute);
-        initSelect2($categorySelect, 'Pilih Kategori');
+        initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '');
 
         let selectedKandangs = JSON.parse($kandangInput.val());
 
