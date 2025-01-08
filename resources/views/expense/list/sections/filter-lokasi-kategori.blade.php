@@ -65,7 +65,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
         const $kandangInput = $('input[name="selected_kandangs"]');
 
         initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute);
-        initSelect2($('#category_id'), 'Pilih Kategori');
+        initSelect2($categorySelect, 'Pilih Kategori');
         $locationSelect.trigger('select2:select');
         $categorySelect.trigger('select2:select');
 
