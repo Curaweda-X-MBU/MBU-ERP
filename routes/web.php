@@ -153,6 +153,18 @@ Route::middleware('auth')->group(function() {
         });
     });
 
+    Route::group(['prefix' => 'report'], function() {
+        Route::group(['prefix' => 'mbu'], function() {
+            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexMbu'])->name('report.mbu.index')->middleware('permission:report.mbu.index');
+        });
+        Route::group(['prefix' => 'manbu'], function() {
+            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexManbu'])->name('report.manbu.index')->middleware('permission:report.manbu.index');
+        });
+        Route::group(['prefix' => 'lti'], function() {
+            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexLti'])->name('report.lti.index')->middleware('permission:report.lti.index');
+        });
+    });
+
     Route::group(['prefix' => 'purchase'], function() {
         Route::get('/', [App\Http\Controllers\Purchase\ListController::class, 'index'])->name('purchase.index')->middleware('permission:purchase.index');
         Route::any('/add', [App\Http\Controllers\Purchase\ListController::class, 'add'])->name('purchase.add')->middleware('permission:purchase.add');
