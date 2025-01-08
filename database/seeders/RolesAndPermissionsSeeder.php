@@ -116,6 +116,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'expense.list.payment.delete',
             'expense.list.payment.approve',
             'expense.recap.index',
+            'finance.index',
             'purchase.index',
             'purchase.add',
             'purchase.copy',
