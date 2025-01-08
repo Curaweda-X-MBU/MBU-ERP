@@ -15,8 +15,7 @@
             <div class="card-header">
                 <div class="card-title">{{$title}}</div>
                 <div class="float-right">
-                    <button data-toggle="modal" data-target="#recapExpense" id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Rekap</button>
-                    {{-- Include Modal --}}
+                    <button data-toggle="modal" data-target="#recapExpense" id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Rekap BOP</button>
                     @include('expense.recap.sections.modal-recap')
                 </div>
             </div>
@@ -29,7 +28,7 @@
                     </div>
                     <!-- Kategori -->
                     <div class="col-md-10 mt-1">
-                        <label for="start_date" class="form-label">Tanggal Penjualan<i class="text-danger">*</i></label>
+                        <label for="start_date" class="form-label">Tanggal Biaya<i class="text-danger">*</i></label>
                         <div class="row align-items-center">
                             <div class="col-md-2">
                                 <input type="date" class="form-control flatpickr-basic" name="start_date" placeholder="Pilih Tanggal Mulai">
@@ -45,59 +44,12 @@
                 <!-- container kandang -->
                 <div id="hatcheryButtonsContainer" class="mt-1"></div>
 
-                {{-- START :: table --}}
-                <div class="table-responsive mt-2">
-                    <table id="datatable" class="table table-bordered">
-                        <thead>
-                            <tr class="bg-light text-center">
-                                <th>Kategori</th>
-                                <th>Sub Kategori</th>
-                                <th>Status</th>
-                                <th>Nominal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="text-center">
-                                <td>Biaya Operational</td>
-                                <td>Listrik</td>
-                                <td>
-                                    @switch($status)
-                                        @case(1)
-                                            <div class="badge badge-pill badge-primary">Dibayar</div>
-                                            @break
-                                        @case(2)
-                                            <div class="badge badge-pill badge-danger">Belum Dibayar</div>
-                                            @break
-                                        @default
-                                            <div class="badge badge-pill badge-secondary">N/A</div>
-                                    @endswitch
-                                </td>
-                                <td class="total-nominal">15.000,00</td>
-                            </tr>
-                            <tr class="text-center">
-                                <td>Biaya Operational</td>
-                                <td>Listrik</td>
-                                <td>
-                                    @switch($status)
-                                        @case(1)
-                                            <div id="status" class="badge badge-pill badge-primary">Dibayar</div>
-                                            @break
-                                        @case(2)
-                                            <div id="status" class="badge badge-pill badge-danger">Belum Dibayar</div>
-                                            @break
-                                        @default
-                                            <div id="status" class="badge badge-pill badge-secondary">N/A</div>
-                                    @endswitch
-                                </td>
-                                <td class="total-nominal">177.000,00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                {{-- END :: table  --}}
+                {{-- table--}}
+                @include('expense.recap.sections.bop-table')
+                @include('expense.recap.sections.non-bop-table')
 
                 <div class="row justify-content-end mr-2 mt-3">
-                    <p class="col-6 col-md-2">Total Sebelum Pajak</p>
+                    <p class="col-6 col-md-2">Total Keseluruhan Biaya</p>
                     <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">0,00</span></p>
                 </div>
             </div>
@@ -152,18 +104,85 @@
         }
     });
 
-    function calculateTotal() {
-        let total = 0;
-        $('.total-nominal').each(function() {
-            const nominal = $(this).text() || '0';
-        total += parseLocaleToNum(nominal);
-        });
-        $('#total-recap').text(parseNumToLocale(total));
-    }
+    // START :: calculate total
+    $(function() {
+        function calculateBOP() {
+            let total = 0;
+            $('.nominal-bop').each(function() {
+                total += parseLocaleToNum($(this).text());
+            });
+            $('#total-biaya-bop').text(parseNumToLocale(total)).trigger('change');
+        }
 
-    $(document).ready(function () {
+        function calculateNonBOP() {
+            let total = 0;
+            $('.nominal-non-bop').each(function() {
+                total += parseLocaleToNum($(this).text());
+            });
+            $('#total-biaya-non-bop').text(parseNumToLocale(total)).trigger('change');
+        }
+
+        function calculateTotal() {
+            const totalBop = parseLocaleToNum($('#total-biaya-bop').text());
+            const totalNonBop = parseLocaleToNum($('#total-biaya-non-bop').text());
+            const total = totalBop + totalNonBop;
+            $('#total-recap').text(parseNumToLocale(total));
+        }
+
+        calculateBOP();
+        calculateNonBOP();
         calculateTotal();
     });
+    // END :: calculate total
+
+    // START :: export
+    let tableBOP = $('#datatableBOP').DataTable({
+        dom: '<"custom-table-wrapper"t>',
+        // buttons: [
+        //     {
+        //         extend: 'excelHtml5',
+        //         className: 'd-none',
+        //         title: 'Rekap Biaya',
+        //         footer: true
+        //     },
+        //     {
+        //         extend: 'pdfHtml5',
+        //         className: 'd-none',
+        //         title: 'Rekap Biaya Operasional',
+        //         customize: function(doc) {
+        //             doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+        //         },
+        //         footer: true
+        //     }
+        // ]
+    });
+
+    let tableNonBOP = $('#datatableNonBOP').DataTable({
+        dom: '<"custom-table-wrapper"t>',
+    });
+
+    // Event handler untuk tombol export
+    $('.modal-footer .btn-primary').on('click', function() {
+        const selectedFormat = $('input[name="fileType"]:checked').val();
+
+        if (selectedFormat === 'excel') {
+            tableBOP.button(0).trigger(); // Trigger Excel export
+        } else if (selectedFormat === 'pdf') {
+            tableBOP.button(1).trigger(); // Trigger PDF export
+        }
+
+        $('#recapExpense').modal('hide');
+    });
+
+    // Radio button click handlers
+    $('#exportExcel, #excelRadio').on('click', function() {
+        $('#excelRadio').prop('checked', true);
+    });
+
+    $('#exportPdf, #pdfRadio').on('click', function() {
+        $('#pdfRadio').prop('checked', true);
+    });
+    // END :: export
 </script>
 
 @endsection

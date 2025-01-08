@@ -183,10 +183,12 @@ class ReturnPaymentController extends Controller
 
             $success       = [];
             $verify_status = '';
+            $approved_at   = null;
 
             if ($input['is_approved'] == 1) {
                 $success       = ['success' => 'Pembayaran berhasil disetujui'];
                 $verify_status = array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
+                $approved_at   = now()->format('Y-m-d H:i:s');
             } else {
                 $success       = ['success' => 'Pembayaran berhasil ditolak'];
                 $verify_status = array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
@@ -196,7 +198,7 @@ class ReturnPaymentController extends Controller
                 'is_approved'    => $input['is_approved'],
                 'approver_id'    => Auth::id(),
                 'approval_notes' => $input['approval_notes'],
-                'approved_at'    => now()->format('Y-m-d H:i:s'),
+                'approved_at'    => $approved_at,
                 'verify_status'  => $verify_status,
             ]);
 

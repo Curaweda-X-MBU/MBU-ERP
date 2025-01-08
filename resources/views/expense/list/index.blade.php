@@ -40,7 +40,7 @@
                                 @foreach ($data as $item)
                                 @php
                                     $nominalBiaya = $item->grand_total;
-                                    $nominalSisaBayar = $item->expense_payments->sum('payment_nominal');
+                                    $nominalSisaBayar = $item->is_paid;
                                 @endphp
                                     <tr>
                                         <td>{{ $item->expense_id }}</td>
@@ -132,6 +132,39 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                            <table class="table table-borderless">
+                                <tbody class="text-right">
+                                    <tr>
+                                        <td class="text-primary">
+                                            Total Biaya:
+                                        </td>
+                                        <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
+                                            Rp. <span id="grand_total">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-success">
+                                            Total Sudah Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-success" style="font-size: 1.2em">
+                                            Rp. <span id="is_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-danger">
+                                            Total Belum Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
+                                            Rp. <span id="not_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,7 +204,7 @@
 <script>
     $(function () {
         const $table = $('#datatable').DataTable({
-            dom: 'B<"d-flex justify-content-between"lf>rtip',
+            dom: 'B<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
             buttons: [
                 {
                     extend: 'excelHtml5',
@@ -189,6 +222,25 @@
                 },
             ],
             drawCallback: function(settings) {
+                let grandTotalSum = 0;
+                let isPaidSum = 0;
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const grandTotal = parseLocaleToNum(data[7]);
+                    const isPaid = parseLocaleToNum(data[8]);
+
+                    grandTotalSum += grandTotal;
+                    isPaidSum += isPaid;
+                });
+
+                const $grandTotal = $("#grand_total");
+                const $isPaid = $('#is_paid');
+                const $notPaid = $('#not_paid');
+
+                $grandTotal.text(parseNumToLocale(grandTotalSum));
+                $isPaid.text(parseNumToLocale(isPaidSum));
+                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+
                 feather.replace();
             },
             order: [[1, 'asc'], [0, 'desc']],

@@ -8,17 +8,29 @@
     $roleAccess = Auth::user()->role;
 @endphp
 
+<script>
+    function setDetail(e) {
+        $('input[name="expense_payment_id"]').val($(e).data('payment-id')).trigger('change');
+    }
+</script>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">{{$title}}</h4>
+                <div>
+                    <a href="{{ route('expense.list.index') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left" class="mr-50"></i>
+                        Kembali
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row row-cols-2 row-cols-md-5 align-items-baseline">
                     <div class="col-md-2 mt-1">
-                        <label for="expense_payment_id" class="form-label">ID</label>
-                        <input name="expense_payment_id" id="expense_payment_id" value="{{ $data->id_expense }}" type="text" class="form-control" disabled required>
+                        <label for="id_expense" class="form-label">ID</label>
+                        <input name="id_expense" id="id_expense" value="{{ $data->id_expense }}" type="text" class="form-control" disabled required>
                     </div>
                     <div class="col-md-2 mt-1">
                         <label for="location" class="form-label">Lokasi</label>
@@ -41,7 +53,7 @@
                     <!-- Button Tambah Pembayaran -->
                     @if (auth()->user()->role->hasPermissionTo('expense.list.payment.add'))
                     <div class="col-md-2 mt-2">
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#expensePaymentAdd">
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#expensePaymentAdd">
                             <i data-feather="plus"></i> Tambah Pembayaran
                         </button>
                     </div>
@@ -50,8 +62,8 @@
 
                 <!-- Modal -->
                 @include('expense.list.payment.add')
-                {{-- @include('expense.list.payment.detail')
-                @include('expense.list.payment.edit') --}}
+                @include('expense.list.payment.detail')
+                @include('expense.list.payment.edit')
 
                 {{-- START :: table --}}
                 <div class="card-datatable">
@@ -96,13 +108,13 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         @if ($roleAccess->hasPermissionTo('expense.list.payment.edit'))
-                                                            <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-bs-toggle="modal" data-bs-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
+                                                            <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
                                                                 <i data-feather='edit-2' class="mr-50"></i>
                                                                 <span>Edit</span>
                                                             </a>
                                                         @endif
                                                         @if ($roleAccess->hasPermissionTo('expense.list.payment.detail'))
-                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-bs-toggle="modal" data-bs-target="#paymentDetail" data-payment-id="{{ $item->expense_payment_id }}">
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->expense_payment_id }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
                                                         </a>
@@ -145,7 +157,7 @@
                             <tbody class="text-right">
                                 <tr>
                                     <td>Nominal Biaya Utama:</td>
-                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('total_price')) }}</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('price')) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Nominal Biaya Lainnya:</td>
@@ -165,18 +177,16 @@
                                 <tr>
                                     <td class="text-success">Total Sudah Dibayar:</td>
                                     <td class="font-weight-bolder text-success" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale(
-                                        $data->expense_payments
-                                            ->filter(fn($payment) => $payment->verify_status == 2)
-                                            ->sum('payment_nominal') ?? 0
+                                        $data->is_paid
                                     ) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-danger">Sisa Belum Dibayar:</td>
-                                    <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale(
-                                        $data->grand_total - $data->expense_payments
-                                            ->filter(fn($payment) => $payment->verify_status == 2)
-                                            ->sum('payment_nominal')
-                                    ) }}</td>
+                                    <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{
+                                        \App\Helpers\Parser::toLocale(
+                                            $data->grand_total - $data->is_paid
+                                        ) }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -186,4 +196,23 @@
         </div>
     </div>
 </div>
+
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
+
+<script>
+    $('.item-delte-button').on('click', function(e) {
+        e.preventDefault();
+
+        confirmCallback({
+            title: 'Hapus',
+            text: 'Data tidak bisa dikembalikan!',
+            icon: 'warning',
+            confirmText: 'Hapus',
+            confirmClass: 'btn-danger',
+        }, function() {
+            window.location.href = e.target.href;
+        });
+    });
+</script>
+
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App\Models\Expense;
 
+use App\Constants;
 use App\Models\DataMaster\Location;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,43 @@ class Expense extends Model
         'expense_status',
         'created_by',
     ];
+
+    protected $append = [
+        'grand_total',
+        'is_paid',
+        'total_qty',
+    ];
+
+    public function getGrandTotalAttribute()
+    {
+        return $this->expense_main_prices->sum('price') + $this->expense_addit_prices->sum('price');
+    }
+
+    public function getIsPaidAttribute()
+    {
+        return $this->expense_payments->where('verify_status', 2)->sum('payment_nominal');
+    }
+
+    public function getTotalQtyAttribute()
+    {
+        return $this->expense_main_prices->sum('total_qty');
+    }
+
+    public function calculatePaymentStatus()
+    {
+        $grandTotal    = $this->grand_total;
+        $totalPayments = $this->is_paid;
+
+        if ($grandTotal < $totalPayments) {
+            return array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS);
+        } elseif ($grandTotal == $totalPayments) {
+            return array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS);
+        } elseif ($grandTotal > $totalPayments && $totalPayments > 0) {
+            return array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
+        } else {
+            return array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
+        }
+    }
 
     public function created_user()
     {
