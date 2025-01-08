@@ -136,6 +136,40 @@
                 <li id="{{ ltrim(parse_url(route('finance.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('finance.index') }}"><i data-feather="credit-card"></i><span class="menu-title text-truncate" data-i18n="Keuangan">Keuangan</span></a>
                 </li>
                 @endif
+                @if (hasAccess($collection, 'report', $roleAccess))
+                <li class="nav-item has-sub {{ Request::segment(1)=='report'?'sidebar-group-active':'' }}">
+                    <a class="d-flex align-items-center" href="#">
+                        <i data-feather="file-text"></i>
+                        <span class="menu-title text-truncate" data-i18n="Report">Laporan</span>
+                    </a>
+                    <ul class="menu-content">
+                        @if ($roleAccess->hasPermissionTo('report.mbu.index'))
+                            <li id="{{ ltrim(parse_url(route('report.mbu.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.mbu.index') }}">
+                                    <i data-feather="circle"></i>
+                                    <span class="menu-item text-truncate" data-i18n="MBU">MBU</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if ($roleAccess->hasPermissionTo('report.manbu.index'))
+                            <li id="{{ ltrim(parse_url(route('report.manbu.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.manbu.index') }}">
+                                    <i data-feather="circle"></i>
+                                    <span class="menu-item text-truncate" data-i18n="Manbu">Manbu</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if ($roleAccess->hasPermissionTo('report.lti.index'))
+                            <li id="{{ ltrim(parse_url(route('report.lti.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.lti.index') }}">
+                                    <i data-feather="circle"></i>
+                                    <span class="menu-item text-truncate" data-i18n="LTI">LTI</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+                @endif
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
                 <li id="{{ ltrim(parse_url(route('purchase.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('purchase.index') }}"><i data-feather="shopping-cart"></i><span class="menu-title text-truncate" data-i18n="Pembelian">Pembelian</span></a>
                 </li>
