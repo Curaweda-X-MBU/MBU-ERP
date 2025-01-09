@@ -11,7 +11,7 @@ class ExpenseMainPrice extends Model
 
     protected $table = 'expense_main_prices';
 
-    protected $primaryKey = 'expense_main_price_id';
+    protected $primaryKey = 'expense_item_id';
 
     protected $fillable = [
         'expense_id',
@@ -22,7 +22,7 @@ class ExpenseMainPrice extends Model
         'notes',
     ];
 
-    protected $append = ['total_qty', 'total_price'];
+    protected $appends = ['total_qty', 'total_price'];
 
     public function getTotalQtyAttribute()
     {

@@ -3,11 +3,9 @@
 @section('content')
 
 @php
-    $status = 2;
-    if (! empty($data)) {
-        dump($data);
-    }
-    dump($old);
+$bop = $data['bop'] ?? collect();
+$non_bop = $data['non_bop'] ?? collect();
+$statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
 @endphp
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
@@ -77,9 +75,19 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">{{$title}}</div>
-                <div class="float-right">
-                    <button data-toggle="modal" data-target="#recapExpense" id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Rekap BOP</button>
-                    @include('expense.recap.sections.modal-recap')
+                <div class="float-right row">
+                    @php
+                        $modals = [
+                            'bop',
+                            'non-bop'
+                        ];
+                    @endphp
+                    @foreach ($modals as $modal)
+                    <div id="{{ $modal }}ModalWrapper">
+                        <button data-toggle="modal" data-target="#{{ $modal }}Recap" id="{{ $modal }}ModalButton" type="button" class="btn btn-primary waves-effect waves-float waves-light mr-1">Rekap {{ strtoupper($modal) }}</button>
+                        @include('expense.recap.sections.modal-recap')
+                    </div>
+                    @endforeach
                 </div>
             </div>
             <div class="card-body">
@@ -110,11 +118,29 @@
                         <button type="button" class="btn btn-outline-primary waves-effect mr-1" onclick="searchRecap()">Cari</button>
                         <button type="button" class="btn btn-outline-warning waves-effect" onclick="resetFilters()">Reset</button>
                     </div>
-                    <input type="hidden" name="selected_kandangs" value="[]">
+                    <input type="hidden" name="selected_kandangs" value="{{ old('farms', $old['farms'] ?? '[]') }}">
                 </div>
 
                 <!-- container kandang -->
-                <div id="hatcheryButtonsContainer" class="mt-1"></div>
+                <div id="hatcheryButtonsContainer" class="mt-1">
+                    @if (old('location_id', $old['location_id'] ?? null))
+                        @foreach ($old['kandangs'] as $kandang)
+                        @php
+                        $is_active = $kandang->project_status;
+                        $is_selected = in_array($kandang->kandang_id, json_decode(old('farms', $old['farms'] ?? '[]')));
+                        @endphp
+
+                        <button
+                            type="button"
+                            class="kandang_select btn mr-1 mt-1 rounded-pill waves-effect {{ $is_selected ? 'btn-outline-primary' : ($is_active ? 'btn-outline-secondary' : 'btn-outline-danger') }}"
+                            data-active={{ $is_active }}
+                            data-kandang-id={{ $kandang->kandang_id }}
+                        >
+                            {{ $kandang->name }}
+                        </button>
+                        @endforeach
+                    @endif
+                </div>
 
                 {{-- table--}}
                 @include('expense.recap.sections.bop-table')
@@ -122,7 +148,13 @@
 
                 <div class="row justify-content-end mr-2 mt-3">
                     <p class="col-6 col-md-2">Total Keseluruhan Biaya</p>
-                    <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">0,00</span></p>
+                    <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">{{
+                        \App\Helpers\Parser::toLocale(
+                            old('farms', $old['farms'] ?? null)
+                                ? ($bop->sum('price') ?? 0) + ($non_bop->sum('price') ?? 0)
+                                : ($bop->sum('total_price') ?? 0) + ($non_bop->sum('total_price') ?? 0)
+                        )
+                    }}</span></p>
                 </div>
             </div>
         </div>
@@ -215,39 +247,11 @@
                 renderHatcheryButtons(null);
             }
         });
-
-        // START :: calculate total
-        function calculateBOP() {
-            let total = 0;
-            $('.nominal-bop').each(function() {
-                total += parseLocaleToNum($(this).text());
-            });
-            $('#total-biaya-bop').text(parseNumToLocale(total)).trigger('change');
-        }
-
-        function calculateNonBOP() {
-            let total = 0;
-            $('.nominal-non-bop').each(function() {
-                total += parseLocaleToNum($(this).text());
-            });
-            $('#total-biaya-non-bop').text(parseNumToLocale(total)).trigger('change');
-        }
-
-        function calculateTotal() {
-            const totalBop = parseLocaleToNum($('#total-biaya-bop').text());
-            const totalNonBop = parseLocaleToNum($('#total-biaya-non-bop').text());
-            const total = totalBop + totalNonBop;
-            $('#total-recap').text(parseNumToLocale(total));
-        }
-
-        calculateBOP();
-        calculateNonBOP();
-        calculateTotal();
     });
     // END :: calculate total
 
     // START :: export
-    let tableBOP = $('#datatableBOP').DataTable({
+    let $tableBOP = $('#datatableBOP').DataTable({
         dom: '<"custom-table-wrapper"t>',
         // buttons: [
         //     {
@@ -268,31 +272,22 @@
         // ]
     });
 
-    let tableNonBOP = $('#datatableNonBOP').DataTable({
+    let $tableNonBOP = $('#datatableNonBOP').DataTable({
         dom: '<"custom-table-wrapper"t>',
     });
 
     // Event handler untuk tombol export
     $('.modal-footer .btn-primary').on('click', function() {
-        const selectedFormat = $('input[name="fileType"]:checked').val();
+        const $modal = $(this).closest('.modal');
+        const selectedFormat = $modal.find('input[name*="fileType"]:checked').val();
 
-        if (selectedFormat === 'excel') {
-            tableBOP.button(0).trigger(); // Trigger Excel export
-        } else if (selectedFormat === 'pdf') {
-            tableBOP.button(1).trigger(); // Trigger PDF export
-        }
+        console.log(selectedFormat);
 
-        $('#recapExpense').modal('hide');
+        // TODO: trigger datatable export button
+
+        $modal.modal('hide');
     });
 
-    // Radio button click handlers
-    $('#exportExcel, #excelRadio').on('click', function() {
-        $('#excelRadio').prop('checked', true);
-    });
-
-    $('#exportPdf, #pdfRadio').on('click', function() {
-        $('#pdfRadio').prop('checked', true);
-    });
     // END :: export
 </script>
 
