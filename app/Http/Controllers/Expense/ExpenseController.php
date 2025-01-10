@@ -173,6 +173,15 @@ class ExpenseController extends Controller
             $old['location_id']   = isset($location) ? $location->location_id : null;
             $old['location_name'] = isset($location) ? $location->name : null;
             $old['kandangs']      = isset($location) ? Kandang::where('location_id', $location->location_id)->select('kandang_id', 'name', 'project_status')->get() : null;
+            if (isset($bop_items)) {
+                $old['available_kandangs'] = $bop_items->pluck('kandangs')->flatten()->unique()->values()
+                    ->sortBy(function($item) {
+                        preg_match('/\d+$/', $item, $matches);
+
+                        return (int) $matches[0];
+                    })
+                    ->all();
+            }
 
             $param = [
                 'title' => 'Biaya > List',
@@ -183,6 +192,10 @@ class ExpenseController extends Controller
                 'old' => $old,
             ];
 
+            if (isset($input['print']) && $input['print'] == true) {
+                return view('expense.recap.download-recap', $param);
+            }
+
             return view('expense.recap.index', $param);
         } catch (\Exception $e) {
             return redirect()
@@ -190,11 +203,6 @@ class ExpenseController extends Controller
                 ->with('error', $e->getMessage())
                 ->withInput();
         }
-    }
-
-    public function exportRecap(Request $req)
-    {
-        //
     }
 
     public function recapExport()
