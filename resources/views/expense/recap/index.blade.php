@@ -240,6 +240,8 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                 $.getJSON(kandangIdRoute.replace(':id', location_id), function(data) {
                     if (data.length) {
                         renderHatcheryButtons(data);
+                    } else {
+                        renderHatcheryButtons(null);
                     }
                 });
             } else {
