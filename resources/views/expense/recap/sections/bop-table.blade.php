@@ -14,12 +14,12 @@
             <tr class="bg-light text-center">
                 <th>No</th>
                 <th>ID Biaya</th>
+                <th>Lokasi</th>
                 <th>Tanggal</th>
                 <th>Sub Kategori</th>
                 <th>Catatan</th>
                 <th>QTY</th>
                 <th>UOM</th>
-                <th>Nominal</th>
                 <th>Status</th>
                 <th>Kandang</th>
             </tr>
@@ -32,12 +32,12 @@
             <tr class="text-center">
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $item->id_expense }}</td>
+                <td>{{ $item->location_name }}</td>
                 <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
                 <td>{{ $item->sub_category ?? $item->name }}</td>
                 <td>{{ $item->notes ?? '-' }}</td>
                 <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }}</td>
                 <td>{{ $item->uom ?? '-' }}</td>
-                <td>{{ \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_price : $item->price) }}</td>
                 <td>
                     @switch($item->status)
                         @case(1)
