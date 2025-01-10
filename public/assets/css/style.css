@@ -18,7 +18,7 @@ table tr td {
 
 .custom-table-wrapper {
     width: 100%;
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 @media (max-width: 576px) {
