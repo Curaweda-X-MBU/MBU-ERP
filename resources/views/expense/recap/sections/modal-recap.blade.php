@@ -10,12 +10,14 @@
                 <h5 class="modal-title text-primary" style="font-size: 1.5em;" id="{{ $modal }}RecapLabel">Konfirmasi Rekap Biaya</h5>
                 <p>Pilih bentuk file</p>
                 <div class="d-flex flex-column" style="gap: 1rem">
+                    {{--
                     <div class="custom-control custom-radio">
                         <input type="radio" name="{{ $modal }}fileType" id="{{ $modal }}excelRadio" class="custom-control-input" value="excel">
                         <label for="{{ $modal }}excelRadio" class="custom-control-label">Excel</label>
                     </div>
+                    --}}
                     <div class="custom-control custom-radio">
-                        <input type="radio" name="{{ $modal }}fileType" id="{{ $modal }}pdfRadio" class="custom-control-input" value="pdf">
+                        <input type="radio" name="{{ $modal }}fileType" id="{{ $modal }}pdfRadio" class="custom-control-input" value="pdf" checked>
                         <label for="{{ $modal }}pdfRadio" class="custom-control-label">Pdf</label>
                     </div>
                 </div>
@@ -28,8 +30,8 @@
 </div>
 
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/dataTables.buttons.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.buttons.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/buttons.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/jszip.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
