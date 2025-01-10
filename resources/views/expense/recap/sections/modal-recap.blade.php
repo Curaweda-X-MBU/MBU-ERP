@@ -1,4 +1,4 @@
-<div class="modal fade" id="recapExpense" tabindex="-1" role="dialog" aria-labelledby="returnPaymentLabel" aria-hidden="true">
+<div class="modal fade" id="{{ $modal }}Recap" tabindex="-1" role="dialog" aria-labelledby="{{ $modal }}RecapLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header p-2">
@@ -7,26 +7,21 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h5 class="modal-title text-primary" style="font-size: 1.5em;" id="konfirmasiModalLabel">Konfirmasi Rekap Biaya</h5>
-                <p>Pilih untuk rekap biaya kedalam file apa</p>
-                <div class="d-flex flex-column gap-3">
-                    <div class="form-check mb-1">
-                        <input class="form-check-input" type="radio" name="fileType" id="excelRadio" value="excel">
-                        <label id="exportExcel" class="form-check-label" for="excelRadio">
-                            File Excel
-                        </label>
+                <h5 class="modal-title text-primary" style="font-size: 1.5em;" id="{{ $modal }}RecapLabel">Konfirmasi Rekap Biaya</h5>
+                <p>Pilih bentuk file</p>
+                <div class="d-flex flex-column" style="gap: 1rem">
+                    <div class="custom-control custom-radio">
+                        <input type="radio" name="{{ $modal }}fileType" id="{{ $modal }}excelRadio" class="custom-control-input" value="excel">
+                        <label for="{{ $modal }}excelRadio" class="custom-control-label">Excel</label>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="fileType" id="pdfRadio" value="pdf" checked>
-                        <label id="exportPdf" class="form-check-label" for="pdfRadio">
-                            File PDF
-                        </label>
+                    <div class="custom-control custom-radio">
+                        <input type="radio" name="{{ $modal }}fileType" id="{{ $modal }}pdfRadio" class="custom-control-input" value="pdf">
+                        <label for="{{ $modal }}pdfRadio" class="custom-control-label">Pdf</label>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="{{ route('expense.recap.index') }}" class="col-md-3 btn btn-outline-warning waves-effect">Batal</a>
-                <button type="button" class="col-md-3 btn btn-primary d-flex justify-content-center">Download</button>
+                <button type="button" class="col-md-3 btn btn-primary waves-effect">Download</button>
             </div>
         </div>
     </div>
