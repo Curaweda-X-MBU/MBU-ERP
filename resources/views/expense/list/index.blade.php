@@ -257,7 +257,7 @@
         });
 
         $('.item-delete-button').on('click', function(e) {
-            e.preventDefailt();
+            e.preventDefault();
 
             confirmCallback({
                 title: 'Hapus',
