@@ -29,7 +29,7 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
         $endDate.siblings('.input.flatpickr-basic').val('').trigger('input');
     }
 
-    function searchRecap() {
+    function searchRecap(isPrint = false, isBlank = false) {
         const locationId = $('#location_id').val();
         const startDate = $('#start_date').val();
         const endDate = $('#end_date').val();
@@ -56,17 +56,32 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
             return;
         }
 
-        // Query parameters
+        const url = getUrl({
+            locationId,
+            startDate,
+            endDate,
+            selectedKandangs,
+            isPrint,
+        });
+
+        isBlank ? window.open(url, '_blank') : window.location.href = url;
+    }
+
+    function getUrl({
+        locationId,
+        startDate,
+        endDate,
+        selectedKandangs,
+        isPrint
+    }) {
         const params = new URLSearchParams();
         if (locationId) params.append('location_id', locationId);
         if (startDate) params.append('date_start', startDate);
         if (endDate) params.append('date_end', endDate);
         if (selectedKandangs.length > 0) params.append('farms', JSON.stringify(selectedKandangs));
+        if (isPrint) params.append('print', 'true');
 
-        // Url with params
-        const url = `{{ route("expense.recap.index") }}?${params.toString()}`;
-
-        window.location.href = url;
+        return `{{ route("expense.recap.index") }}?${params.toString()}`;
     }
 </script>
 
@@ -78,13 +93,12 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                 <div class="float-right row">
                     @php
                         $modals = [
-                            'bop',
-                            'non-bop'
+                            'biaya',
                         ];
                     @endphp
                     @foreach ($modals as $modal)
                     <div id="{{ $modal }}ModalWrapper">
-                        <button data-toggle="modal" data-target="#{{ $modal }}Recap" id="{{ $modal }}ModalButton" type="button" class="btn btn-primary waves-effect waves-float waves-light mr-1">Rekap {{ strtoupper($modal) }}</button>
+                        <button data-toggle="modal" data-target="#{{ $modal }}Recap" id="{{ $modal }}ModalButton" type="button" class="btn btn-primary waves-effect waves-float waves-light mr-1">Rekap {{ ucfirst($modal) }}</button>
                         @include('expense.recap.sections.modal-recap')
                     </div>
                     @endforeach
@@ -283,7 +297,9 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
         const $modal = $(this).closest('.modal');
         const selectedFormat = $modal.find('input[name*="fileType"]:checked').val();
 
-        console.log(selectedFormat);
+        if (selectedFormat == 'pdf') {
+            searchRecap(true, true);
+        }
 
         // TODO: trigger datatable export button
 
