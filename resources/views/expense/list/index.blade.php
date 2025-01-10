@@ -7,13 +7,6 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Export
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <button id="exportExcel" class="dropdown-item w-100">Excel</button>
-                        <button id="exportPdf" class="dropdown-item w-100">PDF</button>
-                    </div>
                     <a href="{{ route('expense.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
             </div>
@@ -204,23 +197,7 @@
 <script>
     $(function () {
         const $table = $('#datatable').DataTable({
-            dom: 'B<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    className: 'd-none datatable-hidden-excel-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-                {
-                    extend: 'pdfHtml5',
-                    className: 'd-none datatable-hidden-pdf-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-            ],
+            dom: '<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
             drawCallback: function(settings) {
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
@@ -247,14 +224,6 @@
         });
 
         $table.columns([0, 1]).visible(false);
-
-        $('#exportExcel').on('click', function() {
-            $('.datatable-hidden-excel-button').trigger('click');
-        });
-
-        $('#exportPdf').on('click', function() {
-            $('.datatable-hidden-pdf-button').trigger('click');
-        });
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();

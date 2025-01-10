@@ -29,7 +29,7 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
         $endDate.siblings('.input.flatpickr-basic').val('').trigger('input');
     }
 
-    function searchRecap(isPrint = false) {
+    function searchRecap(isPrint = false, isBlank = false) {
         const locationId = $('#location_id').val();
         const startDate = $('#start_date').val();
         const endDate = $('#end_date').val();
@@ -64,7 +64,7 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
             isPrint,
         });
 
-        window.location.href = url;
+        isBlank ? window.open(url, '_blank') : window.location.href = url;
     }
 
     function getUrl({
@@ -298,7 +298,7 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
         const selectedFormat = $modal.find('input[name*="fileType"]:checked').val();
 
         if (selectedFormat == 'pdf') {
-            searchRecap(true);
+            searchRecap(true, true);
         }
 
         // TODO: trigger datatable export button
