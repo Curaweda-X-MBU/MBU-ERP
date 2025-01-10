@@ -93,13 +93,12 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                 <div class="float-right row">
                     @php
                         $modals = [
-                            'bop',
-                            'non-bop'
+                            'biaya',
                         ];
                     @endphp
                     @foreach ($modals as $modal)
                     <div id="{{ $modal }}ModalWrapper">
-                        <button data-toggle="modal" data-target="#{{ $modal }}Recap" id="{{ $modal }}ModalButton" type="button" class="btn btn-primary waves-effect waves-float waves-light mr-1">Rekap {{ strtoupper($modal) }}</button>
+                        <button data-toggle="modal" data-target="#{{ $modal }}Recap" id="{{ $modal }}ModalButton" type="button" class="btn btn-primary waves-effect waves-float waves-light mr-1">Rekap {{ ucfirst($modal) }}</button>
                         @include('expense.recap.sections.modal-recap')
                     </div>
                     @endforeach

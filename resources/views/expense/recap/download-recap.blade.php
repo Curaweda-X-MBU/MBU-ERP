@@ -109,9 +109,7 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                 <th>Lokasi</th>
                 <th>Tanggal</th>
                 <th>Sub Kategori</th>
-                <th>Catatan</th>
                 <th>QTY</th>
-                <th>UOM</th>
                 <th>Status</th>
                 <th>Kandang</th>
             </tr>
@@ -126,10 +124,13 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                 <td>{{ $item->id_expense }}</td>
                 <td>{{ $item->location_name }}</td>
                 <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
-                <td>{{ $item->sub_category ?? $item->name }}</td>
-                <td>{{ $item->notes ?? '-' }}</td>
-                <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }}</td>
-                <td>{{ $item->uom ?? '-' }}</td>
+                <td>
+                    <div>{{ $item->sub_category ?? $item->name }}</div>
+                    @if (isset($item->notes))
+                    <div>({{ $item->notes }})</div>
+                    @endif
+                </td>
+                <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }} {{ $item->uom ?? '' }}</td>
                 <td>
                     <div>{{ $statusPayment[$item->status] }}</div>
                 </td>
@@ -163,28 +164,33 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                     <th>Lokasi</th>
                     <th>Tanggal</th>
                     <th>Sub Kategori</th>
-                    <th>Catatan</th>
                     <th>QTY</th>
-                    <th>UOM</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
+                @if (count($non_bop))
                 @foreach ($non_bop as $index => $item)
                 <tr class="text-center">
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->id_expense }}</td>
                     <td>{{ $item->location_name }}</td>
                     <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
-                    <td>{{ $item->sub_category ?? $item->name }}</td>
-                    <td>{{ $item->notes ?? '-' }}</td>
-                    <td>{{ \App\Helpers\Parser::toLocale($item->total_qty) ?? '-' }}</td>
-                    <td>{{ $item->uom ?? '-' }}</td>
+                    <td>
+                        <div>{{ $item->sub_category ?? $item->name }}</div>
+                        <div>({{ $item->notes ?? '-' }})</div>
+                    </td>
+                    <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }} {{ $item->uom ?? '' }}</td>
                     <td>
                         <div>{{ $statusPayment[$item->status] }}</div>
                     </td>
                 </tr>
                 @endforeach
+                @else
+                <tr class="text-center">
+                    <td colspan="7">Tidak ada data</td>
+                </tr>
+                @endif
             </tbody>
         </table>
     </div>
