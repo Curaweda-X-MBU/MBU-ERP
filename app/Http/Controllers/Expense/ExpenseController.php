@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Expense;
 use App\Constants;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Expense\ExpenseAdditPrice;
 use App\Models\Expense\ExpenseKandang;
@@ -47,11 +48,81 @@ class ExpenseController extends Controller
         }
     }
 
-    public function recap()
+    public function recap(Request $req)
     {
         try {
+            $input = $req->query();
+            $data  = null;
+
+            if (count($input) > 0) {
+                $query = Expense::with([
+                    'expense_main_prices',
+                    'expense_addit_prices',
+                    'expense_kandang.kandang',
+                ])
+                    ->whereBetween('created_at', [
+                        $input['date_start'], $input['date_end'] ?? now(),
+                    ]);
+
+                $location = null;
+                if (isset($input['location_id'])) {
+                    $location = Location::find($input['location_id']);
+                    $query->where('location_id', $location->location_id);
+                }
+
+                $selectedFarms = json_decode($req->input('farms', '[]'));
+
+                if (! empty($selectedFarms)) {
+                    $query->whereHas(
+                        'expense_kandang.kandang',
+                        function($q) use ($selectedFarms) {
+                            $q->whereIn('kandang_id', $selectedFarms);
+                        }
+                    );
+                }
+
+                $expenses = $query->get();
+
+                $data = $expenses->map(function($expense) {
+                    return [
+                        'expense_id' => $expense->expense_id,
+                        'created_at' => $expense->created_at,
+                        'location'   => $expense->location->name,
+                        'category'   => $expense->category, // 1 : BOP, 2 : Non-BOP
+                        'farms'      => $expense->category == 2
+                            ? []
+                            : $expense->expense_kandang->map(function($e_kandang) {
+                                return $e_kandang->kandang->name;
+                            }),
+                        'main_prices' => $expense->expense_main_prices
+                            ->map(function($mp) {
+                                return [
+                                    'name'  => $mp->sub_category,
+                                    'qty'   => $mp->qty,
+                                    'uom'   => $mp->uom,
+                                    'price' => $mp->price,
+                                ];
+                            }),
+                        'addit_prices' => $expense->expense_addit_prices
+                            ->map(function($ap) {
+                                return [
+                                    'name'  => $ap->name,
+                                    'price' => $ap->price,
+                                ];
+                            }),
+                    ];
+                });
+
+            }
+
+            $old                  = $req->query();
+            $old['location_id']   = $location->location_id ?? null;
+            $old['location_name'] = $location->name        ?? '';
+
             $param = [
                 'title' => 'Biaya > List',
+                'data'  => $data,
+                'old'   => $old,
             ];
 
             return view('expense.recap.index', $param);
@@ -61,6 +132,11 @@ class ExpenseController extends Controller
                 ->with('error', $e->getMessage())
                 ->withInput();
         }
+    }
+
+    public function exportRecap(Request $req)
+    {
+        //
     }
 
     public function recapExport()
