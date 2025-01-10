@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Expense;
 use App\Constants;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Expense\ExpenseAdditPrice;
@@ -51,14 +52,16 @@ class ExpenseController extends Controller
     public function recap(Request $req)
     {
         try {
-            $input = $req->query();
-            $data  = null;
+            $input         = $req->query();
+            $bop_items     = null;
+            $non_bop_items = null;
 
             if (count($input) > 0) {
                 $query = Expense::with([
                     'expense_main_prices',
                     'expense_addit_prices',
                     'expense_kandang.kandang',
+                    'expense_payments',
                 ])
                     ->whereBetween('created_at', [
                         $input['date_start'], $input['date_end'] ?? now(),
@@ -81,48 +84,103 @@ class ExpenseController extends Controller
                     );
                 }
 
-                $expenses = $query->get();
+                $bop = (clone $query)->where('category', 1)->get();
+                if (count($bop) > 0) {
+                    $bop_items = $bop->flatMap(function($eb) use ($selectedFarms) {
+                        $bop_kandangs = ! empty($selectedFarms)
+                            ? $eb->expense_kandang->whereIn('kandang_id', $selectedFarms)
+                            : [1];
 
-                $data = $expenses->map(function($expense) {
-                    return [
-                        'expense_id' => $expense->expense_id,
-                        'created_at' => $expense->created_at,
-                        'location'   => $expense->location->name,
-                        'category'   => $expense->category, // 1 : BOP, 2 : Non-BOP
-                        'farms'      => $expense->category == 2
-                            ? []
-                            : $expense->expense_kandang->map(function($e_kandang) {
-                                return $e_kandang->kandang->name;
-                            }),
-                        'main_prices' => $expense->expense_main_prices
-                            ->map(function($mp) {
-                                return [
-                                    'name'  => $mp->sub_category,
-                                    'qty'   => $mp->qty,
-                                    'uom'   => $mp->uom,
-                                    'price' => $mp->price,
-                                ];
-                            }),
-                        'addit_prices' => $expense->expense_addit_prices
-                            ->map(function($ap) {
-                                return [
-                                    'name'  => $ap->name,
-                                    'price' => $ap->price,
-                                ];
-                            }),
-                    ];
-                });
+                        // For grouping by kandang
+                        $cloned_items = collect();
 
+                        // For when not filtered by kandang, assign all the kandang names to the item
+                        $kandangs = [];
+                        if (empty($selectedFarms)) {
+                            $kandangs = $eb->expense_kandang->pluck('kandang.name')->toArray();
+                        }
+
+                        foreach ($bop_kandangs as $e_kandang) {
+                            $main_prices = $eb->expense_main_prices->map(function($mp) use (&$bop_is_paid, $e_kandang, $kandangs, $selectedFarms) {
+                                $new_mp = clone $mp; // Clone the price item to avoid overwrite
+
+                                $new_mp->id_expense    = $new_mp->expense->id_expense;
+                                $new_mp->location_name = $new_mp->expense->location->name;
+                                $new_mp->created_at    = $new_mp->expense->created_at;
+                                $new_mp->status        = $new_mp->expense->payment_status;
+
+                                if (empty($selectedFarms)) {
+                                    $new_mp->kandangs = $kandangs;
+                                } else {
+                                    $new_mp->kandangs = [$e_kandang->kandang->name];
+                                }
+
+                                return $new_mp;
+                            });
+
+                            // Clone additional prices
+                            $addit_prices = $eb->expense_addit_prices->map(function($ap) use (&$bop_is_paid, $e_kandang, $kandangs, $selectedFarms) {
+                                $new_ap = clone $ap; // Clone the price item to avoid overwrite
+
+                                $new_ap->id_expense    = $new_ap->expense->id_expense;
+                                $new_ap->location_name = $new_ap->expense->location->name;
+                                $new_ap->created_at    = $new_ap->expense->created_at;
+                                $new_ap->status        = $new_ap->expense->payment_status;
+
+                                if (empty($selectedFarms)) {
+                                    $new_ap->kandangs = $kandangs;
+                                } else {
+                                    $new_ap->kandangs = [$e_kandang->kandang->name];
+                                }
+
+                                return $new_ap;
+                            });
+
+                            $cloned_items = $cloned_items->concat($main_prices)->concat($addit_prices);
+                        }
+
+                        return $cloned_items;
+                    });
+                }
+
+                $non_bop = (clone $query)->where('category', 2)->get();
+                if (count($non_bop) > 0) {
+                    $non_bop_items = $non_bop->flatMap(function($eb) {
+                        $main_prices = $eb->expense_main_prices->map(function($mp) use (&$non_bop_is_paid) {
+                            $mp->id_expense    = $mp->expense->id_expense;
+                            $mp->location_name = $mp->expense->location->name;
+                            $mp->created_at    = $mp->expense->created_at;
+                            $mp->status        = $mp->expense->payment_status;
+
+                            return $mp;
+                        });
+
+                        $addit_prices = $eb->expense_addit_prices->map(function($ap) use (&$non_bop_is_paid) {
+                            $ap->id_expense    = $ap->expense->id_expense;
+                            $ap->location_name = $ap->expense->location->name;
+                            $ap->created_at    = $ap->expense->created_at;
+                            $ap->status        = $ap->expense->payment_status;
+
+                            return $ap;
+                        });
+
+                        return $main_prices->concat($addit_prices);
+                    });
+                }
             }
 
             $old                  = $req->query();
-            $old['location_id']   = $location->location_id ?? null;
-            $old['location_name'] = $location->name        ?? '';
+            $old['location_id']   = isset($location) ? $location->location_id : null;
+            $old['location_name'] = isset($location) ? $location->name : null;
+            $old['kandangs']      = isset($location) ? Kandang::where('location_id', $location->location_id)->select('kandang_id', 'name', 'project_status')->get() : null;
 
             $param = [
                 'title' => 'Biaya > List',
-                'data'  => $data,
-                'old'   => $old,
+                'data'  => [
+                    'bop'     => $bop_items,
+                    'non_bop' => $non_bop_items,
+                ],
+                'old' => $old,
             ];
 
             return view('expense.recap.index', $param);

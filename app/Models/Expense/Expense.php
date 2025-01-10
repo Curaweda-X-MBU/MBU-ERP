@@ -31,7 +31,7 @@ class Expense extends Model
         'created_by',
     ];
 
-    protected $append = [
+    protected $appends = [
         'grand_total',
         'is_paid',
         'total_qty',
@@ -39,7 +39,7 @@ class Expense extends Model
 
     public function getGrandTotalAttribute()
     {
-        return $this->expense_main_prices->sum('price') + $this->expense_addit_prices->sum('price');
+        return $this->expense_main_prices->sum('total_price') + $this->expense_addit_prices->sum('total_price');
     }
 
     public function getIsPaidAttribute()
