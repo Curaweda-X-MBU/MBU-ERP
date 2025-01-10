@@ -87,8 +87,6 @@ class ExpenseController extends Controller
                 $bop = (clone $query)->where('category', 1)->get();
                 if (count($bop) > 0) {
                     $bop_items = $bop->flatMap(function($eb) use ($selectedFarms) {
-                        $bop_is_paid = $eb->is_paid;
-
                         $bop_kandangs = ! empty($selectedFarms)
                             ? $eb->expense_kandang->whereIn('kandang_id', $selectedFarms)
                             : [1];
@@ -106,18 +104,11 @@ class ExpenseController extends Controller
                             $main_prices = $eb->expense_main_prices->map(function($mp) use (&$bop_is_paid, $e_kandang, $kandangs, $selectedFarms) {
                                 $new_mp = clone $mp; // Clone the price item to avoid overwrite
 
-                                if ($bop_is_paid > 0) {
-                                    $decrease       = empty($selectedFarms) ? $new_mp->total_price : $new_mp->price;
-                                    $new_mp->status = $bop_is_paid >= $decrease
-                                        ? array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS)
-                                        : array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
-                                    $bop_is_paid -= $decrease;
-                                } else {
-                                    $new_mp->status = array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
-                                }
+                                $new_mp->id_expense    = $new_mp->expense->id_expense;
+                                $new_mp->location_name = $new_mp->expense->location->name;
+                                $new_mp->created_at    = $new_mp->expense->created_at;
+                                $new_mp->status        = $new_mp->expense->payment_status;
 
-                                $new_mp->id_expense = $new_mp->expense->id_expense;
-                                $new_mp->created_at = $new_mp->expense->created_at;
                                 if (empty($selectedFarms)) {
                                     $new_mp->kandangs = $kandangs;
                                 } else {
@@ -131,18 +122,10 @@ class ExpenseController extends Controller
                             $addit_prices = $eb->expense_addit_prices->map(function($ap) use (&$bop_is_paid, $e_kandang, $kandangs, $selectedFarms) {
                                 $new_ap = clone $ap; // Clone the price item to avoid overwrite
 
-                                if ($bop_is_paid > 0) {
-                                    $decrease       = empty($selectedFarms) ? $new_ap->total_price : $new_ap->price;
-                                    $new_ap->status = $bop_is_paid >= $decrease
-                                        ? array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS)
-                                        : array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
-                                    $bop_is_paid -= $decrease;
-                                } else {
-                                    $new_ap->status = array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
-                                }
-
-                                $new_ap->id_expense = $new_ap->expense->id_expense;
-                                $new_ap->created_at = $new_ap->expense->created_at;
+                                $new_ap->id_expense    = $new_ap->expense->id_expense;
+                                $new_ap->location_name = $new_ap->expense->location->name;
+                                $new_ap->created_at    = $new_ap->expense->created_at;
+                                $new_ap->status        = $new_ap->expense->payment_status;
 
                                 if (empty($selectedFarms)) {
                                     $new_ap->kandangs = $kandangs;
@@ -163,36 +146,20 @@ class ExpenseController extends Controller
                 $non_bop = (clone $query)->where('category', 2)->get();
                 if (count($non_bop) > 0) {
                     $non_bop_items = $non_bop->flatMap(function($eb) {
-                        $non_bop_is_paid = $eb->is_paid;
-
                         $main_prices = $eb->expense_main_prices->map(function($mp) use (&$non_bop_is_paid) {
-                            if ($non_bop_is_paid > 0) {
-                                $mp->status = $non_bop_is_paid >= $mp->price
-                                    ? array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS)
-                                    : array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
-                                $non_bop_is_paid -= $mp->price;
-                            } else {
-                                $mp->status = array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
-                            }
-
-                            $mp->id_expense = $mp->expense->id_expense;
-                            $mp->created_at = $mp->expense->created_at;
+                            $mp->id_expense    = $mp->expense->id_expense;
+                            $mp->location_name = $mp->expense->location->name;
+                            $mp->created_at    = $mp->expense->created_at;
+                            $mp->status        = $mp->expense->payment_status;
 
                             return $mp;
                         });
 
                         $addit_prices = $eb->expense_addit_prices->map(function($ap) use (&$non_bop_is_paid) {
-                            if ($non_bop_is_paid > 0) {
-                                $ap->status = $non_bop_is_paid >= $ap->price
-                                    ? array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS)
-                                    : array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
-                                $non_bop_is_paid -= $ap->price;
-                            } else {
-                                $ap->status = array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
-                            }
-
-                            $ap->id_expense = $ap->expense->id_expense;
-                            $ap->created_at = $ap->expense->created_at;
+                            $ap->id_expense    = $ap->expense->id_expense;
+                            $ap->location_name = $ap->expense->location->name;
+                            $ap->created_at    = $ap->expense->created_at;
+                            $ap->status        = $ap->expense->payment_status;
 
                             return $ap;
                         });
