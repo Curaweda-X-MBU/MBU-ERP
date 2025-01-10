@@ -314,7 +314,7 @@ class ExpenseController extends Controller
                     }
 
                     if ($expenseStatus == 1) {
-                        $prefix      = $category == 1 ? 'OP' : 'NB';
+                        $prefix      = $category == 1 ? 'BOP' : 'NBOP';
                         $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
                         $idExpense   = "{$prefix}.{$incrementId}";
 
@@ -457,7 +457,7 @@ class ExpenseController extends Controller
                         }
                     }
 
-                    $prefix      = $expense->category == 1 ? 'OP' : 'NB';
+                    $prefix      = $expense->category == 1 ? 'BOP' : 'NBOP';
                     $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
                     $idExpense   = "{$prefix}.{$incrementId}";
 
