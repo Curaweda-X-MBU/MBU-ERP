@@ -73,13 +73,13 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
         <tr>
             <td>Location</td>
             <td class="pl-2">:</td>
-            <td>{{ old('location_name', $old['location_name']) }}</td>
+            <td>{{ old('location_name', $old['location_name'] ?? '-') }}</td>
         </tr>
         <tr>
             <td>Farms</td>
             <td class="pl-2">:</td>
             <td>
-                @if (old('available_kandangs', $old['available_kandangs'] ?? null))
+                @if (old('farms', $old['farms'] ?? null))
                     @foreach(old('available_kandangs', $old['available_kandangs']) as $kandang)
                     <div>{{ $kandang }}</div>
                     @endforeach
@@ -178,7 +178,9 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                     <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
                     <td>
                         <div>{{ $item->sub_category ?? $item->name }}</div>
-                        <div>({{ $item->notes ?? '-' }})</div>
+                        @if (isset($item->notes))
+                        <div>({{ $item->notes }})</div>
+                        @endif
                     </td>
                     <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }} {{ $item->uom ?? '' }}</td>
                     <td>
