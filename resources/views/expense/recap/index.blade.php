@@ -301,8 +301,6 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
             searchRecap(true, true);
         }
 
-        // TODO: trigger datatable export button
-
         $modal.modal('hide');
     });
 
