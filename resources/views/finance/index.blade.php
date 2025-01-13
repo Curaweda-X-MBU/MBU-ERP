@@ -14,6 +14,69 @@
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/extensions/sweetalert2.min.css')}}" />
+
+<script>
+
+function searchFinance(isPrint = false, isBlank = false) {
+        const locationId = $('#location_id').val();
+        const companyId = $('#company_id').val();
+        const kandangId = $('#kandang_id').val();
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
+
+        if (!locationId || !companyId || !kandangId || locationId == '' || companyId == '' || kandangId == '') {
+            Swal.fire({
+                title: 'Filter',
+                text: 'Isi filter wajib',
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonText: 'Ok',
+                customClass: {
+                    confirmButton: "btn mr-1 btn-warning",
+                },
+                buttonsStyling: false,
+            }).then(function (result) {
+                if (result.value) {
+                    return;
+                }
+            });
+
+            return;
+        }
+
+        const url = getUrl({
+            locationId,
+            companyId,
+            kandangId,
+            startDate,
+            endDate,
+            isPrint,
+        });
+
+        console.log(url)
+
+        isBlank ? window.open(url, '_blank') : window.location.href = url;
+    }
+
+    function getUrl({
+        locationId,
+        companyId,
+        kandangId,
+        startDate,
+        endDate,
+        isPrint
+    }) {
+        const params = new URLSearchParams();
+        if (locationId) params.append('location_id', locationId);
+        if (companyId) params.append('company_id', companyId);
+        if (kandangId) params.append('kandang_id', kandangId);
+        if (startDate) params.append('date_start', startDate);
+        if (endDate) params.append('date_end', endDate);
+        if (isPrint) params.append('print', 'true');
+
+        return `{{ route("finance.index") }}?${params.toString()}`;
+    }</script>
 
 <div class="row">
     <div class="col-12">
@@ -36,16 +99,16 @@
                     <div class="col-md-9">
                         <div class="row">
                             <div class="col-md-3 mt-1">
-                                <label for="bussiness_unit" class="form-label">Unit Bisnis<i class="text-danger">*</i></label>
-                                <select name="bussiness_unit" id="bussiness_unit" class="form-control"></select>
+                                <label for="company_id" class="form-label">Unit Bisnis<i class="text-danger">*</i></label>
+                                <select name="company_id" id="company_id" class="form-control"></select>
                             </div>
                             <div class="col-md-3 mt-1">
-                                <label for="location" class="form-label">Lokasi<i class="text-danger">*</i></label>
-                                <select name="location" id="location" class="form-control"></select>
+                                <label for="location_id" class="form-label">Lokasi<i class="text-danger">*</i></label>
+                                <select name="location_id" id="location_id" class="form-control"></select>
                             </div>
                             <div class="col-md-3 mt-1">
-                                <label for="kandang" class="form-label">Kandang<i class="text-danger">*</i></label>
-                                <select name="kandang" id="kandang" class="form-control"></select>
+                                <label for="kandang_id" class="form-label">Kandang<i class="text-danger">*</i></label>
+                                <select name="kandang_id" id="kandang_id" class="form-control"></select>
                             </div>
                         </div>
                         <div class="row">
@@ -64,6 +127,9 @@
                             <div class="col-md-3 mt-1">
                                 <label for="period" class="form-label">Periode Produksi</label>
                                 <input type="text" name="period" id="period" class="form-control" placeholder="Masukan angka periode"></input>
+                            </div>
+                            <div class="col-12 mt-1">
+                                <button class="btn btn-outline-primary" type="button" onclick="searchFinance()">Cari</button>
                             </div>
                         </div>
                     </div>
@@ -199,15 +265,16 @@
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/jszip.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
+<script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 
 <script>
     // flatpickr
     initFlatpickrDate($('.flatpickr-basic'));
 
     // select2
-    const $locationSelect = $('#location');
-    const $companySelect = $('#bussiness_unit');
-    const $kandangSelect = $('#kandang');
+    const $locationSelect = $('#location_id');
+    const $companySelect = $('#company_id');
+    const $kandangSelect = $('#kandang_id');
     const locationIdRoute = '{{ route("data-master.location.search") }}';
     const companyIdRoute = '{{ route("data-master.company.search") }}';
     const kandangIdRoute = '{{ route("data-master.kandang.search") }}';
