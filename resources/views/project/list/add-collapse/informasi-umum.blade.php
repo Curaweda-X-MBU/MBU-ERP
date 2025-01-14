@@ -7,6 +7,8 @@
     $location_name = old('location_name');
     $product_category_id = old('product_category_id');
     $product_category_name = old('product_category_name');
+    $period = old('period');
+    $farm_type = old('farm_type');
 
     if (isset($data)) {
         $company_id = $data->kandang->company_id??'';
@@ -16,7 +18,9 @@
         $location_id = $data->kandang->location_id??'';
         $location_name = $data->kandang->location->name??'';
         $product_category_id = $data->product_category_id??'';
-        $product_category_name = $data->product->name??'';
+        $product_category_name = $data->product_category->name??'';
+        $period = $data->period??"";
+        $farm_type = $data->farm_type??"";
     } 
 
 @endphp
@@ -77,11 +81,11 @@
                                 <select name="location_id" id="location_id" class="form-control">
                                     <option disabled selected>Pilih Area terlebih dahulu</option>
                                     @if($location_id && $location_name)
-                                        <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
+                                    <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
                                     @endif
                                 </select>
                                 @if ($errors->has('location_id'))
-                                    <span class="text-danger small">{{ $errors->first('location_id') }}</span>
+                                <span class="text-danger small">{{ $errors->first('location_id') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -95,11 +99,47 @@
                                 <select name="product_category_id" id="product_category_id" class="form-control">
                                     <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
                                     @if($product_category_id && $product_category_name)
-                                        <option value="{{ $product_category_id }}" selected="selected">{{ $product_category_name }}</option>
+                                    <option value="{{ $product_category_id }}" selected="selected">{{ $product_category_name }}</option>
                                     @endif
                                 </select>
                                 @if ($errors->has('product_category_id'))
-                                    <span class="text-danger small">{{ $errors->first('product_category_id') }}</span>
+                                <span class="text-danger small">{{ $errors->first('product_category_id') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="period" class="float-right">Periode</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="number" id="period" class="{{$errors->has('period')?'is-invalid':''}} form-control" placeholder="Periode" value="{{ $period }}" readonly>
+                                <input type="hidden" name="period" value="{{ $period }}">
+                                @if ($errors->has('period'))
+                                    <span class="text-danger small">{{ $errors->first('period') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="farm_type" class="float-right">Jenis Farm</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="farm_type" id="farm_type" class="{{$errors->has('farm_type')?'is-invalid':''}} form-control">
+                                    <option disabled {{ !$farm_type?'selected': '' }}>Pilih Tipe</option>
+                                    @foreach ($type as $key => $item)
+                                        <option value="{{$key}}" {{$farm_type==$key?'selected':''}}>{{$item}}</option>
+                                    @endforeach
+                                </select>
+                                @if ($errors->has('farm_type'))
+                                    <span class="text-danger small">{{ $errors->first('farm_type') }}</span>
                                 @endif
                             </div>
                         </div>
