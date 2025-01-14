@@ -3,7 +3,7 @@
 namespace App\Models\DataMaster;
 
 use App\Models\Inventory\ProductWarehouse;
-use App\Models\Purchase\PurchaseItem;
+use App\Models\Purchase\Purchase;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,9 +41,9 @@ class Warehouse extends Model
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
 
-    public function purchase_item()
+    public function purchase()
     {
-        return $this->hasMany(PurchaseItem::class, 'warehouse_id');
+        return $this->hasMany(Purchase::class, 'warehouse_id');
     }
 
     public function product_warehouse()

@@ -18,7 +18,7 @@
         $location_id = $data->kandang->location_id??'';
         $location_name = $data->kandang->location->name??'';
         $product_category_id = $data->product_category_id??'';
-        $product_category_name = $data->product->name??'';
+        $product_category_name = $data->product_category->name??'';
         $period = $data->period??"";
         $farm_type = $data->farm_type??"";
     } 

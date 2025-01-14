@@ -160,11 +160,18 @@ Route::middleware('auth')->group(function() {
             Route::get('/', [App\Http\Controllers\Inventory\ProductController::class, 'index'])->name('inventory.product.index')->middleware('permission:inventory.product.index');
             Route::any('/detail/{id}', [App\Http\Controllers\Inventory\ProductController::class, 'detail'])->name('inventory.product.detail')->middleware('permission:inventory.product.detail');
             Route::any('/check-stock-by-warehouse', [App\Http\Controllers\Inventory\ProductController::class, 'checkStockByWarehouse'])->name('inventory.product.check-stock-by-warehouse');
+            Route::any('/search-product-warehouse', [App\Http\Controllers\Inventory\ProductController::class, 'searchProductWarehouse'])->name('inventory.product.search-product-warehouse');
         });
 
         Route::group(['prefix' => 'adjustment'], function() {
             Route::get('/', [App\Http\Controllers\Inventory\AdjustmentController::class, 'index'])->name('inventory.adjustment.index')->middleware('permission:inventory.adjustment.index');
             Route::any('/add', [App\Http\Controllers\Inventory\AdjustmentController::class, 'add'])->name('inventory.adjustment.add')->middleware('permission:inventory.adjustment.add');
+        });
+
+        Route::group(['prefix' => 'movement'], function() {
+            Route::get('/', [App\Http\Controllers\Inventory\MovementController::class, 'index'])->name('inventory.movement.index')->middleware('permission:inventory.movement.index');
+            Route::any('/add', [App\Http\Controllers\Inventory\MovementController::class, 'add'])->name('inventory.movement.add')->middleware('permission:inventory.movement.add');
+            Route::any('/detail/{id}', [App\Http\Controllers\Inventory\MovementController::class, 'detail'])->name('inventory.movement.detail')->middleware('permission:inventory.movement.detail');
         });
     });
 

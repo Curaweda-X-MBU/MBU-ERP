@@ -168,11 +168,11 @@ class WarehouseController extends Controller
         $warehouses  = Warehouse::with(['location', 'kandang'])->where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
-        if (auth()->user()->role->name !== 'Super Admin') {
-            foreach ($queryParams as $key => $value) {
-                $warehouses->where($key, $value);
-            }
+        // if (auth()->user()->role->name !== 'Super Admin') {
+        foreach ($queryParams as $key => $value) {
+            $warehouses->where($key, $value);
         }
+        // }
 
         $warehouses = $warehouses->get();
 

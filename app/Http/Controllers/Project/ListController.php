@@ -116,10 +116,6 @@ class ListController extends Controller
                             'created_by'          => Auth::user()->user_id ?? '',
                         ]);
 
-                        $dtKandang->update([
-                            'project_status' => true,
-                        ]);
-
                         $projectId = $project->project_id;
                         if ($req->has('budget')) {
                             $arrBudget = $req->input('budget');
@@ -175,9 +171,7 @@ class ListController extends Controller
                         'farm_type'           => $req->input('farm_type'),
                         'period'              => $req->input('period'),
                         'pic'                 => $req->input('pic'),
-                        // 'fcr_id'              => $req->input('fcr_id'),
-                        // 'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget' => $req->input('total_budget'),
+                        'total_budget'        => $req->input('total_budget'),
                     ]);
 
                     $projectId = $project->project_id;
@@ -242,10 +236,17 @@ class ListController extends Controller
     {
         try {
             $project = Project::findOrFail($req->id);
+            $kandang = Kandang::find($project->kandang_id);
             $project->update([
                 'project_status' => array_search('Aktif', Constants::PROJECT_STATUS),
                 'approval_date'  => date('Y-m-d H:i:s'),
             ]);
+
+            if ($kandang) {
+                $kandang->update([
+                    'project_status' => true,
+                ]);
+            }
 
             $success = ['success' => 'Project berhasil disetujui'];
 

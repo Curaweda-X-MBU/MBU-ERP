@@ -7,20 +7,30 @@
             <div class="table-responsive">
                 <table class="table table-striped table-bordered w-100" id="tbl-kandang">
                     <thead>
+                        @if (!isset($data))
                         <th style="width: 6%;">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="checkAll">
                                 <label class="custom-control-label" for="checkAll"></label>
                             </div>
                         </th>
+                        @endif
                         <th>Kandang</th>
                         <th>Kapasitas</th>
                         <th>Penanggung Jawab</th>
                     </thead>
                     <tbody>
+                        @isset($data->kandang)
+                        <tr>
+                            <td>{{ $data->kandang->name??'' }}</td>
+                            <td>{{ $data->kandang->capacity??'' }}</td>
+                            <td>{{ $data->kandang->user->name??'' }}</td>
+                        </tr>
+                        @else
                         <tr>
                             <td colspan="4"><center>Data tidak tersedia</center></td>
                         </tr>
+                        @endisset
                     </tbody>
                 </table>
             </div>

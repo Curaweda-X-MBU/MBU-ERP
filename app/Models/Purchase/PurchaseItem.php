@@ -22,8 +22,8 @@ class PurchaseItem extends Model
     protected $fillable = [
         'purchase_id',
         'product_id',
-        'warehouse_id',
-        'project_id',
+        // 'warehouse_id',
+        // 'project_id',
         'qty',
         'price',
         'tax',
@@ -45,15 +45,15 @@ class PurchaseItem extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    public function project()
-    {
-        return $this->belongsTo(Project::class, 'project_id');
-    }
+    // public function project()
+    // {
+    //     return $this->belongsTo(Project::class, 'project_id');
+    // }
 
-    public function warehouse()
-    {
-        return $this->belongsTo(Warehouse::class, 'warehouse_id');
-    }
+    // public function warehouse()
+    // {
+    //     return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    // }
 
     public function purchase_item_reception()
     {
