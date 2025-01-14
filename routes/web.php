@@ -160,6 +160,7 @@ Route::middleware('auth')->group(function() {
     Route::group(['prefix' => 'report'], function() {
         Route::group(['prefix' => 'mbu'], function() {
             Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexMbu'])->name('report.mbu.index')->middleware('permission:report.mbu.index');
+            Route::get('/detail', [App\Http\Controllers\Report\ReportController::class, 'detailMbu'])->name('report.mbu.detail')->middleware('permission:report.mbu.index');
         });
         Route::group(['prefix' => 'manbu'], function() {
             Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexManbu'])->name('report.manbu.index')->middleware('permission:report.manbu.index');
