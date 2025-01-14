@@ -6,8 +6,10 @@ use App\Constants;
 use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Bank;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingPayment;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -97,24 +99,109 @@ class ListPaymentController extends Controller
                     ->getRows()
                     ->toArray();
 
-                $data = Marketing::with(['customer', 'company', 'marketing_payments'])
+                $doNumbers = array_map('strtoupper', array_column($rows, 'do_number'));
+
+                $marketings = Marketing::with(['marketing_payments', 'marketing_return.marketing_return_payments'])
                     ->whereNull('marketing_return_id')
+                    ->whereIn('id_marketing', $doNumbers)
                     ->where('marketing_status', '>=', 3)
-                    ->get()->map(function($marketing) {
-                        return [
-                            'marketing_id'     => $marketing->marketing_id,
-                            'id_marketing'     => $marketing->id_marketing,
-                            'marketing_status' => $marketing->marketing_status,
-                            'grand_total'      => $marketing->grand_total,
-                            'is_paid'          => $marketing->marketing_payments
-                                ->where('verify_status', 2)
-                                ->sum('payment_nominal'),
+                    ->get(['marketing_id', 'id_marketing', 'grand_total'])
+                    ->keyBy('id_marketing');
+
+                // === SERVER-SIDE RENDERING ===
+                // == GENERAL VALIDATION ==
+                // Sort csv data
+                usort($rows, function($a, $b) {
+                    $numA = (int) filter_var($a['do_number'], FILTER_SANITIZE_NUMBER_INT);
+                    $numB = (int) filter_var($b['do_number'], FILTER_SANITIZE_NUMBER_INT);
+
+                    return $numA <=> $numB;
+                });
+
+                // Validate do_number
+                $idMarketingValues = $marketings->keys()->toArray();
+
+                $foundRows    = [];
+                $notFoundRows = [];
+
+                $validPayments = ['transfer', 'cash', 'card', 'cheque'];
+
+                $banks = Bank::get()->map(fn ($bank) => [
+                    'bank_id'        => $bank->bank_id,
+                    'account_number' => $bank->account_number,
+                    'text'           => $bank->alias.' - '.$bank->account_number.' - '.$bank->owner,
+                ])->keyBy('bank_id')->toArray();
+                $validBankAccounts    = Bank::pluck('account_number', 'bank_id')->toArray();
+                $validBankAccountsSet = array_flip($validBankAccounts);
+
+                function validateDateFormat($date)
+                {
+                    $format = 'd-M-Y';
+                    $d      = DateTime::createFromFormat($format, $date);
+
+                    return $d && $d->format($format) === $date;
+                }
+
+                foreach ($rows as $row) {
+                    if (in_array($row['do_number'], $idMarketingValues)) {
+                        // == COLUMNS VALIDATION ==
+                        $row['has_invalid'] = false;
+
+                        // Payment method
+                        if (! empty($row['payment_method'])) {
+                            if (! in_array(strtolower($row['payment_method']), $validPayments)) {
+                                $row['payment_method_invalid'] = 'Metode ('.$row['payment_method'].') tidak valid.';
+                                $row['has_invalid']            = true;
+                            }
+                        } else {
+                            $row['payment_method_invalid'] = 'Metode pembayaran tidak boleh kosong.';
+                            $row['has_invalid']            = true;
+                        }
+
+                        // Bank account
+                        if (! empty($row['bank_account'])) {
+                            $bankId = @$validBankAccountsSet[$row['bank_account']];
+                            if (! isset($bankId)) {
+                                $row['bank_account_invalid'] = 'Rekening ('.$row['bank_account'].') tidak ditemukan.';
+                                $row['has_invalid']          = true;
+                            } else {
+                                $row['bank_id'] = $bankId;
+                            }
+                        }
+
+                        // Date format
+                        if (! empty($row['payment_date'])) {
+                            if (! validateDateFormat($row['payment_date'])) {
+                                $row['payment_date_invalid'] = 'Format tanggal ('.$row['payment_date'].') salah.';
+                            }
+                        } else {
+                            $row['payment_date_invalid'] = 'Tanggal tidak boleh kosong.';
+                        }
+
+                        // Assign not_paid marketing informations
+                        $idMarketing = strtoupper($row['do_number']);
+                        if (isset($marketings[$idMarketing])) {
+                            $row['marketing_id'] = $marketings[$idMarketing]->marketing_id;
+                            $row['not_paid']     = $marketings[$idMarketing]->not_paid;
+                            if ($row['not_paid'] - $row['payment_nominal'] < 0) {
+                                $row['has_invalid'] = true;
+                            }
+                        }
+
+                        $foundRows[] = $row;
+                    } else {
+                        $notFoundRows[] = [
+                            'id_marketing' => $row['do_number'],
+                            'message'      => $row['do_number'].' tidak ditemukan.',
                         ];
-                    })->toArray();
+                    }
+                }
 
                 $param = [
-                    'data'     => $data,
-                    'payments' => $rows,
+                    // 'marketings' => $marketings->toArray(),
+                    'payments'   => $foundRows,
+                    'not_founds' => $notFoundRows,
+                    'banks'      => $banks,
                 ];
 
                 Storage::disk('local')->delete($tempPath);
@@ -151,6 +238,8 @@ class ListPaymentController extends Controller
                         $docPath = $docUrl['url'];
                     }
 
+                    $paymentNominal = Parser::parseLocale($value['payment_nominal_mask']);
+
                     $arrPayments[] = [
                         'marketing_id'       => $value['marketing_id'],
                         'document_path'      => $docPath,
@@ -159,33 +248,33 @@ class ListPaymentController extends Controller
                         'payment_method'     => $value['payment_method'],
                         'bank_id'            => $value['bank_id'] ?? null,
                         'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
-                        'payment_nominal'    => $value['payment_nominal'],
+                        'payment_nominal'    => $paymentNominal,
                         'verify_status'      => array_search(
                             'Terverifikasi',
                             Constants::MARKETING_VERIFY_PAYMENT_STATUS
                         ),
                     ];
 
-                    $marketing   = Marketing::find($value['marketing_id']);
-                    $grandTotal  = $marketing->grand_total;
-                    $totalIsPaid = $marketing->marketing_payments
-                        ->filter(fn ($p) => $p->verify_status == 2)
-                        ->sum('payment_nominal');
-                    $totalPayments = $totalIsPaid + $value['payment_nominal'];
+                    $marketing     = Marketing::find($value['marketing_id']);
+                    $grandTotal    = $marketing->grand_total;
+                    $totalIsPaid   = $marketing->is_paid;
+                    $totalPayments = $totalIsPaid + $paymentNominal;
 
-                    if ($grandTotal === $totalPayments) {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
-                    } elseif ($grandTotal < $totalPayments) {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
+                    $paymentStatus = '';
+
+                    if ($grandTotal < $totalPayments) {
+                        $paymentStatus = 'Dibayar Lebih';
+                    } elseif ($grandTotal == $totalPayments) {
+                        $paymentStatus = 'Dibayar Penuh';
+                    } elseif ($grandTotal > $totalPayments && $totalPayments > 0) {
+                        $paymentStatus = 'Dibayar Sebagian';
                     } else {
-                        $marketing->update([
-                            'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
-                        ]);
+                        $paymentStatus = 'Tempo';
                     }
+
+                    $marketing->update([
+                        'payment_status' => array_search($paymentStatus, Constants::MARKETING_PAYMENT_STATUS),
+                    ]);
 
                     $processedCount += 1;
                 }
@@ -262,7 +351,7 @@ class ListPaymentController extends Controller
                         ->filter(fn ($p) => $p->verify_status == 2)
                         ->sum('payment_nominal');
 
-                    if ($grandTotal === $totalPayments) {
+                    if ($grandTotal == $totalPayments) {
                         $payment->marketing->update([
                             'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                         ]);
@@ -309,11 +398,11 @@ class ListPaymentController extends Controller
                     $marketing->update([
                         'payment_status' => array_search('Dibayar Lebih', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
-                } elseif ($grandTotal === $totalPayments) {
+                } elseif ($grandTotal == $totalPayments) {
                     $marketing->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
-                } elseif ($grandTotal > $totalPayments) {
+                } elseif ($grandTotal > $totalPayments && $totalPayments > 0) {
                     $marketing->update([
                         'payment_status' => array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS),
                     ]);
@@ -355,7 +444,7 @@ class ListPaymentController extends Controller
                     ->filter(fn ($p) => $p->verify_status == 2)
                     ->sum('payment_nominal');
 
-                if ($grandTotal === $totalPayments) {
+                if ($grandTotal == $totalPayments) {
                     $payment->marketing->update([
                         'payment_status' => array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS),
                     ]);

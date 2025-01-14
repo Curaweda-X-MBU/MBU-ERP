@@ -4,7 +4,7 @@
 
 <div class="row">
     <div class="col-12">
-        <form class="form-horizontal" method="post" action="{{ route('marketing.list.realization', $data->marketing_id) }}" enctype="multipart/form-data">
+        <form id="realizationForm" class="form-horizontal" method="post" action="{{ route('marketing.list.realization', $data->marketing_id) }}" enctype="multipart/form-data">
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">{{$title}}</h4>
@@ -48,6 +48,13 @@
 
         $('#submitForm').on('click', function(e) {
             e.preventDefault();
+
+            const $form = $('#realizationForm');
+
+            if (!$form[0].checkValidity()) {
+                return;
+            }
+
             const realizedAt = $('#realized_at').val();
             if (realizedAt === null || realizedAt === '') {
                 Swal.fire({

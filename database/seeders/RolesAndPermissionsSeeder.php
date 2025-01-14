@@ -109,7 +109,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'expense.list.detail',
             'expense.list.delete',
             'expense.list.approve',
+            'expense.list.payment.index',
+            'expense.list.payment.add',
+            'expense.list.payment.edit',
+            'expense.list.payment.detail',
+            'expense.list.payment.delete',
+            'expense.list.payment.approve',
             'expense.recap.index',
+            'finance.index',
+            'report.mbu.index',
+            'report.manbu.index',
+            'report.lti.index',
             'purchase.index',
             'purchase.add',
             'purchase.copy',
@@ -201,7 +211,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         $adminMarketingPermissions = [

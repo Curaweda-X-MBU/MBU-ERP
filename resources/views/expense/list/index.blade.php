@@ -7,13 +7,6 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Export
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <button id="exportExcel" class="dropdown-item w-100">Excel</button>
-                        <button id="exportPdf" class="dropdown-item w-100">PDF</button>
-                    </div>
                     <a href="{{ route('expense.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
             </div>
@@ -22,6 +15,8 @@
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
+                                <th>expense_id</th>
+                                <th>expense_status</th>
                                 <th>ID</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
@@ -38,9 +33,11 @@
                                 @foreach ($data as $item)
                                 @php
                                     $nominalBiaya = $item->grand_total;
-                                    $nominalSisaBayar = $item->expense_payments->sum('payment_nominal');
+                                    $nominalSisaBayar = $item->is_paid;
                                 @endphp
                                     <tr>
+                                        <td>{{ $item->expense_id }}</td>
+                                        <td>{{ $item->expense_status == 0 ? 0 : 1 }}</td>
                                         <td>{{ $item->id_expense }}</td>
                                         <td>{{ $item->location->name }}</td>
                                         <td>
@@ -62,9 +59,12 @@
                                         <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
                                         <td>
                                             @php
-                                                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                                $statusPayment = App\Constants::EXPENSE_PAYMENT_STATUS;
                                             @endphp
                                             @switch($item->payment_status)
+                                                @case(0)
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusPayment[$item->payment_status] }}</div>
+                                                    @break
                                                 @case(1)
                                                     <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->payment_status] }}</div>
                                                     @break
@@ -76,21 +76,21 @@
                                             @endswitch
                                         </td>
                                         <td class="text-center">
+                                            @php
+                                                    $statusExpense = App\Constants::EXPENSE_STATUS;
+                                            @endphp
                                             @switch($item->expense_status)
                                                 @case(0)
-                                                    <div class="badge badge-pill badge-secondary">Draft</div>
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(1)
-                                                    <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-primary">Disetujui</div>
-                                                    @break
-                                                @case(3)
-                                                    <div class="badge badge-pill badge-danger">Ditolak</div>
+                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @default
-                                                    <div class="badge badge-pill badge-secondary">N/A</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>
@@ -103,7 +103,7 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="">
+                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', $item->expense_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Tambah Pembayaran</span>
                                                     </a>
@@ -124,6 +124,39 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                            <table class="table table-borderless">
+                                <tbody class="text-right">
+                                    <tr>
+                                        <td class="text-primary">
+                                            Total Biaya:
+                                        </td>
+                                        <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
+                                            Rp. <span id="grand_total">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-success">
+                                            Total Sudah Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-success" style="font-size: 1.2em">
+                                            Rp. <span id="is_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-danger">
+                                            Total Belum Dibayar:
+                                        </td>
+                                        <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
+                                            Rp. <span id="not_paid">0,00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,40 +196,37 @@
 
 <script>
     $(function () {
-        $('#datatable').DataTable({
-            dom: 'B<"d-flex justify-content-between"lf>rtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    className: 'd-none datatable-hidden-excel-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-                {
-                    extend: 'pdfHtml5',
-                    className: 'd-none datatable-hidden-pdf-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-            ],
-            drawCallback: function( settings ) {
+        const $table = $('#datatable').DataTable({
+            dom: '<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
+            drawCallback: function(settings) {
+                let grandTotalSum = 0;
+                let isPaidSum = 0;
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const grandTotal = parseLocaleToNum(data[7]);
+                    const isPaid = parseLocaleToNum(data[8]);
+
+                    grandTotalSum += grandTotal;
+                    isPaidSum += isPaid;
+                });
+
+                const $grandTotal = $("#grand_total");
+                const $isPaid = $('#is_paid');
+                const $notPaid = $('#not_paid');
+
+                $grandTotal.text(parseNumToLocale(grandTotalSum));
+                $isPaid.text(parseNumToLocale(isPaidSum));
+                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+
                 feather.replace();
             },
-            order: [[0, 'desc']],
+            order: [[1, 'asc'], [0, 'desc']],
         });
 
-        $('#exportExcel').on('click', function() {
-            $('.datatable-hidden-excel-button').trigger('click');
-        });
-
-        $('#exportPdf').on('click', function() {
-            $('.datatable-hidden-pdf-button').trigger('click');
-        });
+        $table.columns([0, 1]).visible(false);
 
         $('.item-delete-button').on('click', function(e) {
-            e.preventDefailt();
+            e.preventDefault();
 
             confirmCallback({
                 title: 'Hapus',

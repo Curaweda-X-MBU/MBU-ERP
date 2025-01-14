@@ -40,7 +40,7 @@ class Marketing extends Model
         'created_by',
     ];
 
-    protected $appends = ['is_paid', 'is_returned'];
+    protected $appends = ['is_paid', 'is_returned', 'not_paid'];
 
     public function getIsPaidAttribute()
     {
@@ -58,6 +58,11 @@ class Marketing extends Model
         }
 
         return 0;
+    }
+
+    public function getNotPaidAttribute()
+    {
+        return $this->grand_total - $this->is_paid;
     }
 
     public function marketing_return()

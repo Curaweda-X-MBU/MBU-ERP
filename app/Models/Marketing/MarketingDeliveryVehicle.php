@@ -2,6 +2,7 @@
 
 namespace App\Models\Marketing;
 
+use App\Models\DataMaster\Supplier;
 use App\Models\DataMaster\Uom;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,8 @@ class MarketingDeliveryVehicle extends Model
         'exit_at',
         'sender_id',
         'driver_name',
+        'supplier_id',
+        'delivery_fee',
     ];
 
     public function marketing()
@@ -44,5 +47,10 @@ class MarketingDeliveryVehicle extends Model
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id', 'user_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }

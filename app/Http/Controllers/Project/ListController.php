@@ -15,9 +15,9 @@ use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
 use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
-use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ListController extends Controller
@@ -173,7 +173,7 @@ class ListController extends Controller
                 }
 
                 if (! $req->has('budget')) {
-                    return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($input);
+                    return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($req->all());
                 }
 
                 DB::transaction(function() use ($req, $project) {

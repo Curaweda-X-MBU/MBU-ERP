@@ -30,9 +30,15 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header pb-0">
                 <h4 class="card-title">{{ $title }}</h4>
+            </div>
+            <div class="card-header">
                 <div>
+                    <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left" class="mr-50"></i>
+                        Kembali
+                    </a>
                     @if ($data->marketing_status != 4)
                     <a href="{{ $data->marketing_status == 4 ? route('marketing.list.realization', $data->marketing_id) : route('marketing.list.edit', $data->marketing_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
@@ -48,10 +54,6 @@
                             Approve
                         </a>
                     @endif
-                    <a href="{{ route('marketing.list.index') }}" class="btn btn-outline-secondary">
-                        <i data-feather="arrow-left" class="mr-50"></i>
-                        Kembali
-                    </a>
                 </div>
             </div>
             <div class="card-body">
@@ -62,33 +64,33 @@
                                 <div class="col-md-6">
                                     <table class="table table-striped w-100">
                                         <tr>
-                                            <td style="width: 25%"><b>No. DO</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>No. DO</b></td>
+                                            <td>:</td>
                                             <td>{{ $data->id_marketing }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Tanggal Penjualan</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Tanggal Penjualan</b></td>
+                                            <td>:</td>
                                             <td>{{ date('d-M-Y', strtotime($data->sold_at)) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Tanggal Realisasi</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Tanggal Realisasi</b></td>
+                                            <td>:</td>
                                             <td>{{ @$data->realized_at ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nama Pelanggan</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Nama Pelanggan</b></td>
+                                            <td>:</td>
                                             <td>{{ $data->customer->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Unit Bisnis</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Unit Bisnis</b></td>
+                                            <td>:</td>
                                             <td>{{ $data->company->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Referensi Dokumen</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Referensi Dokumen</b></td>
+                                            <td>:</td>
                                             <td>
                                                 @if ($data->doc_reference)
                                                     <a class="p-0" href="{{ route('file.show', ['filename' => $data->doc_reference]) }}" target="_blank">
@@ -101,13 +103,13 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nama Sales</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Nama Sales</b></td>
+                                            <td>:</td>
                                             <td>{{ @$data->sales->name ? $data->sales->name : '-' }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Catatan</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Catatan</b></td>
+                                            <td>:</td>
                                             <td>
                                                 @if ($data->notes)
                                                     <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal">
@@ -120,36 +122,36 @@
                                         </tr>
                                     </table>
                                 </div>
-                                <div>
+                                <div class="col-md-6">
                                     <table class="table table-striped w-100">
                                         <tr>
-                                            <td style="width: 25%"><b>Pajak</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Pajak</b></td>
+                                            <td>:</td>
                                             <td>{{ \App\Helpers\Parser::toLocale($data->tax) }} %</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Diskon</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Diskon</b></td>
+                                            <td>:</td>
                                             <td>Rp. {{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nominal Penjualan</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Nominal Penjualan</b></td>
+                                            <td>:</td>
                                             <td class="text-primary">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nominal Sudah Bayar</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Nominal Sudah Bayar</b></td>
+                                            <td>:</td>
                                             <td class="text-success">Rp. {{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Nominal Sisa Bayar</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Nominal Sisa Bayar</b></td>
+                                            <td>:</td>
                                             <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan - $nominalSisaBayar) }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Status Pembayaran</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Status Pembayaran</b></td>
+                                            <td>:</td>
                                             <td>
                                                 @php
                                                     $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
@@ -167,8 +169,8 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Status Penjualan</b></td>
-                                            <td style="width: 5%">:</td>
+                                            <td><b>Status Penjualan</b></td>
+                                            <td>:</td>
                                             <td>
                                                 @php
                                                     $statusMarketing = App\Constants::MARKETING_STATUS;

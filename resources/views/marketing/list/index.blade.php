@@ -230,7 +230,7 @@
     $(function () {
         var $table = $('#datatable').DataTable({
             // scrollX: true,
-            dom: 'B<"#filter_wrapper"<"#filter_left"l>f>rtip',
+            dom: 'B<"#filter_wrapper"<"#filter_left"l>f>r<"custom-table-wrapper"t>ip',
             buttons: [
                 {
                     extend: 'excelHtml5',

@@ -2,42 +2,8 @@
 @section('title', $title)
 @section('content')
 @php
-    $data = [
-        'expense_id' => 1,
-        'id_expense' => 'BO.1',
-        'location' => 'Singaparna',
-        'category' => 1,
-        'created_at' => '25-Dec-2024',
-        'created_by' => 'Agus Saripudin',
-        'grand_total' => 8020000,
-        'payment_status' => 1,
-        'expense_status' => 2,
-        'expense_payment' => [
-            'payment_nominal' => []
-        ],
-        'main_prices' => [
-            [
-                'main_price_id' => 2,
-                'expense_id' => 1,
-                'sub_category' => 'Air',
-                'qty' => 10000,
-                'uom' => 'Liter',
-                'total_price' => 10000000,
-                'notes' => 'Biaya Utama',
-            ],
-        ],
-        'addit_prices' => [
-            [
-                'addit_price_id' => 2,
-                'name' => 'Pajak',
-                'price' => 1000000,
-                'notes' => 'Biaya Lainnya',
-            ],
-        ]
-    ];
-
-    $nominalBiaya = $data['grand_total'];
-    $nominalSisaBayar = array_sum($data['expense_payment']['payment_nominal']) ?? '0,00';
+    $nominalBiaya = $data->grand_total;
+    $nominalSisaBayar = $data->expense_payments->sum('payment_nominal');
     $roleAccess = Auth::user()->role;
 @endphp
 
@@ -65,21 +31,27 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header pb-0">
                 <h4 class="card-title">{{ $title }}</h4>
+            </div>
+            <div class="card-header">
                 <div>
-                    <a href="{{ route('expense.list.edit', $data['expense_id']) }}" class="btn btn-primary">
-                        <i data-feather="edit-2" class="mr-50"></i>
-                        Edit
-                    </a>
-                    <a class="btn btn-success" href="" data-toggle="modal" data-target="#approve">
-                        <i data-feather="check" class="mr-50"></i>
-                        Approve
-                    </a>
                     <a href="{{ route('expense.list.index') }}" class="btn btn-outline-secondary">
                         <i data-feather="arrow-left" class="mr-50"></i>
                         Kembali
                     </a>
+                    @if ($data->expense_status != 2)
+                        <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
+                            <i data-feather="edit-2" class="mr-50"></i>
+                            Edit
+                        </a>
+                    @endif
+                    @if ($data->expense_status != 2 && $data->expense_status != 0)
+                        <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
+                            <i data-feather="check" class="mr-50"></i>
+                            Approve
+                        </a>
+                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -90,9 +62,14 @@
                                 <div class="col-md-12">
                                     <table class="table table-striped w-100">
                                         <tr>
+                                            <td style="width: 25%"><b>ID</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->id_expense }}</td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>Lokasi</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td>{{ $data['location'] }}</td>
+                                            <td>{{ $data->location->name }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Kategori</b></td>
@@ -101,12 +78,12 @@
                                                 @php
                                                     $category = App\Constants::EXPENSE_CATEGORY;
                                                 @endphp
-                                                @switch($data['category'])
+                                                @switch($data->category)
                                                     @case(1)
-                                                        <span>{{ $category[$data['category']] }}</span>
+                                                        <span>{{ $category[$data->category] }}</span>
                                                         @break
                                                     @case(2)
-                                                        <span>{{ $category[$data['category']] }}</span>
+                                                        <span>{{ $category[$data->category] }}</span>
                                                         @break
                                                     @default
                                                         <span>N/A</span>
@@ -114,14 +91,19 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <td style="width: 25%"><b>Kandang yang dipilih</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ $data->expense_kandang?->map(fn($kandang) => $kandang->kandang->name ?? '')->join(', ') ?: '-' }}</td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>Tanggal</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td>{{ date('d-M-Y', strtotime($data['created_at'])) }}</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->created_at)) }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nama Pengaju</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td>{{ $data['created_by'] }}</td>
+                                            <td>{{ $data->created_user->name }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Nominal Biaya</b></td>
@@ -139,21 +121,46 @@
                                             <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
                                         </tr>
                                         <tr>
+                                            <td style="width: 25%"><b>Status Pembayaran</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @php
+                                                    $statusPayment = App\Constants::EXPENSE_PAYMENT_STATUS;
+                                                @endphp
+                                                @switch($data->payment_status)
+                                                    @case(0)
+                                                        <div class="badge badge-pill badge-secondary">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @case(1)
+                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @case(2)
+                                                        <div class="badge badge-pill badge-success">{{ $statusPayment[$data->payment_status] }}</div>
+                                                        @break
+                                                    @default
+                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$data->payment_status] }}</div>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>Status Biaya</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
                                                 @php
-                                                    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                                                    $statusExpense = App\Constants::EXPENSE_STATUS;
                                                 @endphp
-                                                @switch($data['payment_status'])
+                                                @switch($data->expense_status)
+                                                    @case(0)
+                                                        <div class="badge badge-pill badge-secondary">{{ $statusExpense[$data->expense_status] }}</div>
+                                                        @break
                                                     @case(1)
-                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$data['payment_status']] }}</div>
+                                                        <div class="badge badge-pill badge-warning">{{ $statusExpense[$data->expense_status] }}</div>
                                                         @break
                                                     @case(2)
-                                                        <div class="badge badge-pill badge-success">{{ $statusPayment[$data['payment_status']] }}</div>
+                                                        <div class="badge badge-pill badge-primary">{{ $statusExpense[$data->expense_status] }}</div>
                                                         @break
                                                     @default
-                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$data['payment_status']] }}</div>
+                                                        <div class="badge badge-pill badge-danger">{{ $statusExpense[$data->expense_status] }}</div>
                                                 @endswitch
                                             </td>
                                         </tr>
@@ -188,24 +195,26 @@
                                                     <th>No</th>
                                                     <th>Sub Categori</th>
                                                     <th>Qty</th>
+                                                    <th>Total Qty</th>
                                                     <th>UOM</th>
                                                     <th>Harga Satuan</th>
                                                     <th>Nominal Biaya</th>
                                                     <th>Catatan</th>
                                                 </thead>
                                                 <tbody>
-                                                    @if (count($data['main_prices']) > 0)
-                                                        @foreach ($data['main_prices'] as $index => $item)
+                                                    @if (count($data->expense_main_prices) > 0)
+                                                        @foreach ($data->expense_main_prices as $index => $item)
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
-                                                                <td>{{ $item['sub_category'] }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item['qty']) }}</td>
-                                                                <td>{{ $item['uom'] }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item['total_price'] / $item['qty']) }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item['total_price']) }}</td>
+                                                                <td>{{ $item->sub_category }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_qty) }}</td>
+                                                                <td>{{ $item->uom }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
                                                                 <td>
-                                                                    @if ($data['main_prices'][0]['notes'])
-                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $data['main_prices'][0]['notes'] }}" data-title="Catatan Biaya Utama">
+                                                                    @if ($item->notes)
+                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Utama">
                                                                             Lihat Catatan
                                                                         </button>
                                                                     @else
@@ -216,7 +225,7 @@
                                                         @endforeach
                                                     @else
                                                     <tr>
-                                                        <td class="text-center" colspan="6">Tidak ada data biaya lainnya</td>
+                                                        <td class="text-center" colspan="7">Tidak ada data biaya Utama</td>
                                                     </tr>
                                                     @endif
                                                 </tbody>
@@ -244,15 +253,15 @@
                                                     <th>Catatan</th>
                                                 </thead>
                                                 <tbody>
-                                                    @if (count($data['addit_prices']) > 0)
-                                                        @foreach ($data['addit_prices'] as $index => $item)
+                                                    @if (count($data->expense_addit_prices) > 0)
+                                                        @foreach ($data->expense_addit_prices as $index => $item)
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
-                                                                <td>{{ $item['name'] }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item['price']) }}</td>
+                                                                <td>{{ $item->name }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                                 <td>
-                                                                    @if ($data['addit_prices'][0]['notes'])
-                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $data['addit_prices'][0]['notes'] }}" data-title="Catatan Biaya Lainnya">
+                                                                    @if ($item->notes)
+                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Lainnya">
                                                                             Lihat Catatan
                                                                         </button>
                                                                     @else
@@ -263,7 +272,7 @@
                                                         @endforeach
                                                     @else
                                                     <tr>
-                                                        <td class="text-center" colspan="3">Tidak ada data biaya lainnya</td>
+                                                        <td class="text-center" colspan="4">Tidak ada data biaya lainnya</td>
                                                     </tr>
                                                     @endif
                                                 </tbody>
@@ -301,7 +310,7 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form id="approveForm" method="post" action="">
+            <form id="approveForm" method="post" action="{{ route('expense.list.approve', $data->expense_id) }}">
             {{csrf_field()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Biaya </h4>
@@ -315,7 +324,7 @@
                         <label for="notes" class="form-label">Catatan</label>
                         <textarea name="approval_notes" id="notes" class="form-control"></textarea>
                     </div>
-                    <br><p>Apakah anda yakin ingin menyetujui data penjualan ini ?</p>
+                    <br><p>Apakah anda yakin ingin menyetujui data biaya ini?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="setApproval(1)" class="btn btn-success">Setuju</button>

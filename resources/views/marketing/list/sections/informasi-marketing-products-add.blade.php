@@ -125,7 +125,6 @@
             const $priceInput = $row.find('input[name*="price"]');
             const $weightTotalInput = $row.find('#weight_total');
             const $priceTotalInput = $row.find('#price_total');
-            const $totalSebelumPajak = $('#total_sebelum_pajak');
 
             const qty = parseLocaleToNum($qtyInput.val());
             const weightAvg = parseLocaleToNum($weightAvgInput.val());
@@ -137,14 +136,20 @@
             $weightTotalInput.val(parseNumToLocale(weightTotal));
             $priceTotalInput.val(parseNumToLocale(priceTotal));
 
-            setTimeout(function(){
-                const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                    const value = parseLocaleToNum($(elem).val());
-                    return acc + value;
-                }, 0);
-                $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
-            }, 0);
+            updateTotalValue();
         });
+    }
+
+    function updateTotalValue() {
+        const $totalSebelumPajak = $('#total_sebelum_pajak');
+
+        setTimeout(function(){
+            const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
+                const value = parseLocaleToNum($(elem).val());
+                return acc + value;
+            }, 0);
+            $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
+        }, 0);
     }
     // ? END :: CALCULATION ::  PRODUCT ROWS
 
@@ -204,6 +209,10 @@
         },
         hide: function(deleteElement) {
             confirmDelete($(this), deleteElement);
+            confirmDelete($(this), () => {
+                deleteElement();
+                updateTotalValue();
+            })
         },
     };
 
