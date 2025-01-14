@@ -201,7 +201,7 @@
                                                                             </div>
                                                                             <div class="col-sm-9">
                                                                                 <input type="text" class="form-control numeral-mask" id="transfer_qty" placeholder="Jumlah transfer">
-                                                                                <input type="text" name="transfer_qty" id="transfer_qty_input">
+                                                                                <input type="hidden" name="transfer_qty" id="transfer_qty_input">
                                                                                 @if ($errors->has('product_id'))
                                                                                     <span class="text-danger small">{{ $errors->first('product_id') }}</span>
                                                                                 @endif
@@ -268,6 +268,11 @@
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
+                            $('#transfer_qty').keyup(function (e) { 
+                                const tfQty = parseInt($(this).val().replace(/\./g, ''), 10);
+                                $('#transfer_qty_input').val(tfQty);
+                            });
+
                             var numeralMask = $('.numeral-mask');
                             if (numeralMask.length) {
                                 numeralMask.each(function() { 
@@ -435,13 +440,13 @@
 
                             $('form').submit(function(event) {
                                 let currentStock = $('#current-stock').text();
-                                let transferQty = $('#transfer_qty').val();
+                                let transferQty = $('#transfer_qty_input').val();
                                 currentStock = parseInt(currentStock.replace(/\./g, ''), 10);
-                                transferQty = parseInt(transferQty.replace(/\./g, ''), 10);
+                                transferQty = parseInt(transferQty);
 
                                 const originId = $('#origin_id').val();
                                 const destinationId = $('#destination_id').val();
-
+                                
                                 if (originId == destinationId) {
                                     alert('Gudang asal dan tujuan tidak boleh sama');
                                     return false;
