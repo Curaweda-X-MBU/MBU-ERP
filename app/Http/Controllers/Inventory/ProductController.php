@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class ProductController extends Controller
 {
@@ -70,5 +71,25 @@ class ProductController extends Controller
         $qty = $data->quantity ?? 0;
 
         return $qty;
+    }
+
+    public function searchProductWarehouse(Request $request)
+    {
+        $search     = $request->input('q');
+        $warehouses = ProductWarehouse::with('warehouse')
+            ->with('product', function($query) use ($search) {
+                $query->with('uom')->where('name', 'like', "%{$search}%");
+            });
+        $queryParams = $request->query();
+        $queryParams = Arr::except($queryParams, ['q']);
+        foreach ($queryParams as $key => $value) {
+            $warehouses->where($key, $value);
+        }
+
+        $warehouses = $warehouses->get();
+
+        return response()->json($warehouses->map(function($val) {
+            return ['id' => $val->product_id, 'text' => $val->product->name ?? '', 'data' => $val];
+        }));
     }
 }

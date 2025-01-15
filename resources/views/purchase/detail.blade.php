@@ -34,12 +34,12 @@
                     Edit
                 </a>
                 @endif
-                @if (Auth::user()->role->hasPermissionTo('purchase.copy'))
+                {{-- @if (Auth::user()->role->hasPermissionTo('purchase.copy'))
                 <a href="{{ route('purchase.copy', $data->purchase_id) }}" class="btn btn-warning">
                     <i data-feather="copy" class="mr-50"></i>
                     Copy
                 </a>
-                @endif
+                @endif --}}
                 @php
                     $modalId = 'approve';
                     if ($data->status == 3) {

@@ -3,6 +3,7 @@
 namespace App\Models\Purchase;
 
 use App\Models\DataMaster\Supplier;
+use App\Models\DataMaster\Warehouse;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,7 @@ class Purchase extends Model
         'pr_number',
         'po_number',
         'po_date',
+        'warehouse_id',
         'supplier_id',
         'require_date',
         'total_before_tax',
@@ -67,5 +69,15 @@ class Purchase extends Model
     public function purchase_payment()
     {
         return $this->hasMany(PurchasePayment::class, 'purchase_id');
+    }
+
+    /**
+     * Get the warehouse that owns the Purchase
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 }

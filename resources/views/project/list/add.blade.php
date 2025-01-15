@@ -41,4 +41,17 @@
 </form>
 
 <script src="{{asset('app-assets/js/scripts/components/components-collapse.js')}}"></script>
+<script>
+    $(document).ready(function () {
+        $('form').submit(function(event) {
+            const isAnyChecked = $('.rowCheckbox:checked').length > 0;
+
+            if (!isAnyChecked) {
+                event.preventDefault(); 
+                alert('Pilih kandang terlebih dahulu');
+                return false;
+            } 
+        });
+    });
+</script>
 @endsection

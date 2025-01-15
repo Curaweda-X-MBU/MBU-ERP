@@ -4,6 +4,7 @@ namespace App\Models\Inventory;
 
 use App\Helpers\Parser;
 use App\Models\Purchase\PurchaseItem;
+use App\Models\Purchase\PurchaseItemReception;
 use App\Models\UserManagement\User;
 use DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -83,6 +84,21 @@ class StockLog extends Model
                 'purchase_item_id'     => $input['purchase_item_id'] ?? null,
                 'created_by'           => auth()->user()->user_id,
             ]);
+
+            if (isset($input['purchase_item_id']) && isset($input['purchase_item_reception_id'])) {
+                $purchaseReception = PurchaseItemReception::with('purchase_item')
+                    ->find($input['purchase_item_reception_id']);
+
+                StockAvailability::create([
+                    'product_warehouse_id'       => $stock->product_warehouse_id,
+                    'current_qty'                => $purchaseReception->total_received,
+                    'product_price'              => ($purchaseReception->purchase_item->price) + ($purchaseReception->purchase_item->price * $purchaseReception->purchase_item->tax / 100),
+                    'received_date'              => $purchaseReception->received_date,
+                    'purchase_item_id'           => $input['purchase_item_id'],
+                    'purchase_item_reception_id' => $input['purchase_item_reception_id'],
+                ]);
+            }
+
             DB::commit();
 
             return [
