@@ -122,7 +122,8 @@
                                                                                         <option value="{{ old('product_id') }}" selected="selected">{{ old('product_name') }}</option>
                                                                                     @endif
                                                                                 </select>
-                                                                                <span class="text-muted small">Jumlah produk saat ini : <span class="text-muted" id="current-stock"></span></span>
+                                                                                <span class="text-muted small">Jumlah produk saat ini : <span class="text-muted" id="current-stock"></span> <span id="current-uom"></span></span>
+                                                                                <input type="hidden" name="current_stock" id="current-stock-input">
                                                                                 @if ($errors->has('product_id'))
                                                                                     <span class="text-danger small">{{ $errors->first('product_id') }}</span>
                                                                                 @endif
@@ -199,7 +200,8 @@
                                                                                 <label for="product_id">Jumlah Transfer</label>
                                                                             </div>
                                                                             <div class="col-sm-9">
-                                                                                <input type="text" class="form-control numeral-mask" name="transfer_qty" id="transfer_qty" placeholder="Jumlah transfer">
+                                                                                <input type="text" class="form-control numeral-mask" id="transfer_qty" placeholder="Jumlah transfer">
+                                                                                <input type="hidden" name="transfer_qty" id="transfer_qty_input">
                                                                                 @if ($errors->has('product_id'))
                                                                                     <span class="text-danger small">{{ $errors->first('product_id') }}</span>
                                                                                 @endif
@@ -266,6 +268,11 @@
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
+                            $('#transfer_qty').keyup(function (e) { 
+                                const tfQty = parseInt($(this).val().replace(/\./g, ''), 10);
+                                $('#transfer_qty_input').val(tfQty);
+                            });
+
                             var numeralMask = $('.numeral-mask');
                             if (numeralMask.length) {
                                 numeralMask.each(function() { 
@@ -367,8 +374,11 @@
                                 e.preventDefault();
                                 const selectedData = e.params.data.data;
                                 const currentQty = selectedData.quantity;
+                                const strCurrentQty = Number(currentQty).toLocaleString('id-ID');
                                 const uom = selectedData.product.uom.name;
-                                $('#current-stock').html(`${Number(currentQty).toLocaleString('id-ID')} ${uom}`);
+                                $('#current-stock').html(`${strCurrentQty}`);
+                                $('#current-stock-input').val(`${currentQty}`);
+                                $('#current-uom').html(` ${uom}`);
                             });
 
                             function validationFile() {
@@ -427,6 +437,28 @@
                             @if ($errors->has('company_id'))
                                 $('#company_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
                             @endif
+
+                            $('form').submit(function(event) {
+                                let currentStock = $('#current-stock').text();
+                                let transferQty = $('#transfer_qty_input').val();
+                                currentStock = parseInt(currentStock.replace(/\./g, ''), 10);
+                                transferQty = parseInt(transferQty);
+
+                                const originId = $('#origin_id').val();
+                                const destinationId = $('#destination_id').val();
+                                
+                                if (originId == destinationId) {
+                                    alert('Gudang asal dan tujuan tidak boleh sama');
+                                    return false;
+                                }
+
+                                if (transferQty > currentStock) {
+                                    alert(`Jumlah transfer tidak boleh melebihi jumlah stok gudang asal`);
+                                    return false;
+                                }
+
+
+                            });
                             
                         });
                     </script>

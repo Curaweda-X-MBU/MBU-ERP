@@ -31,7 +31,7 @@ class MovementController extends Controller
         'origin_id'      => 'required',
         'destination_id' => 'required',
         'product_id'     => 'required',
-        'transfer_qty'   => 'required',
+        'transfer_qty'   => 'required|numeric|lte:current_stock',
         'notes'          => 'required',
     ];
 
