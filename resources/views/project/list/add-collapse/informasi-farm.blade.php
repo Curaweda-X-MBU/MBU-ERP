@@ -1,6 +1,6 @@
 <div class="card mb-1">
     <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
-        <span class="lead collapse-title"> Informasi  Farm </span>
+        <span class="lead collapse-title">Pilih Kandang </span>
     </div>
     <div id="collapse2" role="tabpanel" aria-labelledby="headingCollapse2" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
