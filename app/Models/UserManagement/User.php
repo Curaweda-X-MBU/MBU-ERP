@@ -143,7 +143,12 @@ class User extends Authenticatable implements CanResetPassword
 
     public function expense_created_by()
     {
-        return $this->hasMany(ExpensePayment::class, 'created_by', 'user_id');
+        return $this->hasMany(Expense::class, 'created_by', 'user_id');
+    }
+
+    public function marketing_created_by()
+    {
+        return $this->hasMany(Marketing::class, 'created_by', 'user_id');
     }
 
     public static function getData($all, $active, $whereClause = false)
