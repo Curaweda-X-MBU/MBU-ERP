@@ -20,10 +20,6 @@
                         <select name="kandang" id="kandang" class="form-control"></select>
                     </div>
                     <div class="col-md-2 mt-1">
-                        <label for="period" class="form-label">Periode</label>
-                        <input id="period" name="period" type="text" class="form-control" placeholder="Masukan Angka">
-                    </div>
-                    <div class="col-md-2 mt-1">
                         <label for="status_project" class="form-label">Status Project<i class="text-danger">*</i></label>
                         <select name="status_project" id="status_project" class="form-control"></select>
                     </div>
