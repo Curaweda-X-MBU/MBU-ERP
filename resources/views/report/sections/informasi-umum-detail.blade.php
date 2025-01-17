@@ -16,7 +16,7 @@
                             <td class="col-md-7">9</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Jenis Ayam</td>
+                            <td class="col-md-4">Jenis Produk</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">AYAM BROILER</td>
                         </tr>
@@ -88,6 +88,25 @@
                                 @switch($status)
                                     @case(1)
                                         <div class="badge badge-pill badge-warning">Belum Bayar</div>
+                                        @break
+                                    @case(2)
+                                        <div class="badge badge-pill badge-success">Sudah Bayar</div>
+                                        @break
+                                    @default
+                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                @endswitch
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">Status Closing</td>
+                            <td class="col-md-1">:</td>
+                            <td class="col-md-7">
+                                @php
+                                    $status = 2;
+                                @endphp
+                                @switch($status)
+                                    @case(1)
+                                        <div class="badge badge-pill badge-warning">Belum Selesai</div>
                                         @break
                                     @case(2)
                                         <div class="badge badge-pill badge-success">Selesai</div>
