@@ -314,11 +314,18 @@ $efisiensi_persen = $efisiensi_nominal / $budget * 100;
         const kandangIdRoute = `{{ route('data-master.kandang.search') }}?location_id=:id`;
         initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '');
         initSelect2($companySelect, 'Pilih Unit Bisnis', companyIdRoute, '');
-        // initSelect2($kandangSelect, 'Pilih Kandang', kandangIdRoute, '');
+        const locationId = $locationSelect.val();
+        initializeKandangSelect(locationId, true);
 
         $locationSelect.on('select2:select', function() {
             const locationId = $(this).val();
-            $kandangSelect.val(null).trigger('change').empty();
+            initializeKandangSelect(locationId);
+        });
+
+        function initializeKandangSelect(locationId, withOld = false) {
+            if (!withOld) {
+                $kandangSelect.val(null).trigger('change').empty();
+            }
 
             if (locationId) {
                 let kandangRoute = kandangIdRoute.replace(':id', locationId);
@@ -326,7 +333,7 @@ $efisiensi_persen = $efisiensi_nominal / $budget * 100;
             } else {
                 $kandangSelect.html('<option disabled selected>Pilih Lokasi terlebih dahulu</option>');
             }
-        });
+        }
 
         $('#datatable').DataTable({
             dom: '<"d-flex justify-content-between"B><"custom-table-wrapper"t>ip',
