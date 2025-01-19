@@ -53,4 +53,20 @@ class ReportController extends Controller
                 ->withInput();
         }
     }
+
+    public function detailMbu()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > Detail Laporan Project',
+            ];
+
+            return view('report.mbu.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
 }
