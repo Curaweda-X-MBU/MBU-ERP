@@ -58,10 +58,26 @@ class ReportController extends Controller
     {
         try {
             $param = [
-                'title' => 'Laporan > Detail Laporan Project',
+                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang',
             ];
 
             return view('report.mbu.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function detailKandangMbu()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang | Pandeglang 1',
+            ];
+
+            return view('report.mbu.kandang', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()

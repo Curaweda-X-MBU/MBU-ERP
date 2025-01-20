@@ -53,3 +53,8 @@
         <div class="col-6">Rp <span>0</span></div>
     </div>
 </div>
+
+<div class="row mt-1 mx-0 font-weight-bolder d-flex justify-content-between">
+    <div class="">TOTAL BAYAR OPERATOR KANDANG</div>
+    <div class="text-right ">0</div>
+</div>
