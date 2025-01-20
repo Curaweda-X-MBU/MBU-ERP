@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Project;
 use App\Constants;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Warehouse;
+use App\Models\Inventory\ProductWarehouse;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectChickIn;
 use DB;
@@ -45,26 +47,36 @@ class ChickinController extends Controller
     public function add(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_chick_in', 'purchase_item.product.product_category'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'kandang.warehouse', 'product_category', 'project_chick_in'])->findOrFail($req->id);
             if (! $project->approval_date) {
                 return redirect()->back()->with('error', 'Project ini belum disetujui');
             }
 
-            $docPurchaseQty = 0;
-            foreach ($project->purchase_item as $key => $value) {
-                if (in_array($value->product->product_category->category_code, ['BRO', 'LYR'])) {
-                    $docPurchaseQty += $value->total_received;
+            $docInventoryQty = 0;
+            $warehouse       = Warehouse::where('kandang_id', $project->kandang_id)->first();
+            if ($warehouse) {
+                $productWarehouse = ProductWarehouse::whereHas(
+                    'product.product_category',
+                    function($query) {
+                        $query->whereIn('category_code', ['BRO', 'LYR']);
+                    }
+                )
+                    ->where('warehouse_id', $warehouse->warehouse_id)
+                    ->first();
+
+                if ($productWarehouse) {
+                    $docInventoryQty += $productWarehouse->quantity;
                 }
             }
 
-            if ($docPurchaseQty == 0) {
+            if ($docInventoryQty == 0) {
                 return redirect()->back()->with('error', 'Project ini belum melakukan pembelian/penerimaan produk');
             }
 
             $param = [
                 'title'       => 'Project > chick-in > Tambah',
                 'data'        => $project,
-                'chickin_qty' => $docPurchaseQty,
+                'chickin_qty' => $docInventoryQty,
             ];
 
             if ($req->isMethod('post')) {

@@ -67,11 +67,6 @@ class Product extends Model
         return $this->hasMany(PurchaseItem::class, 'product_id');
     }
 
-    public function fcr()
-    {
-        return $this->hasMany(Fcr::class, 'product_id');
-    }
-
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
