@@ -2,6 +2,27 @@
 @section('title', $title)
 @section('content')
 
+@php
+$data = collect([
+    [
+        'location' => 'Singaparna',
+        'period' => 4,
+        'closed_at' => '2024-12-11',
+        'farm_type' => 'Own Farm',
+        'active_farms_count' => 7,
+        'project_status' => 4,
+    ],
+    [
+        'location' => 'Pandeglang',
+        'period' => 3,
+        'closed_at' => '2023-10-08',
+        'farm_type' => 'Own Farm',
+        'active_farms_count' => 4,
+        'project_status' => 4,
+    ],
+]);
+@endphp
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -44,20 +65,27 @@
                                 <th>Aksi</th>
                             </thead>
                             <tbody class="text-center">
+                                @foreach ($data as $index => $item)
                                 <tr>
-                                    <td>1</td>
-                                    <td>Pandeglang</td>
-                                    <td>9</td>
-                                    <td>11-12-2024</td>
-                                    <td>Own Farm</td>
-                                    <td>7 Kandang</td>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $item['location'] }}</td>
+                                    <td>{{ $item['period'] }}</td>
+                                    <td>{{ date('d-M-Y', strtotime($item['closed_at'])) }}</td>
+                                    <td>{{ $item['farm_type'] }}</td>
+                                    <td>{{ $item['active_farms_count'] }} Kandang</td>
                                     <td>
-                                        @php
-                                            $status = 1;
-                                        @endphp
-                                        @switch($status)
+                                        @switch($item['project_status'])
                                             @case(1)
-                                                <div class="badge badge-pill badge-primary">Selesai</div>
+                                                <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                                @break
+                                            @case(2)
+                                                <div class="badge badge-pill badge-primary">Aktif</div>
+                                                @break
+                                            @case(3)
+                                                <div class="badge badge-pill badge-info">Persiapan</div>
+                                                @break
+                                            @case(4)
+                                                <div class="badge badge-pill badge-success">Selesai</div>
                                                 @break
                                             @default
                                                 <div class="badge badge-pill badge-secondary">N/A</div>
@@ -77,6 +105,7 @@
                                         </div>
                                     </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
