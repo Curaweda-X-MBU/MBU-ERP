@@ -22,6 +22,7 @@ class Recording extends Model
         'revision_status',
         'document_revision',
         'on_time',
+        'day',
         'created_by',
     ];
 

@@ -10,7 +10,7 @@
 
 <div class="card mb-1">
     <div id="headingCollapse4" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse4" aria-expanded="true" aria-controls="collapse4">
-        <span class="lead collapse-title">Estimasi Anggaran </span>
+        <span class="lead collapse-title">Estimasi Anggaran Per Kandang</span>
     </div>
     <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
@@ -20,14 +20,21 @@
                         <div class="row d-flex align-items-end">
                             <div class="col-md-3 col-12">
                                 <div class="form-group">
-                                    <label for="stock_type">Jenis Persediaan</label>
+                                    <label for="stock_type">Tipe Persediaan</label>
                                     <select name="stock_type" class="form-control stock_type" required>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-3 col-12">
                                 <div class="form-group">
-                                    <label for="product_category_id">Kategori Produk</label>
+                                    <label for="nonstock_id">Jenis Produk</label>
+                                    <select name="nonstock_id" class="form-control nonstock_id">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-12">
+                                <div class="form-group">
+                                    <label for="product_category_id">Kategori Persediaan</label>
                                     <select name="product_category_id" class="form-control product_category_id" required>
                                     </select>
                                 </div>
@@ -35,14 +42,8 @@
                             <div class="col-md-3 col-12">
                                 <div class="form-group">
                                     <label for="product_id">Produk</label>
-                                    <select class="form-control product_id" required>
+                                    <select name="product_id" class="form-control product_id" required>
                                     </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-12">
-                                <div class="form-group">
-                                    <label for="uom_name">Nama Satuan</label>
-                                    <input type="text" class="form-control-plaintext uom_name" disabled>
                                 </div>
                             </div>
                             <div class="col-md-3 col-12">
@@ -53,7 +54,13 @@
                             </div>
                             <div class="col-md-3 col-12">
                                 <div class="form-group">
-                                <label for="price">Harga Satuan</label>
+                                    <label for="uom_name">Nama Satuan</label>
+                                    <input type="text" class="form-control-plaintext uom_name" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-12">
+                                <div class="form-group">
+                                <label for="price">Harga Satuan (Rp.)</label>
                                     <input type="text" name="price" class="form-control numeral-mask price" placeholder="1234" required>
                                 </div>
                             </div>
@@ -84,6 +91,7 @@
                         </button>
                         <div class="float-right">
                             <span><h4>Grand Total : Rp. <span id="grand-total">0</span></h4></span>
+                            <input type="hidden" name="total_budget" id="grand-total-input">
                         </div>
                     </div>
                 </div>
@@ -131,6 +139,7 @@
                 }
 
                 $stockType = $this.find('.stock_type');
+                $nonstockId = $this.find('.nonstock_id');
                 $productCategory = $this.find('.product_category_id');
                 $product = $this.find('.product_id');
                 $total = $this.find('.total');
@@ -143,33 +152,37 @@
                     <option value="2">Non Persediaan</option>
                 `);
 
+                $nonstockId.html('<option selected disabled>Pilih jenis persediaan terlebih dahulu</option>');
                 $productCategory.html('<option selected disabled>Pilih jenis persediaan terlebih dahulu</option>');
                 $product.html('<option selected disabled>Pilih kategori produk terlebih dahulu</option>');
 
                 $stockType.change(function (e) { 
                     e.preventDefault();
-                    $prodCatStock = $(this).closest('.col-md-3').next('.col-md-3').find('.product_category_id');
-                    $prodStock = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3').find('.product_id');
-                    $uomStock = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3').next('.col-md-3').find('.uom_name');
-                    $prodCatStock.html('');
-                    $prodStock.val(null).trigger('change');
-                    $uomStock.val('');
+                    $nonstock = $(this).closest('.col-md-3').next('.col-md-3').find('.nonstock_id');
+                    $prodCatStock = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3').find('.product_category_id');
+                    $prodStock = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3').next('.col-md-3').find('.product_id');
+                    $uomStock = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3').next('.col-md-3').next('.col-md-3').find('.uom_name');
+                    $nonstock.add($prodStock).add($prodCatStock).val(null).trigger('change');
                     if ($(this).val() == 2) {
-                        $prodCatStock.removeAttr('required');
-                        $prodCatStock.attr('disabled', 'disabled');
-                        $prodStock.attr('name', 'nonstock_id');
-                        $prodStock.html('');
-                        $prodStock.select2({
-                            placeholder: "Pilih Produk",
+                        $prodCatStock.add($prodStock).removeAttr('required');
+                        $prodCatStock.add($prodStock).attr('disabled', 'disabled');
+
+                        $nonstock.removeAttr('disabled');
+                        $nonstock.attr('required', 'required');
+                        $nonstock.html('');
+                        $nonstock.select2({
+                            placeholder: "Pilih Persediaan",
                             ajax: {
                                 url: '{{ route("data-master.nonstock.search") }}', 
                                 ...optSelect2
                             }
                         });
                     } else {
-                        $prodCatStock.removeAttr('disabled');
-                        $prodCatStock.attr('required', 'required');
-                        $prodStock.attr('name', 'product_id');
+                        $nonstock.removeAttr('required');
+                        $nonstock.attr('disabled', 'disabled');
+                        $prodCatStock.add($prodStock).removeAttr('disabled');
+                        $prodCatStock.add($prodStock).attr('required', 'required');
+                        $prodStock.html('<option selected disabled>Pilih kategori produk terlebih dahulu</option>');
                         $prodCatStock.select2({
                             placeholder: "Pilih Kategori Produk",
                             ajax: {
@@ -194,13 +207,15 @@
 
                     }
 
-                    $prodStock.on('select2:select', function (e) { 
+                    $nonstock.add($prodStock).on('select2:select', function (e) { 
                         e.preventDefault();
                         const selectedData = e.params.data.data;
-                        $(this).closest('.col-md-3')
-                            .next('.col-md-3') 
-                            .find('.uom_name') 
-                            .val(selectedData.uom.name); 
+                        $selector = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3');
+                        if ($(this).is('.nonstock_id')) {
+                            $selector = $selector.next('.col-md-3').next('.col-md-3');
+                        } 
+
+                        $selector.find('.uom_name').val(selectedData.uom.name); 
                     });
                 });
 
@@ -262,7 +277,9 @@
                 const value = parseFloat($(this).val()) || 0;
                 grandTotal += value;
             });
+
             const grandTotalFormatted = new Intl.NumberFormat('de-DE').format(grandTotal);
+            $('#grand-total-input').val(grandTotal);
             $('#grand-total').html(grandTotalFormatted);
         }
 

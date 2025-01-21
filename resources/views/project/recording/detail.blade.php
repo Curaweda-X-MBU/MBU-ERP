@@ -42,6 +42,16 @@
                                                         <input type="text" class="form-control" readonly value="{{ $data->project->kandang->name??'' }}">
                                                     </div>
                                                 </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 col-form-label">
+                                                        <label for="project_id" class="float-right">Standar Fcr</label>
+                                                    </div>
+                                                    <div class="col-sm-9" id="show-fcr">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-id="{{ $data->project->fcr_id }}" data-toggle="modal" data-target="#showFcr">
+                                                            {{ $data->project->fcr->name ?? 'N/A' }}
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6 mt-1">
                                                 <div class="row">
@@ -70,6 +80,14 @@
                                                     </div>
                                                     <div class="col-sm-9">
                                                         <input type="text" class="form-control flatpickr-basic" value="{{ date('d-M-Y H:i', strtotime($data->record_datetime))}}" readonly>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 col-form-label">
+                                                        <label for="day" class="float-right">Umur<br>(Hari)</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <input type="text" class="form-control" value="{{ $data->day }}" readonly>
                                                     </div>
                                                 </div>
                                                 @if ($data->document_revision)
@@ -229,8 +247,88 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="modal fade text-left" id="showFcr" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="myModalLabel1">Detail Standar FCR <span id="fcr-name"></span></h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="col-12">
+                                        <div class="row">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered w-100 no-wrap text-center">
+                                                    <thead>
+                                                        <tr>
+                                                            <th rowspan="2">Umur<br>(Hari)</th>
+                                                            <th rowspan="2">Bobot</th>
+                                                            <th colspan="2">Peningkatan</th>
+                                                            <th colspan="2">Asupan</th>
+                                                            <th rowspan="2">FCR</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Harian</th>
+                                                            <th>Rata - rata</th>
+                                                            <th>Harian</th>
+                                                            <th>Kumulatif</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <script>
                         $(document).ready(function() {
+                            $('#showFcr').on('show.bs.modal', function (event) {
+                                var button = $(event.relatedTarget) 
+                                var id = button.data('id')
+                                var modal = $(this)
+
+                                $.ajax({
+                                    type: "get",
+                                    url: `{{ route('data-master.fcr.search-standard') }}?fcr_id=${id}`,
+                                    beforeSend: function () {
+                                        modal.find('table tbody').html('');
+                                    },
+                                    success: function (response) {
+                                        let html = '';
+                                        modal.find('#fcr-name').html(`- ${response.name}`);
+                                        const arrFcr = response.fcr_standard;
+                                        
+                                        arrFcr.forEach(val => {
+                                            html += `<tr>
+                                                        <td>${formatMoney(val.day)}</td>
+                                                        <td>${formatMoney(val.weight)}</td>
+                                                        <td>${formatMoney(val.daily_gain)}</td>
+                                                        <td>${formatMoney(val.avg_daily_gain)}</td>
+                                                        <td>${formatMoney(val.daily_intake)}</td>
+                                                        <td>${formatMoney(val.cum_intake)}</td>
+                                                        <td>${formatMoney(val.fcr)}</td>
+                                                    </tr>`;
+                                        });
+                                        modal.find('table tbody').html(html);
+
+                                    }
+                                });
+                            });
+
+                            function formatMoney(amount) {
+                                const number = parseFloat(amount);
+                                const formatted = number.toFixed(2) 
+                                    .replace('.', ',')   
+                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.'); 
+                                return formatted.replace(/,00$/, '');
+                            }
                         });
                     </script>
 @endsection

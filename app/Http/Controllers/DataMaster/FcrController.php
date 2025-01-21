@@ -228,4 +228,11 @@ class FcrController extends Controller
             return ['id' => $fcr->fcr_id, 'text' => $fcr->name];
         }));
     }
+
+    public function searchFcrStandard(Request $request)
+    {
+        $data = Fcr::with('fcr_standard')->find($request->fcr_id);
+
+        return response()->json($data);
+    }
 }

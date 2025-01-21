@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Models\Project\RecordingStock;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\Purchase\PurchaseItemReception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,7 @@ class StockAvailability extends Model
         'received_date',
         'purchase_item_id',
         'purchase_item_reception_id',
+        'recording_stock_id',
     ];
 
     /**
@@ -49,5 +51,10 @@ class StockAvailability extends Model
     public function purchase_item_reception()
     {
         return $this->belongsTo(PurchaseItemReception::class, 'purchase_item_reception_id');
+    }
+
+    public function recording_stock()
+    {
+        return $this->belongsTo(RecordingStock::class, 'recording_stock_id');
     }
 }

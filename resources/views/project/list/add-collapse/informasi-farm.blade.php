@@ -57,12 +57,18 @@
                     if (res.length === 0) {
                         tblData = `<tr> <td colspan="4"><center>Data tidak tersedia</center></td> </tr>`;
                     }
+                    console.log('res', res);
+                    
                     res.forEach(val => {
                         latestPeriod = val.data.latest_period;
+                        let disabledCheck = '';
+                        if (val.data.project_status) {
+                            disabledCheck = 'disabled'
+                        }
                         tblData += `<tr>
                                         <td style="padding-left: 2rem !important;">
                                             <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input rowCheckbox" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }">
+                                                <input type="checkbox" class="custom-control-input rowCheckbox" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }" ${disabledCheck}>
                                                 <label class="custom-control-label" for="kandangId${ val.id }"></label>
                                             </div>
                                         </td>
