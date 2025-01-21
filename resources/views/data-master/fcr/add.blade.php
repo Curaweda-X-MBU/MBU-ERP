@@ -57,7 +57,7 @@
                                                     <table class="table table-bordered w-100 no-wrap text-center" id="fcr-standard">
                                                         <thead>
                                                             <tr>
-                                                                <th rowspan="2">Hari Ke</th>
+                                                                <th rowspan="2">Umur<br>(Hari)</th>
                                                                 <th rowspan="2">Bobot</th>
                                                                 <th colspan="2">Peningkatan</th>
                                                                 <th colspan="2">Asupan</th>

@@ -3,6 +3,7 @@
 namespace App\Models\Inventory;
 
 use App\Helpers\Parser;
+use App\Models\Project\RecordingStock;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\Purchase\PurchaseItemReception;
 use App\Models\UserManagement\User;
@@ -97,6 +98,43 @@ class StockLog extends Model
                     'purchase_item_id'           => $input['purchase_item_id'],
                     'purchase_item_reception_id' => $input['purchase_item_reception_id'],
                 ]);
+            }
+
+            if (isset($input['recording_stock_id'])) {
+                $originAvailabilities = StockAvailability::where('product_warehouse_id', $stock->product_warehouse_id)
+                    ->orderBy('stock_availability_id', 'asc')
+                    ->get();
+
+                $remainingQty = $decrease;
+                $usageAmount  = 0;
+                foreach ($originAvailabilities as $val) {
+                    if ($remainingQty <= 0) {
+                        break;
+                    }
+                    $currentQty = $val->current_qty;
+                    $usageQty   = min($remainingQty, $currentQty);
+
+                    $val->update(['current_qty' => $currentQty - $usageQty]);
+                    $destinationPW = ProductWarehouse::where([
+                        'product_id'   => $productId,
+                        'warehouse_id' => $warehouseId,
+                    ])->first();
+
+                    StockAvailability::create([
+                        'product_warehouse_id'       => $destinationPW->product_warehouse_id,
+                        'current_qty'                => $usageQty,
+                        'product_price'              => $val->product_price,
+                        'received_date'              => $val->received_date,
+                        'purchase_item_id'           => $val->purchase_item_id,
+                        'purchase_item_reception_id' => $val->purchase_item_reception_id,
+                        'recording_stock_id'         => $input['recording_stock_id'],
+                    ]);
+
+                    $remainingQty -= $usageQty;
+                    $usageAmount += $usageQty * $val->product_price;
+                }
+                $recordingStock = RecordingStock::find($input['recording_stock_id']);
+                $recordingStock->update(['usage_amount' => $usageAmount]);
             }
 
             DB::commit();

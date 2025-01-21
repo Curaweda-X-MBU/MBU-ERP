@@ -10,7 +10,7 @@
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 
-<form method="post" action="{{ route('project.list.add') }}">
+<form method="post" class="repeater-default" action="{{ route('project.list.add') }}">
     {{ csrf_field() }}
     <h4 class="card-title">{{$title}}</h4>
     <section id="collapsible">

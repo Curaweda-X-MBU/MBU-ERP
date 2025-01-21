@@ -1,6 +1,6 @@
 <div class="card mb-1">
     <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
-        <span class="lead collapse-title"> Informasi  Farm </span>
+        <span class="lead collapse-title">Pilih Kandang </span>
     </div>
     <div id="collapse2" role="tabpanel" aria-labelledby="headingCollapse2" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
@@ -57,12 +57,18 @@
                     if (res.length === 0) {
                         tblData = `<tr> <td colspan="4"><center>Data tidak tersedia</center></td> </tr>`;
                     }
+                    console.log('res', res);
+                    
                     res.forEach(val => {
                         latestPeriod = val.data.latest_period;
+                        let disabledCheck = '';
+                        if (val.data.project_status) {
+                            disabledCheck = 'disabled'
+                        }
                         tblData += `<tr>
                                         <td style="padding-left: 2rem !important;">
                                             <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input rowCheckbox" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }">
+                                                <input type="checkbox" class="custom-control-input rowCheckbox" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }" ${disabledCheck}>
                                                 <label class="custom-control-label" for="kandangId${ val.id }"></label>
                                             </div>
                                         </td>

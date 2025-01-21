@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ListController::class, 'delete'])->name('project.list.delete')->middleware('permission:project.list.delete');
             Route::get('/search', [App\Http\Controllers\Project\ListController::class, 'searchProject'])->name('project.list.search');
             Route::get('/search-period', [App\Http\Controllers\Project\ListController::class, 'searchPeriod'])->name('project.list.search-period');
+            Route::get('/search-budget', [App\Http\Controllers\Project\ListController::class, 'searchBudget'])->name('project.list.search-budget');
         });
         Route::group(['prefix' => 'perparation'], function() {
             Route::get('/', [App\Http\Controllers\Project\PreparationController::class, 'index'])->name('project.perparation.index')->middleware('permission:project.perparation.index');
@@ -334,6 +335,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\FcrController::class, 'edit'])->name('data-master.fcr.edit')->middleware('permission:data-master.fcr.edit');
             Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\FcrController::class, 'delete'])->name('data-master.fcr.delete')->middleware('permission:data-master.fcr.delete');
             Route::get('/search', [App\Http\Controllers\DataMaster\FcrController::class, 'searchFcr'])->name('data-master.fcr.search');
+            Route::get('/search-standard', [App\Http\Controllers\DataMaster\FcrController::class, 'searchFcrStandard'])->name('data-master.fcr.search-standard');
         });
 
         Route::group(['prefix' => 'warehouse'], function() {
