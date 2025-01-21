@@ -16,6 +16,15 @@
                 </thead>
 
                 <tbody id="laba-rugi-tbody"></tbody>
+
+                <tfoot>
+                    <tr class="text-center font-weight-bolder">
+                        <td colspan="3" class="text-left">LABA RUGI PERUSAHAAN</td>
+                        <td>Rp <span>750,94</span></td>
+                        <td>Rp <span>750,94</span></td>
+                        <td>Rp <span>274.235.400</span></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -72,8 +81,8 @@
         footerRow1.innerHTML = `
             <td></td>
             <td colspan="2" class="text-left pt-1"><h4>LABA RUGI BRUTTO</h4></td>
-            <td>Rp <span>274.235.400</span></td>
-            <td>Rp <span>274.235.400</span></td>
+            <td>Rp <span>750,94</span></td>
+            <td>Rp <span>750,94</span></td>
             <td>Rp <span>274.235.400</span></td>
         `;
         tbody.appendChild(footerRow1);
@@ -98,8 +107,8 @@
         footerRow2.innerHTML = `
             <td></td>
             <td colspan="2" class="text-left pt-1"><h4>LABA RUGI NETTO</h4></td>
-            <td>Rp <span>174.235.400</span></td>
-            <td>Rp <span>174.235.400</span></td>
+            <td>Rp <span>750,94</span></td>
+            <td>Rp <span>750,94</span></td>
             <td>Rp <span>174.235.400</span></td>
         `;
         tbody.appendChild(footerRow2);
