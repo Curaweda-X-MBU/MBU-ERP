@@ -49,36 +49,44 @@ class ProductSeeder extends Seeder
             [
                 'name'                => 'Sehat',
                 'product_category_id' => 1,
+                'created_by'          => 1,
             ],
             [
                 'name'                => 'Retak',
                 'product_category_id' => 1,
+                'created_by'          => 1,
             ],
             [
                 'name'                => 'Pecah',
                 'product_category_id' => 1,
+                'created_by'          => 1,
             ],
             // Parent Stock
             [
                 'name'                => 'Sehat',
                 'product_category_id' => 2,
+                'created_by'          => 2,
             ],
             [
                 'name'                => 'Culling',
                 'product_category_id' => 2,
+                'created_by'          => 2,
             ],
             [
                 'name'                => 'Afkir',
                 'product_category_id' => 2,
+                'created_by'          => 2,
             ],
             [
                 'name'                => 'Mati',
                 'product_category_id' => 2,
+                'created_by'          => 2,
             ],
             // Final Stock
             [
                 'name'                => 'Baik',
                 'product_category_id' => 3,
+                'created_by'          => 3,
             ],
         ]);
 
