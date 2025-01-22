@@ -73,6 +73,14 @@
                                                         @endif
                                                     </div>
                                                 </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 col-form-label">
+                                                        <label for="project_id" class="float-right">Standar Fcr</label>
+                                                    </div>
+                                                    <div class="col-sm-9" id="show-fcr">
+                                                       
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6 mt-1">
                                                 <div class="row">
@@ -119,6 +127,19 @@
                                                         @endif
                                                     </div>
                                                 </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 col-form-label">
+                                                        <label for="day" class="float-right">Umur<br>(Hari)</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        @if ($data)
+                                                        <input type="text" class="form-control" name="day" value="{{ $data->day }}" readonly>
+                                                        @else
+                                                        <input type="text" class="form-control day-old" placeholder="Umur" value="" readonly>
+                                                        <input type="hidden" class="day-old" name="day" required>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -159,9 +180,90 @@
                         </div>
                     </div>
                 </form>
+
+                <div class="modal fade text-left" id="showFcr" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel1">Detail Standar FCR <span id="fcr-name"></span></h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered w-100 no-wrap text-center">
+                                                <thead>
+                                                    <tr>
+                                                        <th rowspan="2">Umur<br>(Hari)</th>
+                                                        <th rowspan="2">Bobot</th>
+                                                        <th colspan="2">Peningkatan</th>
+                                                        <th colspan="2">Asupan</th>
+                                                        <th rowspan="2">FCR</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Harian</th>
+                                                        <th>Rata - rata</th>
+                                                        <th>Harian</th>
+                                                        <th>Kumulatif</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
+                            $('#showFcr').on('show.bs.modal', function (event) {
+                                var button = $(event.relatedTarget) 
+                                var id = button.data('id')
+                                var modal = $(this)
+
+                                $.ajax({
+                                    type: "get",
+                                    url: `{{ route('data-master.fcr.search-standard') }}?fcr_id=${id}`,
+                                    beforeSend: function () {
+                                        modal.find('table tbody').html('');
+                                    },
+                                    success: function (response) {
+                                        let html = '';
+                                        modal.find('#fcr-name').html(`- ${response.name}`);
+                                        const arrFcr = response.fcr_standard;
+                                        
+                                        arrFcr.forEach(val => {
+                                            html += `<tr>
+                                                        <td>${formatMoney(val.day)}</td>
+                                                        <td>${formatMoney(val.weight)}</td>
+                                                        <td>${formatMoney(val.daily_gain)}</td>
+                                                        <td>${formatMoney(val.avg_daily_gain)}</td>
+                                                        <td>${formatMoney(val.daily_intake)}</td>
+                                                        <td>${formatMoney(val.cum_intake)}</td>
+                                                        <td>${formatMoney(val.fcr)}</td>
+                                                    </tr>`;
+                                        });
+                                        modal.find('table tbody').html(html);
+
+                                    }
+                                });
+                            });
+
+                            function formatMoney(amount) {
+                                const number = parseFloat(amount);
+                                const formatted = number.toFixed(2) 
+                                    .replace('.', ',')   
+                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.'); 
+                                return formatted.replace(/,00$/, '');
+                            }
+
                             $('#submitForm').click(function(event) {
                                 var confirmation = confirm('Apakah kamu yakin ingin menyimpan data ini ?');
                                 if (!confirmation) {
@@ -174,7 +276,7 @@
                                 dateFormat: "d-m-Y H:i",
                                 enableTime: true,
                                 time_24hr: true,
-                                defaultDate: new Date()
+                                defaultDate: new Date(new Date().setDate(new Date().getDate() - 1))
                             });
 
                             $('#company_id').select2({
@@ -253,6 +355,8 @@
                                 e.preventDefault();
                                 
                                 const selectedData = e.params.data.data;
+                                console.log('selectedData ', selectedData);
+                                
                                 setEmpty($(this).val());
                                 $('#product_category_name').val(selectedData.product_category.name);
                                 $('#product_category_code').val(selectedData.product_category.category_code);
@@ -276,6 +380,27 @@
                                     setEmpty();
                                     alert(`Kandang ${selectedData.kandang.name} belum memiliki gudang.`);
                                 }
+
+                                if (selectedData.project_chick_in) {
+                                    const chickinData = selectedData.project_chick_in[0];
+                                    const chickinDate = new Date(chickinData.chickin_date);
+                                    const today = new Date();
+                                    const diffTime = Math.abs(today - chickinDate);
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    const dayOld = diffDays-1;
+                                    if (dayOld <= 0) {
+                                        alert('Umur ayam belum 1 hari');
+                                        $('.day-old').val('');                                    
+                                    } else {
+                                        $('.day-old').val(dayOld);                                    
+                                    }
+                                }
+
+                                if (selectedData.fcr_id && selectedData.fcr) {
+                                    $('#show-fcr').html(`<button type="button" class="btn btn-sm btn-outline-primary" data-id=" ${selectedData.fcr_id} " data-toggle="modal" data-target="#showFcr">
+                                                            ${selectedData.fcr.name}
+                                                        </button>`);
+                                }
                             });
 
                             function setEmpty (projectId = null) {
@@ -288,6 +413,8 @@
                                 $('#warehouse_name').val('');
                                 $('#warehouse_id').val('');
                                 $('#egg-section').css('display', 'none');
+                                $('#show-fcr').html('');
+                                $('.day-old').val('');
                             }
 
                             var numeralMask = $('.numeral-mask');

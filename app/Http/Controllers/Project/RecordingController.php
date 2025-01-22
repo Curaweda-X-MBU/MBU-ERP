@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Project;
 use App\Constants;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\ProductCategory;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use App\Models\Project\Project;
@@ -78,27 +79,42 @@ class RecordingController extends Controller
                     return redirect()->back()->with('error', 'Body Weight harus diisi');
                 }
 
-                DB::beginTransaction();
                 $project = Project::with([
                     'kandang',
-                    'purchase_item.product.product_category',
+                    'recording',
                 ])->find($input['project_id']);
 
-                $parentProduct = false;
-                foreach ($project->purchase_item as $key => $value) {
-                    $parentProduct = $value->product_id;
-                    if ($value->product->product_category->category_code
-                        && ! in_array($value->product->product_category->category_code, ['RAW', 'GNR'])) {
-                        $parentProduct = $value->product_id;
+                foreach ($project->recording ?? [] as $key => $value) {
+                    $existingDay = $value->day;
+                    if ($input['day'] == $existingDay) {
+                        return redirect()->back()->with('error', 'Error: Umur '.$input['day'].' hari sudah pernah direcord');
                     }
                 }
+
+                $parentProduct    = false;
+                $productCategory  = ProductCategory::find($input['product_category_id']);
+                $projectWarehouse = ProductWarehouse::whereHas('product', function($query) {
+                    $query->whereHas('product_category', function($query) {
+                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS']);
+                    });
+                })
+                    ->where('warehouse_id', $input['warehouse_id'])
+                    ->where('quantity', '>', 0)
+                    ->first();
+
+                if ($projectWarehouse) {
+                    $parentProduct = $projectWarehouse->product_id;
+                }
+
+                DB::beginTransaction();
 
                 $recording                  = new Recording;
                 $recording->project_id      = $input['project_id'];
                 $strtotime                  = strtotime($input['record_datetime']);
+                $recording->day             = $input['day'];
                 $recordDateInput            = date('Y-m-d H:i', $strtotime);
                 $recording->record_datetime = $recordDateInput;
-                $createdAt                  = Carbon::parse(date('Y-m-d'));
+                $createdAt                  = Carbon::today()->subDay();
                 $recordDate                 = Carbon::parse(date('Y-m-d', $strtotime));
                 $onTime                     = $createdAt->isSameDay($recordDate) ? true : false;
                 $recording->on_time         = $onTime;
@@ -113,30 +129,26 @@ class RecordingController extends Controller
                     ])->first();
 
                     $valDecrease = str_replace('.', '', $value['decrease_stock']);
-                    if ($generalStock && $generalStock->quantity < $valDecrease) {
+                    if ($generalStock->quantity < $valDecrease) {
                         DB::rollback();
 
-                        return redirect()->back()->withErrors($validator)->withInput();
+                        return redirect()->back()->with('error', 'Pemakaian persediaan melebihi jumlah stok saat ini');
                     }
 
-                    StockLog::triggerStock([
-                        'product_id'   => $value['product_id'],
-                        'stock_date'   => date('Y-m-d', $strtotime),
-                        'warehouse_id' => $input['warehouse_id'],
-                        'decrease'     => $valDecrease,
-                        'stocked_by'   => 'Recording',
-                        'notes'        => 'Persediaan Project '.$project->kandang->name,
-                    ]);
+                    $recordingStock                       = new RecordingStock;
+                    $recordingStock->recording_id         = $recording->recording_id;
+                    $recordingStock->product_warehouse_id = $generalStock->product_warehouse_id;
+                    $recordingStock->decrease             = $valDecrease;
+                    $recordingStock->save();
 
-                    $generalStock = ProductWarehouse::where([
-                        'product_id'   => $value['product_id'],
-                        'warehouse_id' => $input['warehouse_id'],
-                    ])->first();
-
-                    RecordingStock::create([
-                        'recording_id'         => $recording->recording_id,
-                        'product_warehouse_id' => $generalStock->product_warehouse_id,
-                        'decrease'             => $valDecrease,
+                    $updateStock = StockLog::triggerStock([
+                        'product_id'         => $value['product_id'],
+                        'stock_date'         => date('Y-m-d', $strtotime),
+                        'warehouse_id'       => $input['warehouse_id'],
+                        'decrease'           => $valDecrease,
+                        'stocked_by'         => 'Recording',
+                        'notes'              => 'Persediaan Project '.$project->kandang->name,
+                        'recording_stock_id' => $recordingStock->recording_stock_id,
                     ]);
                 }
 
@@ -212,7 +224,7 @@ class RecordingController extends Controller
             }
 
             foreach ($arrProdStockType as $k => $v) {
-                StockLog::triggerStock([
+                $updateStock = StockLog::triggerStock([
                     'product_id'   => $v['product_id'],
                     'stock_date'   => date('Y-m-d', $strtotime),
                     'warehouse_id' => $warehouseId,
@@ -221,6 +233,7 @@ class RecordingController extends Controller
                     'stocked_by'   => 'Recording',
                     'notes'        => 'Project '.$project->kandang->name,
                 ]);
+
             }
 
             $currentWhStock = ProductWarehouse::where([
@@ -267,6 +280,7 @@ class RecordingController extends Controller
             'recording_depletion.product_warehouse.product',
             'recording_egg.product_warehouse.product.uom',
             'project',
+            'project.fcr.fcr_standard',
         ])->findOrFail($recordingId);
 
         return $data;

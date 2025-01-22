@@ -215,7 +215,7 @@ class FcrController extends Controller
     public function searchFcr(Request $request)
     {
         $search      = $request->input('q');
-        $fcrs        = Fcr::with('uom')->where('name', 'like', "%{$search}%");
+        $fcrs        = Fcr::where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {
@@ -225,7 +225,14 @@ class FcrController extends Controller
         $fcrs = $fcrs->get();
 
         return response()->json($fcrs->map(function($fcr) {
-            return ['id' => $fcr->fcr_id, 'text' => $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name];
+            return ['id' => $fcr->fcr_id, 'text' => $fcr->name];
         }));
+    }
+
+    public function searchFcrStandard(Request $request)
+    {
+        $data = Fcr::with('fcr_standard')->find($request->fcr_id);
+
+        return response()->json($data);
     }
 }

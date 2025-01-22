@@ -9,6 +9,8 @@
     $product_category_name = old('product_category_name');
     $period = old('period');
     $farm_type = old('farm_type');
+    $fcr_id = old('fcr_id');
+    $fcr_name = old('fcr_name');
 
     if (isset($data)) {
         $company_id = $data->kandang->company_id??'';
@@ -21,6 +23,8 @@
         $product_category_name = $data->product_category->name??'';
         $period = $data->period??"";
         $farm_type = $data->farm_type??"";
+        $fcr_id = $data->fcr_id;
+        $fcr_name = $data->fcr->name??"";
     } 
 
 @endphp
@@ -146,6 +150,28 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="fcr_id" class="float-right">Standar FCR</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="fcr_id" id="fcr_id" class="form-control">
+                                    <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
+                                    @if($fcr_id && $fcr_name)
+                                    <option value="{{ $fcr_id }}" selected="selected">{{ $fcr_name }}</option>
+                                    @endif
+                                </select>
+                                @if ($errors->has('fcr_id'))
+                                <span class="text-danger small">{{ $errors->first('fcr_id') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -175,6 +201,7 @@
         $('#company_id').change(function (e) { 
             e.preventDefault();
             $('#area_id').val(null).trigger('change');
+            $('#fcr_id').val(null).trigger('change');
             $('#product_category_id').val(null).trigger('change');
             var companyId = $('#company_id').val();
 
@@ -182,6 +209,26 @@
                 placeholder: "Pilih Area",
                 ajax: {
                     url: `{{ route("data-master.area.search") }}`, 
+                    dataType: 'json',
+                    delay: 250, 
+                    data: function(params) {
+                        return {
+                            q: params.term 
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                }
+            });
+
+            $('#fcr_id').select2({
+                placeholder: "Pilih Standar FCR",
+                ajax: {
+                    url: `{{ route("data-master.fcr.search") }}?company_id=${companyId}`, 
                     dataType: 'json',
                     delay: 250, 
                     data: function(params) {
