@@ -1,6 +1,9 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+@php
+    $farmType = App\Constants::KANDANG_TYPE;
+@endphp
 
 @php
 $data = collect([
@@ -37,10 +40,6 @@ $data = collect([
                         <select name="location" id="location" class="form-control"></select>
                     </div>
                     <div class="col-md-2 mt-1">
-                        <label for="kandang" class="form-label">Kandang<i class="text-danger">*</i></label>
-                        <select name="kandang" id="kandang" class="form-control"></select>
-                    </div>
-                    <div class="col-md-2 mt-1">
                         <label for="status_project" class="form-label">Status Project<i class="text-danger">*</i></label>
                         <select name="status_project" id="status_project" class="form-control"></select>
                     </div>
@@ -64,13 +63,13 @@ $data = collect([
                                 @foreach ($data as $index => $item)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $item['location'] }}</td>
-                                    <td>{{ $item['period'] }}</td>
-                                    <td>{{ date('d-M-Y', strtotime($item['closed_at'])) }}</td>
-                                    <td>{{ $item['farm_type'] }}</td>
-                                    <td>{{ $item['active_farms_count'] }} Kandang</td>
+                                    <td>{{ $item->name }}</td>
+                                    <td>{{ $item->period }}</td>
+                                    <td>-</td>
+                                    <td>{{ $farmType[$item->farm_type] }}</td>
+                                    <td>{{ $item->count_kandang }} Kandang</td>
                                     <td>
-                                        @switch($item['project_status'])
+                                        @switch($item->project_status)
                                             @case(1)
                                                 <div class="badge badge-pill badge-warning">Pengajuan</div>
                                                 @break
@@ -93,7 +92,7 @@ $data = collect([
                                                 <i data-feather="more-vertical"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('report.mbu.detail')}}">
+                                                <a class="dropdown-item" href="{{ route('report.detail', $item->project_id)}}">
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Detail</span>
                                                 </a>
@@ -117,12 +116,9 @@ $data = collect([
 <script>
     // select2
     const $locationSelect = $('#location');
-    const $kandangSelect = $('#kandang');
     const $statusProjectSelect = $('#status_project');
     const locationIdRoute = '{{ route("data-master.location.search") }}';
-    const kandangIdRoute = '{{ route("data-master.kandang.search") }}';
     initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '');
-    initSelect2($kandangSelect, 'Pilih Kandang', kandangIdRoute, '');
     initSelect2($statusProjectSelect, 'Pilih Status');
 
     $(function () {

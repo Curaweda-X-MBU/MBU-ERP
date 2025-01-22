@@ -100,11 +100,11 @@
     initSelect2($periodSelect, 'Pilih Periode');
 
     const dataKandang = [
-        { name: "Pandeglang 1", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 3", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 5", status: "aktif", link: "/report/mbu/detail/kandang" }
+        { name: "Pandeglang 1", status: "aktif", link: "/report/manbu/detail/kandang" },
+        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/manbu/detail/kandang" },
+        { name: "Pandeglang 3", status: "aktif", link: "/report/manbu/detail/kandang" },
+        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/manbu/detail/kandang" },
+        { name: "Pandeglang 5", status: "aktif", link: "/report/manbu/detail/kandang" }
     ];
 
     function generateKandang() {
@@ -128,8 +128,5 @@
 
     generateKandang();
 </script>
-
-
-
 
 @endsection
