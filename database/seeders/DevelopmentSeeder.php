@@ -15,7 +15,6 @@ class DevelopmentSeeder extends Seeder
             DatabaseSeeder::class,
             UomSeeder::class,
             ProductSeeder::class,
-            FcrSeeder::class,
             KandangSeeder::class,
             WarehouseSeeder::class,
             CustomerSeeder::class,
