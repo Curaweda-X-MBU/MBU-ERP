@@ -27,6 +27,9 @@
             <div class="card-header">
                 <h4 class="card-title">{{$title}}</h4>
                 <div class="text-right mt-1">
+                    <a href="{{ route('report.lti.detail') }}" class="btn btn-outline-secondary waves-effect mr-1" role="button">
+                        Kembali
+                    </a>
                     <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Export
                     </button>
@@ -43,17 +46,9 @@
                         <select name="period" id="period" class="form-control"></select>
                     </div>
                 </div>
-                @include('report.sections.informasi-umum-lokasi-detail')
+                @include('report.sections.informasi-umum-kandang-detail')
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4>Kandang</h4>
-                <div id="kandang-container" class="kandang-container"></div>
-            </div>
-        </div>
-
 
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -77,7 +72,7 @@
                 @include('report.sections.penjualan-detail')
             </div>
             <div class="tab-pane fade" id="nav-overhead" role="tabpanel" aria-labelledby="nav-overhead-tab">
-                @include('report.sections.overhead-lokasi-detail')
+                @include('report.sections.overhead-kandang-detail')
             </div>
             <div class="tab-pane fade" id="nav-hppEkspedisi" role="tabpanel" aria-labelledby="nav-hppEkspedisi-tab">
                 @include('report.sections.hpp-ekspedisi-detail')
@@ -98,38 +93,6 @@
     // select period
     const $periodSelect = $('#period');
     initSelect2($periodSelect, 'Pilih Periode');
-
-    const dataKandang = [
-        { name: "Pandeglang 1", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 3", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 5", status: "aktif", link: "/report/mbu/detail/kandang" }
-    ];
-
-    function generateKandang() {
-        const container = document.getElementById("kandang-container");
-        container.innerHTML = "";
-
-        dataKandang.forEach((kandang) => {
-            const kandangItem = document.createElement("button");
-            kandangItem.className = `btn mr-1 mt-1 rounded-pill btn-outline-${
-                kandang.status === "aktif" ? "primary" : "secondary"
-            }`;
-            kandangItem.textContent = kandang.name;
-
-            kandangItem.onclick = () => {
-                window.location.href = kandang.link;
-            };
-
-            container.appendChild(kandangItem);
-        });
-    }
-
-    generateKandang();
 </script>
-
-
-
 
 @endsection
