@@ -2,7 +2,6 @@
 
 namespace App\Models\DataMaster;
 
-use App\Models\Project\Project;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,26 +16,29 @@ class Fcr extends Model
     protected $primaryKey = 'fcr_id';
 
     protected $fillable = [
+        'company_id',
         'name',
-        'value',
-        'product_id',
-        'uom_id',
         'created_at',
         'created_by',
     ];
 
-    public function product()
+    /**
+     * Get the company that owns the Fcr
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function company()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
-    public function uom()
+    /**
+     * Get all of the fcr_standard for the Fcr
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function fcr_standard()
     {
-        return $this->belongsTo(Uom::class, 'uom_id');
+        return $this->hasMany(FcrStandard::class, 'fcr_id');
     }
-
-    // public function project()
-    // {
-    //     return $this->hasMany(Project::class, 'kandang_id');
-    // }
 }
