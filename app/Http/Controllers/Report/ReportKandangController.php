@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 
-class ReportController extends Controller
+class ReportKandangController extends Controller
 {
-    public function indexMbu()
+    public function sapronak()
     {
         try {
             $param = [
@@ -22,7 +22,7 @@ class ReportController extends Controller
         }
     }
 
-    public function indexManbu()
+    public function perhitunganSapronak()
     {
         try {
             $param = [
@@ -38,7 +38,7 @@ class ReportController extends Controller
         }
     }
 
-    public function indexLti()
+    public function penjualan()
     {
         try {
             $param = [
@@ -54,7 +54,55 @@ class ReportController extends Controller
         }
     }
 
-    public function detailMbu()
+    public function overhead()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > Detail Laporan Project',
+            ];
+
+            return view('report.mbu.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function hppEkspedisi()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > Detail Laporan Project',
+            ];
+
+            return view('report.mbu.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function dataProduksi()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > Detail Laporan Project',
+            ];
+
+            return view('report.mbu.detail', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function keuangan()
     {
         try {
             $param = [

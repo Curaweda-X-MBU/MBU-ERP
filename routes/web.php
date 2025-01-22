@@ -158,16 +158,8 @@ Route::middleware('auth')->group(function() {
     });
 
     Route::group(['prefix' => 'report'], function() {
-        Route::group(['prefix' => 'mbu'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexMbu'])->name('report.mbu.index')->middleware('permission:report.mbu.index');
-            Route::get('/detail', [App\Http\Controllers\Report\ReportController::class, 'detailMbu'])->name('report.mbu.detail')->middleware('permission:report.mbu.index');
-        });
-        Route::group(['prefix' => 'manbu'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexManbu'])->name('report.manbu.index')->middleware('permission:report.manbu.index');
-        });
-        Route::group(['prefix' => 'lti'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexLti'])->name('report.lti.index')->middleware('permission:report.lti.index');
-        });
+        Route::get('/', [App\Http\Controllers\Report\ReportLocationController::class, 'index'])->name('report.index');
+        Route::get('/{project}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail');
     });
 
     Route::group(['prefix' => 'purchase'], function() {

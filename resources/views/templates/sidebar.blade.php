@@ -144,24 +144,24 @@
                     </a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('report.mbu.index'))
-                            <li id="{{ ltrim(parse_url(route('report.mbu.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.mbu.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=mbu' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="MBU">MBU</span>
                                 </a>
                             </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('report.manbu.index'))
-                            <li id="{{ ltrim(parse_url(route('report.manbu.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.manbu.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=manbu' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="Manbu">Manbu</span>
                                 </a>
                             </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('report.lti.index'))
-                            <li id="{{ ltrim(parse_url(route('report.lti.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.lti.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=lti' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="LTI">LTI</span>
                                 </a>
