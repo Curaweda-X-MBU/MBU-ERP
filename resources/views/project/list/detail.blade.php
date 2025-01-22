@@ -26,12 +26,12 @@
                     Edit
                 </a>
                 @endif
-                @if (Auth::user()->role->hasPermissionTo('project.list.copy'))
+                {{-- @if (Auth::user()->role->hasPermissionTo('project.list.copy'))
                 <a href="{{ route('project.list.copy', $data->project_id) }}" class="btn btn-warning">
                     <i data-feather="copy" class="mr-50"></i>
                     Copy
                 </a>
-                @endif
+                @endif --}}
                 @if (!$data->approval_date && Auth::user()->role->hasPermissionTo('project.list.approve'))
                 <a class="btn btn-success" href="javascript:void(0);" data-id="{{ $data->project_id }}" data-toggle="modal" data-target="#approve">
                     <i data-feather="check" class="mr-50"></i>

@@ -8,16 +8,17 @@
                 <div class="table-responsive">
                     <table class="table table-bordered w-100">
                         <thead>
-                            <th>Item</th>
+                            <th>Nama Produk</th>
                             <th class="text-right">QTY</th>
                             <th class="text-right">Harga Satuan (Rp)</th>
                             <th class="text-right">Total Anggaran (Rp)</th>
                         </thead>
                         <tbody>
+                            {{-- @dd($data->project_budget) --}}
                             @if ($data->project_budget)
                                 @foreach ($data->project_budget as $item)
                                     <tr>
-                                        <td>{{ $item->item }}</td>
+                                        <td>{{ $item->product->name??$item->nonstock->name??'' }}</td>
                                         <td class="text-right">{{ number_format($item->qty, '0', ',', '.') }}</td>
                                         <td class="text-right">{{ number_format($item->price, '0', ',', '.') }}</td>
                                         <td class="text-right">{{ number_format($item->qty*$item->price, '0', ',', '.') }}</td>

@@ -24,23 +24,17 @@ class ListController extends Controller
 {
     private const VALIDATION_RULES = [
         'product_category_id' => 'required',
-        'kandang_id'          => 'required',
-        'capacity'            => 'required',
         'farm_type'           => 'required',
         'period'              => 'required',
-        'pic'                 => 'required',
-        // 'fcr_id'              => 'required',
+        'fcr_id'              => 'required',
         // 'target_depletion'    => 'required',
     ];
 
     private const VALIDATION_MESSAGES = [
         'product_category_id' => 'Kategori Produk tidak boleh kosong',
-        'kandang_id'          => 'Kandang tidak boleh kosong',
-        'capacity'            => 'Kapasitas tidak boleh kosong',
         'farm_type'           => 'Tipe Kandang tidak boleh kosong',
         'period'              => 'Periode tidak boleh kosong',
-        'pic'                 => 'Penaggung jawab tidak boleh kosong',
-        // 'fcr_id'              => 'FCR tidak boleh kosong',
+        'fcr_id'              => 'FCR tidak boleh kosong',
         // 'target_depletion'    => 'Target Deplesi tidak boleh kosong',
     ];
 
@@ -87,13 +81,6 @@ class ListController extends Controller
                     if (isset($input['product_category_id'])) {
                         $input['product_category_name'] = ProductCategory::find($req->input('product_category_id'))->name;
                     }
-                    if (isset($input['kandang_id'])) {
-                        $input['kandang_name'] = Kandang::find($req->input('kandang_id'))->name;
-                    }
-                    // if (isset($input['fcr_id'])) {
-                    //     $fcr               = Fcr::with('uom')->find($req->input('fcr_id'));
-                    //     $input['fcr_name'] = $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name;
-                    // }
                     if (isset($input['recording'])) {
                         foreach ($input['recording'] as $key => $value) {
                             $input['recording'][$key]['uom_name'] = Uom::find($value['uom_id'])->name;
@@ -101,44 +88,55 @@ class ListController extends Controller
                     }
 
                     return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput($input);
+                        ->withErrors($validator);
+                }
+                if (! $req->has('kandang_id')) {
+                    return redirect()->back()->with('error', 'Data kandang harus dipilih');
                 }
 
                 if (! $req->has('budget')) {
-                    return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong')->withInput($input);
+                    return redirect()->back()->with('error', 'Data Anggaran tidak boleh kosong');
                 }
 
                 DB::transaction(function() use ($req) {
-                    $project = Project::create([
-                        'product_category_id' => $req->input('product_category_id'),
-                        'kandang_id'          => $req->input('kandang_id'),
-                        'capacity'            => $req->input('capacity'),
-                        'farm_type'           => $req->input('farm_type'),
-                        'period'              => $req->input('period'),
-                        'pic'                 => $req->input('pic'),
-                        // 'fcr_id'              => $req->input('fcr_id'),
-                        // 'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget'   => $req->input('total_budget'),
-                        'chickin_status' => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
-                        'project_status' => array_search('Pengajuan', Constants::PROJECT_STATUS),
-                        'created_by'     => Auth::user()->user_id ?? '',
-                    ]);
+                    $arrKandang = $req->input('kandang_id');
+                    for ($i = 0; $i < count($arrKandang); $i++) {
+                        $dtKandang = Kandang::with('user')->find($arrKandang[$i]);
+                        $project   = Project::create([
+                            'product_category_id' => $req->input('product_category_id'),
+                            'kandang_id'          => $arrKandang[$i],
+                            'capacity'            => $dtKandang->capacity ?? 0,
+                            'farm_type'           => $req->input('farm_type'),
+                            'fcr_id'              => $req->input('fcr_id'),
+                            'period'              => $req->input('period'),
+                            'pic'                 => $dtKandang->user->name ?? '',
+                            'total_budget'        => $req->input('total_budget'),
+                            'chickin_status'      => array_search('Belum', Constants::PROJECT_CHICKIN_STATUS),
+                            'project_status'      => array_search('Pengajuan', Constants::PROJECT_STATUS),
+                            'created_by'          => Auth::user()->user_id ?? '',
+                        ]);
 
-                    $kandang = Kandang::findOrFail($project->kandang_id);
-                    $kandang->update([
-                        'project_status' => true,
-                    ]);
-
-                    $projectId = $project->project_id;
-                    if ($req->has('budget')) {
-                        $arrBudget = $req->input('budget');
-                        foreach ($arrBudget as $key => $value) {
-                            $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
-                            $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
-                            $arrBudget[$key]['project_id'] = $projectId;
+                        $projectId = $project->project_id;
+                        if ($req->has('budget')) {
+                            $arrBudget = $req->input('budget');
+                            foreach ($arrBudget as $key => $value) {
+                                $arrBudget[$key]['nonstock_id'] = null;
+                                $arrBudget[$key]['product_id']  = null;
+                                if ($value['stock_type'] == 1) {
+                                    $arrBudget[$key]['product_id'] = $value['product_id'];
+                                } else {
+                                    $arrBudget[$key]['nonstock_id'] = $value['nonstock_id'];
+                                }
+                                $arrBudget[$key]['qty']        = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                                $arrBudget[$key]['price']      = str_replace('.', '', str_replace(',', '.', $value['price']));
+                                $arrBudget[$key]['total']      = $value['total-input'];
+                                $arrBudget[$key]['project_id'] = $projectId;
+                                unset($arrBudget[$key]['product_category_id']);
+                                unset($arrBudget[$key]['stock_type']);
+                                unset($arrBudget[$key]['total-input']);
+                            }
+                            ProjectBudget::insert($arrBudget);
                         }
-                        ProjectBudget::insert($arrBudget);
                     }
                 });
 
@@ -149,7 +147,7 @@ class ListController extends Controller
 
             return view('project.list.add', $param);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
@@ -182,11 +180,10 @@ class ListController extends Controller
                         'kandang_id'          => $req->input('kandang_id'),
                         'capacity'            => $req->input('capacity'),
                         'farm_type'           => $req->input('farm_type'),
+                        'fcr_id'              => $req->input('fcr_id'),
                         'period'              => $req->input('period'),
                         'pic'                 => $req->input('pic'),
-                        // 'fcr_id'              => $req->input('fcr_id'),
-                        // 'target_depletion'    => $req->input('target_depletion'),
-                        'total_budget' => $req->input('total_budget'),
+                        'total_budget'        => $req->input('total_budget'),
                     ]);
 
                     $projectId = $project->project_id;
@@ -234,7 +231,7 @@ class ListController extends Controller
     public function detail(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param   = [
                 'title' => 'Project > List > Detail',
                 'data'  => $project,
@@ -251,10 +248,17 @@ class ListController extends Controller
     {
         try {
             $project = Project::findOrFail($req->id);
+            $kandang = Kandang::find($project->kandang_id);
             $project->update([
                 'project_status' => array_search('Aktif', Constants::PROJECT_STATUS),
                 'approval_date'  => date('Y-m-d H:i:s'),
             ]);
+
+            if ($kandang) {
+                $kandang->update([
+                    'project_status' => true,
+                ]);
+            }
 
             $success = ['success' => 'Project berhasil disetujui'];
 
@@ -292,7 +296,7 @@ class ListController extends Controller
     public function searchProject(Request $request)
     {
         $search   = $request->input('q');
-        $projects = Project::with(['kandang', 'kandang.warehouse', 'product_category'])
+        $projects = Project::with(['kandang', 'kandang.user', 'kandang.warehouse', 'product_category', 'project_budget', 'project_chick_in', 'fcr', 'fcr.fcr_standard'])
             ->whereHas('kandang', function($query) use ($search) {
                 $query->where('name', 'like', '%'.$search.'%');
             });
@@ -350,5 +354,14 @@ class ListController extends Controller
                 ->unique('id')
                 ->values()
         );
+    }
+
+    public function searchBudget(Request $request)
+    {
+        $budgets = ProjectBudget::with(['product', 'nonstock'])
+            ->where('project_id', $request->project_id)
+            ->get();
+
+        return response()->json($budgets);
     }
 }
