@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 
-class ReportController extends Controller
+class ReportKandangController extends Controller
 {
-    public function indexMbu()
+    public function sapronak()
     {
         try {
             $param = [
@@ -22,7 +22,7 @@ class ReportController extends Controller
         }
     }
 
-    public function indexManbu()
+    public function perhitunganSapronak()
     {
         try {
             $param = [
@@ -38,7 +38,7 @@ class ReportController extends Controller
         }
     }
 
-    public function indexLti()
+    public function penjualan()
     {
         try {
             $param = [
@@ -54,11 +54,11 @@ class ReportController extends Controller
         }
     }
 
-    public function detailLokasiMbu()
+    public function overhead()
     {
         try {
             $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang',
+                'title' => 'Laporan > Detail Laporan Project',
             ];
 
             return view('report.mbu.detail', $param);
@@ -70,14 +70,14 @@ class ReportController extends Controller
         }
     }
 
-    public function detailLokasiManbu()
+    public function hppEkspedisi()
     {
         try {
             $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang',
+                'title' => 'Laporan > Detail Laporan Project',
             ];
 
-            return view('report.manbu.detail', $param);
+            return view('report.mbu.detail', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -86,14 +86,14 @@ class ReportController extends Controller
         }
     }
 
-    public function detailLokasiLti()
+    public function dataProduksi()
     {
         try {
             $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang',
+                'title' => 'Laporan > Detail Laporan Project',
             ];
 
-            return view('report.lti.detail', $param);
+            return view('report.mbu.detail', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -102,46 +102,14 @@ class ReportController extends Controller
         }
     }
 
-    public function detailKandangMbu()
+    public function keuangan()
     {
         try {
             $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang | Pandeglang 1',
+                'title' => 'Laporan > Detail Laporan Project',
             ];
 
-            return view('report.mbu.kandang', $param);
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
-    public function detailKandangManbu()
-    {
-        try {
-            $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang | Pandeglang 1',
-            ];
-
-            return view('report.manbu.kandang', $param);
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
-    public function detailKandangLti()
-    {
-        try {
-            $param = [
-                'title' => 'Laporan > Detail Laporan Project | Lokasi Pandeglang | Pandeglang 1',
-            ];
-
-            return view('report.lti.kandang', $param);
+            return view('report.mbu.detail', $param);
         } catch (\Exception $e) {
             return redirect()
                 ->back()

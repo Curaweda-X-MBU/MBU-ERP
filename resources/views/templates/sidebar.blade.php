@@ -25,7 +25,7 @@
         </div>
         <div class="shadow-bottom"></div>
 
-        <input type="hidden" id="url" value="{{ Request::path() }}">
+        <input type="hidden" id="url" value="{{ Request::path() . Request::getQueryString() }}">
         <div class="main-menu-content mt-1">
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 @if (hasAccess($collection, 'dashboard', $roleAccess))
@@ -144,24 +144,24 @@
                     </a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('report.mbu.index'))
-                            <li id="{{ ltrim(parse_url(route('report.mbu.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.mbu.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=mbu', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=mbu' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="MBU">MBU</span>
                                 </a>
                             </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('report.manbu.index'))
-                            <li id="{{ ltrim(parse_url(route('report.manbu.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.manbu.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=man', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=man' }}">
                                     <i data-feather="circle"></i>
-                                    <span class="menu-item text-truncate" data-i18n="Manbu">Manbu</span>
+                                    <span class="menu-item text-truncate" data-i18n="MAN">Manbu</span>
                                 </a>
                             </li>
                         @endif
                         @if ($roleAccess->hasPermissionTo('report.lti.index'))
-                            <li id="{{ ltrim(parse_url(route('report.lti.index'), PHP_URL_PATH), '/') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.lti.index') }}">
+                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=lti', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=lti' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="LTI">LTI</span>
                                 </a>
