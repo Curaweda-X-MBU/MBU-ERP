@@ -1,6 +1,8 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+<script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
+
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -12,68 +14,92 @@
                                         {{ csrf_field() }}
                                         <div class="row">
                                             <div class="col-12">
-                                                <div class="form-group row">
-                                                    <div class="col-sm-3 col-form-label">
-                                                        <label for="name" class="float-right">Nama FCR</label>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <div class="col-sm-3 col-form-label">
+                                                                <label for="company_id" class="float-right">Unit Bisnis</label>
+                                                            </div>
+                                                            <div class="col-sm-9">
+                                                                <select name="company_id" id="company_id" class="form-control">
+                                                                    @if(old('company_id') && old('company_name'))
+                                                                        <option value="{{ old('company_id') }}" selected="selected">{{ old('company_name') }}</option>
+                                                                    @endif
+                                                                </select>
+                                                                @if ($errors->has('company_id'))
+                                                                    <span class="text-danger small">{{ $errors->first('company_id') }}</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-sm-5">
-                                                        <input type="text" id="name" class="{{$errors->has('name')?'is-invalid':''}} form-control" name="name" placeholder="Nama FCR" value="{{ old('name') }}">
-                                                        @if ($errors->has('name'))
-                                                            <span class="text-danger small">{{ $errors->first('name') }}</span>
-                                                        @endif
+                                                    <div class="col-md-6">
+                                                        <div class="form-group row">
+                                                            <div class="col-sm-3 col-form-label">
+                                                                <label for="name" class="float-right">Nama FCR</label>
+                                                            </div>
+                                                            <div class="col-sm-9">
+                                                                <input type="text" id="name" class="{{$errors->has('name')?'is-invalid':''}} form-control" name="name" placeholder="Nama FCR" value="{{ old('name') }}">
+                                                                @if ($errors->has('name'))
+                                                                    <span class="text-danger small">{{ $errors->first('name') }}</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <div class="col-12 mt-2 mb-4">
+                                                <h4><li>Standar FCR (gram)</li></h4>
+                                                <div class="table-responsive">
+                                                    @if ($errors->has('fcr_standard'))
+                                                        <span class="text-danger small">{{ $errors->first('fcr_standard') }}</span>
+                                                    @endif
+                                                    <table class="table table-bordered w-100 no-wrap text-center" id="fcr-standard">
+                                                        <thead>
+                                                            <tr>
+                                                                <th rowspan="2">Umur<br>(Hari)</th>
+                                                                <th rowspan="2">Bobot</th>
+                                                                <th colspan="2">Peningkatan</th>
+                                                                <th colspan="2">Asupan</th>
+                                                                <th rowspan="2">FCR</th>
+                                                                <th rowspan="2">
+                                                                    <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
+                                                                        <i data-feather="plus"></i>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Harian</th>
+                                                                <th>Rata - rata</th>
+                                                                <th>Harian</th>
+                                                                <th>Kumulatif</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody data-repeater-list="fcr_standard">
+                                                            <tr data-repeater-item>
+                                                                <td><input type="text" class="form-control numeral-mask" name="day" placeholder="1234" required></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="weight" placeholder="1234" required></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="daily_gain" placeholder="1234"></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="avg_daily_gain" placeholder="1234"></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="daily_intake" placeholder="1234"></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="cum_intake" placeholder="1234"></td>
+                                                                <td><input type="text" class="form-control numeral-mask" name="fcr" placeholder="1234" required></td>
+                                                                <td>
+                                                                    <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
+                                                                        <i data-feather="x"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            
                                             <div class="col-12">
-                                                <div class="form-group row">
-                                                    <div class="col-sm-3 col-form-label">
-                                                        <label for="value" class="float-right">Nilai</label>
-                                                    </div>
-                                                    <div class="col-sm-5">
-                                                        <input type="number" step="0.01" id="value" class="{{$errors->has('value')?'is-invalid':''}} form-control" name="value" placeholder="Nilai" value="{{ old('value') }}">
-                                                        @if ($errors->has('value'))
-                                                            <span class="text-danger small">{{ $errors->first('value') }}</span>
-                                                        @endif
-                                                    </div>
+                                                <div class="text-center">
+                                                    <button type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Simpan</button>
+                                                    <a href="{{ route('data-master.fcr.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
                                                 </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="form-group row">
-                                                    <div class="col-sm-3 col-form-label">
-                                                        <label for="product_id" class="float-right">Produk</label>
-                                                    </div>
-                                                    <div class="col-sm-5">
-                                                        <select name="product_id" id="product_id" class="form-control">
-                                                            @if(old('product_id') && old('product_name'))
-                                                                <option value="{{ old('product_id') }}" selected="selected">{{ old('product_name') }}</option>
-                                                            @endif
-                                                        </select>
-                                                        @if ($errors->has('product_id'))
-                                                            <span class="text-danger small">{{ $errors->first('product_id') }}</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="form-group row">
-                                                    <div class="col-sm-3 col-form-label">
-                                                        <label for="uom_id" class="float-right">UOM</label>
-                                                    </div>
-                                                    <div class="col-sm-5">
-                                                        <select name="uom_id" id="uom_id" class="form-control">
-                                                            @if(old('uom_id') && old('uom_name'))
-                                                                <option value="{{ old('uom_id') }}" selected="selected">{{ old('uom_name') }}</option>
-                                                            @endif
-                                                        </select>
-                                                        @if ($errors->has('uom_id'))
-                                                            <span class="text-danger small">{{ $errors->first('uom_id') }}</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-9 offset-sm-3">
-                                                <button type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Simpan</button>
-                                                <a href="{{ route('data-master.fcr.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
                                             </div>
                                         </div>
                                     </form>
@@ -83,12 +109,14 @@
                     </div>
 
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+                    <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
+
                     <script>
                         $(document).ready(function() {
-                            $('#product_id').select2({
-                                placeholder: "Pilih Produk",
+                            $('#company_id').select2({
+                                placeholder: "Pilih Unit Bisnis",
                                 ajax: {
-                                    url: '{{ route("data-master.product.search") }}', 
+                                    url: '{{ route("data-master.company.search") }}', 
                                     dataType: 'json',
                                     delay: 250, 
                                     data: function(params) {
@@ -105,51 +133,59 @@
                                 }
                             });
 
-                            $('#uom_id').select2({
-                                placeholder: "Pilih UOM",
-                                ajax: {
-                                    url: '{{ route("data-master.uom.search") }}', 
-                                    dataType: 'json',
-                                    delay: 250, 
-                                    data: function(params) {
-                                        return {
-                                            q: params.term 
-                                        };
-                                    },
-                                    processResults: function(data) {
-                                        return {
-                                            results: data
-                                        };
-                                    },
-                                    cache: true
-                                }
-                            });
-
-                            var oldValueProduct = "{{ old('product_id') }}";
-                            if (oldValueProduct) {
-                                var oldNameProduct = "{{ old('product_name') }}";
-                                if (oldNameProduct) {
-                                    var newOptionProduct = new Option(oldNameProduct, oldValueProduct, true, true);
-                                    $('#product_id').append(newOptionProduct).trigger('change');
+                            var oldValuecompany = "{{ old('company_id') }}";
+                            if (oldValuecompany) {
+                                var oldNamecompany = "{{ old('company_name') }}";
+                                if (oldNamecompany) {
+                                    var newOptioncompany = new Option(oldNamecompany, oldValuecompany, true, true);
+                                    $('#company_id').append(newOptioncompany).trigger('change');
                                 }
                             }
 
-                            var oldValueUom = "{{ old('uom_id') }}";
-                            if (oldValueUom) {
-                                var oldNameUom = "{{ old('uom_name') }}";
-                                if (oldNameUom) {
-                                    var newOption = new Option(oldNameUom, oldValueUom, true, true);
-                                    $('#uom_id').append(newOption).trigger('change');
+                            @if ($errors->has('company_id'))
+                                $('#company_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                            @endif
+
+                            const optFcr = {
+                                initEmpty: true,
+                                show: function () {
+                                    $this = $(this);
+                                    $this.slideDown();
+                                    // Feather Icons
+                                    if (feather) {
+                                        feather.replace({ width: 14, height: 14 });
+                                    }
+
+                                    var numeralMask = $('.numeral-mask');
+                                    if (numeralMask.length) {
+                                        numeralMask.each(function() { 
+                                            new Cleave(this, {
+                                                numeral: true,
+                                                numeralThousandsGroupStyle: 'thousand', 
+                                                numeralDecimalMark: ',', 
+                                                delimiter: '.',
+                                                numeralDecimalScale: 3,
+                                                numeralAllowLeadingZero: true,
+                                            });
+                                        })
+                                    }
+                                    
+                                },
+                                hide: function (deleteElement) {
+                                    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+                                        $(this).slideUp(deleteElement);
+                                    }
                                 }
+                            };
+
+                            const $itemRepeater = $('#fcr-standard').repeater(optFcr);
+                            const oldItem = @json(old("fcr_standard"));
+                            if (oldItem) {
+                                $itemRepeater.setList(oldItem);
+                            } else {
+                                $('#add-btn').trigger('click');
                             }
 
-                            @if ($errors->has('product_id'))
-                                $('#product_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                            @endif
-
-                            @if ($errors->has('uom_id'))
-                                $('#uom_id').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                            @endif
                         });
                     </script>
 @endsection

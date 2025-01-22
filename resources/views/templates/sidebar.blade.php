@@ -185,6 +185,10 @@
                         <li id="{{ ltrim(parse_url(route('inventory.adjustment.index'), PHP_URL_PATH), '/') }}"><a class="d-flex align-items-center" href="{{ route('inventory.adjustment.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Penyesuaian">Penyesuaian Stok</span></a>
                         </li>
                         @endif
+                        @if ($roleAccess->hasPermissionTo('inventory.movement.index'))
+                        <li id="{{ ltrim(parse_url(route('inventory.movement.index'), PHP_URL_PATH), '/') }}"><a class="d-flex align-items-center" href="{{ route('inventory.movement.index') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Penyesuaian">Transfer Stok</span></a>
+                        </li>
+                        @endif
                     </ul>
                 </li>
                 @endif

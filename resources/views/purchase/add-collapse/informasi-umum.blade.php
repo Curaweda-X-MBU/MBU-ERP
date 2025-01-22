@@ -5,7 +5,24 @@
     $notes = old('notes');
     $grandTotal = old('total_before_tax');
     $dataPurchase = '';
+    $company_id = old('company_id');
+    $company_name = old('company_name');
+    $area_id = old('area_id');
+    $area_name = old('area_name');
+    $location_id = old('location_id');
+    $location_name = old('location_name');
+    $warehouse_id = old('warehouse_id');
+    $warehouse_name = old('warehouse_name');
+
     if (isset($data)) {
+        $company_id = $data->warehouse->location->company_id??'';
+        $company_name = $data->warehouse->location->company->name??'';
+        $area_id = $data->warehouse->location->area_id??'';
+        $area_name = $data->warehouse->location->area->name??'';
+        $location_id = $data->warehouse->location_id??'';
+        $location_name = $data->warehouse->location->name??'';
+        $warehouse_id = $data->warehouse_id??'';
+        $warehouse_name = $data->warehouse->name??'';
         $supplier_id = $data->supplier->supplier_id??"";
         $supplier_name = $data->supplier->name;
         $require_date = $data->require_date;
@@ -68,14 +85,85 @@
                 </div>
             </div>
             <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="company_id" class="float-right">Unit Bisnis</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="company_id" id="company_id" class="form-control" required>
+                                    @if($company_id && $company_name)
+                                        <option value="{{ $company_id }}" selected="selected">{{ $company_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="area_id" class="float-right">Area</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="area_id" id="area_id" class="form-control" required>
+                                    <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
+                                    @if($area_id && $area_name)
+                                        <option value="{{ $area_id }}" selected="selected">{{ $area_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="location_id" class="float-right">Lokasi</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="location_id" id="location_id" class="form-control" required>
+                                    <option disabled selected>Pilih Area terlebih dahulu</option>
+                                    @if($location_id && $location_name)
+                                    <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="warehouse_id" class="float-right">Gudang</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="warehouse_id" id="warehouse_id" class="form-control" required>
+                                    <option disabled selected>Pilih Lokasi terlebih dahulu</option>
+                                    @if($warehouse_id && $warehouse_name)
+                                    <option value="{{ $warehouse_id }}" selected="selected">{{ $warehouse_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                @include('purchase.add-collapse.informasi-farm')
+            </div>
+            <div class="col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
                             <th>Kategori<br>Produk</th>
                             <th>Produk</th>
-                            <th>Project Aktif</th>
-                            <th>Gudang/Tempat<br>Pengiriman</th>
-                            <th width="30">Jumlah</th>
+                            {{-- <th>Project Aktif</th> --}}
+                            {{-- <th>Gudang/Tempat<br>Pengiriman</th> --}}
+                            <th style="width: 20%;">Jumlah</th>
                             <th>Satuan</th>
                             <th colspan="2">
                                 <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
@@ -87,8 +175,8 @@
                             <tr data-repeater-item>
                                 <td><select name="product_category_id" class="product_category_id form-control" required></select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
-                                <td><select name="project_id" class="project_id form-control"></select></td>
-                                <td><select name="warehouse_id" class="warehouse_id form-control" required></select></td>
+                                {{-- <td><select name="project_id" class="project_id form-control"></select></td> --}}
+                                {{-- <td><select name="warehouse_id" class="warehouse_id form-control" required></select></td> --}}
                                 <td><input type="text" name="qty" class="qty form-control numeral-mask" placeholder="Qty" required/></td>
                                 <td><input type="text" name="uom_id" class="form-control-plaintext satuan" readonly/></td>
                                 <td>
@@ -130,14 +218,63 @@
                 cache: true
         }
 
-        const companyId = '{{ auth()->user()->department->company_id }}'
+        const companyId = $('#company_id').val();
         const qryProduct = companyId?`?company_id=${companyId}`:'';
-        const locationId = '{{auth()->user()->department->location_id}}';
+        const locationId = $('#location_id').val();
         const qryWarehouse = locationId?`?location_id=${locationId}`:'';
         $('#supplier_id').select2({
             placeholder: "Pilih supplier",
             ajax: {
                 url: `{{ route("data-master.supplier.search") }}`, 
+                ...select2Opt
+            }
+        });
+
+        $('#company_id').select2({
+            placeholder: "Pilih Unit Bisnis",
+            ajax: {
+                url: '{{ route("data-master.company.search") }}', 
+                ...select2Opt
+            }
+        });
+
+        $('#company_id').change(function (e) { 
+            e.preventDefault();
+            $('#area_id').val(null).trigger('change');
+            $('#product_category_id').val(null).trigger('change');
+            var companyId = $('#company_id').val();
+
+            $('#area_id').select2({
+                placeholder: "Pilih Area",
+                ajax: {
+                    url: `{{ route("data-master.area.search") }}`, 
+                    ...select2Opt
+                }
+            });
+
+            const qryProduct = companyId?`?company_id=${companyId}`:'';
+
+            $('#area_id').change(function (e) { 
+                e.preventDefault();
+                $('#location_id').val(null).trigger('change');
+                var areaId = $('#area_id').val();
+                var qryLocation = areaId&&companyId?`?company_id=${companyId}&area_id=${areaId}`:'';
+
+                $('#location_id').select2({
+                    placeholder: "Pilih Lokasi",
+                    ajax: {
+                        url: `{{ route("data-master.location.search") }}${qryLocation}`, 
+                        ...select2Opt
+                    }
+                });
+            });
+
+        });
+
+        $('#product_category_id').select2({
+            placeholder: "Pilih Kategori Produk",
+            ajax: {
+                url: `{{ route("data-master.product-category.search") }}`, 
                 ...select2Opt
             }
         });
@@ -191,26 +328,10 @@
                     $productId.on('select2:select', function (e) { 
                         e.preventDefault();
                         const selectedData = e.params.data.data;
-                        $(this).closest('td').next().next().next().next().find('.satuan').val(selectedData.uom.name)
+                        $(this).closest('td').next().next().find('.satuan').val(selectedData.uom.name)
                     });
                 });
 
-
-                $this.find('.project_id').select2({
-                    placeholder: "Pilih Project",
-                    ajax: {
-                        url: `{{ route("project.list.search") }}?project_status_not=4`, 
-                        ...select2Opt
-                    }
-                });
-
-                $this.find('.warehouse_id').select2({
-                    placeholder: "Pilih Gudang",
-                    ajax: {
-                        url: `{{ route("data-master.warehouse.search") }}${qryWarehouse}`, 
-                        ...select2Opt
-                    }
-                });
 
                 const dateOpt = { dateFormat: 'd-M-Y' }
                 $this.find('.flatpickr-basic').flatpickr(dateOpt);
@@ -235,7 +356,7 @@
         if ('{{ $dataPurchase }}'.length) {
             const dataPurchase = @json($dataPurchase);
             console.log(dataPurchase);
-            
+            getKandangByLocationId('{{$location_id}}');
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {
@@ -243,10 +364,6 @@
                     $(`select[name="purchase_item[${i}][product_category_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataPurchase[i].product_id}" selected>${dataPurchase[i].product.name}</option>`);
                     $(`select[name="purchase_item[${i}][product_id]"]`).trigger('change');
-                    $(`select[name="purchase_item[${i}][project_id]"]`).append(`<option value="${dataPurchase[i].project_id}" selected>${dataPurchase[i].project.kandang.name}</option>`);
-                    $(`select[name="purchase_item[${i}][project_id]"]`).trigger('change');
-                    $(`select[name="purchase_item[${i}][warehouse_id]"]`).append(`<option value="${dataPurchase[i].warehouse_id}" selected>${dataPurchase[i].warehouse.name}</option>`);
-                    $(`select[name="purchase_item[${i}][warehouse_id]"]`).trigger('change');
                     $(`input[name="purchase_item[${i}][product_category]"]`).val(dataPurchase[i].product.product_category.name);
                     $(`input[name="purchase_item[${i}][uom_id]"]`).val(dataPurchase[i].product.uom.name);
                 }

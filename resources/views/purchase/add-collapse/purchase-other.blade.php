@@ -16,8 +16,6 @@
                                                 <thead>
                                                     <th>Produk</th>
                                                     <th>Jenis Produk</th>
-                                                    <th>Project Aktif</th>
-                                                    <th>Gudang</th>
                                                     <th width="30">Jumlah</th>
                                                     <th>Satuan</th>
                                                     <th>Harga Satuan</th>
@@ -30,8 +28,6 @@
                                                     <tr>
                                                         <td>{{ $item->product->name??'' }}</td>
                                                         <td>{{ $item->product->product_category->name??'' }}</td>
-                                                        <td>{{ $item->project->kandang->name??'' }}</td>
-                                                        <td>{{ $item->warehouse->name??'' }}</td>
                                                         <td>
                                                             <input type="text" name="purchase_item[{{$item->purchase_item_id}}][qty]" class="form-control-plaintext text-right numeral-mask" id="qty-{{$key}}" value="{{ $item->qty }}">
                                                         </td>

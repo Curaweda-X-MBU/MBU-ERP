@@ -162,7 +162,7 @@
                     <table style="width: 100%; border-collapse: collapse;" id="tbl-mortality">
                         <thead>
                         <tr>
-                            <th style="width: 15%; vertical-align: middle; text-align: center; padding: 5px; border: 1px solid black;">Umur (Hari)</th>
+                            <th style="width: 15%; vertical-align: middle; text-align: center; padding: 5px; border: 1px solid black;">Umur<br>(Hari)</th>
                             <th style="vertical-align: middle; text-align: center; padding: 5px; border: 1px solid black;">1</th>
                             <th style="vertical-align: middle; text-align: center; padding: 5px; border: 1px solid black;">2</th>
                             <th style="vertical-align: middle; text-align: center; padding: 5px; border: 1px solid black;">3</th>

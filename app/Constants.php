@@ -238,4 +238,6 @@ class Constants
     ];
 
     public const REVISION_DOC_PATH = 'recording-revision-doc';
+
+    public const INVENTORY_MOVEMENT = 'inventory-movement-doc';
 }

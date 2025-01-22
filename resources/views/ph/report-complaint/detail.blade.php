@@ -187,7 +187,7 @@
                                                 <table class="table table-bordered table-striped w-100" id="tbl-mortality">
                                                     <thead>
                                                     <tr>
-                                                        <th style="width: 15%">Umur (Hari)</th>
+                                                        <th style="width: 15%">Umur<br>(Hari)</th>
                                                         <th>1</th>
                                                         <th>2</th>
                                                         <th>3</th>
