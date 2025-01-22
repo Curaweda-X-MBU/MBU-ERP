@@ -56,12 +56,7 @@
                                                             <td>{{ $item->project->period??'' }}</td>
                                                             <td>{{ date('d-M-Y H:i', strtotime($item->record_datetime)) }}</td>
                                                             <td>
-                                                                @php
-                                                                    $createdAt = Carbon::parse($item->created_at);
-                                                                    $recordDate = Carbon::parse($item->record_datetime);
-                                                                    $onTime = $createdAt->isSameDay($recordDate)?true:false;
-                                                                @endphp
-                                                                @if ($onTime)
+                                                                @if ($item->on_time)
                                                                 <div class="badge badge-glow badge-success">Tepat Waktu</div>
                                                                 @else
                                                                 <div class="badge badge-glow badge-warning">Terlambat</div>

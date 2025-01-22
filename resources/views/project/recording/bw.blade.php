@@ -161,12 +161,12 @@
                 }).setRawValue(value);
             }
 
-            applyCleave('avg_weight', avgWeight);
+            applyCleave('avg_weight', avgWeight*1000);
             applyCleave('total_chick', totalChick);
             applyCleave('total_calc', totalCalc);
             
             const bwValue = totalCalc / totalChick;
-            applyCleave('value', bwValue);
+            applyCleave('value', bwValue*1000);
         }
 
         const dataRecording = @json($data);

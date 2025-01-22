@@ -21,6 +21,7 @@ class RecordingStock extends Model
         'product_warehouse_id',
         'increase',
         'decrease',
+        'usage_amount',
         'notes',
     ];
 

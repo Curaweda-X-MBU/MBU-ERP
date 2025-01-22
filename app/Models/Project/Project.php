@@ -27,7 +27,7 @@ class Project extends Model
         'farm_type',
         'period',
         'pic',
-        // 'fcr_id',
+        'fcr_id',
         // 'target_depletion',
         'total_budget',
         'chickin_status',
@@ -48,10 +48,10 @@ class Project extends Model
         return $this->belongsTo(Kandang::class, 'kandang_id');
     }
 
-    // public function fcr()
-    // {
-    //     return $this->belongsTo(Fcr::class, 'fcr_id');
-    // }
+    public function fcr()
+    {
+        return $this->belongsTo(Fcr::class, 'fcr_id');
+    }
 
     public function createdby()
     {

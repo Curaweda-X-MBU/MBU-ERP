@@ -17,10 +17,8 @@
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
+                                                        <th>Unit Bisnis</th>
                                                         <th>Nama</th>
-                                                        <th>Nilai</th>
-                                                        <th>Produk</th>
-                                                        <th>UOM</th>
                                                         <th>Tanggal Buat</th>
                                                         <th>Aksi</th>
                                                     </tr>
@@ -29,10 +27,8 @@
                                                     @foreach ($data as $item)
                                                         <tr>
                                                             <td>{{ $item->fcr_id }}</td>
+                                                            <td>{{ $item->company->name ?? '' }}</td>
                                                             <td>{{ $item->name }}</td>
-                                                            <td>{{ $item->value }}</td>
-                                                            <td>{{ $item->product->name ?? '' }}</td>
-                                                            <td>{{ $item->uom->name ?? '' }}</td>
                                                             <td>{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                                             <td>
                                                                 <div class="dropdown dropleft">

@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ListController::class, 'delete'])->name('project.list.delete')->middleware('permission:project.list.delete');
             Route::get('/search', [App\Http\Controllers\Project\ListController::class, 'searchProject'])->name('project.list.search');
             Route::get('/search-period', [App\Http\Controllers\Project\ListController::class, 'searchPeriod'])->name('project.list.search-period');
+            Route::get('/search-budget', [App\Http\Controllers\Project\ListController::class, 'searchBudget'])->name('project.list.search-budget');
         });
         Route::group(['prefix' => 'perparation'], function() {
             Route::get('/', [App\Http\Controllers\Project\PreparationController::class, 'index'])->name('project.perparation.index')->middleware('permission:project.perparation.index');
@@ -221,11 +222,18 @@ Route::middleware('auth')->group(function() {
             Route::get('/', [App\Http\Controllers\Inventory\ProductController::class, 'index'])->name('inventory.product.index')->middleware('permission:inventory.product.index');
             Route::any('/detail/{id}', [App\Http\Controllers\Inventory\ProductController::class, 'detail'])->name('inventory.product.detail')->middleware('permission:inventory.product.detail');
             Route::any('/check-stock-by-warehouse', [App\Http\Controllers\Inventory\ProductController::class, 'checkStockByWarehouse'])->name('inventory.product.check-stock-by-warehouse');
+            Route::any('/search-product-warehouse', [App\Http\Controllers\Inventory\ProductController::class, 'searchProductWarehouse'])->name('inventory.product.search-product-warehouse');
         });
 
         Route::group(['prefix' => 'adjustment'], function() {
             Route::get('/', [App\Http\Controllers\Inventory\AdjustmentController::class, 'index'])->name('inventory.adjustment.index')->middleware('permission:inventory.adjustment.index');
             Route::any('/add', [App\Http\Controllers\Inventory\AdjustmentController::class, 'add'])->name('inventory.adjustment.add')->middleware('permission:inventory.adjustment.add');
+        });
+
+        Route::group(['prefix' => 'movement'], function() {
+            Route::get('/', [App\Http\Controllers\Inventory\MovementController::class, 'index'])->name('inventory.movement.index')->middleware('permission:inventory.movement.index');
+            Route::any('/add', [App\Http\Controllers\Inventory\MovementController::class, 'add'])->name('inventory.movement.add')->middleware('permission:inventory.movement.add');
+            Route::any('/detail/{id}', [App\Http\Controllers\Inventory\MovementController::class, 'detail'])->name('inventory.movement.detail')->middleware('permission:inventory.movement.detail');
         });
     });
 
@@ -333,6 +341,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/edit/{id}', [App\Http\Controllers\DataMaster\FcrController::class, 'edit'])->name('data-master.fcr.edit')->middleware('permission:data-master.fcr.edit');
             Route::any('/delete/{id}', [App\Http\Controllers\DataMaster\FcrController::class, 'delete'])->name('data-master.fcr.delete')->middleware('permission:data-master.fcr.delete');
             Route::get('/search', [App\Http\Controllers\DataMaster\FcrController::class, 'searchFcr'])->name('data-master.fcr.search');
+            Route::get('/search-standard', [App\Http\Controllers\DataMaster\FcrController::class, 'searchFcrStandard'])->name('data-master.fcr.search-standard');
         });
 
         Route::group(['prefix' => 'warehouse'], function() {

@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\DataMaster;
 
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Fcr;
-use App\Models\DataMaster\Product;
-use App\Models\DataMaster\Uom;
+use App\Models\DataMaster\FcrStandard;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
@@ -14,18 +15,13 @@ use Illuminate\Validation\Rule;
 class FcrController extends Controller
 {
     private const VALIDATION_RULES = [
-        'value'      => 'required',
-        'product_id' => 'required',
-        'uom_id'     => 'required',
+        'company_id' => 'required',
     ];
 
     private const VALIDATION_MESSAGES = [
         'name.required'       => 'Nama FCR tidak boleh kosong',
-        'name.max'            => 'Nama FCR melebihi 50 karakter',
-        'name.unique'         => 'Nama FCR telah digunakan',
-        'value.required'      => 'Nilai FCR tidak boleh kosong',
-        'product_id.required' => 'Poduk tidak boleh kosong',
-        'uom_id.required'     => 'UOM tidak boleh kosong',
+        'name.unique'         => 'Nama FCR sudah digunakan',
+        'company_id.required' => 'Unit bisnis tidak boleh kosong',
     ];
 
     public function index(Request $req)
@@ -34,7 +30,7 @@ class FcrController extends Controller
 
             $param = [
                 'title' => 'Master Data > FCR',
-                'data'  => Fcr::get(),
+                'data'  => Fcr::with(['company', 'fcr_standard'])->get(),
             ];
 
             return view('data-master.fcr.index', $param);
@@ -54,9 +50,9 @@ class FcrController extends Controller
 
             if ($req->isMethod('post')) {
                 $rules         = self::VALIDATION_RULES;
-                $rules['name'] = ['required', 'string', 'max:50',
+                $rules['name'] = ['required',
                     Rule::unique('fcr')->where(function($query) use ($req) {
-                        $query->where('product_id', $req->product_id);
+                        $query->where('company_id', $req->company_id);
                         $query->whereNull('deleted_at');
 
                         return $query;
@@ -66,11 +62,8 @@ class FcrController extends Controller
                 $validator = Validator::make($req->all(), $rules, self::VALIDATION_MESSAGES);
                 if ($validator->fails()) {
                     $input = $req->input();
-                    if (isset($input['product_id'])) {
-                        $input['product_name'] = Product::find($req->input('product_id'))->name;
-                    }
-                    if (isset($input['uom_id'])) {
-                        $input['uom_name'] = Uom::find($req->input('uom_id'))->name;
+                    if (isset($input['company_id'])) {
+                        $input['company_name'] = Company::find($req->input('company_id'))->name;
                     }
 
                     return redirect()->back()
@@ -78,13 +71,40 @@ class FcrController extends Controller
                         ->withInput($input);
                 }
 
-                Fcr::create([
+                DB::beginTransaction();
+                $fcr = Fcr::create([
+                    'company_id' => $req->input('company_id'),
                     'name'       => $req->input('name'),
-                    'value'      => $req->input('value'),
-                    'product_id' => $req->input('product_id'),
-                    'uom_id'     => $req->input('uom_id'),
+                    'created_by' => auth()->user()->user_id,
                 ]);
 
+                $arrStandard = $req->input('fcr_standard') ?? [];
+                if (count($arrStandard) > 0) {
+                    foreach ($arrStandard as $key => $value) {
+                        $weight       = str_replace('.', '', $value['weight']);
+                        $dailyGain    = str_replace('.', '', $value['daily_gain']);
+                        $avgDailyGain = str_replace('.', '', $value['avg_daily_gain']);
+                        $dailyIntake  = str_replace('.', '', $value['daily_intake']);
+                        $cumIntake    = str_replace('.', '', $value['cum_intake']);
+                        FcrStandard::create([
+                            'fcr_id'         => $fcr->fcr_id,
+                            'day'            => $value['day'],
+                            'weight'         => $weight,
+                            'daily_gain'     => $dailyGain,
+                            'avg_daily_gain' => $avgDailyGain,
+                            'daily_intake'   => $dailyIntake,
+                            'cum_intake'     => $cumIntake,
+                            'fcr'            => $cumIntake / $weight,
+                        ]);
+                    }
+                } else {
+                    DB::rollback();
+                    throw ValidationException::withMessages([
+                        'fcr_standard' => 'Standar FCR tidak boleh kosong',
+                    ]);
+                }
+
+                DB::commit();
                 $success = ['success' => 'Data Berhasil disimpan'];
 
                 return redirect()->route('data-master.fcr.index')->with($success);
@@ -92,6 +112,8 @@ class FcrController extends Controller
 
             return view('data-master.fcr.add', $param);
         } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
@@ -99,7 +121,7 @@ class FcrController extends Controller
     public function edit(Request $req)
     {
         try {
-            $fcr   = Fcr::with(['product', 'uom'])->findOrFail($req->id);
+            $fcr   = Fcr::with(['company', 'fcr_standard'])->findOrFail($req->id);
             $param = [
                 'title' => 'Master Data > FCR > Ubah',
                 'data'  => $fcr,
@@ -107,9 +129,9 @@ class FcrController extends Controller
 
             if ($req->isMethod('post')) {
                 $rules         = self::VALIDATION_RULES;
-                $rules['name'] = ['required', 'string', 'max:50',
+                $rules['name'] = ['required',
                     Rule::unique('fcr')->where(function($query) use ($req) {
-                        $query->where('product_id', $req->product_id);
+                        $query->where('company_id', $req->company_id);
                         $query->whereNull('deleted_at');
 
                         return $query;
@@ -123,13 +145,40 @@ class FcrController extends Controller
                         ->withInput();
                 }
 
+                DB::beginTransaction();
                 $fcr->update([
+                    'company_id' => $req->input('company_id'),
                     'name'       => $req->input('name'),
-                    'value'      => $req->input('value'),
-                    'product_id' => $req->input('product_id'),
-                    'uom_id'     => $req->input('uom_id'),
                 ]);
 
+                $arrStandard = $req->input('fcr_standard') ?? [];
+                if (count($arrStandard) > 0) {
+                    FcrStandard::where('fcr_id', $fcr->fcr_id)->delete();
+                    foreach ($arrStandard as $key => $value) {
+                        $weight       = str_replace('.', '', $value['weight']);
+                        $dailyGain    = str_replace('.', '', $value['daily_gain'] ?? 0);
+                        $avgDailyGain = str_replace('.', '', $value['avg_daily_gain'] ?? 0);
+                        $dailyIntake  = str_replace('.', '', $value['daily_intake'] ?? 0);
+                        $cumIntake    = str_replace('.', '', $value['cum_intake'] ?? 0);
+                        FcrStandard::create([
+                            'fcr_id'         => $fcr->fcr_id,
+                            'day'            => $value['day'],
+                            'weight'         => $weight,
+                            'daily_gain'     => $dailyGain,
+                            'avg_daily_gain' => $avgDailyGain,
+                            'daily_intake'   => $dailyIntake,
+                            'cum_intake'     => $cumIntake,
+                            'fcr'            => $cumIntake / $weight,
+                        ]);
+                    }
+                } else {
+                    DB::rollback();
+                    throw ValidationException::withMessages([
+                        'fcr_standard' => 'Standar FCR tidak boleh kosong',
+                    ]);
+                }
+
+                DB::commit();
                 $success = ['success' => 'Data berhasil dirubah'];
 
                 return redirect()->route('data-master.fcr.index')->with($success);
@@ -137,6 +186,8 @@ class FcrController extends Controller
 
             return view('data-master.fcr.edit', $param);
         } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
@@ -144,13 +195,19 @@ class FcrController extends Controller
     public function delete(Request $req)
     {
         try {
-            $fcr = Fcr::findOrFail($req->id);
+            DB::beginTransaction();
+            $fcrStd = FcrStandard::where('fcr_id', $req->id);
+            $fcr    = Fcr::findOrFail($req->id);
+            $fcrStd->delete();
             $fcr->delete();
 
+            DB::commit();
             $success = ['success' => 'Data berhasil dihapus'];
 
             return redirect()->route('data-master.fcr.index')->with($success);
         } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
@@ -158,7 +215,7 @@ class FcrController extends Controller
     public function searchFcr(Request $request)
     {
         $search      = $request->input('q');
-        $fcrs        = Fcr::with('uom')->where('name', 'like', "%{$search}%");
+        $fcrs        = Fcr::where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {
@@ -168,7 +225,14 @@ class FcrController extends Controller
         $fcrs = $fcrs->get();
 
         return response()->json($fcrs->map(function($fcr) {
-            return ['id' => $fcr->fcr_id, 'text' => $fcr->name.' - '.$fcr->value.' '.$fcr->uom->name];
+            return ['id' => $fcr->fcr_id, 'text' => $fcr->name];
         }));
+    }
+
+    public function searchFcrStandard(Request $request)
+    {
+        $data = Fcr::with('fcr_standard')->find($request->fcr_id);
+
+        return response()->json($data);
     }
 }
