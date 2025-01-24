@@ -231,13 +231,14 @@ class ExpenseController extends Controller
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
-                DB::transaction(function() use ($req) {
+                $success = DB::transaction(function() use ($req) {
                     $input         = $req->all();
                     $category      = $input['category'];
                     $expenseStatus = $input['expense_status'];
                     $expenseID     = 0;
 
                     if ($expenseStatus == 0) {
+                        // Save as Draft
                         $createdExpense = Expense::create([
                             'location_id'    => $input['location_id'],
                             'category'       => $category,
@@ -269,6 +270,12 @@ class ExpenseController extends Controller
                                 $create                         = true;
                                 $arrKandang[$key]['expense_id'] = $expenseID;
                                 $arrKandang[$key]['kandang_id'] = $value;
+
+                                // assign project_id
+                                $project = Kandang::find($value)->project->where('project_status', '!=', 4)->first() ?? null;
+                                if ($project) {
+                                    $arrKandang[$key]['project_id'] = $project->project_id;
+                                }
                             }
                         }
                         ExpenseKandang::insert($arrKandang);
@@ -322,9 +329,17 @@ class ExpenseController extends Controller
                             'id_expense' => $idExpense,
                         ]);
                     }
-                });
 
-                $success = ['success' => 'Data Berhasil disimpan'];
+                    // Success message according to project_id
+                    $expenseKandangs = $createdExpense->expense_kandang;
+                    if (! empty($expenseKandangs)) {
+                        $projectIds = $expenseKandangs->pluck('project_id');
+
+                        return ['success' => "Biaya Berhasil Disimpan | Terhubung Pada Project ID {$projectIds}"];
+                    } else {
+                        return ['success' => 'Biaya Berhasil Disimpan | Tidak Terhubung Pada Project'];
+                    }
+                });
 
                 return redirect()
                     ->route('expense.list.index')

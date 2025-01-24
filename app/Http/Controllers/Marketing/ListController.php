@@ -6,6 +6,7 @@ use App\Constants;
 use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Warehouse;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
@@ -60,7 +61,7 @@ class ListController extends Controller
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
 
-                DB::transaction(function() use ($req) {
+                $success = DB::transaction(function() use ($req) {
                     $input            = $req->all();
                     $productPrice     = 0;
                     $additPrice       = 0;
@@ -116,6 +117,16 @@ class ListController extends Controller
                             $arrProduct[$key]['qty']          = $qty;
                             $arrProduct[$key]['weight_total'] = $weightTotal;
                             $arrProduct[$key]['total_price']  = $totalPrice;
+
+                            // assign project_id
+                            $project = Warehouse::find($value['warehouse_id'])->kandang->project()->where([
+                                ['chickin_status', '=', 3],
+                                ['project_status', '!=', 4],
+                            ])->first() ?? null;
+
+                            if ($project) {
+                                $arrProduct[$key]['project_id'] = $project->project_id;
+                            }
                         }
 
                         MarketingProduct::insert($arrProduct);
@@ -152,9 +163,15 @@ class ListController extends Controller
                     $createdMarketing->update([
                         'id_marketing' => "DO.{$company->alias}.{$createdMarketing->marketing_id}",
                     ]);
-                });
 
-                $success = ['success' => 'Data Berhasil disimpan'];
+                    // Success message according to project_id
+                    $projectIds = $createdMarketing->marketing_products->pluck('project_id');
+                    if (! empty($projectIds)) {
+                        return ['success' => "Penjualan Berhasil Disimpan | Terhubung Pada Project ID {$projectIds}"];
+                    } else {
+                        return ['success' => 'Penjualan Berhasil Disimpan | Tidak Terhubung Pada Project'];
+                    }
+                });
 
                 return redirect()
                     ->route('marketing.list.index')
