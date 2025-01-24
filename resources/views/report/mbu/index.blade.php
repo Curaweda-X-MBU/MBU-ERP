@@ -34,7 +34,7 @@
                                 <th>Periode</th>
                                 <th>Tanggal Closing</th>
                                 <th>Jenis Project</th>
-                                <th>Kandang AKtif</th>
+                                <th>Kandang</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </thead>
@@ -71,7 +71,7 @@
                                                 <i data-feather="more-vertical"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('report.detail', $item->project_id)}}">
+                                                <a class="dropdown-item" href="{{ route('report.detail.location', $item->project_id).'?company=mbu'}}">
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Detail</span>
                                                 </a>

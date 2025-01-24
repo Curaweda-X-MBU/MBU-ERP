@@ -6,6 +6,22 @@ use App\Http\Controllers\Controller;
 
 class ReportKandangController extends Controller
 {
+    public function detail()
+    {
+        try {
+            $param = [
+                'title' => 'Laporan > MBU',
+            ];
+
+            return view('report.mbu.index', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
     public function sapronak()
     {
         try {
