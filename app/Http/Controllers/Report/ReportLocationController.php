@@ -133,7 +133,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function sapronak($detail)
+    public function sapronak($projectId)
     {
         try {
             //
@@ -145,7 +145,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function perhitunganSapronak($detail)
+    public function perhitunganSapronak($projectId)
     {
         try {
             //
@@ -157,7 +157,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function penjualan($detail)
+    public function penjualan($projectId)
     {
         try {
             //
@@ -169,7 +169,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function overhead($detail)
+    public function overhead($projectId)
     {
         try {
             //
@@ -181,7 +181,19 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function hppEkspedisi($detail)
+    public function hppEkspedisi($projectId)
+    {
+        try {
+            $project = Project::find($projectId);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function dataProduksi($projectId)
     {
         try {
             //
@@ -193,19 +205,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function dataProduksi($detail)
-    {
-        try {
-            //
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
-    public function keuangan($detail)
+    public function keuangan($projectId)
     {
         try {
             //

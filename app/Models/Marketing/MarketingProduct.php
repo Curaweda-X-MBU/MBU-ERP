@@ -5,6 +5,7 @@ namespace App\Models\Marketing;
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Uom;
 use App\Models\DataMaster\Warehouse;
+use App\Models\Project\Project;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,6 +21,7 @@ class MarketingProduct extends Model
         'marketing_id',
         'warehouse_id',
         'product_id',
+        'project_id',
         'price',
         'weight_avg',
         'uom_id',
@@ -47,5 +49,10 @@ class MarketingProduct extends Model
     public function uom()
     {
         return $this->belongsTo(Uom::class, 'uom_id', 'uom_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 }
