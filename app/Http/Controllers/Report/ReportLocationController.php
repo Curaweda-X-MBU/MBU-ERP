@@ -115,7 +115,7 @@ class ReportLocationController extends Controller
                 'kandangs' => $proj->kandang->location->kandangs->map(fn ($k) => (object) [
                     'kandang_id' => $k->kandang_id,
                     'name'       => $k->name,
-                    'is_active'  => $k->project_status, // 0: not_active, 1: active
+                    'is_active'  => $k->project_status,
                 ]),
             ];
 
@@ -126,11 +126,10 @@ class ReportLocationController extends Controller
 
             return $this->checkAccess($company, $param, 'detail');
         } catch (\Exception $e) {
-            dd($e->getMessage());
-            // return redirect()
-            //     ->back()
-            //     ->with('error', $e->getMessage())
-            //     ->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 
