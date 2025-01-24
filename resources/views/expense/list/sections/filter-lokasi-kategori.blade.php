@@ -10,6 +10,19 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 }
 @endphp
 
+<style>
+.color-information {
+    visibility: hidden;
+}
+.circle {
+    display: inline-block;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    margin: auto 0.5rem;
+}
+</style>
+
 <div class="row">
     <!-- Lokasi -->
     <div class="col-md-2 mt-1">
@@ -28,6 +41,15 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
             <option value="1" {{ @$data->category == array_search('Biaya Operasional', $category) ? 'selected' : '' }}>Biaya Operasional</option>
             <option value="2" {{ @$data->category == array_search('Bukan BOP', $category) ? 'selected' : '' }}>Bukan BOP</option>
         </select>
+    </div>
+    <!-- Color information -->
+    <div class="color-information col mt-1">
+        <h5 class="text-right">Keterangan Kandang</h5>
+        <div class="row justify-content-end">
+            <div class="m-1"><i class="circle bg-primary"></i>Dipilih</div>
+            <div class="m-1"><i class="circle bg-danger"></i>Kandang Non-Aktif</div>
+            <div class="m-1"><i class="circle bg-secondary"></i>Kandang Aktif</div>
+        </div>
     </div>
     <!-- Kandang hidden array -->
     <input type="hidden" name="selected_kandangs" value="{{ @$data->expense_kandang ? $data->expense_kandang->map(fn($k) => $k->kandang_id) : '[]' }}">
@@ -75,13 +97,15 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
             $container.empty();
             $kandangInput.val('[]').trigger('input');
             selectedKandangs = [];
+            $('.color-information').css('visibility', 'hidden');
 
             if (data) {
+                $('.color-information').css('visibility', 'visible');
                 const kandangs = data.map(kandang => kandang.data);
 
                 const buttons = [];
                 kandangs.forEach(kandang => {
-                    const status = !!kandang.project_status;
+                    const status = !!kandang.project_status ? 1 : 0;
 
                     const button = $('<button>', {
                         class: `kandang_select btn mr-1 mt-1 rounded-pill waves-effect ${status ? "btn-outline-secondary" : "btn-outline-danger"}`,
@@ -94,8 +118,8 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 
                 // Sort button by project_status
                 buttons.sort(function(a, b) {
-                    const aActive = $(a).data('active') ? 1 : 0;
-                    const bActive = $(b).data('active') ? 1 : 0;
+                    const aActive = $(a).data('active');
+                    const bActive = $(b).data('active');
                     return bActive - aActive;
                 });
 
@@ -106,6 +130,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 
         $container.on('click', 'button', function(e) {
             e.preventDefault();
+            const status = $(this).data('active');
             if ($(this).hasClass('btn-outline-primary')) {
                 // Unselected
                 $(this)

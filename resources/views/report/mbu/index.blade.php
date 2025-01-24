@@ -5,6 +5,27 @@
     $farmType = App\Constants::KANDANG_TYPE;
 @endphp
 
+@php
+$data = collect([
+    [
+        'location' => 'Singaparna',
+        'period' => 4,
+        'closed_at' => '2024-12-11',
+        'farm_type' => 'Own Farm',
+        'active_farms_count' => 7,
+        'project_status' => 4,
+    ],
+    [
+        'location' => 'Pandeglang',
+        'period' => 3,
+        'closed_at' => '2023-10-08',
+        'farm_type' => 'Own Farm',
+        'active_farms_count' => 4,
+        'project_status' => 4,
+    ],
+]);
+@endphp
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -97,7 +118,6 @@
     const $locationSelect = $('#location');
     const $statusProjectSelect = $('#status_project');
     const locationIdRoute = '{{ route("data-master.location.search") }}';
-    const kandangIdRoute = '{{ route("data-master.kandang.search") }}';
     initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '');
     initSelect2($statusProjectSelect, 'Pilih Status');
 
