@@ -122,8 +122,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'finance.index',
             'report.mbu.index',
             'report.mbu.detail',
-            'report.manbu.index',
-            'report.manbu.detail',
+            'report.man.index',
+            'report.man.detail',
             'report.lti.index',
             'report.lti.detail',
             'purchase.index',
@@ -285,20 +285,20 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Assign permissions to roles
         Role::find(1)->givePermissionTo($permissions);
-        Role::find(2)->givePermissionTo($adminMarketingPermissions);
-        Role::find(3)->givePermissionTo($adminFinancePermissions);
-        Role::find(4)->givePermissionTo($managerMarketingPermissions);
-        Role::find(5)->givePermissionTo($managerFinancePermissions);
+        // Role::find(2)->givePermissionTo($adminMarketingPermissions);
+        // Role::find(3)->givePermissionTo($adminFinancePermissions);
+        // Role::find(4)->givePermissionTo($managerMarketingPermissions);
+        // Role::find(5)->givePermissionTo($managerFinancePermissions);
         $user1 = User::find(1);
         $user1->assignRole('Super Admin');
-        $user2 = User::find(2);
-        $user2->assignRole('Admin Marketing');
-        $user3 = User::find(3);
-        $user3->assignRole('Admin Finance');
-        $user4 = User::find(4);
-        $user4->assignRole('Manager Marketing');
-        $user5 = User::find(5);
-        $user5->assignRole('Manager Finance');
+        // $user2 = User::find(2);
+        // $user2->assignRole('Admin Marketing');
+        // $user3 = User::find(3);
+        // $user3->assignRole('Admin Finance');
+        // $user4 = User::find(4);
+        // $user4->assignRole('Manager Marketing');
+        // $user5 = User::find(5);
+        // $user5->assignRole('Manager Finance');
         // $adminFarm->givePermissionTo($permissions);
         // $managerArea->givePermissionTo(['project.list', 'pembelian.submit']);
         // $staffAudit->givePermissionTo(['audit.access', 'pembelian.submit']);

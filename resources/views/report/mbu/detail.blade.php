@@ -1,6 +1,10 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+@php
+    dump($detail);
+    // dump($detail->kandangs->map(fn($k) => $k->name)[1]);
+@endphp
 
 <style>
     .nav-link {
