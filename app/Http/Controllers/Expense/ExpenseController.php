@@ -261,10 +261,10 @@ class ExpenseController extends Controller
                     }
 
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
+                    $arrKandang       = [];
                     if (count($selectedKandangs) > 0) {
                         $create = false;
 
-                        $arrKandang = [];
                         foreach ($selectedKandangs as $key => $value) {
                             if ($category == 1) {
                                 $create                         = true;
@@ -331,11 +331,11 @@ class ExpenseController extends Controller
                     }
 
                     // Success message according to project_id
-                    $expenseKandangs = $createdExpense->expense_kandang;
-                    if (! empty($expenseKandangs)) {
-                        $projectIds = $expenseKandangs->pluck('project_id');
+                    if (! empty($arrKandang)) {
+                        $projectIds       = array_column($arrKandang, 'project_id');
+                        $projectIdsString = implode(', ', $projectIds);
 
-                        return ['success' => "Biaya Berhasil Disimpan | Terhubung Pada Project ID {$projectIds}"];
+                        return ['success' => "Biaya Berhasil Disimpan | Terhubung Pada Project ID {$projectIdsString}"];
                     } else {
                         return ['success' => 'Biaya Berhasil Disimpan | Tidak Terhubung Pada Project'];
                     }
@@ -404,7 +404,7 @@ class ExpenseController extends Controller
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
-                DB::transaction(function() use ($req, $expense) {
+                $success = DB::transaction(function() use ($req, $expense) {
                     $input = $req->all();
 
                     if ($expense->expense_status == 1) {
@@ -417,15 +417,21 @@ class ExpenseController extends Controller
 
                     $expense->expense_kandang()->delete();
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
+                    $arrKandang       = [];
                     if (count($selectedKandangs) > 0) {
                         $create = false;
 
-                        $arrKandang = [];
                         foreach ($selectedKandangs as $key => $value) {
                             if ($expense->category == 1) {
                                 $create                         = true;
                                 $arrKandang[$key]['expense_id'] = $expense->expense_id;
                                 $arrKandang[$key]['kandang_id'] = $value;
+
+                                // assign project_id
+                                $project = Kandang::find($value)->project->where('project_status', '!=', 4)->first() ?? null;
+                                if ($project) {
+                                    $arrKandang[$key]['project_id'] = $project->project_id;
+                                }
                             }
                         }
                         ExpenseKandang::insert($arrKandang);
@@ -479,9 +485,16 @@ class ExpenseController extends Controller
                     $expense->update([
                         'id_expense' => $idExpense,
                     ]);
-                });
 
-                $success = ['success' => 'Data Berhasil diubah'];
+                    if (! empty($arrKandang)) {
+                        $projectIds       = array_column($arrKandang, 'project_id');
+                        $projectIdsString = implode(', ', $projectIds);
+
+                        return ['success' => "Biaya Berhasil Disimpan | Terhubung Pada Project ID {$projectIdsString}"];
+                    } else {
+                        return ['success' => 'Biaya Berhasil Disimpan | Tidak Terhubung Pada Project'];
+                    }
+                });
 
                 return redirect()
                     ->route('expense.list.index')
