@@ -74,7 +74,7 @@
                                                         <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
                                                     </div>
                                                     <div class="col-sm-9" id="show-fcr">
-                                                        <h4>{{ $data->standard_mortality }} %</h4>
+                                                        <h4>{{ $data->project->standard_mortality }} %</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -159,7 +159,7 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Asupan Harian</td>
-                                                                    <td class="text-center">{{ $pakanRecord->decrease ?? '' }}</td>
+                                                                    <td class="text-center">{{ formatnumber(($pakanRecord->decrease*1000/$data->total_chick)) ?? '' }}</td>
                                                                     <td class="text-center">{{ formatnumber($fcrStandar->daily_intake)??'' }}</td>
                                                                 </tr>
                                                                 <tr>

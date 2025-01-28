@@ -9,7 +9,7 @@
                 <th>Kapasitas</th>
                 <th>Penanggung Jawab</th>
                 <th>Status</th>
-                <th>Esimasi Anggaran</th>
+                <th>Estimasi Anggaran</th>
             </tr>
         </thead>
         <tbody>
