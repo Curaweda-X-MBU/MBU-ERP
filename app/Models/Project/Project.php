@@ -28,7 +28,7 @@ class Project extends Model
         'period',
         'pic',
         'fcr_id',
-        // 'target_depletion',
+        'standard_mortality',
         'total_budget',
         'chickin_status',
         'project_status',

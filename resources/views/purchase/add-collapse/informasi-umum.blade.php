@@ -70,12 +70,7 @@
                                 <label for="require_date" class="float-right">Tgl. Dibutuhkan</label>
                             </div>
                             <div class="col-sm-9">
-                                <div class="input-group">
-                                    <input type="text" id="require_date" class="{{$errors->has('require_date')?'is-invalid':''}} form-control flatpickr-basic" name="require_date" placeholder="Tanggal Dibutuhkan" value="{{ $require_date?date('d-M-Y', strtotime($require_date)):'' }}" required>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text" id="basic-addon2">%</span>
-                                    </div>
-                                </div>
+                                <input type="text" id="require_date" class="{{$errors->has('require_date')?'is-invalid':''}} form-control flatpickr-basic" name="require_date" placeholder="Tanggal Dibutuhkan" value="{{ $require_date?date('d-M-Y', strtotime($require_date)):'' }}" required>
                                 @if ($errors->has('require_date'))
                                     <span class="text-danger small">{{ $errors->first('require_date') }}</span>
                                 @endif
