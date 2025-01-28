@@ -102,7 +102,7 @@ class RecordingController extends Controller
                 if ($lastDay > 0 && $arrDaySeq !== range(1, $lastDay)) {
                     return redirect()->back()->with('error', 'Error: Pastikan kamu telah melakukan recording hari sebelumnya');
                 }
-                dd('test');
+
                 $parentProduct    = false;
                 $productCategory  = ProductCategory::find($input['product_category_id']);
                 $projectWarehouse = ProductWarehouse::whereHas('product', function($query) {
