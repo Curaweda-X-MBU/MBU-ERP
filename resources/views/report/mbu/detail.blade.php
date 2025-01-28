@@ -3,9 +3,7 @@
 @section('content')
 @php
     dump($detail);
-    // dump($detail->kandangs->map(fn($k) => $k->name)[1]);
 @endphp
-
 <style>
     .nav-link {
         background: white;
@@ -54,7 +52,11 @@
         <div class="card">
             <div class="card-body">
                 <h4>Kandang</h4>
-                <div id="kandang-container" class="kandang-container"></div>
+                <div id="kandang-container" class="kandang-container">
+                    @foreach ($detail->kandangs as $kandang)
+                        <a class="btn mr-1 mt-1 rounded-pill btn-outline-{{ $kandang->is_active ? "primary" : "secondary" }}" href="{{ $kandang->latest_project ? route('report.detail.kandang', ['location' => $detail->location_id, 'project' => $kandang->latest_project])."?".Request::getQueryString() : '#' }}">{{ $kandang->name }}</a>
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -102,35 +104,6 @@
     // select period
     const $periodSelect = $('#period');
     initSelect2($periodSelect, 'Pilih Periode');
-
-    const dataKandang = [
-        { name: "Pandeglang 1", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 3", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 5", status: "aktif", link: "/report/mbu/detail/kandang" }
-    ];
-
-    function generateKandang() {
-        const container = document.getElementById("kandang-container");
-        container.innerHTML = "";
-
-        dataKandang.forEach((kandang) => {
-            const kandangItem = document.createElement("button");
-            kandangItem.className = `btn mr-1 mt-1 rounded-pill btn-outline-${
-                kandang.status === "aktif" ? "primary" : "secondary"
-            }`;
-            kandangItem.textContent = kandang.name;
-
-            kandangItem.onclick = () => {
-                window.location.href = kandang.link;
-            };
-
-            container.appendChild(kandangItem);
-        });
-    }
-
-    generateKandang();
 </script>
 
 
