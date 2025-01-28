@@ -79,9 +79,9 @@
                             <td class="col-md-7">{{ $detail->active_kandang }} Kandang</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Tanggal Mulai</td>
+                            <td class="col-md-4">Tanggal Chickin</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ $detail->start_date }}</td>
+                            <td class="col-md-7">{{ @$detail->chickin_date ? date('d-M-Y', strtotime($detail->chickin_date)) : '-' }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Tanggal Approval</td>

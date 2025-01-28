@@ -80,7 +80,7 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function detail(Request $req, Project $project)
+    public function detail(Request $req, Location $location)
     {
         try {
             $company = Company::where('alias', strtoupper($req->query('company')))
@@ -91,32 +91,40 @@ class ReportLocationController extends Controller
                 throw new \Exception('Invalid company');
             }
 
-            $input  = $req->all();
-            $period = $input['period'] ?? $project->period;
-            $proj   = $project->where([
-                ['project_id', '=', $project->project_id],
-                ['period', '=', $period],
-            ])->first();
+            $input                    = $req->all();
+            $kandangWithLatestProject = $location->kandangs->sortByDesc('latest_period')->first();
+            $latestProject            = $kandangWithLatestProject->latest_project;
+            $period                   = $latestProject->period;
+
+            if (isset($input['period'])) {
+                $period        = $input['period'];
+                $latestProject = $location->kandangs->where('project.period', $input['period'])->first();
+            }
+
+            $kandangs = $location->kandangs->select(['kandang_id', 'name', 'project_status', 'latest_period', 'latest_project'])
+                ->map(function($k) use ($input) {
+                    $k['is_active']      = $k['project_status'];
+                    $k['latest_period']  = isset($input['period']) ? $input['period'] : $k['latest_period'];
+                    $k['latest_project'] = isset($input['period']) ? $k->projects->where('period', $input['period']) : ($k['latest_project'] ?? null);
+
+                    return (object) $k;
+                });
 
             $detail = (object) [
-                'project_id' => $proj->project_id,
-                'location'   => $proj->kandang->location->name,
-                'period'     => $proj->period,
-                'product'    => $proj->product_category->name,
-                'doc'        => $proj->project_chick_in->first()->total_chickin ?? 0,
-                'farm_type'  => $proj->farm_type,
+                'location_id' => $location->location_id,
+                'location'    => $location->name,
+                'period'      => $period,
+                'product'     => $latestProject->product_category->name,
+                'doc'         => $latestProject->project_chick_in->first()->total_chickin ?? 0,
+                'farm_type'   => $latestProject->farm_type,
                 // 'closing_date' => $proj,
-                'project_status' => $proj->project_status,
-                'active_kandang' => count($proj->kandang->location->kandangs->where('project_status', 1)),
-                'start_date'     => $proj->created_at->format('d-M-Y'),
-                'approval_date'  => $proj->approval_date,
+                'project_status' => $latestProject->project_status,
+                'active_kandang' => count($kandangs->where('project_status', 1)),
+                'chickin_date'   => $latestProject->created_at, // ? NEED FIX
+                'approval_date'  => $latestProject->approval_date,
                 // 'payment_status' => $proj,
                 // 'closing_status' => $proj,
-                'kandangs' => $proj->kandang->location->kandangs->map(fn ($k) => (object) [
-                    'kandang_id' => $k->kandang_id,
-                    'name'       => $k->name,
-                    'is_active'  => $k->project_status,
-                ]),
+                'kandangs' => $kandangs,
             ];
 
             $param = [

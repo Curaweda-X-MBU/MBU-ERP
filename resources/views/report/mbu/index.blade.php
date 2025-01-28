@@ -3,27 +3,7 @@
 @section('content')
 @php
     $farmType = App\Constants::KANDANG_TYPE;
-@endphp
-
-@php
-$data = collect([
-    [
-        'location' => 'Singaparna',
-        'period' => 4,
-        'closed_at' => '2024-12-11',
-        'farm_type' => 'Own Farm',
-        'active_farms_count' => 7,
-        'project_status' => 4,
-    ],
-    [
-        'location' => 'Pandeglang',
-        'period' => 3,
-        'closed_at' => '2023-10-08',
-        'farm_type' => 'Own Farm',
-        'active_farms_count' => 4,
-        'project_status' => 4,
-    ],
-]);
+    dump($data)
 @endphp
 
 <div class="row">
@@ -92,7 +72,7 @@ $data = collect([
                                                 <i data-feather="more-vertical"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('report.detail.location', $item->project_id).'?company=mbu'}}">
+                                                <a class="dropdown-item" href="{{ route('report.detail.location', $item->location_id).'?company=mbu'}}">
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Detail</span>
                                                 </a>
