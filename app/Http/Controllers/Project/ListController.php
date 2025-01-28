@@ -27,6 +27,7 @@ class ListController extends Controller
         'farm_type'           => 'required',
         'period'              => 'required',
         'fcr_id'              => 'required',
+        'standard_mortality'  => 'required',
         // 'target_depletion'    => 'required',
     ];
 
@@ -35,6 +36,7 @@ class ListController extends Controller
         'farm_type'           => 'Tipe Kandang tidak boleh kosong',
         'period'              => 'Periode tidak boleh kosong',
         'fcr_id'              => 'FCR tidak boleh kosong',
+        'standard_mortality'  => 'Standar Mortalitas tidak boleh kosong',
         // 'target_depletion'    => 'Target Deplesi tidak boleh kosong',
     ];
 
@@ -108,6 +110,7 @@ class ListController extends Controller
                             'capacity'            => $dtKandang->capacity ?? 0,
                             'farm_type'           => $req->input('farm_type'),
                             'fcr_id'              => $req->input('fcr_id'),
+                            'standard_mortality'  => $req->input('standard_mortality'),
                             'period'              => $req->input('period'),
                             'pic'                 => $dtKandang->user->name ?? '',
                             'total_budget'        => $req->input('total_budget'),
@@ -231,7 +234,7 @@ class ListController extends Controller
     public function detail(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'fcr', 'fcr.fcr_standard', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
             $param   = [
                 'title' => 'Project > List > Detail',
                 'data'  => $project,

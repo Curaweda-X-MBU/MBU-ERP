@@ -569,12 +569,10 @@ class ListController extends Controller
                     }
                 } elseif ($req->has('method') && $req->input('method') == 'delete') {
                     $data = PurchasePayment::findOrFail($req->input('purchase_payment_id'));
-                    if ($data->status == 1) {
-                        $purchase->update([
-                            'total_payment'           => $purchase->total_payment - $data->amount,
-                            'total_remaining_payment' => $purchase->total_remaining_payment + $data->amount,
-                        ]);
-                    }
+                    $purchase->update([
+                        'total_payment'           => $purchase->total_payment - $data->amount,
+                        'total_remaining_payment' => $purchase->total_remaining_payment + $data->amount,
+                    ]);
                     $data->delete();
                 } else {
                     $document = '';
@@ -586,6 +584,14 @@ class ListController extends Controller
                         $document = $docUrl['url'];
                     }
 
+                    $bankCharge    = str_replace('.', '', str_replace(',', '.', $req->input('bank_charge')));
+                    $amountPayment = str_replace('.', '', str_replace(',', '.', $req->input('amount')));
+                    if ($amountPayment > $purchase->total_remaining_payment) {
+                        DB::rollback();
+
+                        return redirect()->back()->with('error', 'Error, Total pembayaran melebihi sisa pembayaran');
+                    }
+
                     PurchasePayment::create([
                         'purchase_id'        => $req->input('id'),
                         'payment_date'       => date('Y-m-d', strtotime($req->input('payment_date'))),
@@ -594,8 +600,8 @@ class ListController extends Controller
                         'recipient_bank_id'  => $req->input('recipient_bank_id'),
                         'ref_number'         => $req->input('ref_number'),
                         'transaction_number' => $req->input('transaction_number'),
-                        'bank_charge'        => str_replace('.', '', str_replace(',', '.', $req->input('bank_charge'))),
-                        'amount'             => str_replace('.', '', str_replace(',', '.', $req->input('amount'))),
+                        'bank_charge'        => $bankCharge,
+                        'amount'             => $amountPayment,
                         'document'           => $document,
                         'status'             => array_search('Menunggu persetujuan', Constants::PAYMENT_STATUS),
                     ]);

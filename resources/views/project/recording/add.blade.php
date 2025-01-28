@@ -66,10 +66,12 @@
                                                     <div class="col-sm-9">
                                                         @if ($data)
                                                         <input type="text" class="form-control" value="{{ $data->project->kandang->name??'' }}" readonly>
+                                                        <input type="hidden" class="chickin-date" value="{{ $data->project->project_chick_in[0]->chickin_date }}">
                                                         @else
                                                         <select name="project_id" id="project_id" class="form-control" required>
                                                             <option disabled selected>Pilih lokasi terlebih dahulu</option>
                                                         </select>
+                                                        <input type="hidden" class="chickin-date">
                                                         @endif
                                                     </div>
                                                 </div>
@@ -79,6 +81,14 @@
                                                     </div>
                                                     <div class="col-sm-9" id="show-fcr">
                                                        
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3">
+                                                        <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <h4>{{ $data->standard_mortality??'' }} %</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -121,15 +131,15 @@
                                                     </div>
                                                     <div class="col-sm-9">
                                                         @if ($data)
-                                                        <input type="text" class="form-control" value="{{ date('d-M-Y H:i', strtotime($data->record_datetime)) }}" readonly>
+                                                        <input type="text" class="form-control record-date" value="{{ date('d-M-Y H:i', strtotime($data->record_datetime)) }}" readonly>
                                                         @else
-                                                        <input type="text" class="form-control flatpickr-basic" name="record_datetime" placeholder="Tanggal Record" required>
+                                                        <input type="text" class="form-control flatpickr-basic record-date" name="record_datetime" placeholder="Tanggal Record" required>
                                                         @endif
                                                     </div>
                                                 </div>
                                                 <div class="row mt-1">
                                                     <div class="col-sm-3 col-form-label">
-                                                        <label for="day" class="float-right">Umur<br>(Hari)</label>
+                                                        <label for="day" class="float-right">Umur (Hari)</label>
                                                     </div>
                                                     <div class="col-sm-9">
                                                         @if ($data)
@@ -273,7 +283,9 @@
 
                             const dateOpt = { dateFormat: 'd-M-Y' }
                             $('.flatpickr-basic').flatpickr({
-                                dateFormat: "d-m-Y H:i",
+                                dateFormat: "Y-m-d",
+                                altInput: true,
+                                altFormat: "d-m-Y H:i",
                                 enableTime: true,
                                 time_24hr: true,
                                 defaultDate: new Date(new Date().setDate(new Date().getDate() - 1))
@@ -355,8 +367,6 @@
                                 e.preventDefault();
                                 
                                 const selectedData = e.params.data.data;
-                                console.log('selectedData ', selectedData);
-                                
                                 setEmpty($(this).val());
                                 $('#product_category_name').val(selectedData.product_category.name);
                                 $('#product_category_code').val(selectedData.product_category.category_code);
@@ -383,17 +393,10 @@
 
                                 if (selectedData.project_chick_in) {
                                     const chickinData = selectedData.project_chick_in[0];
-                                    const chickinDate = new Date(chickinData.chickin_date);
-                                    const today = new Date();
-                                    const diffTime = Math.abs(today - chickinDate);
-                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    const dayOld = diffDays-1;
-                                    if (dayOld <= 0) {
-                                        alert('Umur ayam belum 1 hari');
-                                        $('.day-old').val('');                                    
-                                    } else {
-                                        $('.day-old').val(dayOld);                                    
-                                    }
+                                    const chickinDate = selectedData.project_chick_in[0].chickin_date;
+                                    const recordDate = $('.record-date').val();
+                                    $('.chickin-date').val(chickinDate);
+                                    diffDayOldChick(recordDate, chickinDate);
                                 }
 
                                 if (selectedData.fcr_id && selectedData.fcr) {
@@ -401,6 +404,27 @@
                                                             ${selectedData.fcr.name}
                                                         </button>`);
                                 }
+                            });
+
+                            function diffDayOldChick(recordDate, chickinDate) {
+                                if (chickinDate && recordDate) {
+                                    const diffTime =  new Date(recordDate) - new Date(chickinDate);
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    if (diffDays <= 0) {
+                                        alert('Umur ayam belum 1 hari');
+                                        $('.day-old').val('');                                    
+                                        return false;
+                                    } else {
+                                        $('.day-old').val(diffDays);                                    
+                                    }
+                                } 
+                            }
+
+                            $('.record-date').change(function (e) { 
+                                e.preventDefault();
+                                const chickinDate = $('.chickin-date').val();
+                                const selectedDate = $(this).val();
+                                diffDayOldChick(selectedDate, chickinDate);
                             });
 
                             function setEmpty (projectId = null) {

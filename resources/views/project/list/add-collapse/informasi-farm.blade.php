@@ -16,6 +16,7 @@
                         </th>
                         @endif
                         <th>Kandang</th>
+                        @if (!isset($data))<th>Status Project</th>@endif
                         <th>Kapasitas</th>
                         <th>Penanggung Jawab</th>
                     </thead>
@@ -28,7 +29,7 @@
                         </tr>
                         @else
                         <tr>
-                            <td colspan="4"><center>Data tidak tersedia</center></td>
+                            <td colspan="{{ !isset($data)?'5':'4' }}"><center>Data tidak tersedia</center></td>
                         </tr>
                         @endisset
                     </tbody>
@@ -53,31 +54,39 @@
                 },
                 success: function (res) {
                     let tblData = ''; 
-                    let latestPeriod;
                     if (res.length === 0) {
-                        tblData = `<tr> <td colspan="4"><center>Data tidak tersedia</center></td> </tr>`;
+                        tblData = `<tr> <td colspan="5"><center>Data tidak tersedia</center></td> </tr>`;
                     }
                     console.log('res', res);
                     
+                    let arrPeriod = [];
+                    let arrStatusName = [];
                     res.forEach(val => {
-                        latestPeriod = val.data.latest_period;
+                        arrPeriod.push(val.data.latest_period);
                         let disabledCheck = '';
-                        if (val.data.project_status) {
-                            disabledCheck = 'disabled'
+                        let classCheckbox = 'rowCheckbox';
+                        if (val.data.project_status_name !== 'Tersedia') {
+                            arrStatusName.push(val.data.project_status_name);
+                            disabledCheck = 'disabled';
+                            classCheckbox = 'rowCheckboxDisabled';
                         }
                         tblData += `<tr>
                                         <td style="padding-left: 2rem !important;">
                                             <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input rowCheckbox" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }" ${disabledCheck}>
+                                                <input type="checkbox" class="custom-control-input ${classCheckbox}" name="kandang_id[]" id="kandangId${ val.id }" value="${ val.id }" ${disabledCheck}>
                                                 <label class="custom-control-label" for="kandangId${ val.id }"></label>
                                             </div>
                                         </td>
                                         <td>${val.text}</td>
+                                        <td>${val.data.project_status_name}</td>
                                         <td>${val.data.capacity}</td>
                                         <td>${val.data.user.name}</td>
                                     <tr>`;
                     });
-                    latestPeriod += 1;
+
+                    const isSameStatus = arrStatusName.length === 0 || arrStatusName.every(value => value === arrStatusName[0]);
+                    const sortedArray = arrPeriod.length > 0 ? arrPeriod.sort((a, b) => b - a) : [0];
+                    const latestPeriod = isSameStatus?sortedArray[0]+1:sortedArray[0];
                     $('#tbl-kandang tbody').html(tblData);
                     $('#period').val(latestPeriod);
                     $('input[name="period"]').val(latestPeriod);

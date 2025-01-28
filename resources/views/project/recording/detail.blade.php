@@ -7,6 +7,23 @@
     }
 </style>
 
+@php
+    $fcrStandar = collect($data->project->fcr->fcr_standard??[])->where('day', $data->day)->first();
+    if (!function_exists('formatnumber')) {
+        function formatnumber($number) {
+            return rtrim(rtrim(number_format(floatval($number), 2, ',', '.'), '0'), ',');
+        }
+    }
+
+    $pakanRecord = collect($data->recording_stock)->filter(function ($recordingStock) {
+                return optional($recordingStock->product_warehouse)
+                    ->product
+                    ->name === 'Pakan';
+            })->first();
+
+    
+@endphp
+
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -52,6 +69,14 @@
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3">
+                                                        <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
+                                                    </div>
+                                                    <div class="col-sm-9" id="show-fcr">
+                                                        <h4>{{ $data->standard_mortality }} %</h4>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6 mt-1">
                                                 <div class="row">
@@ -84,7 +109,7 @@
                                                 </div>
                                                 <div class="row mt-1">
                                                     <div class="col-sm-3 col-form-label">
-                                                        <label for="day" class="float-right">Umur<br>(Hari)</label>
+                                                        <label for="day" class="float-right">Umur (Hari)</label>
                                                     </div>
                                                     <div class="col-sm-9">
                                                         <input type="text" class="form-control" value="{{ $data->day }}" readonly>
@@ -100,6 +125,88 @@
                                                     </div>
                                                 </div>
                                                 @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mt-3">
+                                        <div class="row">
+                                            <div class="col-md-5">
+                                                <li>
+                                                    <span style="font-size: 15px;"><b>FCR</b></span>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered w-100 no-wrap">
+                                                            <thead>
+                                                                <th></th>
+                                                                <th class="text-center">Aktual</th>
+                                                                <th class="text-center">Standar</th>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>Bobot</td>
+                                                                    <td class="text-center">{{ formatnumber($data->recording_bw[0]->value) }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->weight)??'' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Peningkatan Harian</td>
+                                                                    <td class="text-center">{{ formatnumber($data->daily_gain) }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->daily_gain)??'' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Peningkatan Rata - rata</td>
+                                                                    <td class="text-center">{{ formatnumber($data->avg_daily_gain) }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->avg_daily_gain)??'' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Asupan Harian</td>
+                                                                    <td class="text-center">{{ $pakanRecord->decrease ?? '' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->daily_intake)??'' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Asupan Kumulatif</td>
+                                                                    <td class="text-center">{{ formatnumber($data->cum_intake) }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->cum_intake)??'' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>FCR</td>
+                                                                    <td class="text-center">{{ formatnumber($data->fcr_value) }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar->fcr)??'' }}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </li>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <li>
+                                                    <span style="font-size: 15px;"><b>Mortalitas</b></span>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered w-100 no-wrap text-center">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th rowspan="2">Jumlah Ayam</th>
+                                                                    <th colspan="2">Deplesi Harian</th>
+                                                                    <th colspan="2">Deplesi Kumulatif</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Total</th>
+                                                                    <th>(%)</th>
+                                                                    <th>Total</th>
+                                                                    <th>(%)</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>{{ formatnumber($data->total_chick) }}</td>
+                                                                    <td>{{ formatnumber($data->total_depletion) }}</td>
+                                                                    <td>{{ formatnumber($data->daily_depletion_rate) }}</td>
+                                                                    <td>{{ formatnumber($data->cum_depletion) }}</td>
+                                                                    <td>{{ formatnumber($data->cum_depletion_rate) }}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </li>
                                             </div>
                                         </div>
                                     </div>
@@ -163,9 +270,9 @@
                                                         @foreach ($data->recording_bw??[] as $item)
                                                             @foreach ($item->recordingBwList??[] as $val)
                                                             <tr>
-                                                                <td>{{ number_format($val->weight,2,',','.') }}</td>
-                                                                <td>{{ number_format($val->total,0,',','.') }}</td>
-                                                                <td>{{ number_format($val->weight_calc,2,',','.') }}</td>
+                                                                <td>{{ formatnumber($val->weight) }}</td>
+                                                                <td>{{ formatnumber($val->total) }}</td>
+                                                                <td>{{ formatnumber($val->weight_calc) }}</td>
                                                                 <td>Ekor</td>
                                                             </tr>
                                                             @endforeach
@@ -175,19 +282,19 @@
                                                         @foreach ($data->recording_bw as $item)
                                                         <tr>
                                                             <td colspan="3" class="text-right">Rata-rata Berat</td>
-                                                            <td>{{ number_format($item->avg_weight, 2, ',', '.') }}</td>
+                                                            <td>{{ formatnumber($item->avg_weight) }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Jumlah Ekor</td>
-                                                            <td>{{ number_format($item->total_chick, 0, ',', '.') }}</td>
+                                                            <td>{{ formatnumber($item->total_chick) }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Jumlah Berat</td>
-                                                            <td>{{ number_format($item->total_calc, 2, ',', '.') }}</td>
+                                                            <td>{{ formatnumber($item->total_calc) }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td colspan="3" class="text-right">Bobot Rataan</td>
-                                                            <td>{{ number_format($item->value, 2, ',', '.') }}</td>
+                                                            <td>{{ formatnumber($item->value) }}</td>
                                                         </tr>
                                                         @endforeach
                                                     </tfoot>
