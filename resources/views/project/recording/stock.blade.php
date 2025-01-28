@@ -52,7 +52,7 @@
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Persediaan",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=RAW`, 
+                        url: `{{ route("data-master.product.search") }}?product_category-category_code=RAW&product_category-category_code=OVK`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {
