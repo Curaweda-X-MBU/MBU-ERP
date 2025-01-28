@@ -288,14 +288,14 @@ class RecordingController extends Controller
                 ->product
                 ->name === 'Pakan';
         })->first();
-        $cumIntake = $pakanRecord->decrease;
+        $cumIntake = ($pakanRecord->decrease * 1000) / $remainChick; // 1kg = 1000gram
 
         if ($lastDay > 0) {
             $lastRecording = collect($project->recording)->where('day', $lastDay)->first();
             $lastDailyDepletion += $lastRecording->total_depletion;
             $lastWeight = $lastRecording->recording_bw[0]->value;
-            $cumIntake += $lastRecording->cum_intake;
-            $remainChick -= $lastRecording->total_depletion + $totalDecrese;
+            $remainChick -= $lastRecording->cum_depletion;
+            $cumIntake = $lastRecording->cum_intake + (($pakanRecord->decrease * 1000) / $remainChick);
         }
 
         $recordings->update([
