@@ -316,8 +316,11 @@
                                                 <thead>
                                                     <th>No</th>
                                                     <th>No. Polisi</th>
+                                                    <th>Supplier</th>
+                                                    <th>Product</th>
                                                     <th>Jumlah</th>
                                                     <th>uom</th>
+                                                    <th>Biaya Antar (Rp)</th>
                                                     <th>Waktu Keluar Kandang</th>
                                                     <th>Nama Pengirim</th>
                                                     <th>Nama Driver</th>
@@ -328,8 +331,11 @@
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->plat_number }}</td>
+                                                                <td>{{ $item->supplier->name }}</td>
+                                                                <td>{{ $item->marketing_product->product->name }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                                 <td>{{ $item->uom->name }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->delivery_fee) }}</td>
                                                                 <td>{{ date('d-M-Y H:i', strtotime($item->exit_at)) }}</td>
                                                                 <td>{{ $item->sender->name }}</td>
                                                                 <td>{{ $item->driver_name }}</td>

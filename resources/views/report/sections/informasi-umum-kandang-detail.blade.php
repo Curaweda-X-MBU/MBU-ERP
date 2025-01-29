@@ -1,3 +1,6 @@
+@php
+    $farmType = App\Constants::KANDANG_TYPE;
+@endphp
 <div class="row">
     {{-- left column --}}
     <div class="col-md-6 col-12">
@@ -8,27 +11,22 @@
                         <tr>
                             <td class="col-md-4">Lokasi</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">Pandeglang</td>
+                            <td class="col-md-7">{{ $detail->location }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Periode</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">9</td>
+                            <td class="col-md-7">{{ $detail->period }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Jenis Produk</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">AYAM BROILER</td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">Tanggal Masuk DOC</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">12-10-2024</td>
+                            <td class="col-md-7">{{ $detail->product }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Jumlah DOC</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">Jumlah DOC</td>
+                            <td class="col-md-7">{{ $detail->doc }} Ekor</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Tanggal Closing</td>
@@ -38,22 +36,28 @@
                         <tr>
                             <td class="col-md-4">Jenis Project</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">Own Farm</td>
+                            <td class="col-md-7">{{ $farmType[$detail->farm_type] }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Status Project</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">
-                                @php
-                            $status = 1;
-                        @endphp
-                        @switch($status)
-                            @case(1)
-                                <div class="badge badge-pill badge-success">Selesai</div>
-                                @break
-                            @default
-                                <div class="badge badge-pill badge-secondary">N/A</div>
-                        @endswitch
+                                @switch($detail->project_status)
+                                    @case(1)
+                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                        @break
+                                    @case(2)
+                                        <div class="badge badge-pill badge-primary">Aktif</div>
+                                        @break
+                                    @case(3)
+                                        <div class="badge badge-pill badge-info">Persiapan</div>
+                                        @break
+                                    @case(4)
+                                        <div class="badge badge-pill badge-success">Selesai</div>
+                                        @break
+                                    @default
+                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                @endswitch
                             </td>
                         </tr>
                     </tbody>
@@ -71,12 +75,12 @@
                         <tr>
                             <td class="col-md-4">Nama Kandang</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">Pandeglang 1</td>
+                            <td class="col-md-7">{{ $detail->kandang_name }}</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Tanggal Mulai</td>
+                            <td class="col-md-4">Tanggal Chickin</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">30-09-2024</td>
+                            <td class="col-md-7">{{ @$detail->chickin_date ? date('d-M-Y', strtotime($detail->chickin_date)) : '-' }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Jenis Ayam</td>
@@ -91,7 +95,7 @@
                         <tr>
                             <td class="col-md-4">Tanggal Approval</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">11-12-2024</td>
+                            <td class="col-md-7">{{ @$detail->approval_date ? date('d-M-Y', strtotime($detail->approval_date)) : '-' }}</td>
                         </tr>
                         </tbody>
                 </table>

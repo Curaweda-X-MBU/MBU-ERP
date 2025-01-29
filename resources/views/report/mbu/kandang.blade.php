@@ -1,6 +1,9 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+@php
+    dump($detail);
+@endphp
 
 <style>
     .nav-link {
@@ -27,7 +30,7 @@
             <div class="card-header">
                 <h4 class="card-title">{{$title}}</h4>
                 <div class="text-right mt-1">
-                    <a href="{{ route('report.mbu.detail') }}" class="btn btn-outline-secondary waves-effect mr-1" role="button">
+                    <a href="{{ url()->previous() }}" class="btn btn-outline-secondary waves-effect mr-1" role="button">
                         Kembali
                     </a>
                     <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -42,9 +45,6 @@
             <div class="card-body">
                 <div class="row align-items-center my-1">
                     <h4 class="col-md-10">Informasi Umum</h4>
-                    <div class="col-md-2">
-                        <select name="period" id="period" class="form-control"></select>
-                    </div>
                 </div>
                 @include('report.sections.informasi-umum-kandang-detail')
             </div>

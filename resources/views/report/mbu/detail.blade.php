@@ -3,9 +3,7 @@
 @section('content')
 @php
     dump($detail);
-    // dump($detail->kandangs->map(fn($k) => $k->name)[1]);
 @endphp
-
 <style>
     .nav-link {
         background: white;
@@ -22,6 +20,13 @@
 
     .tab-content {
         margin-top: 0 !important;
+    }
+    .circle {
+        display: inline-block;
+        border-radius: 100%;
+        height: 1em;
+        width: 1em;
+        margin: auto 0.5rem;
     }
 </style>
 
@@ -53,8 +58,33 @@
 
         <div class="card">
             <div class="card-body">
-                <h4>Kandang</h4>
-                <div id="kandang-container" class="kandang-container"></div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h4>Kandang</h4>
+                    <div class="row">
+                        <div class="mx-1"><i class="circle bg-warning"></i>Kandang Diajukan</div>
+                        <div class="mx-1"><i class="circle bg-primary"></i>Kandang Aktif</div>
+                        <div class="mx-1"><i class="circle bg-secondary"></i>Kandang Non-Aktif</div>
+                    </div>
+                </div>
+                <div id="kandang-container" class="kandang-container">
+                    @foreach ($detail->kandangs as $kandang)
+                    @php
+                        $btnClass = 'warning';
+                        if ($kandang->is_active && $kandang->latest_project) {
+                            $btnClass = 'primary';
+                        } elseif (empty($kandang->latest_project)) {
+                            $btnClass = 'secondary';
+                        }
+
+                        $href = $kandang->latest_project
+                            ? route('report.detail.kandang', ['location' => $detail->location_id, 'project' => $kandang->latest_project]) . '?' . Request::getQueryString()
+                            : '#';
+                    @endphp
+                    <a class="btn mr-1 mt-1 rounded-pill btn-outline-{{ $btnClass }}" href="{{ $href }}">
+                        {{ $kandang->name }}
+                    </a>
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -102,35 +132,6 @@
     // select period
     const $periodSelect = $('#period');
     initSelect2($periodSelect, 'Pilih Periode');
-
-    const dataKandang = [
-        { name: "Pandeglang 1", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 3", status: "aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/mbu/detail/kandang" },
-        { name: "Pandeglang 5", status: "aktif", link: "/report/mbu/detail/kandang" }
-    ];
-
-    function generateKandang() {
-        const container = document.getElementById("kandang-container");
-        container.innerHTML = "";
-
-        dataKandang.forEach((kandang) => {
-            const kandangItem = document.createElement("button");
-            kandangItem.className = `btn mr-1 mt-1 rounded-pill btn-outline-${
-                kandang.status === "aktif" ? "primary" : "secondary"
-            }`;
-            kandangItem.textContent = kandang.name;
-
-            kandangItem.onclick = () => {
-                window.location.href = kandang.link;
-            };
-
-            container.appendChild(kandangItem);
-        });
-    }
-
-    generateKandang();
 </script>
 
 
