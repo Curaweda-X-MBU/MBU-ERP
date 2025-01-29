@@ -28,6 +28,7 @@ class MarketingProduct extends Model
         'qty',
         'weight_total',
         'total_price',
+        'is_paid',
         'return_qty',
     ];
 
