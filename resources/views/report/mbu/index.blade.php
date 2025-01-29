@@ -16,12 +16,17 @@
                 {{-- informasi --}}
                 <div class="row row-cols-2 row-cols-md-4 align-items-baseline">
                     <div class="col-md-2 mt-1">
-                        <label for="location" class="form-label">Lokasi<i class="text-danger">*</i></label>
+                        <label for="location" class="form-label">Lokasi</label>
                         <select name="location" id="location" class="form-control"></select>
                     </div>
                     <div class="col-md-2 mt-1">
-                        <label for="status_project" class="form-label">Status Project<i class="text-danger">*</i></label>
-                        <select name="status_project" id="status_project" class="form-control"></select>
+                        <label for="status_project" class="form-label">Status Project</label>
+                        <select name="status_project" id="status_project" class="form-control">
+                            <option value="" selected>Semua</option>
+                            @foreach (App\Constants::PROJECT_STATUS as $index => $status)
+                            <option value="{{ $index }}">{{ $status }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
@@ -31,11 +36,13 @@
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
                                 <th>#</th>
+                                <th class="d-none">location_id</th>
                                 <th>Lokasi</th>
                                 <th>Periode</th>
                                 <th>Tanggal Closing</th>
                                 <th>Jenis Project</th>
                                 <th>Kandang</th>
+                                <th class="d-none">project_status</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </thead>
@@ -43,11 +50,13 @@
                                 @foreach ($data as $index => $item)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
+                                    <td class="d-none">{{ $item->location_id }}</td>
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->period }}</td>
                                     <td>-</td>
                                     <td>{{ $farmType[$item->farm_type] }}</td>
                                     <td>{{ $item->count_kandang }} Kandang</td>
+                                    <td class="d-none">{{ $item->project_status }}</td>
                                     <td>
                                         @switch($item->project_status)
                                             @case(1)
@@ -98,12 +107,26 @@
     const $locationSelect = $('#location');
     const $statusProjectSelect = $('#status_project');
     const locationIdRoute = '{{ route("data-master.location.search") }}';
-    initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '');
-    initSelect2($statusProjectSelect, 'Pilih Status');
+    initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute, '', { allowClear: true });
+    initSelect2($statusProjectSelect, 'Pilih Status', null, '', { allowClear: true });
 
     $(function () {
-        $('#datatable').DataTable({
+        const $table = $('#datatable').DataTable({
             dom: '<"d-flex justify-content-between"B><"custom-table-wrapper"t>ip',
+        });
+
+        // Location ID
+        $table.columns(1).visible(false);
+        $locationSelect.on('change', function() {
+            $table.columns(1).search('').draw();
+            $table.columns(1).search($(this).val() ?? '').draw();
+        });
+
+        // Project Status Enum
+        $table.columns(7).visible(false);
+        $statusProjectSelect.on('change', function() {
+            $table.columns(7).search('').draw();
+            $table.columns(7).search($(this).val() ?? '').draw();
         });
     });
 </script>
