@@ -161,6 +161,9 @@ Route::middleware('auth')->group(function() {
         Route::get('/', [App\Http\Controllers\Report\ReportLocationController::class, 'index'])->name('report.index');
         Route::get('/{location}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail.location');
         Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
+        Route::group(['prefix' => 'detail/{location}'], function() {
+            Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
+        });
     });
 
     Route::group(['prefix' => 'purchase'], function() {

@@ -1,13 +1,14 @@
 <div class="card">
+    <input type="hidden" class="location_penjualan_loaded" value="0">
     <div class="card-body">
         <h4>Penjualan Ayam Besar</h4>
         <div class="table-responsive mt-2" style="overflow-x: auto;">
-            <table id="datatable" class="table" style="margin: 0 0 !important;">
+            <table id="location_penjualan_datatable" class="table" style="margin: 0 0 !important;">
                 <thead>
                     <tr class="text-center">
                     <th rowspan="2" style="vertical-align: middle">Tanggal</th>
                     <th rowspan="2" style="vertical-align: middle">Umur</th>
-                    <th rowspan="2" style="vertical-align: middle">No. DTPS</th>
+                    <th rowspan="2" style="vertical-align: middle">No. DO</th>
                     <th rowspan="2" style="vertical-align: middle">Costumer</th>
                     <th colspan="2">Jumlah</th>
                     <th rowspan="2" style="vertical-align: middle">Harga</th>
@@ -71,3 +72,45 @@
     </div>
 </div>
 
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') }}"></script>
+
+<script>
+$(function() {
+    function fetchLocationPenjualanData() {
+        $.get("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
+            .then(function(result) {
+                if (!result.error) {
+                    $('#location_penjualan_datatable').DataTable({
+                        dom: '<"custom-table-wrapper"t>',
+                        data: result,
+                        columns: [
+                            {data: 'tanggal'},
+                            {data: 'umur'},
+                            {
+                                data: 'no_do',
+                                render: function(data, type) {
+                                    if (type === 'display') {
+                                        data = '<span class="text-primary cursor-pointer" data-toggle="modal" data-target="#penjualanModal">' + data + '</span>'
+                                    }
+
+                                    return data;
+                                },
+                            },
+                            {data: 'customer'},
+                            {data: 'jumlah_ekor'},
+                            {data: 'jumlah_kg'},
+                            {data: 'harga'},
+                            {data: 'cn'},
+                            {data: 'total'},
+                            {data: 'kandang'},
+                            {data: 'status'},
+                        ],
+                    });
+                }
+            });
+    }
+
+    $('.location_penjualan_loaded').on('change', fetchLocationPenjualanData);
+});
+</script>

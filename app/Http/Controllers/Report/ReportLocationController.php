@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Report;
 
+use App\Constants;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Project\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -165,15 +168,41 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function penjualan($projectId)
+    public function penjualan(Request $req, Location $location)
     {
         try {
-            //
+            $period = $req->query('period');
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            $marketing_products = MarketingProduct::with(['project', 'warehouse.kandang'])
+                ->whereHas('project', function($p) use ($period) {
+                    $p->where('period', $period);
+                })
+                ->whereHas('warehouse.kandang', function($k) use ($location) {
+                    $k->where('location_id', $location->location_id);
+                })
+                ->get()
+                ->map(function($mp) {
+                    return [
+                        'tanggal'     => $mp->marketing->realized_at ? date('d-M-Y', strtotime($mp->marketing->realized_at)) : '-',
+                        'umur'        => 'dummy',
+                        'no_do'       => $mp->marketing->id_marketing,
+                        'customer'    => $mp->marketing->customer->name,
+                        'jumlah_ekor' => $mp->qty,
+                        'jumlah_kg'   => $mp->weight_total,
+                        'harga'       => Parser::toLocale($mp->price),
+                        'cn'          => 'dummy',
+                        'total'       => Parser::toLocale($mp->grand_total),
+                        'kandang'     => $mp->warehouse->kandang->name,
+                        'status'      => Constants::MARKETING_PAYMENT_STATUS[$mp->payment_status],
+                    ];
+                });
+
+            return response()->json($marketing_products);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error' => $e->getMessage(), 404]);
         }
     }
 
