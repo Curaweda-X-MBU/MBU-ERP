@@ -21,6 +21,13 @@
     .tab-content {
         margin-top: 0 !important;
     }
+    .circle {
+        display: inline-block;
+        border-radius: 100%;
+        height: 1em;
+        width: 1em;
+        margin: auto 0.5rem;
+    }
 </style>
 
 <div class="row">
@@ -51,10 +58,31 @@
 
         <div class="card">
             <div class="card-body">
-                <h4>Kandang</h4>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h4>Kandang</h4>
+                    <div class="row">
+                        <div class="mx-1"><i class="circle bg-warning"></i>Kandang Diajukan</div>
+                        <div class="mx-1"><i class="circle bg-primary"></i>Kandang Aktif</div>
+                        <div class="mx-1"><i class="circle bg-secondary"></i>Kandang Non-Aktif</div>
+                    </div>
+                </div>
                 <div id="kandang-container" class="kandang-container">
                     @foreach ($detail->kandangs as $kandang)
-                        <a class="btn mr-1 mt-1 rounded-pill btn-outline-{{ $kandang->is_active ? "primary" : "secondary" }}" href="{{ $kandang->latest_project ? route('report.detail.kandang', ['location' => $detail->location_id, 'project' => $kandang->latest_project])."?".Request::getQueryString() : '#' }}">{{ $kandang->name }}</a>
+                    @php
+                        $btnClass = 'warning';
+                        if ($kandang->is_active && $kandang->latest_project) {
+                            $btnClass = 'primary';
+                        } elseif (empty($kandang->latest_project)) {
+                            $btnClass = 'secondary';
+                        }
+
+                        $href = $kandang->latest_project
+                            ? route('report.detail.kandang', ['location' => $detail->location_id, 'project' => $kandang->latest_project]) . '?' . Request::getQueryString()
+                            : '#';
+                    @endphp
+                    <a class="btn mr-1 mt-1 rounded-pill btn-outline-{{ $btnClass }}" href="{{ $href }}">
+                        {{ $kandang->name }}
+                    </a>
                     @endforeach
                 </div>
             </div>
