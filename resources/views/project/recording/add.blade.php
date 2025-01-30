@@ -88,7 +88,7 @@
                                                         <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
                                                     </div>
                                                     <div class="col-sm-9">
-                                                        <h4>{{ $data->project->standard_mortality??'' }} %</h4>
+                                                        <h4><span id="std-mortality">{{ $data->project->standard_mortality??'' }}</span> %</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -148,6 +148,14 @@
                                                         <input type="text" class="form-control day-old" placeholder="Umur" value="" readonly>
                                                         <input type="hidden" class="day-old" name="day" required>
                                                         @endif
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3">
+                                                        <label for="total_chicken" class="text-right">Jumlah ayam saat ini</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <input type="number" class="total-chicken form-control" readonly>
                                                     </div>
                                                 </div>
                                             </div>
@@ -367,6 +375,8 @@
                                 e.preventDefault();
                                 
                                 const selectedData = e.params.data.data;
+                                console.log(selectedData);
+                                
                                 setEmpty($(this).val());
                                 $('#product_category_name').val(selectedData.product_category.name);
                                 $('#product_category_code').val(selectedData.product_category.category_code);
@@ -397,6 +407,16 @@
                                     const recordDate = $('.record-date').val();
                                     $('.chickin-date').val(chickinDate);
                                     diffDayOldChick(recordDate, chickinDate);
+
+                                    const existRecord = selectedData.recording;
+                                    let remainChick = 0;
+                                    if (!existRecord) {
+                                        remainChick = chickinData.total_chickin;
+                                    } else {
+                                        const lastRecord = selectedData.recording.sort((a, b) => b.day - a.day);
+                                        remainChick = lastRecord[0].total_chick - lastRecord[0].total_depletion;
+                                    }
+                                    $('.total-chicken').val(remainChick);
                                 }
 
                                 if (selectedData.fcr_id && selectedData.fcr) {
@@ -404,6 +424,10 @@
                                                             ${selectedData.fcr.name}
                                                         </button>`);
                                 }
+
+                                if (selectedData.standard_mortality) {
+                                    $('#std-mortality').html(selectedData.standard_mortality);
+                                } 
                             });
 
                             function diffDayOldChick(recordDate, chickinDate) {
