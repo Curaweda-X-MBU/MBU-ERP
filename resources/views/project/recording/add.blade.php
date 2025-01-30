@@ -410,11 +410,11 @@
 
                                     const existRecord = selectedData.recording;
                                     let remainChick = 0;
-                                    if (!existRecord) {
-                                        remainChick = chickinData.total_chickin;
-                                    } else {
-                                        const lastRecord = selectedData.recording.sort((a, b) => b.day - a.day);
+                                    if (existRecord.length > 0) {
+                                        const lastRecord = existRecord.sort((a, b) => b.day - a.day);
                                         remainChick = lastRecord[0].total_chick - lastRecord[0].total_depletion;
+                                    } else {
+                                        remainChick = chickinData.total_chickin;
                                     }
                                     $('.total-chicken').val(remainChick);
                                 }
