@@ -299,7 +299,7 @@ class ListController extends Controller
     public function searchProject(Request $request)
     {
         $search   = $request->input('q');
-        $projects = Project::with(['kandang', 'kandang.user', 'kandang.warehouse', 'product_category', 'project_budget', 'project_chick_in', 'fcr', 'fcr.fcr_standard'])
+        $projects = Project::with(['kandang', 'recording', 'kandang.user', 'kandang.warehouse', 'product_category', 'project_budget', 'project_chick_in', 'fcr', 'fcr.fcr_standard'])
             ->whereHas('kandang', function($query) use ($search) {
                 $query->where('name', 'like', '%'.$search.'%');
             });
