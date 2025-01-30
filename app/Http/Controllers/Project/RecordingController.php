@@ -276,14 +276,14 @@ class RecordingController extends Controller
             'recording_stock.product_warehouse.product',
         ])->find($recordingId);
 
-        $lastDay            = $recordings->day - 1;
-        $lastDailyDepletion = 0;
-        $projectChickin     = $project->project_chick_in[0];
-        $remainChick        = $projectChickin->total_chickin;
-        $fcrStandard        = collect($project->fcr->fcr_standard)->where('day', 0)->first();
-        $lastWeight         = $fcrStandard->weight;
-        $currentWeight      = $recordings->recording_bw[0]->value;
-        $pakanRecord        = collect($recordings->recording_stock)->filter(function($recordingStock) {
+        $lastDay        = $recordings->day - 1;
+        $cumDepletion   = $totalDecrese;
+        $projectChickin = $project->project_chick_in[0];
+        $remainChick    = $projectChickin->total_chickin;
+        $fcrStandard    = collect($project->fcr->fcr_standard)->where('day', 0)->first();
+        $lastWeight     = $fcrStandard->weight;
+        $currentWeight  = $recordings->recording_bw[0]->value;
+        $pakanRecord    = collect($recordings->recording_stock)->filter(function($recordingStock) {
             return optional($recordingStock->product_warehouse)
                 ->product
                 ->name === 'Pakan';
@@ -292,18 +292,20 @@ class RecordingController extends Controller
 
         if ($lastDay > 0) {
             $lastRecording = collect($project->recording)->where('day', $lastDay)->first();
-            $lastDailyDepletion += $lastRecording->total_depletion;
+            $cumDepletion += collect($project->recording)->sum('total_depletion');
             $lastWeight = $lastRecording->recording_bw[0]->value;
             $remainChick -= $lastRecording->cum_depletion;
             $cumIntake = $lastRecording->cum_intake + (($pakanRecord->decrease * 1000) / $remainChick);
         }
 
+        \Log::info('cum depletion : '.$cumDepletion);
+
         $recordings->update([
             'total_chick'          => $remainChick,
             'total_depletion'      => $totalDecrese,
-            'cum_depletion'        => $totalDecrese + $lastDailyDepletion,
-            'daily_depletion_rate' => $totalDecrese                        / $remainChick                   * 100,
-            'cum_depletion_rate'   => ($totalDecrese + $lastDailyDepletion) / $projectChickin->total_chickin * 100,
+            'cum_depletion'        => $cumDepletion,
+            'daily_depletion_rate' => $totalDecrese / $remainChick                   * 100,
+            'cum_depletion_rate'   => $cumDepletion / $projectChickin->total_chickin * 100,
             'daily_gain'           => $currentWeight - $lastWeight,
             'avg_daily_gain'       => ($currentWeight - $fcrStandard->weight) / $recordings->day,
             'cum_intake'           => $cumIntake,

@@ -4,6 +4,12 @@
 @php
     use Carbon\Carbon;
     use App\Constants;
+
+    if (!function_exists('formatnumber')) {
+        function formatnumber($number) {
+            return rtrim(rtrim(number_format(floatval($number), 2, ',', '.'), '0'), ',');
+        }
+    }
 @endphp
                     <div class="row">
                         <div class="col-12">
@@ -41,7 +47,10 @@
                                                         <th>ID</th>
                                                         <th>Nama Project</th>
                                                         <th>Periode</th>
+                                                        <th>Umur<br>(hari)</th>
                                                         <th>Waktu Recording</th>
+                                                        <th>FCR</th>
+                                                        <th>Deplesi</th>
                                                         <th>Ketepatan Waktu</th>
                                                         <th>Status Perubahan</th>
                                                         <th>Tanggal Submit</th>
@@ -54,7 +63,10 @@
                                                             <td>{{ $item->recording_id }}</td>
                                                             <td>{{ $item->project->kandang->name??'' }}</td>
                                                             <td>{{ $item->project->period??'' }}</td>
-                                                            <td>{{ date('d-M-Y H:i', strtotime($item->record_datetime)) }}</td>
+                                                            <td>{{ $item->day }}</td>
+                                                            <td>{{ date('d-M-Y', strtotime($item->record_datetime)) }}</td>
+                                                            <td>{{ formatnumber($item->fcr_value) }}</td>
+                                                            <td>{{ formatnumber($item->total_depletion) }}</td>
                                                             <td>
                                                                 @if ($item->on_time)
                                                                 <div class="badge badge-glow badge-success">Tepat Waktu</div>

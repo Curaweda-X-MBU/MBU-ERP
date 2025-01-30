@@ -85,7 +85,7 @@
                                                 </div>
                                                 <div class="row mt-1">
                                                     <div class="col-sm-3">
-                                                        <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
+                                                        <label for="standard_mortality" class="text-right">Standar Mortalitas</label>
                                                     </div>
                                                     <div class="col-sm-9">
                                                         <h4><span id="std-mortality">{{ $data->project->standard_mortality??'' }}</span> %</h4>
