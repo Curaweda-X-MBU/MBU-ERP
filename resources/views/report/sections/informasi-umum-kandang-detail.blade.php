@@ -83,11 +83,6 @@
                             <td class="col-md-7">{{ @$detail->chickin_date ? date('d-M-Y', strtotime($detail->chickin_date)) : '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Jenis Ayam</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ $detail->chicken_type }}</td>
-                        </tr>
-                        <tr>
                             <td class="col-md-4">PPL / TS</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">{{ $detail->ppl_ts }}</td>

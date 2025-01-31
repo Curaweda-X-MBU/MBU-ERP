@@ -193,6 +193,7 @@ $(function() {
     function populatePenjualanModal(noDo, products, prices) {
         $('#penjualanModalLabel').text('Detail Penjualan Ayam Besar | ' + noDo);
         $('#location_penjualan_produk_datatable').DataTable({
+            destroy: true, // prevent reinitialization
             dom: '<"custom-table-wrapper"t>',
             data: products,
             columns: [
@@ -254,6 +255,7 @@ $(function() {
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
+            destroy: true, // prevent reinitialization
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [
@@ -270,7 +272,14 @@ $(function() {
                 {data: 'item'},
                 {
                     data: 'price',
-                    classsName: 'price',
+                    className: 'price',
+                    render: function(data, type) {
+                        if (type === 'display') {
+                            data = parseNumToLocale(data);
+                        }
+
+                        return data;
+                    }
                 },
             ],
             footerCallback: function(row, data) {
@@ -278,7 +287,7 @@ $(function() {
 
                 let intVal = function (i) {
                     return typeof i === 'string'
-                        ? i.replace(/[\$,]/g, '') * 1
+                        ? parseLocaleToNum(i)
                         : typeof i === 'number'
                         ? i
                         : 0;
