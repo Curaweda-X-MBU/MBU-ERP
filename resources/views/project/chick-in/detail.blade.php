@@ -34,12 +34,12 @@
                     </a>
                     @endif
                 @else
-                    @if (Auth::user()->role->hasPermissionTo('project.chick-in.edit'))
+                    {{-- @if (Auth::user()->role->hasPermissionTo('project.chick-in.edit'))
                     <a href="{{ route('project.chick-in.edit', $data->project_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
                     </a>
-                    @endif
+                    @endif --}}
                 @endif
                 @if (!$data->chickin_approval_date && count($data->project_chick_in) > 0)
                     @if (Auth::user()->role->hasPermissionTo('project.chick-in.approve'))
