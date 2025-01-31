@@ -234,7 +234,7 @@ class ListController extends Controller
     public function detail(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'fcr', 'fcr.fcr_standard', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'fcr', 'fcr.fcr_standard', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom', 'closingby'])->findOrFail($req->id);
             $param   = [
                 'title' => 'Project > List > Detail',
                 'data'  => $project,
@@ -267,6 +267,32 @@ class ListController extends Controller
 
             return redirect()->route('project.list.index')->with($success);
         } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function closing(Request $req)
+    {
+        try {
+            DB::beginTransaction();
+            $project = Project::with(['recording.recording_depletion.product_warehouse'])->findOrFail($req->id);
+            $kandang = Kandang::find($project->kandang_id);
+
+            $kandang->update([
+                'project_status' => false,
+            ]);
+            $project->update([
+                'project_status' => array_search('Selesai', Constants::PROJECT_STATUS),
+                'closing_date'   => date('Y-m-d H:i:s'),
+                'closing_by'     => Auth::user()->user_id ?? '',
+            ]);
+            DB::commit();
+            $success = ['success' => 'Closing project berhasil'];
+
+            return redirect()->route('project.list.index')->with($success);
+        } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
