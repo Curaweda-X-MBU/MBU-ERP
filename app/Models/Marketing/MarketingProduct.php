@@ -2,6 +2,7 @@
 
 namespace App\Models\Marketing;
 
+use App\Constants;
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Uom;
 use App\Models\DataMaster\Warehouse;
@@ -28,8 +29,42 @@ class MarketingProduct extends Model
         'qty',
         'weight_total',
         'total_price',
+        'is_paid',
         'return_qty',
     ];
+
+    protected $appends = ['grand_total', 'payment_status'];
+
+    public function getGrandTotalAttribute()
+    {
+        $marketing = $this->marketing;
+        if (! $marketing) {
+            throw new \Exception("Marketing not found for product ID {$this->marketing_product_id}");
+        }
+
+        $discount             = $marketing->discount;
+        $additionalPrices     = $marketing->marketing_addit_prices->sum('price');
+        $productCount         = $marketing->marketing_products()->count();
+        $localDiscount        = $discount         / $productCount;
+        $localAdditionalPrice = $additionalPrices / $productCount;
+        $tax                  = $marketing->tax;
+
+        return $this->total_price + ($this->total_price * ($tax / 100)) - $localDiscount + $localAdditionalPrice;
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        $isPaid = $this->is_paid ?? 0;
+        if ($this->grand_total < $isPaid) {
+            return array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS);
+        } elseif ($this->grand_total == $isPaid) {
+            return array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS);
+        } elseif ($this->grand_total > $isPaid && $isPaid > 0) {
+            return array_search('Dibayar Sebagian', Constants::MARKETING_PAYMENT_STATUS);
+        } else {
+            return array_search('Tempo', Constants::MARKETING_PAYMENT_STATUS);
+        }
+    }
 
     public function marketing()
     {
