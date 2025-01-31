@@ -20,13 +20,13 @@
                     <i data-feather="download" class="mr-50"></i>
                     Download
                 </button> --}}
-                @if (Auth::user()->role->hasPermissionTo('project.list.edit'))
+                {{-- @if (Auth::user()->role->hasPermissionTo('project.list.edit'))
                 <a href="{{ route('project.list.edit', $data->project_id) }}" class="btn btn-primary">
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
                 </a>
-                @endif
-                @if (Auth::user()->role->hasPermissionTo('project.list.closing') && $data->project_status !== 4)
+                @endif --}}
+                @if (Auth::user()->role->hasPermissionTo('project.list.closing') && $data->project_status === 2)
                 <a class="btn btn-danger" href="javascript:void(0);" data-id="{{ $data->project_id }}" data-toggle="modal" data-target="#closing">
                     <i data-feather='check-circle' class="mr-50"></i>
                     Closing
