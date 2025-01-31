@@ -180,7 +180,7 @@ $(function() {
                     .data() ?? [])
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                $footer.find('.budget_grand_total').html(parseNumToLocale(budgetGrandTotal));
+                $footer.find('.budget_grand_total').html(`Rp&nbsp;${parseNumToLocale(budgetGrandTotal)}`);
 
                 totalRealizationQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyRealisasi ?? 0), 0);
 
@@ -191,7 +191,7 @@ $(function() {
                     .data() ?? [])
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                $footer.find('.grand_total').html(parseNumToLocale(grandTotal));
+                $footer.find('.grand_total').html(`Rp&nbsp;${parseNumToLocale(grandTotal)}`);
             },
         });
     }

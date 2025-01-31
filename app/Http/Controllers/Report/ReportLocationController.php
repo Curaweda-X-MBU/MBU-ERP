@@ -235,7 +235,7 @@ class ReportLocationController extends Controller
                         'jumlah_ekor'            => $m->marketing_products->sum('qty'),
                         'jumlah_kg'              => $m->marketing_products->sum('weight_total'),
                         'harga'                  => Parser::toLocale($m->sub_total),
-                        'cn'                     => 'CN',
+                        'cn'                     => Parser::toLocale($m->not_paid),
                         'total'                  => Parser::toLocale($m->grand_total),
                         'kandang'                => $m->marketing_products->flatMap(fn ($mp) => $mp->warehouse->kandang->only('kandang_id'))->unique()->count(),
                         'status'                 => [$m->payment_status, Constants::MARKETING_PAYMENT_STATUS[$m->payment_status]],
