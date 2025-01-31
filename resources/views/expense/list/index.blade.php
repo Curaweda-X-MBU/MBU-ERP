@@ -94,7 +94,7 @@
                                             @endswitch
                                         </td>
                                         <td>
-                                            <div class="dropdown dropleft">
+                                            <div class="dropdown dropleft" style="position: static;">
                                                 <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
                                                     <i data-feather="more-vertical"></i>
                                                 </button>
