@@ -163,6 +163,7 @@ Route::middleware('auth')->group(function() {
         Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
         Route::group(['prefix' => 'detail/{location}'], function() {
             Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
+            Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
             Route::group(['prefix' => '{project}'], function() {
                 Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
                 Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');

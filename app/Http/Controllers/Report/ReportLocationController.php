@@ -7,6 +7,7 @@ use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
+use App\Models\Expense\Expense;
 use App\Models\Marketing\Marketing;
 use App\Models\Project\Project;
 use Carbon\Carbon;
@@ -189,7 +190,7 @@ class ReportLocationController extends Controller
     public function penjualan(Request $req, Location $location)
     {
         try {
-            $period = $req->query('period');
+            $period = intval($req->query('period'));
             if (! $period) {
                 throw new \Exception('Periode tidak ditemukan');
             }
@@ -249,10 +250,76 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function overhead($projectId)
+    public function overhead(Request $req, Location $location)
     {
         try {
-            //
+            $period = intval($req->query('period'));
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            $formatted_expenses = [
+                'bop'  => [],
+                'nbop' => [],
+            ];
+
+            $query = Expense::with([
+                'expense_main_prices:id,expense_id,sub_category,qty,uom,price,total_price,approved_at',
+                'expense_addit_prices:id,expense_id,sub_category,qty,uom,price,total_price,approved_at',
+            ])->where([
+                ['location_id', $location->location_id],
+                ['expense_status', 2],
+            ])->whereIn('category', [1, 2]);
+
+            $query->where(function($q) use ($period) {
+                $q->where('category', 2)
+                    ->orWhereHas('expense_kandang.project', function($p) use ($period) {
+                        $p->where('period', $period);
+                    });
+            });
+
+            $expenses = $query->cursor();
+
+            $bop_expenses  = [];
+            $nbop_expenses = [];
+
+            foreach ($expenses as $e) {
+                $processed = collect($e->expense_main_prices
+                    ->concat($e->expense_addit_prices)
+                    ->map(fn ($p) => [
+                        'tanggal'           => Carbon::parse($p->approved_at)->format('d-M-Y'),
+                        'no_ref'            => '####', // dummy
+                        'produk'            => $p->sub_category,
+                        'budget_qty'        => 0, // dummy
+                        'budget_price'      => Parser::toLocale(0), // dummy
+                        'budget_total'      => Parser::toLocale(0), // dummy
+                        'realization_qty'   => $p->qty,
+                        'uom'               => $p->uom,
+                        'realization_price' => Parser::toLocale($p->price),
+                        'realization_total' => Parser::toLocale($p->total_price),
+                        'price_per_qty'     => Parser::toLocale($p->price / $p->qty), // NOTE: unnecessary?
+                    ]));
+
+                if ($e->category == 1) {
+                    $formatted_expenses['bop'] = array_merge($formatted_expenses['bop'], $processed->toArray());
+                } else {
+                    $formatted_expenses['nbop'] = array_merge($formatted_expenses['nbop'], $processed->toArray());
+                }
+            }
+
+            $bop_expenses  = collect($formatted_expenses['bop']);
+            $nbop_expenses = collect($formatted_expenses['nbop']);
+
+            return response()->json([
+                [
+                    'kategori'    => 'Pengeluaran Operasional',
+                    'subkategori' => $bop_expenses,
+                ],
+                [
+                    'kategori'    => 'Pengeluaran Bukan Operasional',
+                    'subkategori' => $nbop_expenses,
+                ],
+            ]);
         } catch (\Exception $e) {
             return redirect()
                 ->back()

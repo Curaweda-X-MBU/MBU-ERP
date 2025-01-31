@@ -140,8 +140,4 @@ dump($detail);
         }
     });
 </script>
-
-
-
-
 @endsection

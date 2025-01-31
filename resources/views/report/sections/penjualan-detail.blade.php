@@ -63,6 +63,11 @@ $(function() {
             .then(function(result) {
                 if (!result.error) {
                     $('#location_penjualan_datatable').DataTable({
+                        destroy: true,  // Allows reloading data dynamically
+                        responsive: true,
+                        paging: true,
+                        searching: true,
+                        ordering: true,
                         dom: '<"custom-table-wrapper"t>',
                         data: result,
                         columns: [
@@ -193,7 +198,11 @@ $(function() {
     function populatePenjualanModal(noDo, products, prices) {
         $('#penjualanModalLabel').text('Detail Penjualan Ayam Besar | ' + noDo);
         $('#location_penjualan_produk_datatable').DataTable({
-            retrieve: true, // prevent reinitialization
+            destroy: true,  // Allows reloading data dynamically
+            responsive: true,
+            paging: true,
+            searching: true,
+            ordering: true,
             dom: '<"custom-table-wrapper"t>',
             data: products,
             columns: [
@@ -255,7 +264,11 @@ $(function() {
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
-            retrieve: true, // prevent reinitialization
+            destroy: true,  // Allows reloading data dynamically
+            responsive: true,
+            paging: true,
+            searching: true,
+            ordering: true,
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [
