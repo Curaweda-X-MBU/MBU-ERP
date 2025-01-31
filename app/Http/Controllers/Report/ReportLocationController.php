@@ -242,7 +242,7 @@ class ReportLocationController extends Controller
 
             return response()->json($marketings);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 404]);
+            return response()->json(['error' => $e->getMessage(), 500]);
         }
     }
 
