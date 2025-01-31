@@ -9,6 +9,7 @@ use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
 use App\Models\Marketing\Marketing;
 use App\Models\Project\Project;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -213,19 +214,21 @@ class ReportLocationController extends Controller
                 })
                 ->get()
                 ->map(function($m) {
+                    $chickinDate = $m->marketing_products
+                        ->first()
+                        ->project
+                        ->first()
+                        ->project_chick_in
+                        ->sortByDesc('chickin_date')
+                        ->first()
+                        ->chickin_date;
+
+                    $chickinParsed = Carbon::parse($chickinDate);
+                    $umur          = $m->realized_at ? $chickinParsed->diffInDays(Carbon::parse($m->realized_at)) : '-';
+
                     return [
-                        'tanggal' => $m->realized_at ? date('d-M-Y', strtotime($m->realized_at)) : '-',
-                        'umur'    => $m->realized_at ?
-                            date('d-M-Y', strtotime(
-                                ($m->marketing_products
-                                    ->first()
-                                    ->project
-                                    ->first()
-                                    ->project_chick_in
-                                    ->sortByDesc('chickin_date')
-                                    ->first()
-                                    ->chickin_date ?? null) - ($m->realized_at)
-                            )) : '-',
+                        'tanggal'                => $m->realized_at ? date('d-M-Y', strtotime($m->realized_at)) : '-',
+                        'umur'                   => $umur,
                         'no_do'                  => $m->id_marketing,
                         'customer'               => $m->customer->name,
                         'jumlah_ekor'            => $m->marketing_products->sum('qty'),
@@ -242,7 +245,7 @@ class ReportLocationController extends Controller
 
             return response()->json($marketings);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 404]);
+            return response()->json(['error' => $e->getMessage(), 500]);
         }
     }
 
