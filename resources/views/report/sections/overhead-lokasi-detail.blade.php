@@ -30,12 +30,12 @@
                     <tr class="font-weight-bolder">
                         <td>Total</td>
                         <td></td>
-                        <td class="total_budget_qty text-right"></td>
+                        <td class="total_budget_qty"></td>
                         <td></td>
                         <td class="budget_grand_total text-right"></td>
                         <td></td>
                         <td></td>
-                        <td class="total_realization_qty text-right"></td>
+                        <td class="total_realization_qty"></td>
                         <td></td>
                         <td class="grand_total text-right"></td>
                         <td></td>

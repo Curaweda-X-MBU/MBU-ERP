@@ -32,11 +32,11 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="sum_qty">0</td>
-                        <td class="sum_weight">0</td>
-                        <td class="text-right sub_total">0</td>
-                        <td class="text-right sum_cn">0</td>
-                        <td class="text-right grand_total">0</td>
+                        <td class="sum_qty"></td>
+                        <td class="sum_weight"></td>
+                        <td class="text-right sub_total"></td>
+                        <td class="text-right sum_cn"></td>
+                        <td class="text-right grand_total"></td>
                         <td></td>
                         <td></td>
                     </tr>
