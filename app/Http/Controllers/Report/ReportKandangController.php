@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Report;
 
+use App\Constants;
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
+use App\Models\Expense\Expense;
+use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Project\Project;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -59,25 +64,23 @@ class ReportKandangController extends Controller
 
             if (isset($input['period'])) {
                 $period        = $input['period'];
-                $latestProject = $location->kandangs->where('project.period', $input['period'])->first();
+                $latestProject = $location->kandangs->where('project.period', $period)->first();
             }
 
             $detail = (object) [
-                'location_id' => $location->location_id,
-                'location'    => $location->name,
-                'period'      => $project->period,
-                'product'     => $project->product_category->name,
-                'doc'         => $project->project_chick_in->first()->total_chickin ?? 0,
-                'farm_type'   => $project->farm_type,
-                // 'closing_date' => $proj,
+                'location_id'    => $location->location_id,
+                'location'       => $location->name,
+                'period'         => $project->period,
+                'product'        => $project->product_category->name,
+                'doc'            => $project->project_chick_in->first()->total_chickin ?? 0,
+                'farm_type'      => $project->farm_type,
+                'closing_date'   => 'dummy',
                 'project_status' => $project->project_status,
                 'kandang_name'   => $project->kandang->name,
-                'chickin_date'   => $project->created_at, // ? NEED FIX
-                // 'ppl_ts'   => $project,
-                'approval_date' => $project->approval_date,
-                'ekspedisi'     => $this->hppEkspedisi($project->project_id),
-                'penjualan'     => $this->penjualan($project->project_id),
-                'data_produksi' => $this->dataProduksi($project->project_id),
+                'chickin_date'   => $project->project_chick_in->first()->chickin_date,
+                'chicken_type'   => 'dummy',
+                'ppl_ts'         => 'dummy',
+                'approval_date'  => $project->approval_date,
             ];
 
             $param = [
@@ -94,47 +97,219 @@ class ReportKandangController extends Controller
         }
     }
 
-    public function penjualan($projectId)
+    public function sapronak(Request $req, Location $location, Project $project)
     {
         try {
-            $marketings = Marketing::whereHas('marketing_products', function($mp) use ($projectId) {
-                $mp->where('project_id', $projectId);
-            })->with(['marketing_products', 'marketing_addit_prices'])->get();
+            $period = intval($req->query('period') ?? $project->period);
 
-            if ($marketings->isEmpty()) {
-                return null;
-            }
+            $sapronakMasuk = StockMovement::with(['product', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
+                ->whereHas('destination.kandang.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->whereHas('destination', function($query) use ($location) {
+                    $query->where('location_id', $location->location_id);
+                })
+                ->get()
+                ->transform(function($si) {
+                    return [
+                        'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y'),
+                        'no_referensi' => $si->stock_movement_id,
+                        'transaksi'    => 'Mutasi',
+                        'produk'       => $si->product->name,
+                        'gudang_asal'  => $si->origin->name,
+                        'qty'          => Parser::toLocale($si->transfer_qty).' '.$si->product->uom->name,
+                        'notes'        => $si->notes,
+                    ];
+                });
 
-            return $marketings;
+            $sapronakKeluar = StockMovement::with(['product', 'product.uom', 'origin', 'origin.kandang.project', 'destination'])
+                ->whereHas('origin.kandang.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->whereHas('origin', function($query) use ($location) {
+                    $query->where('location_id', $location->location_id);
+                })
+                ->get()
+                ->transform(function($so) {
+                    return [
+                        'tanggal'       => Carbon::parse($so->created_at)->format('d-M-Y'),
+                        'no_referensi'  => $so->stock_movement_id,
+                        'transaksi'     => 'Mutasi',
+                        'produk'        => $so->product->name,
+                        'gudang_tujuan' => $so->destination->name,
+                        'qty'           => Parser::toLocale($so->transfer_qty).' '.$so->product->uom->name,
+                        'notes'         => $so->notes,
+                    ];
+                });
+
+            $sapronak = [
+                'sapronak_masuk'  => $sapronakMasuk,
+                'sapronak_keluar' => $sapronakKeluar,
+            ];
+
+            return response()->json($sapronak);
         } catch (\Exception $e) {
-            return $e;
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function hppEkspedisi($projectId)
+    public function perhitunganSapronak(Request $req, Location $location, Project $project)
     {
         try {
-            $marketings = Marketing::whereHas('marketing_products', function($mp) use ($projectId) {
-                $mp->where('project_id', $projectId);
-            })->with(['marketing_delivery_vehicles.supplier'])->get();
+            $period = intval($req->query('period') ?? $project->period);
 
-            if ($marketings->isEmpty()) {
-                return null;
-            }
+            // return response()->json($);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
-            $marketingDeliveries = $marketings->flatMap(function($m) {
-                return $m->marketing_delivery_vehicles->map(function($d) {
-                    return (object) [
-                        'id_marketing' => $d->marketing->id_marketing,
-                        'supplier'     => $d->supplier->name,
-                        'delivery_fee' => $d->delivery_fee,
+    public function penjualan(Request $req, Location $location, Project $project)
+    {
+        try {
+            $period = intval($req->query('period') ?? $project->period);
+
+            $marketings = Marketing::with([
+                'marketing_products.warehouse.kandang',
+                'marketing_products.product',
+                'marketing_products.project.project_chick_in',
+                'marketing_products.uom',
+                'marketing_addit_prices',
+                'customer',
+            ])
+                ->whereNull('marketing_return_id')
+                ->where('marketing_status', '>=', 3)
+                ->whereHas(
+                    'marketing_products.project',
+                    fn ($query) => $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ])
+                )
+                ->whereHas(
+                    'marketing_products.warehouse.kandang',
+                    fn ($query) => $query->where('location_id', $location->location_id)
+                )
+                ->get()
+                ->transform(function($m) use ($project) {
+                    $tanggal     = $m->realized_at ? Carbon::parse($m->realized_at)->format('d-M-Y') : '-';
+                    $chickinDate = Carbon::parse($project->project_chick_in->first()->chickin_date);
+                    $kandangs    = $m->marketing_products->map(function($mp) {
+                        return $mp->warehouse->kandang->name;
+                    })->unique()->values()->toArray();
+                    $umur = $m->realized_at ? $chickinDate->diffInDays(Carbon::parse($m->realized_at)) : '-';
+
+                    return [
+                        'tanggal'            => $tanggal,
+                        'umur'               => $umur,
+                        'id_marketing'       => $m->id_marketing,
+                        'customer'           => $m->customer->name,
+                        'jumlah_ekor'        => $m->marketing_products->sum('qty'),
+                        'jumlah_kg'          => $m->marketing_products->sum('weight_total'),
+                        'harga'              => Parser::toLocale($m->marketing_products->sum('price')),
+                        'cn'                 => 'dummy',
+                        'total'              => Parser::toLocale($m->grand_total),
+                        'kandangs'           => $kandangs,
+                        'payment_status'     => Constants::MARKETING_PAYMENT_STATUS[$m->payment_status],
+                        'marketing_products' => $m->marketing_products->map(fn ($mp) => [
+                            'kandang'      => $mp->warehouse->kandang->name,
+                            'nama_produk'  => $mp->product->name,
+                            'harga_satuan' => $mp->price,
+                            'bobot_avg'    => $mp->weight_avg,
+                            'uom'          => $mp->uom->name,
+                            'qty'          => $mp->qty,
+                            'total_bobot'  => $mp->weight_total,
+                        ]),
+                        'marketing_addit_prices' => $m->marketing_addit_prices->map(fn ($ma) => [
+                            'item'  => $ma->item,
+                            'price' => $ma->price,
+                        ]),
                     ];
                 });
-            });
 
-            return $marketingDeliveries;
+            return response()->json($marketings);
         } catch (\Exception $e) {
-            return $e;
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function overhead(Request $req, Location $location, Project $project)
+    {
+        try {
+            $period = intval($req->query('period') ?? $project->period);
+
+            $expense = Expense::with('expense_kandang', 'expense_kandang.project', 'expense_main_prices', 'expense_addit_prices')
+                ->whereHas('expense_kandang.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->where([
+                    ['location_id', $location->location_id],
+                    ['expense_status', 2],
+                ])
+                ->get()
+                ->flatMap(function($e) {
+                    return $e->expense_main_prices->map(function($mp) {
+                        return [
+                            'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
+                            'produk'  => "{$mp->sub_category} (BOP)",
+                            'qty'     => "{$mp->qty} {$mp->uom}",
+                            'price'   => Parser::toLocale($mp->price),
+                            'total'   => $mp->qty != 0 ? Parser::toLocale($mp->price * $mp->qty) : Parser::toLocale($mp->price),
+                        ];
+                    })->concat($e->expense_addit_prices->map(function($ap) {
+                        return [
+                            'tanggal' => Carbon::parse($ap->approved_at)->format('d-M-Y'),
+                            'produk'  => "{$ap->name} (NBOP)",
+                            'qty'     => '-',
+                            'price'   => Parser::toLocale($ap->price),
+                            'total'   => Parser::toLocale($ap->price),
+                        ];
+                    }));
+                });
+
+            return response()->json($expense);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function hppEkspedisi(Request $req, Location $location, Project $project)
+    {
+        try {
+            $period = intval($req->query('period') ?? $project->period);
+
+            $marketingDeliveries = Marketing::with(['marketing_products', 'marketing_products.warehouse.kandang', 'marketing_delivery_vehicles.supplier'])
+                ->whereHas('marketing_products.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->whereHas('marketing_products.warehouse.kandang', function($query) use ($location) {
+                    $query->where('location_id', $location->location_id);
+                })->get()
+                ->flatMap(function($m) {
+                    return $m->marketing_delivery_vehicles->map(function($d) {
+                        return [
+                            'id_marketing' => $d->marketing->id_marketing,
+                            'supplier'     => $d->supplier->name,
+                            'delivery_fee' => $d->delivery_fee,
+                        ];
+                    });
+                });
+
+            return response()->json($marketingDeliveries);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
