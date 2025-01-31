@@ -31,7 +31,7 @@
                         <tr>
                             <td class="col-md-4">Tanggal Closing</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">11-12-2024</td>
+                            <td class="col-md-7">{{ $detail->closing_date }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Jenis Project</td>
@@ -85,12 +85,12 @@
                         <tr>
                             <td class="col-md-4">Jenis Ayam</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">CP VAKSIN (50.000 ekor)</td>
+                            <td class="col-md-7">{{ $detail->chicken_type }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">PPL / TS</td>
                             <td class="col-md-1">:</td>
-                            <td class="col-md-7">TULUS</td>
+                            <td class="col-md-7">{{ $detail->ppl_ts }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Tanggal Approval</td>
