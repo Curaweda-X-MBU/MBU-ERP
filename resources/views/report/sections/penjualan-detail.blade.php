@@ -193,7 +193,7 @@ $(function() {
     function populatePenjualanModal(noDo, products, prices) {
         $('#penjualanModalLabel').text('Detail Penjualan Ayam Besar | ' + noDo);
         $('#location_penjualan_produk_datatable').DataTable({
-            retrieve: true, // prevent reinitialization
+            destroy: true, // prevent reinitialization
             dom: '<"custom-table-wrapper"t>',
             data: products,
             columns: [
@@ -255,7 +255,7 @@ $(function() {
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
-            retrieve: true, // prevent reinitialization
+            destroy: true, // prevent reinitialization
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [
