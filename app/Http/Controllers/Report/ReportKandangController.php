@@ -11,6 +11,7 @@ use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Project\Project;
+use App\Models\Project\Recording;
 use App\Models\Purchase\Purchase;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -81,22 +82,7 @@ class ReportKandangController extends Controller
                 'chickin_date'   => $project->project_chick_in->first()->chickin_date ?? null,
                 'ppl_ts'         => $project->kandang->user->name,
                 'approval_date'  => $project->approval_date,
-                // 'sapronak' => $this->sapronak(app(Request::class), $location, $project),
-                'perhitungan_sapronak' => $this->perhitunganSapronak(app(Request::class), $location, $project),
-                // 'stock_availability_usage' => StockAvailabilityUsage::with(['recording', 'recording.project'])
-                // ->whereHas('recording.project', function($query) use($project){
-                //     $query->where('project_id', $project->project_id);
-                // })->get(),
-                // 'stock_availability' => StockAvailability::with(['recording_stock', 'recording_stock.recording'])
-                // ->whereHas('recording_stock.recording', function($query) use ($project){
-                //     $query->where('project_id', $project->project_id);
-                // })
-                // ->get(),
-                // 'purchase' => Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
-                // ->whereHas('warehouse.kandang.project', function($query) use ($project){
-                //     $query->where('project_id', $project->project_id);
-                // })
-                // ->get()
+                'data_produksi'  => $this->dataProduksi(app(Request::class), $location, $project),
             ];
 
             $param = [
@@ -113,92 +99,14 @@ class ReportKandangController extends Controller
         }
     }
 
-    // ! 80% | TINGGAL DATA DARI RECORDING
+    // ? DONE
     public function sapronak(Request $req, Location $location, Project $project)
     {
         try {
             $period = intval($req->query('period') ?? $project->period);
 
-            $sapronakMasuk = StockMovement::with(['product', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
-                ->whereHas('destination.kandang.project', function($query) use ($project, $period) {
-                    $query->where([
-                        ['project_id', $project->project_id],
-                        ['period', $period],
-                    ]);
-                })
-                ->whereHas('destination', function($query) use ($location) {
-                    $query->where('location_id', $location->location_id);
-                })
-                ->get()
-                ->transform(function($si) {
-                    return [
-                        'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y'),
-                        'no_referensi' => $si->stock_movement_id,
-                        'transaksi'    => 'Mutasi',
-                        'produk'       => $si->product->name,
-                        'gudang_asal'  => $si->origin->name,
-                        'qty'          => Parser::toLocale($si->transfer_qty).' '.$si->product->uom->name,
-                        'notes'        => $si->notes,
-                    ];
-                });
-
-            $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
-                ->whereHas('warehouse.kandang.project', function($query) use ($project) {
-                    $query->where('project_id', $project->project_id);
-                })
-                ->get()
-                ->flatMap(function($p) {
-                    return $p->purchase_item->map(function($item) use ($p) {
-                        return [
-                            'tanggal'      => Carbon::parse($p->created_at)->format('d-M-Y'),
-                            'no_referensi' => $p->purchase_id,
-                            'transaksi'    => 'Pembelian',
-                            'produk'       => $item->product->name,
-                            'gudang_asal'  => '-',
-                            'qty'          => Parser::toLocale($item->qty).' '.$item->product->uom->name,
-                            'notes'        => $p->notes,
-                        ];
-                    });
-                });
-
-            $sapronakMasuk = $sapronakMasuk->concat($purchaseItems);
-
-            $sapronakKeluar = StockMovement::with(['product', 'product.uom', 'origin', 'origin.kandang.project', 'destination'])
-                ->whereHas('origin.kandang.project', function($query) use ($project, $period) {
-                    $query->where([
-                        ['project_id', $project->project_id],
-                        ['period', $period],
-                    ]);
-                })
-                ->whereHas('origin', function($query) use ($location) {
-                    $query->where('location_id', $location->location_id);
-                })
-                ->get()
-                ->transform(function($so) {
-                    return [
-                        'tanggal'       => Carbon::parse($so->created_at)->format('d-M-Y'),
-                        'no_referensi'  => $so->stock_movement_id,
-                        'transaksi'     => 'Mutasi',
-                        'produk'        => $so->product->name,
-                        'gudang_tujuan' => $so->destination->name,
-                        'qty'           => Parser::toLocale($so->transfer_qty).' '.$so->product->uom->name,
-                        'notes'         => $so->notes,
-                    ];
-                });
-
-            // $recordingItems = StockAvailabilityUsage::with(['recording', 'recording.project'])
-            // ->whereHas('recording.project', function($query) use($project){
-            //     $query->where('project_id', $project->project_id);
-            // })
-            // ->whereHas('recording')
-            // ->get()
-            // ->flatMap(function($s){
-            //     return $s->recording->map(function($r) use($s){
-            //         return $r;
-            //     });
-            // });
-
-            // $sapronakKeluar = $sapronakKeluar->concat($recordingItems);
+            $sapronakMasuk  = $this->getSapronakMasuk($period, $location, $project);
+            $sapronakKeluar = $this->getSapronakKeluar($period, $location, $project);
 
             $sapronak = [
                 'sapronak_masuk'  => $sapronakMasuk,
@@ -211,66 +119,60 @@ class ReportKandangController extends Controller
         }
     }
 
-    // ! PENDING | MENUNGGU DATA DARI RECORDING
+    // * ON PROGRESS
     public function perhitunganSapronak(Request $req, Location $location, Project $project)
     {
         try {
             $period = intval($req->query('period') ?? $project->period);
 
-            $sapronakMasuk = StockMovement::with(['product', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
-                ->whereHas('destination.kandang.project', function($query) use ($project, $period) {
+            $recordingItems = Recording::with([
+                'project',
+                'recording_depletion.product_warehouse.product',
+            ])
+                ->whereHas('project', function($query) use ($project, $period) {
                     $query->where([
                         ['project_id', $project->project_id],
                         ['period', $period],
                     ]);
                 })
-                ->whereHas('destination', function($query) use ($location) {
-                    $query->where('location_id', $location->location_id);
-                })
                 ->get()
-                ->transform(function($si) {
-                    return [
-                        'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y'),
-                        'no_referensi' => $si->stock_movement_id,
-                        'transaksi'    => 'Mutasi',
-                        'produk'       => $si->product->name,
-                        'gudang_asal'  => $si->origin->name,
-                        'qty'          => Parser::toLocale($si->transfer_qty).' '.$si->product->uom->name,
-                        'notes'        => $si->notes,
-                    ];
+                ->flatMap(function($recording) {
+                    return $recording->recording_depletion->map(fn ($item) => [
+                        'produk' => optional($item->product_warehouse->product)->name ?? '-',
+                        'qty'    => Parser::toLocale($item->total ?? $item->decrease).' '.optional($item->product_warehouse->product->uom)->name,
+                    ]);
                 });
 
-            $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
-                ->whereHas('warehouse.kandang.project', function($query) use ($project) {
-                    $query->where('project_id', $project->project_id);
-                })
-                ->whereHas('purchase_item.product', function($query) {
-                    $query->where('name', '');
-                })
-                ->get()
-                ->flatMap(function($p) {
-                    return $p->purchase_item->map(function($item) use ($p) {
-                        return [
-                            'tanggal'      => Carbon::parse($p->created_at)->format('d-M-Y'),
-                            'no_referensi' => $p->purchase_id,
-                            'transaksi'    => 'Pembelian',
-                            'produk'       => $item->product->name,
-                            'gudang_asal'  => '-',
-                            'qty'          => Parser::toLocale($item->qty).' '.$item->product->uom->name,
-                            'notes'        => $p->notes,
-                        ];
-                    });
-                });
+            // $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
+            //     ->whereHas('warehouse.kandang.project', function($query) use ($project, $period) {
+            //         $query->where([
+            //             ['project_id', $project->project_id],
+            //             ['period', $period]
+            //         ]);
+            //     })
+            //     ->get()
+            //     ->flatMap(function($p) {
+            //         return $p->purchase_item->map(function($item) use ($p) {
+            //             return [
+            //                 'qty_masuk' => $item->qty,
+            //                 'produk' => $item->product->name,
+            //                 'harga_satuan' => $item->price,
+            //                 'total_harga' => $item->total,
+            //                 'notes' => $p->notes
+            //             ];
+            //         });
+            //     });
 
-            $sapronakMasuk = $sapronakMasuk->concat($purchaseItems);
+            return [
+                'doc' => $recordingItems,
+            ];
 
-            return $sapronakMasuk;
-            // return response()->json($);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
+    // ? DONE
     public function penjualan(Request $req, Location $location, Project $project)
     {
         try {
@@ -340,6 +242,7 @@ class ReportKandangController extends Controller
         }
     }
 
+    // ? DONE
     public function overhead(Request $req, Location $location, Project $project)
     {
         try {
@@ -383,6 +286,7 @@ class ReportKandangController extends Controller
         }
     }
 
+    // ? DONE
     public function hppEkspedisi(Request $req, Location $location, Project $project)
     {
         try {
@@ -414,48 +318,204 @@ class ReportKandangController extends Controller
         }
     }
 
-    public function dataProduksi($projectId)
+    // * ON PROGRESS
+    public function dataProduksi(Request $req, Location $location, Project $project)
     {
         try {
-            $project = Project::find($projectId);
+            $period = intval($req->query('period') ?? $project->period);
 
-            $marketings = Marketing::whereHas('marketing_products', function($mp) use ($projectId) {
-                $mp->where('project_id', $projectId);
-            })->with(['marketing_delivery_vehicles.supplier'])->get();
+            $penjualan = $this->getProduksiPenjualan($period, $location, $project);
 
-            if ($marketings->isEmpty()) {
-                return null;
-            }
-
-            $populasiAwal = $project->project_chick_in->first()->total_chickin;
-            $culling      = 0;
-
-            $dataProduksi = (object) [
-                'populasi_awal'  => $populasiAwal,
-                'claim_culling'  => $culling,
-                'populasi_akhir' => $populasiAwal - $culling,
-                // 'pakan_terkirim' =>
-                // 'pakan_terpakai' =>
-                // 'pakan_per_ekor' =>
-
-                // 'penjualan_kg' =>
-                // 'penjualan_ekor' =>
-                // 'bobot_avg' =>
-                // 'selling_price_avg' =>
-
-                // 'deplesi' =>
-                // 'umur' =>
-                // 'mortalitas_act' =>
-                // 'deff_mortalitas' =>
-                // 'fcr_act' =>
-                // 'deff_fcr' =>
-                // 'adg' =>
-                // 'ip' =>
+            return [
+                'pembelian'   => null,
+                'penjualan'   => $penjualan,
+                'performence' => null,
+                'selisih'     => null,
             ];
-
-            return $dataProduksi;
         } catch (\Exception $e) {
-            return $e;
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // TODO
+    public function keuangan(Request $req, Location $location, Project $project)
+    {
+        try {
+            // code...
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function getSapronakMasuk(int $period, Location $location, Project $project)
+    {
+        try {
+            $sapronakMasuk = StockMovement::with(['product', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
+                ->whereHas('destination.kandang.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->whereHas('destination', function($query) use ($location) {
+                    $query->where('location_id', $location->location_id);
+                })
+                ->get()
+                ->transform(function($si) {
+                    return [
+                        'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y'),
+                        'no_referensi' => $si->stock_movement_id,
+                        'transaksi'    => 'Mutasi Masuk',
+                        'produk'       => $si->product->name,
+                        'gudang_asal'  => $si->origin->name,
+                        'qty'          => Parser::toLocale($si->transfer_qty).' '.$si->product->uom->name,
+                        'notes'        => $si->notes,
+                    ];
+                });
+
+            $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
+                ->whereHas('warehouse.kandang.project', function($query) use ($project, $period) {
+                    $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ]);
+                })
+                ->get()
+                ->flatMap(function($p) {
+                    return $p->purchase_item->map(function($item) use ($p) {
+                        return [
+                            'tanggal'      => Carbon::parse(json_decode($p->approval_line)[3]->date)->format('d-M-Y'),
+                            'no_referensi' => $p->purchase_id,
+                            'transaksi'    => 'Pembelian',
+                            'produk'       => $item->product->name,
+                            'gudang_asal'  => '-',
+                            'qty'          => Parser::toLocale($item->qty).' '.$item->product->uom->name,
+                            'notes'        => $p->notes,
+                            'harga_satuan' => $item->price,
+                        ];
+                    });
+                });
+
+            return $sapronakMasuk->concat($purchaseItems);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function getSapronakKeluar(int $period, Location $location, Project $project)
+    {
+        try {
+            $sapronakKeluar = StockMovement::with([
+                'product:product_id,name,uom_id',
+                'product.uom:uom_id,name',
+                'origin:warehouse_id,name',
+                'destination:warehouse_id,name',
+                'origin.kandang.project:project_id,period',
+            ])
+                ->select(['stock_movement_id', 'product_id', 'origin_id', 'destination_id', 'created_at', 'transfer_qty', 'notes'])
+                ->whereHas(
+                    'origin.kandang.project',
+                    fn ($q) => $q->where([['project_id', $project->project_id], ['period', $period]])
+                )
+                ->whereHas(
+                    'origin',
+                    fn ($q) => $q->where('location_id', $location->location_id)
+                )
+                ->get()
+                ->transform(fn ($so) => [
+                    'tanggal'       => Carbon::parse($so->created_at)->format('d-M-Y'),
+                    'no_referensi'  => $so->stock_movement_id,
+                    'transaksi'     => 'Mutasi Keluar',
+                    'produk'        => $so->product->name,
+                    'gudang_tujuan' => optional($so->destination)->name,
+                    'qty'           => Parser::toLocale($so->transfer_qty).' '.optional($so->product->uom)->name,
+                    'notes'         => $so->notes,
+                ]);
+
+            $recordingItems = Recording::with([
+                'recording_stock.product_warehouse.product',
+                'recording_depletion.product_warehouse.product',
+                'recording_egg.product_warehouse.product',
+            ])
+                ->where([
+                    ['project_id', $project->project_id],
+                    ['period', $period],
+                ])
+                ->get()
+                ->flatMap(fn ($recording) => $this->formatRecordingItems($recording));
+
+            return $sapronakKeluar->concat($recordingItems);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function formatRecordingItems($recording)
+    {
+        $recordingData = collect([
+            'recording_stock'     => 'Persediaan',
+            'recording_depletion' => 'Deplesi',
+            'recording_egg'       => 'Telur',
+        ]);
+
+        return $recordingData->flatMap(function($type, $relation) use ($recording) {
+            return $recording->$relation->map(fn ($item) => [
+                'tanggal'       => Carbon::parse($recording->created_at)->format('d-M-Y H:i:s'),
+                'no_referensi'  => $recording->recording_id,
+                'transaksi'     => 'Recording '."({$type})",
+                'produk'        => optional($item->product_warehouse->product)->name ?? '-',
+                'gudang_tujuan' => '-',
+                'qty'           => Parser::toLocale($item->total ?? $item->decrease).' '.optional($item->product_warehouse->product->uom)->name,
+                'notes'         => $item->notes,
+            ]);
+        });
+    }
+
+    private function getProduksiPenjualan(int $period, Location $location, Project $project)
+    {
+        try {
+            $getMarketings = Marketing::with([
+                'marketing_products.warehouse.kandang',
+                'marketing_products.product',
+                'marketing_products.project.project_chick_in',
+                'marketing_products.uom',
+                'marketing_addit_prices',
+                'customer',
+            ])
+                ->whereNull('marketing_return_id')
+                ->where('marketing_status', '>=', 3)
+                ->whereHas(
+                    'marketing_products.project',
+                    fn ($query) => $query->where([
+                        ['project_id', $project->project_id],
+                        ['period', $period],
+                    ])
+                )
+                ->whereHas(
+                    'marketing_products.warehouse.kandang',
+                    fn ($query) => $query->where('location_id', $location->location_id)
+                )
+                ->get();
+
+            $firstProduct = $getMarketings->pluck('marketing_products')->flatten()->first();
+            $marketingUom = optional(optional($firstProduct)->uom)->name ?? 'Unit';
+
+            $totalWeightKg = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('weight_total'));
+            $totalUnit     = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('qty'));
+            $totalPrice    = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('total_price'));
+
+            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice   / $totalWeightKg : 0;
+            $averageWeightPerUnit = $totalUnit  > 0 ? $totalWeightKg / $totalUnit : 0;
+
+            return [
+                'penjualan_kg'    => Parser::toLocale($totalWeightKg).' Kg',
+                'penjualan_ekor'  => Parser::toLocale($totalUnit)." {$marketingUom}",
+                'bobot_rata'      => Parser::toLocale($averageWeightPerUnit)." Kg/{$marketingUom}",
+                'harga_jual_rata' => Parser::toLocale($averagePricePerKg),
+                'total_harga'     => Parser::toLocale($totalPrice),
+            ];
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
