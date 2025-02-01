@@ -12,9 +12,9 @@
                     <th rowspan="2" style="vertical-align: middle">No. DO</th>
                     <th rowspan="2" style="vertical-align: middle">Costumer</th>
                     <th colspan="2">Jumlah</th>
-                    <th rowspan="2" style="vertical-align: middle">Harga</th>
-                    <th rowspan="2" style="vertical-align: middle">CN</th>
-                    <th rowspan="2" style="vertical-align: middle">Total</th>
+                    <th rowspan="2" style="vertical-align: middle">Harga (RP)</th>
+                    <th rowspan="2" style="vertical-align: middle">CN (RP)</th>
+                    <th rowspan="2" style="vertical-align: middle">Total (RP)</th>
                     <th rowspan="2" style="vertical-align: middle">Kandang</th>
                     <th rowspan="2" style="vertical-align: middle">Status</th>
                     </tr>
@@ -25,6 +25,9 @@
                 </thead>
                 <tbody>
                     {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="11">Mengambil data ...</td>
+                    </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
@@ -32,11 +35,11 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-center sum_qty">0</td>
-                        <td class="text-center sum_weight">0</td>
-                        <td class="text-center sub_total">0</td>
-                        <td class="text-center sum_cn">0</td>
-                        <td class="text-center grand_total">0</td>
+                        <td class="sum_qty">-</td>
+                        <td class="sum_weight">-</td>
+                        <td class="text-right sub_total">-</td>
+                        <td class="text-right sum_cn">-</td>
+                        <td class="text-right grand_total">-</td>
                         <td></td>
                         <td></td>
                     </tr>
@@ -63,6 +66,9 @@ $(function() {
             .then(function(result) {
                 if (!result.error) {
                     $('#location_penjualan_datatable').DataTable({
+                        destroy: true,  // Allows reloading data dynamically
+                        responsive: true,
+                        ordering: true,
                         dom: '<"custom-table-wrapper"t>',
                         data: result,
                         columns: [
@@ -103,12 +109,15 @@ $(function() {
                             },
                             {
                                 data: 'harga',
-                                className: 'price',
+                                className: 'price text-right',
                             },
-                            {data: 'cn'},
+                            {
+                                data: 'cn',
+                                className: 'cn text-right',
+                            },
                             {
                                 data: 'total',
-                                className: 'total_price',
+                                className: 'total_price text-right',
                             },
                             {
                                 data: 'kandang',
@@ -157,33 +166,42 @@ $(function() {
                                     : 0;
                             };
 
+                            const $footer = $(api.column(0).footer()).closest('tfoot');
+
                             sumQty = (api
                                 .column('.qty')
                                 .data() ?? [])
                                 .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                            $(api.column(0).footer()).closest('tfoot').find('.sum_qty').html(trimLocale(sumQty));
+                            $footer.find('.sum_qty').html(trimLocale(sumQty));
 
                             sumWeight = (api
                                 .column('.weight')
                                 .data() ?? [])
                                 .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                            $(api.column(0).footer()).closest('tfoot').find('.sum_weight').html(trimLocale(sumWeight));
+                            $footer.find('.sum_weight').html(trimLocale(sumWeight));
 
                             subTotal = (api
                                 .column('.price')
                                 .data() ?? [])
                                 .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                            $(api.column(0).footer()).closest('tfoot').find('.sub_total').html('Rp ' + parseNumToLocale(subTotal));
+                            $footer.find('.sub_total').html(`Rp&nbsp${parseNumToLocale(subTotal)}`);
+
+                            sumCn = (api
+                                .column('.cn')
+                                .data() ?? [])
+                                .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                            $footer.find('.sum_cn').html(`Rp&nbsp${parseNumToLocale(sumCn)}`);
 
                             grandTotal = (api
                                 .column('.total_price')
                                 .data() ?? [])
                                 .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                            $(api.column(0).footer()).closest('tfoot').find('.grand_total').html('Rp ' + parseNumToLocale(grandTotal));
+                            $footer.find('.grand_total').html(`Rp&nbsp${parseNumToLocale(grandTotal)}`);
                         }
                     });
                 }
@@ -193,7 +211,9 @@ $(function() {
     function populatePenjualanModal(noDo, products, prices) {
         $('#penjualanModalLabel').text('Detail Penjualan Ayam Besar | ' + noDo);
         $('#location_penjualan_produk_datatable').DataTable({
-            destroy: true, // prevent reinitialization
+            destroy: true,  // Allows reloading data dynamically
+            responsive: true,
+            ordering: true,
             dom: '<"custom-table-wrapper"t>',
             data: products,
             columns: [
@@ -225,7 +245,7 @@ $(function() {
                 {data: 'weight_total'},
                 {
                     data: 'total_price',
-                    className: 'total_price',
+                    className: 'total_price text-right',
                     render: function(data, type) {
                         if (type === 'display') {
                             data = parseNumToLocale(data);
@@ -251,11 +271,13 @@ $(function() {
                     .data() ?? [])
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                $(api.column(0).footer()).closest('tfoot').find('.grand_total').html('Rp ' + parseNumToLocale(total));
+                $(api.column(0).footer()).closest('tfoot').find('.grand_total').html(`Rp&nbsp;${parseNumToLocale(total)}`);
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
-            destroy: true, // prevent reinitialization
+            destroy: true,  // Allows reloading data dynamically
+            responsive: true,
+            ordering: true,
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [
@@ -272,7 +294,7 @@ $(function() {
                 {data: 'item'},
                 {
                     data: 'price',
-                    className: 'price',
+                    className: 'price text-right',
                     render: function(data, type) {
                         if (type === 'display') {
                             data = parseNumToLocale(data);
@@ -298,7 +320,7 @@ $(function() {
                     .data() ?? [])
                     .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                $(api.column(1).footer()).closest('tfoot').find('.grand_total').html('Rp ' + parseNumToLocale(total));
+                $(api.column(1).footer()).closest('tfoot').find('.grand_total').html(`Rp&nbsp;${parseNumToLocale(total)}`);
             },
         });
     }

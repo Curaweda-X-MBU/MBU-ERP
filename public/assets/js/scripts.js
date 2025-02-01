@@ -36,9 +36,10 @@ function initNumeralMask(selector) {
  * @returns {number} Float value | e.g. 1000,50
  */
 function parseLocaleToNum(value) {
-    return parseFloat(
+    const parsed = parseFloat(
         value.replace(/\./g, "_").replace(",", ".").replace(/_/g, "") || 0,
     );
+    return isNaN(parsed) ? 0 : parsed;
     // return parseFloat(value.replace(/\,/g, "") || 0);
 }
 
@@ -48,12 +49,13 @@ function parseLocaleToNum(value) {
  * @returns {string}
  */
 function parseNumToLocale(value) {
-    return (
-        value.toLocaleString("id-ID", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }) || 0
-    );
+    const parsed = parseFloat(value);
+    return isNaN(parsed)
+        ? value
+        : parsed.toLocaleString("id-ID", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+          }) || "0,00";
 }
 
 /**
