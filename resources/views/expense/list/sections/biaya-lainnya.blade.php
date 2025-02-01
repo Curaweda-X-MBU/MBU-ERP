@@ -21,7 +21,7 @@
             </tr>
         </thead>
         <tbody data-repeater-list="expense_addit_prices">
-            @if (@$data->expense_addit_prices->count() > 0)
+            @if (@$data->expense_addit_prices && @$data->expense_addit_prices->count() > 0)
                 @foreach ($data->expense_addit_prices as $ap)
                 <tr data-repeater-item>
                     <td><input name="name" type="text" class="form-control" value="{{ $ap->name }}" placeholder="Masukkan nama biaya"></td>
@@ -83,7 +83,6 @@
                 $row.slideDown();
 
                 initializeRows($row);
-                console.log('new row');
             },
             hide: function(deleteElement) {
                 confirmDelete($(this), () => {

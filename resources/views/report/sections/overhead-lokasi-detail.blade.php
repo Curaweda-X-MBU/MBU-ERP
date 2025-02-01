@@ -9,35 +9,36 @@
                         <th rowspan="2" style="vertical-align: middle">No</th>
                         <th rowspan="2" style="vertical-align: middle">Jenis</th>
                         <th colspan="3" class="border-right">Budget Pengajuan</th>
-                        <th colspan="5">Realisasi</th>
-                        <th rowspan="2" style="vertical-align: middle">Rp/QTY</th>
+                        <th colspan="4">Realisasi</th>
+                        <th rowspan="2" style="vertical-align: middle">Rp/Kandang</th>
                     </tr>
                     <tr class="text-center">
                         <th>QTY</th>
-                        <th>Harga Satuan</th>
+                        <th>RP/QTY</th>
                         <th class="border-right">Total (RP)</th>
                         <th>Tanggal</th>
-                        <th>Noref</th>
                         <th>QTY</th>
-                        <th>RP/Kandang</th>
+                        <th>RP/QTY</th>
                         <th>Total (RP)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="10">Mengambil data ...</td>
+                    </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
                         <td>Total</td>
                         <td></td>
-                        <td class="total_budget_qty"></td>
+                        <td class="total_budget_qty">-</td>
                         <td></td>
-                        <td class="budget_grand_total text-right"></td>
+                        <td class="budget_grand_total text-right">-</td>
                         <td></td>
+                        <td class="total_realization_qty">-</td>
                         <td></td>
-                        <td class="total_realization_qty"></td>
-                        <td></td>
-                        <td class="grand_total text-right"></td>
+                        <td class="grand_total text-right">-</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -55,6 +56,18 @@ $(function() {
             : locale;
     }
 
+    function intVal (i) {
+        return typeof i === 'string'
+            ? parseLocaleToNum(i)
+            : typeof i === 'number'
+            ? i
+            : 0;
+    };
+
+    function sumValues (arr, column) {
+        const sum = arr.reduce((a, b) => intVal(a) + intVal(b[column]), 0);
+    }
+
     function fetchLocationOverheadData() {
         $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
             .then(function(result) {
@@ -68,8 +81,8 @@ $(function() {
         // Flatten the data to match DataTable structure
         let formattedData = [];
 
-        let index = 1;
         $.each(data, function(_, item) {
+            let index = 1;
             formattedData.push({
                 index: "",
                 nama: "<b>" + item.kategori + "</b>",
@@ -77,11 +90,10 @@ $(function() {
                 hargaSatuanPengajuan: "",
                 totalPengajuan: "",
                 tanggal: "",
-                noRef: "",
                 qtyRealisasi: "",
-                hargaSatuanRealisasi: "",
-                totalRealisasi: "",
                 rpPerQty: "",
+                totalRealisasi: "",
+                hargaSatuanRealisasi: "",
             });
             $.each(item.subkategori, function(_, sub) {
                 formattedData.push({
@@ -91,12 +103,11 @@ $(function() {
                     hargaSatuanPengajuan: item.kategori.toLowerCase() == 'pengeluaran operasional' ? sub.budget_price : '-',
                     totalPengajuan: sub.budget_total,
                     tanggal: sub.tanggal,
-                    noRef: sub.no_ref,
                     qtyRealisasi: sub.realization_qty,
                     uom: sub.uom,
-                    hargaSatuanRealisasi: item.kategori.toLowerCase() == 'pengeluaran operasional' ? sub.realization_price : '-',
-                    totalRealisasi: sub.realization_total,
                     rpPerQty: sub.price_per_qty,
+                    totalRealisasi: sub.realization_total,
+                    hargaSatuanRealisasi: item.kategori.toLowerCase() == 'pengeluaran operasional' ? sub.realization_price : '-',
                 });
                 index += 1;
             });
@@ -123,6 +134,13 @@ $(function() {
                 {
                     data: "qtyPengajuan",
                     className: "budget_qty",
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            data = data ? `${trimLocale(data)} ${row.uom}` : "";
+                        }
+
+                        return data;
+                    }
                 },
                 {
                     data: "hargaSatuanPengajuan",
@@ -133,7 +151,6 @@ $(function() {
                     className: "text-right budget_total",
                 },
                 { data: "tanggal" },
-                { data: "noRef" },
                 {
                     data: "qtyRealisasi",
                     className: "realization_qty",
@@ -146,7 +163,7 @@ $(function() {
                     }
                 },
                 {
-                    data: "hargaSatuanRealisasi",
+                    data: "rpPerQty",
                     className: "text-right",
                 },
                 {
@@ -154,24 +171,16 @@ $(function() {
                     className: "text-right realization_total",
                 },
                 {
-                    data: "rpPerQty",
+                    data: "hargaSatuanRealisasi",
                     className: "text-right",
-                }
+                },
             ],
             footerCallback: function(row, data) {
                 let api = this.api();
 
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
-
                 const $footer = $(api.column(0).footer()).closest('tfoot');
 
-                totalBudgetQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyPengajuan ?? 0), 0);
+                totalBudgetQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyPengajuan), 0);
 
                 $footer.find('.total_budget_qty').html(trimLocale(totalBudgetQty));
 

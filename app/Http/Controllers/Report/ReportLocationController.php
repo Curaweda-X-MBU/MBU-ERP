@@ -149,6 +149,25 @@ class ReportLocationController extends Controller
                 'kandangs' => $kandangs,
             ];
 
+            // dd(
+            //     Expense::with([
+            //         'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
+            //         'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
+            //         'expense_kandang.project.project_budget.nonstock:name',
+            //     ])
+            //         ->where([
+            //             ['location_id', $location->location_id],
+            //             ['expense_status', 2],
+            //         ])
+            //         ->whereIn('category', [1, 2])
+            //         ->where(function($q) use ($period) {
+            //             $q->where('category', 2)
+            //                 ->orWhereHas('expense_kandang.project', function($p) use ($period) {
+            //                     $p->where('period', $period);
+            //                 });
+            //         })->get()
+            // );
+
             $param = [
                 'title'  => 'Laporan > Detail',
                 'detail' => $detail,
@@ -264,12 +283,15 @@ class ReportLocationController extends Controller
             ];
 
             $query = Expense::with([
-                'expense_main_prices:id,expense_id,sub_category,qty,uom,price,total_price,approved_at',
-                'expense_addit_prices:id,expense_id,sub_category,qty,uom,price,total_price,approved_at',
-            ])->where([
-                ['location_id', $location->location_id],
-                ['expense_status', 2],
-            ])->whereIn('category', [1, 2]);
+                'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
+                'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
+                'expense_kandang.project.project_budget.nonstock' => function($query) {
+                    $query->select('id', 'project_budget_id', 'name'); // Load only necessary fields
+                },
+            ])
+                ->where('location_id', $location->location_id)
+                ->where('expense_status', 2)
+                ->whereIn('category', [1, 2]);
 
             $query->where(function($q) use ($period) {
                 $q->where('category', 2)
@@ -286,19 +308,33 @@ class ReportLocationController extends Controller
             foreach ($expenses as $e) {
                 $processed = collect($e->expense_main_prices
                     ->concat($e->expense_addit_prices)
-                    ->map(fn ($p) => [
-                        'tanggal'           => Carbon::parse($p->approved_at)->format('d-M-Y'),
-                        'no_ref'            => '####', // dummy
-                        'produk'            => $p->sub_category,
-                        'budget_qty'        => 0, // dummy
-                        'budget_price'      => Parser::toLocale(0), // dummy
-                        'budget_total'      => Parser::toLocale(0), // dummy
-                        'realization_qty'   => $p->qty,
-                        'uom'               => $p->uom,
-                        'realization_price' => Parser::toLocale($p->price),
-                        'realization_total' => Parser::toLocale($p->total_price),
-                        'price_per_qty'     => Parser::toLocale($p->price / $p->qty), // NOTE: unnecessary?
-                    ]));
+                    ->transform(function($p) use ($e) {
+                        $product_name = strtolower($p->sub_category ?? $p->name);
+                        $budget       = null;
+
+                        foreach ($e->expense_kandang as $k) {
+                            $budget = optional(optional($k->project)->project_budget)
+                                ->firstWhere(fn ($b) => str_contains(strtolower(optional($b->nonstock)->name), $product_name));
+
+                            if ($budget) {
+                                break;
+                            }
+                        }
+
+                        return [
+                            'tanggal'           => Carbon::parse($p->expense->approved_at)->format('d-M-Y'),
+                            'no_ref'            => '####', // dummy
+                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
+                            'budget_qty'        => $budget->qty     ?? '-',
+                            'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
+                            'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
+                            'realization_qty'   => ($p->total_qty ?? $p->qty) ?? '-',
+                            'uom'               => $p->uom                    ?? '',
+                            'realization_price' => Parser::toLocale($p->price),
+                            'realization_total' => Parser::toLocale($p->total_price),
+                            'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
+                        ];
+                    }));
 
                 if ($e->category == 1) {
                     $formatted_expenses['bop'] = array_merge($formatted_expenses['bop'], $processed->toArray());

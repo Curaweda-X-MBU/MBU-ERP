@@ -25,6 +25,9 @@
                 </thead>
                 <tbody>
                     {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="11">Mengambil data ...</td>
+                    </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
@@ -32,11 +35,11 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="sum_qty"></td>
-                        <td class="sum_weight"></td>
-                        <td class="text-right sub_total"></td>
-                        <td class="text-right sum_cn"></td>
-                        <td class="text-right grand_total"></td>
+                        <td class="sum_qty">-</td>
+                        <td class="sum_weight">-</td>
+                        <td class="text-right sub_total">-</td>
+                        <td class="text-right sum_cn">-</td>
+                        <td class="text-right grand_total">-</td>
                         <td></td>
                         <td></td>
                     </tr>
@@ -272,13 +275,9 @@ $(function() {
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
-<<<<<<< HEAD
             destroy: true,  // Allows reloading data dynamically
             responsive: true,
             ordering: true,
-=======
-            destroy: true, // prevent reinitialization
->>>>>>> 9977679a541afb5e9a64390468b5033e598d2a83
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [

@@ -25,7 +25,7 @@
             </tr>
         </thead>
         <tbody data-repeater-list="expense_main_prices">
-            @if (@$data->expense_main_prices->count() > 0)
+            @if (@$data->expense_main_prices && @$data->expense_main_prices->count() > 0)
                 @foreach ($data->expense_main_prices as $mp)
                 @php
                 $uom = \App\Models\DataMaster\Nonstock::where('name', $mp->sub_category)->first()->uom;
