@@ -272,9 +272,13 @@ $(function() {
             },
         });
         $('#location_penjualan_lainnya_datatable').DataTable({
+<<<<<<< HEAD
             destroy: true,  // Allows reloading data dynamically
             responsive: true,
             ordering: true,
+=======
+            destroy: true, // prevent reinitialization
+>>>>>>> 9977679a541afb5e9a64390468b5033e598d2a83
             dom: '<"custom-table-wrapper"t>',
             data: prices,
             columns: [
