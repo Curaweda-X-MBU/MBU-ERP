@@ -164,6 +164,7 @@ Route::middleware('auth')->group(function() {
         Route::group(['prefix' => 'detail/{location}'], function() {
             Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
             Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
+            Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportLocationController::class, 'hppEkspedisi'])->name('report.detail.location.ekspedisi');
             Route::group(['prefix' => '{project}'], function() {
                 Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
                 Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');

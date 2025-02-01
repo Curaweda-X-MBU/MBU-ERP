@@ -50,7 +50,7 @@ function parseLocaleToNum(value) {
  */
 function parseNumToLocale(value) {
     return (
-        value.toLocaleString("id-ID", {
+        parseFloat(value).toLocaleString("id-ID", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }) || 0

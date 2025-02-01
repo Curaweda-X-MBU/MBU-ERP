@@ -9,6 +9,7 @@ use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Marketing\Marketing;
+use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Project\Project;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -357,22 +358,35 @@ class ReportLocationController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error' => $e->getMessage(), 500]);
         }
     }
 
-    public function hppEkspedisi($projectId)
+    public function hppEkspedisi(Request $req, Location $location)
     {
         try {
-            $project = Project::find($projectId);
+            $period = intval($req->query('period'));
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            $locationId = $location->location_id;
+
+            $deliveryVehicles = MarketingDeliveryVehicle::selectRaw('suppliers.name as supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) as total_delivery_fee')
+                ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
+                ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
+                ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
+                ->whereIn('projects.kandang_id', function($query) use ($locationId) {
+                    $query->select('kandang_id')->from('kandang')->where('location_id', $locationId);
+                })
+                ->where('projects.period', $period)
+                ->groupBy('suppliers.name')
+                ->get();
+
+            return response()->json($deliveryVehicles);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error' => $e->getMessage(), 500]);
+            // return response()->json(['error' => $e, 500]);
         }
     }
 
