@@ -10,7 +10,6 @@ use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
-use App\Models\Project\Project;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -150,25 +149,6 @@ class ReportLocationController extends Controller
                 'kandangs' => $kandangs,
             ];
 
-            // dd(
-            //     Expense::with([
-            //         'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
-            //         'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
-            //         'expense_kandang.project.project_budget.nonstock:name',
-            //     ])
-            //         ->where([
-            //             ['location_id', $location->location_id],
-            //             ['expense_status', 2],
-            //         ])
-            //         ->whereIn('category', [1, 2])
-            //         ->where(function($q) use ($period) {
-            //             $q->where('category', 2)
-            //                 ->orWhereHas('expense_kandang.project', function($p) use ($period) {
-            //                     $p->where('period', $period);
-            //                 });
-            //         })->get()
-            // );
-
             $param = [
                 'title'  => 'Laporan > Detail',
                 'detail' => $detail,
@@ -236,18 +216,17 @@ class ReportLocationController extends Controller
                 ->get()
                 ->map(function($m) {
                     $chickinDate = $m->marketing_products
+                        ->sortByDesc('project.first_day_old_chick')
                         ->first()
                         ->project
-                        ->first()
-                        ->project_chick_in
-                        ->sortByDesc('chickin_date')
-                        ->first()
-                        ->chickin_date;
+                        ->first_day_old_chick;
 
                     $chickinParsed = Carbon::parse($chickinDate);
                     $umur          = $m->realized_at ? $chickinParsed->diffInDays(Carbon::parse($m->realized_at)) : '-';
 
                     return [
+                        'realized_at'            => Carbon::parse($m->realized_at),
+                        'chickin_date'           => $chickinParsed,
                         'tanggal'                => $m->realized_at ? date('d-M-Y', strtotime($m->realized_at)) : '-',
                         'umur'                   => $umur,
                         'no_do'                  => $m->id_marketing,

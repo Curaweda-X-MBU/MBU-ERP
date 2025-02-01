@@ -49,12 +49,13 @@ function parseLocaleToNum(value) {
  * @returns {string}
  */
 function parseNumToLocale(value) {
-    return (
-        parseFloat(value).toLocaleString("id-ID", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }) || 0
-    );
+    const parsed = parseFloat(value);
+    return isNaN(parsed)
+        ? value
+        : parsed.toLocaleString("id-ID", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+          }) || "0,00";
 }
 
 /**
