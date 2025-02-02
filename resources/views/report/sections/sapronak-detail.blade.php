@@ -1,4 +1,5 @@
 <div class="card">
+    <input type="hidden" name="location_sapronak_loaded" value="1">
     <input type="hidden" name="kandang_sapronak_loaded" value="1">
     <div class="card-body">
         <h4 class="mb-2">List Keluar Masuk Sapronak</h4>
@@ -36,6 +37,10 @@ $(function() {
             : locale;
     }
 
+    function fetchLocationSapronakData() {
+        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+    }
+
     function fetchKandangSapronakData() {
         fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
     }
@@ -43,6 +48,7 @@ $(function() {
     function fetchSapronakData(route) {
         $.get(route)
             .then(function(result) {
+                console.log(result);
                 if (!result.error) {
                     $('#sapronak_masuk_datatable').DataTable({
                         destroy: true,
@@ -81,8 +87,10 @@ $(function() {
 
                             const qtyArr = qtyColumn.map((q, i) => q.split(' '));
 
-                            totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                            $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            if (uomArr.length) {
+                                totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
+                                $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            }
 
                             if (uomArr.length > 1) {
                                 totalQty2 = qtyArr.filter((q) => q[1] === uomArr[1]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
@@ -128,8 +136,10 @@ $(function() {
 
                             const qtyArr = qtyColumn.map((q, i) => q.split(' '));
 
-                            totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                            $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            if (uomArr.length) {
+                                totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
+                                $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            }
 
                             if (uomArr.length > 1) {
                                 totalQty2 = qtyArr.filter((q) => q[1] === uomArr[1]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
@@ -141,6 +151,10 @@ $(function() {
             });
     }
 
+    @if (@$detail->project_id === 'nothing')
+    fetchLocationSapronakData();
+    @else
     fetchKandangSapronakData();
+    @endif
 });
 </script>

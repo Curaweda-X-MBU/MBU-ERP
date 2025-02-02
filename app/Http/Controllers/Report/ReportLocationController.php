@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
+use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
+use App\Models\Project\Recording;
+use App\Models\Purchase\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -164,15 +167,23 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function sapronak($projectId)
+    public function sapronak(Request $req, Location $location)
     {
         try {
-            //
+            $period = intval($req->query('period'));
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            $sapronak_masuk  = $this->getSapronakMasuk($period, $location->location_id);
+            $sapronak_keluar = $this->getSapronakKeluar($period, $location->location_id);
+
+            return response()->json([
+                'sapronak_masuk'  => $sapronak_masuk,
+                'sapronak_keluar' => $sapronak_keluar,
+            ]);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -377,5 +388,200 @@ class ReportLocationController extends Controller
                 ->with('error', $e->getMessage())
                 ->withInput();
         }
+    }
+
+    public function getSapronakMasuk(int $period, int $location_id)
+    {
+        $stockMovement = StockMovement::selectRaw('
+                stock_movements.transfer_qty AS num_qty,
+                uom.name AS uom,
+                DATE_FORMAT(stock_movements.created_at, "%d-%b-%Y") AS tanggal,
+                stock_movements.stock_movement_id AS no_referensi,
+                "Mutasi Masuk" as transaksi,
+                products.name AS produk,
+                warehouses_origin.name AS gudang_asal,
+                stock_movements.notes AS notes
+            ')
+            ->join('products', 'products.product_id', '=', 'stock_movements.product_id')
+            ->join('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('warehouses AS warehouses_destination', 'warehouses_destination.warehouse_id', '=', 'stock_movements.destination_id')
+            ->join('warehouses AS warehouses_origin', 'warehouses_origin.warehouse_id', '=', 'stock_movements.origin_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses_destination.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where([
+                ['warehouses_destination.location_id', $location_id],
+                ['projects.period', $period],
+                ['stock_movements.product_id', '!=', null],
+            ])
+            ->groupByRaw('
+                    stock_movements.created_at,
+                    stock_movements.stock_movement_id,
+                    products.name,
+                    warehouses_origin.name,
+                    stock_movements.transfer_qty,
+                    uom.name,
+                    stock_movements.notes
+                ')
+            ->get()
+            ->map(function($sm) {
+                $sm->qty = Parser::toLocale($sm->num_qty).' '.$sm->uom;
+
+                return $sm;
+            });
+
+        $purchaseItems = PurchaseItem::selectRaw('
+                purchase_items.qty AS num_qty,
+                uom.name AS uom,
+                purchases.approval_line,
+                purchase_items.purchase_id AS no_referensi,
+                "Pembelian" AS transaksi,
+                products.name AS produk,
+                "-" AS gudang_asal,
+                purchases.notes AS notes,
+                purchase_items.price AS harga_satuan
+            ')
+            ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where([
+                ['warehouses.location_id', $location_id],
+                ['projects.period', $period],
+            ])
+            ->groupByRaw('
+                    purchases.approval_line,
+                    purchase_items.purchase_id,
+                    products.name,
+                    purchase_items.qty,
+                    uom.name,
+                    purchases.notes,
+                    purchase_items.price
+                ')
+            ->get()
+            ->map(function($pi) {
+                $pi->tanggal = Carbon::parse(json_decode($pi->approval_line)[3]->date)->format('d-M-Y');
+                $pi->qty     = Parser::toLocale($pi->num_qty).' '.$pi->uom;
+
+                return $pi;
+            });
+
+        return $stockMovement->concat($purchaseItems);
+    }
+
+    public function getSapronakKeluar(int $period, int $location_id)
+    {
+        $stockMovement = StockMovement::selectRaw('
+                stock_movements.transfer_qty AS num_qty,
+                uom.name AS uom,
+                DATE_FORMAT(stock_movements.created_at, "%d-%b-%Y") AS tanggal,
+                stock_movements.stock_movement_id AS no_referensi,
+                "Mutasi Keluar" as transaksi,
+                products.name AS produk,
+                warehouses_destination.name AS gudang_tujuan,
+                stock_movements.notes AS notes
+            ')
+            ->join('products', 'products.product_id', '=', 'stock_movements.product_id')
+            ->join('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('warehouses AS warehouses_origin', 'warehouses_origin.warehouse_id', '=', 'stock_movements.origin_id')
+            ->join('warehouses AS warehouses_destination', 'warehouses_destination.warehouse_id', '=', 'stock_movements.destination_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses_origin.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where([
+                ['warehouses_origin.location_id', $location_id],
+                ['projects.period', $period],
+                ['stock_movements.product_id', '!=', null],
+            ])
+            ->groupByRaw('
+                    stock_movements.created_at,
+                    stock_movements.stock_movement_id,
+                    products.name,
+                    warehouses_destination.name,
+                    stock_movements.transfer_qty,
+                    uom.name,
+                    stock_movements.notes
+                ')
+            ->get()
+            ->map(function($sm) {
+                $sm->qty = Parser::toLocale($sm->num_qty).' '.$sm->uom;
+
+                return $sm;
+            });
+
+        $recordingStockQuery = Recording::selectRaw('
+                recording_stocks.decrease AS num_qty,
+                uom.name AS uom,
+                recordings.created_at AS tanggal,
+                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.recording_id AS no_referensi,
+                "Recording (Persediaan)" AS transaksi,
+                products.name AS produk,
+                "-" AS gudang_tujuan,
+                recording_stocks.notes AS notes
+            ')
+            ->join('recording_stocks', 'recording_stocks.recording_id', '=', 'recordings.recording_id')
+            ->join('product_warehouses AS pw_stock', 'pw_stock.product_warehouse_id', '=', 'recording_stocks.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'pw_stock.product_id')
+            ->leftJoin('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->where([
+                ['kandang.location_id', $location_id],
+                ['projects.period', $period],
+            ]);
+
+        $recordingDepletionQuery = Recording::selectRaw('
+                recording_depletions.total AS num_qty,
+                uom.name AS uom,
+                recordings.created_at AS tanggal,
+                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.recording_id AS no_referensi,
+                "Recording (Deplesi)" AS transaksi,
+                products.name AS produk,
+                "-" AS gudang_tujuan,
+                recording_depletions.notes AS notes
+            ')
+            ->join('recording_depletions', 'recording_depletions.recording_id', '=', 'recordings.recording_id')
+            ->join('product_warehouses AS pw_depletion', 'pw_depletion.product_warehouse_id', '=', 'recording_depletions.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'pw_depletion.product_id')
+            ->leftJoin('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->where([
+                ['kandang.location_id', $location_id],
+                ['projects.period', $period],
+            ]);
+
+        $recordingEggQuery = Recording::selectRaw('
+                recording_eggs.total AS num_qty,
+                uom.name AS uom,
+                recordings.created_at AS tanggal,
+                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.recording_id AS no_referensi,
+                "Recording (Telur)" AS transaksi,
+                products.name AS produk,
+                "-" AS gudang_tujuan,
+                recording_eggs.notes AS notes
+            ')
+            ->join('recording_eggs', 'recording_eggs.recording_id', '=', 'recordings.recording_id')
+            ->join('product_warehouses AS pw_egg', 'pw_egg.product_warehouse_id', '=', 'recording_eggs.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'pw_egg.product_id')
+            ->leftJoin('uom', 'uom.uom_id', '=', 'products.uom_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->where([
+                ['kandang.location_id', $location_id],
+                ['projects.period', $period],
+            ]);
+
+        $recordingItems = $recordingStockQuery->unionAll($recordingDepletionQuery)->unionAll($recordingEggQuery)->get()
+            ->map(function($item) {
+                $item->qty = Parser::toLocale($item->num_qty).' '.$item->uom;
+
+                return $item;
+            });
+
+        return $stockMovement->concat($recordingItems);
     }
 }
