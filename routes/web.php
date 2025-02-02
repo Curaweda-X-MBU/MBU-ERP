@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/copy/{id}', [App\Http\Controllers\Project\ListController::class, 'copy'])->name('project.list.copy')->middleware('permission:project.list.copy');
             Route::any('/approve/{id}', [App\Http\Controllers\Project\ListController::class, 'approve'])->name('project.list.approve')->middleware('permission:project.list.approve');
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ListController::class, 'delete'])->name('project.list.delete')->middleware('permission:project.list.delete');
+            Route::any('/closing/{id}', [App\Http\Controllers\Project\ListController::class, 'closing'])->name('project.list.closing')->middleware('permission:project.list.closing');
             Route::get('/search', [App\Http\Controllers\Project\ListController::class, 'searchProject'])->name('project.list.search');
             Route::get('/search-period', [App\Http\Controllers\Project\ListController::class, 'searchPeriod'])->name('project.list.search-period');
             Route::get('/search-budget', [App\Http\Controllers\Project\ListController::class, 'searchBudget'])->name('project.list.search-budget');
@@ -162,12 +163,14 @@ Route::middleware('auth')->group(function() {
         Route::get('/{location}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail.location');
         Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
         Route::group(['prefix' => 'detail/{location}'], function() {
+            Route::get('/sapronak', [App\Http\Controllers\Report\ReportLocationController::class, 'sapronak'])->name('report.detail.location.sapronak');
             Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
             Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
             Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportLocationController::class, 'hppEkspedisi'])->name('report.detail.location.ekspedisi');
             Route::group(['prefix' => '{project}'], function() {
                 Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
                 Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');
+                Route::get('/overhead', [App\Http\Controllers\Report\ReportKandangController::class, 'overhead'])->name('report.detail.kandang.overhead');
                 Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportKandangController::class, 'hppEkspedisi'])->name('report.detail.kandang.ekspedisi');
             });
         });

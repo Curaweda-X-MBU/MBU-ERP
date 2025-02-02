@@ -11,6 +11,7 @@
     $farm_type = old('farm_type');
     $fcr_id = old('fcr_id');
     $fcr_name = old('fcr_name');
+    $mortality = old('standard_mortality');
 
     if (isset($data)) {
         $company_id = $data->kandang->company_id??'';
@@ -25,6 +26,7 @@
         $farm_type = $data->farm_type??"";
         $fcr_id = $data->fcr_id;
         $fcr_name = $data->fcr->name??"";
+        $mortality = $data->standard_mortality;
     } 
 
 @endphp
@@ -166,6 +168,24 @@
                                 </select>
                                 @if ($errors->has('fcr_id'))
                                 <span class="text-danger small">{{ $errors->first('fcr_id') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="standard_mortality" class="float-right">Standar Mortalitas</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <input type="text" name="standard_mortality" class="form-control numeral-mask" value="{{ $mortality }}" placeholder="1234" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">%</span>
+                                    </div>
+                                </div>
+                                @if ($errors->has('standard_mortality'))
+                                <span class="text-danger small">{{ $errors->first('standard_mortality') }}</span>
                                 @endif
                             </div>
                         </div>

@@ -51,6 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'project.list.copy',
             'project.list.approve',
             'project.list.delete',
+            'project.list.closing',
             'project.chick-in.index',
             'project.chick-in.add',
             'project.chick-in.edit',

@@ -53,12 +53,12 @@
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                 <button class="nav-link rounded active" id="nav-sapronak-tab" data-toggle="tab" data-target="#nav-sapronak" type="button" role="tab" aria-controls="nav-sapronak" aria-selected="true">Sapronak</button>
-                <button class="nav-link rounded" id="nav-perhitungan-sapronak-tab" data-toggle="tab" data-target="#nav-perhitungan-sapronak" type="button" role="tab" aria-controls="nav-perhitungan-sapronak" aria-selected="false">Perhitungan Sapronak</button>
-                <button class="nav-link rounded" id="nav-penjualan-tab" data-toggle="tab" data-target="#nav-penjualan" type="button" role="tab" aria-controls="nav-penjualan" aria-selected="false">Penjualan</button>
-                <button class="nav-link rounded" id="nav-overhead-tab" data-toggle="tab" data-target="#nav-overhead" type="button" role="tab" aria-controls="nav-overhead" aria-selected="false">Overhead</button>
-                <button class="nav-link rounded" id="nav-hppEkspedisi-tab" data-toggle="tab" data-target="#nav-hppEkspedisi" type="button" role="tab" aria-controls="nav-hppEkspedisi" aria-selected="false">HPP Ekspedisi</button>
-                <button class="nav-link rounded" id="nav-dataProduksi-tab" data-toggle="tab" data-target="#nav-dataProduksi" type="button" role="tab" aria-controls="nav-dataProduksi" aria-selected="false">Data Produksi</button>
-                <button class="nav-link rounded" id="nav-keuangan-tab" data-toggle="tab" data-target="#nav-keuangan" type="button" role="tab" aria-controls="nav-keuangan" aria-selected="false">Keuangan</button>
+                <button class="nav-link rounded" id="nav-perhitungan-sapronak-tab" data-toggle="tab" data-target="#nav-perhitungan-sapronak" type="button" role="tab" aria-controls="nav-perhitungan-sapronak" aria-selected="false" data-load="kandang_perhitungan_sapronak">Perhitungan Sapronak</button>
+                <button class="nav-link rounded" id="nav-penjualan-tab" data-toggle="tab" data-target="#nav-penjualan" type="button" role="tab" aria-controls="nav-penjualan" aria-selected="false" data-load="kandang_penjualan">Penjualan</button>
+                <button class="nav-link rounded" id="nav-overhead-tab" data-toggle="tab" data-target="#nav-overhead" type="button" role="tab" aria-controls="nav-overhead" aria-selected="false" data-load="kandang_overhead">Overhead</button>
+                <button class="nav-link rounded" id="nav-hppEkspedisi-tab" data-toggle="tab" data-target="#nav-hppEkspedisi" type="button" role="tab" aria-controls="nav-hppEkspedisi" aria-selected="false" data-load="kandang_hpp_ekspedisi">HPP Ekspedisi</button>
+                <button class="nav-link rounded" id="nav-dataProduksi-tab" data-toggle="tab" data-target="#nav-dataProduksi" type="button" role="tab" aria-controls="nav-dataProduksi" aria-selected="false" data-load="kandang_data_produksi">Data Produksi</button>
+                <button class="nav-link rounded" id="nav-keuangan-tab" data-toggle="tab" data-target="#nav-keuangan" type="button" role="tab" aria-controls="nav-keuangan" aria-selected="false" data-load="kandang_keuangan">Keuangan</button>
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
@@ -93,6 +93,13 @@
     // select period
     const $periodSelect = $('#period');
     initSelect2($periodSelect, 'Pilih Periode');
+
+    $('.nav-tabs .nav-link').on('click', function() {
+        const $loadState = $(`.${$(this).data('load')}_loaded`);
+        if ($loadState.val() != 1) {
+            $loadState.val(1).trigger('change');
+        }
+    });
 </script>
 
 @endsection

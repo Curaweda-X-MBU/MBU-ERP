@@ -5,7 +5,7 @@
     <div id="penjualanLainnyaCollapse" role="tabpanel" aria-labelledby="headingPenjualanLainnyaCollapse" class="collapse show" aria-expanded="true">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table id="location_penjualan_lainnya_datatable" class="table" style="margin: 0 !important;">
+                <table id="penjualan_lainnya_datatable" class="table" style="margin: 0 !important;">
                     <thead>
                         <tr>
                             <th>No</th>

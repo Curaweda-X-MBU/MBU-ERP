@@ -23,6 +23,17 @@ class Recording extends Model
         'document_revision',
         'on_time',
         'day',
+        'total_chick',
+        'total_depletion',
+        'cum_depletion',
+        'daily_depletion_rate',
+        'cum_depletion_rate',
+
+        'daily_gain',
+        'avg_daily_gain',
+        'cum_intake',
+        'fcr_value',
+
         'created_by',
     ];
 

@@ -82,20 +82,32 @@ class RecordingController extends Controller
                 $project = Project::with([
                     'kandang',
                     'recording',
+                    'recording.recording_bw',
+                    'project_chick_in',
+                    'fcr',
+                    'fcr.fcr_standard',
                 ])->find($input['project_id']);
 
+                $arrDay = [];
                 foreach ($project->recording ?? [] as $key => $value) {
                     $existingDay = $value->day;
+                    $arrDay[]    = $existingDay;
                     if ($input['day'] == $existingDay) {
                         return redirect()->back()->with('error', 'Error: Umur '.$input['day'].' hari sudah pernah direcord');
                     }
+                }
+
+                $arrDaySeq = collect($arrDay)->sort()->values()->all();
+                $lastDay   = $input['day'] - 1;
+                if ($lastDay > 0 && $arrDaySeq !== range(1, $lastDay)) {
+                    return redirect()->back()->with('error', 'Error: Pastikan kamu telah melakukan recording hari sebelumnya');
                 }
 
                 $parentProduct    = false;
                 $productCategory  = ProductCategory::find($input['product_category_id']);
                 $projectWarehouse = ProductWarehouse::whereHas('product', function($query) {
                     $query->whereHas('product_category', function($query) {
-                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS']);
+                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS', 'LYR', 'TLR', 'GPS']);
                     });
                 })
                     ->where('warehouse_id', $input['warehouse_id'])
@@ -118,6 +130,7 @@ class RecordingController extends Controller
                 $recordDate                 = Carbon::parse(date('Y-m-d', $strtotime));
                 $onTime                     = $createdAt->isSameDay($recordDate) ? true : false;
                 $recording->on_time         = $onTime;
+                $recording->created_by      = auth()->user()->user_id;
                 $recording->status          = array_search('Disetujui', Constants::RECORDING_STATUS);
                 $recording->save();
 
@@ -206,6 +219,7 @@ class RecordingController extends Controller
 
     public function insertRecordingDepletionAndEgg($data, $warehouseId, $parentProduct, $strtotime, $project, $recordingId)
     {
+        $totalDecrese = 0;
         foreach ($data as $key => $value) {
             $arrProdStockType = [
                 [
@@ -221,6 +235,7 @@ class RecordingController extends Controller
                     'increase'   => 0,
                     'decrease'   => $value['total'],
                 ];
+                $totalDecrese += $value['total'];
             }
 
             foreach ($arrProdStockType as $k => $v) {
@@ -254,6 +269,48 @@ class RecordingController extends Controller
                 RecordingEgg::create($insertRecord);
             }
         }
+
+        $recordings = Recording::with([
+            'recording_bw',
+            'recording_stock',
+            'recording_stock.product_warehouse.product',
+        ])->find($recordingId);
+
+        $lastDay        = $recordings->day - 1;
+        $cumDepletion   = $totalDecrese;
+        $projectChickin = $project->project_chick_in[0];
+        $remainChick    = $projectChickin->total_chickin;
+        $fcrStandard    = collect($project->fcr->fcr_standard)->where('day', 0)->first();
+        $lastWeight     = $fcrStandard->weight;
+        $currentWeight  = $recordings->recording_bw[0]->value;
+        $pakanRecord    = collect($recordings->recording_stock)->filter(function($recordingStock) {
+            return optional($recordingStock->product_warehouse)
+                ->product
+                ->name === 'Pakan';
+        })->first();
+        $cumIntake = ($pakanRecord->decrease * 1000) / $remainChick; // 1kg = 1000gram
+
+        if ($lastDay > 0) {
+            $lastRecording = collect($project->recording)->where('day', $lastDay)->first();
+            $cumDepletion += collect($project->recording)->sum('total_depletion');
+            $lastWeight = $lastRecording->recording_bw[0]->value;
+            $remainChick -= $lastRecording->cum_depletion;
+            $cumIntake = $lastRecording->cum_intake + (($pakanRecord->decrease * 1000) / $remainChick);
+        }
+
+        \Log::info('cum depletion : '.$cumDepletion);
+
+        $recordings->update([
+            'total_chick'          => $remainChick,
+            'total_depletion'      => $totalDecrese,
+            'cum_depletion'        => $cumDepletion,
+            'daily_depletion_rate' => $totalDecrese / $remainChick                   * 100,
+            'cum_depletion_rate'   => $cumDepletion / $projectChickin->total_chickin * 100,
+            'daily_gain'           => $currentWeight - $lastWeight,
+            'avg_daily_gain'       => ($currentWeight - $fcrStandard->weight) / $recordings->day,
+            'cum_intake'           => $cumIntake,
+            'fcr_value'            => $cumIntake / $currentWeight,
+        ]);
     }
 
     public function detail(Request $req)

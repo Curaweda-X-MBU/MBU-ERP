@@ -59,18 +59,9 @@ class ReportKandangController extends Controller
                 throw new \Exception('Invalid company');
             }
 
-            $input                    = $req->all();
-            $kandangWithLatestProject = $location->kandangs->sortByDesc('latest_period')->first();
-            $latestProject            = $kandangWithLatestProject->latest_project;
-            $period                   = $latestProject->period;
-
-            if (isset($input['period'])) {
-                $period        = $input['period'];
-                $latestProject = $location->kandangs->where('project.period', $period)->first();
-            }
-
             $detail = (object) [
                 'location_id'    => $location->location_id,
+                'project_id'     => $project->project_id,
                 'location'       => $location->name,
                 'period'         => $project->period,
                 'product'        => $project->product_category->name,
@@ -179,15 +170,18 @@ class ReportKandangController extends Controller
             $period = intval($req->query('period') ?? $project->period);
 
             $marketings = Marketing::with([
+                'marketing_products.product.uom',
                 'marketing_products.warehouse.kandang',
-                'marketing_products.product',
-                'marketing_products.project.project_chick_in',
-                'marketing_products.uom',
                 'marketing_addit_prices',
                 'customer',
+                'marketing_products.project.project_chick_in' => function($ci) {
+                    $ci->orderBy('chickin_date');
+                },
             ])
-                ->whereNull('marketing_return_id')
-                ->where('marketing_status', '>=', 3)
+                ->where([
+                    ['marketing_status', '>=', 3],
+                    ['marketing_return_id', '=', null],
+                ])
                 ->whereHas(
                     'marketing_products.project',
                     fn ($query) => $query->where([
@@ -203,36 +197,35 @@ class ReportKandangController extends Controller
                 ->transform(function($m) use ($project) {
                     $tanggal     = $m->realized_at ? Carbon::parse($m->realized_at)->format('d-M-Y') : '-';
                     $chickinDate = Carbon::parse($project->project_chick_in->first()->chickin_date);
-                    $kandangs    = $m->marketing_products->map(function($mp) {
-                        return $mp->warehouse->kandang->name;
-                    })->unique()->values()->toArray();
-                    $umur = $m->realized_at ? $chickinDate->diffInDays(Carbon::parse($m->realized_at)) : '-';
+                    $umur        = $m->realized_at ? $chickinDate->diffInDays(Carbon::parse($m->realized_at)) : '-';
 
                     return [
-                        'tanggal'            => $tanggal,
-                        'umur'               => $umur,
-                        'id_marketing'       => $m->id_marketing,
-                        'customer'           => $m->customer->name,
-                        'jumlah_ekor'        => $m->marketing_products->sum('qty'),
-                        'jumlah_kg'          => $m->marketing_products->sum('weight_total'),
-                        'harga'              => Parser::toLocale($m->marketing_products->sum('price')),
-                        'cn'                 => 'dummy',
-                        'total'              => Parser::toLocale($m->grand_total),
-                        'kandangs'           => $kandangs,
-                        'payment_status'     => Constants::MARKETING_PAYMENT_STATUS[$m->payment_status],
-                        'marketing_products' => $m->marketing_products->map(fn ($mp) => [
-                            'kandang'      => $mp->warehouse->kandang->name,
-                            'nama_produk'  => $mp->product->name,
-                            'harga_satuan' => $mp->price,
-                            'bobot_avg'    => $mp->weight_avg,
-                            'uom'          => $mp->uom->name,
-                            'qty'          => $mp->qty,
-                            'total_bobot'  => $mp->weight_total,
-                        ]),
-                        'marketing_addit_prices' => $m->marketing_addit_prices->map(fn ($ma) => [
-                            'item'  => $ma->item,
-                            'price' => $ma->price,
-                        ]),
+                        'tanggal'                => $tanggal,
+                        'umur'                   => $umur,
+                        'no_do'                  => $m->id_marketing,
+                        'customer'               => $m->customer->name,
+                        'jumlah_ekor'            => $m->marketing_products->sum('qty'),
+                        'jumlah_kg'              => $m->marketing_products->sum('weight_total'),
+                        'harga'                  => Parser::toLocale($m->marketing_products->sum('price')),
+                        'cn'                     => Parser::toLocale($m->not_paid),
+                        'total'                  => Parser::toLocale($m->grand_total),
+                        'kandang'                => $project->kandang->name,
+                        'status'                 => [$m->payment_status, Constants::MARKETING_PAYMENT_STATUS[$m->payment_status]],
+                        'marketing_products'     => $m->marketing_products,
+                        'marketing_addit_prices' => $m->marketing_addit_prices,
+                        // 'marketing_products' => $m->marketing_products->map(fn ($mp) => [
+                        //     'kandang'      => $mp->warehouse->kandang->name,
+                        //     'nama_produk'  => $mp->product->name,
+                        //     'harga_satuan' => $mp->price,
+                        //     'bobot_avg'    => $mp->weight_avg,
+                        //     'uom'          => $mp->uom->name,
+                        //     'qty'          => $mp->qty,
+                        //     'total_bobot'  => $mp->weight_total,
+                        // ]),
+                        // 'marketing_addit_prices' => $m->marketing_addit_prices->map(fn ($ma) => [
+                        //     'item'  => $ma->item,
+                        //     'price' => $ma->price,
+                        // ]),
                     ];
                 });
 
@@ -266,8 +259,8 @@ class ReportKandangController extends Controller
                             'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
                             'produk'  => "{$mp->sub_category} (BOP)",
                             'qty'     => "{$mp->qty} {$mp->uom}",
-                            'price'   => Parser::toLocale($mp->price),
-                            'total'   => $mp->qty != 0 ? Parser::toLocale($mp->price * $mp->qty) : Parser::toLocale($mp->price),
+                            'price'   => Parser::toLocale($mp->price / $mp->qty),
+                            'total'   => Parser::toLocale($mp->price),
                         ];
                     })->concat($e->expense_addit_prices->map(function($ap) {
                         return [
@@ -305,9 +298,9 @@ class ReportKandangController extends Controller
                 ->flatMap(function($m) {
                     return $m->marketing_delivery_vehicles->map(function($d) {
                         return [
-                            'id_marketing' => $d->marketing->id_marketing,
-                            'supplier'     => $d->supplier->name,
-                            'delivery_fee' => $d->delivery_fee,
+                            'id_marketing'       => $d->marketing->id_marketing,
+                            'supplier_name'      => $d->supplier->name,
+                            'total_delivery_fee' => $d->delivery_fee,
                         ];
                     });
                 });
@@ -436,11 +429,9 @@ class ReportKandangController extends Controller
                 'recording_stock.product_warehouse.product',
                 'recording_depletion.product_warehouse.product',
                 'recording_egg.product_warehouse.product',
+                'project:project_id,period',
             ])
-                ->where([
-                    ['project_id', $project->project_id],
-                    ['period', $period],
-                ])
+                ->whereHas('project', fn ($p) => $p->where([['project_id', $project->project_id], ['period', $period]]))
                 ->get()
                 ->flatMap(fn ($recording) => $this->formatRecordingItems($recording));
 
@@ -504,8 +495,8 @@ class ReportKandangController extends Controller
             $totalUnit     = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('qty'));
             $totalPrice    = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('total_price'));
 
-            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice   / $totalWeightKg : 0;
-            $averageWeightPerUnit = $totalUnit  > 0 ? $totalWeightKg / $totalUnit : 0;
+            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice    / $totalWeightKg : 0;
+            $averageWeightPerUnit = $totalUnit     > 0 ? $totalWeightKg / $totalUnit : 0;
 
             return [
                 'penjualan_kg'    => Parser::toLocale($totalWeightKg).' Kg',

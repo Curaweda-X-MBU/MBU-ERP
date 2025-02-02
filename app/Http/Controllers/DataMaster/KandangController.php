@@ -237,16 +237,28 @@ class KandangController extends Controller
 
         return response()->json(
             $data->map(function($val) {
-                $active               = $val->project_status ? ' ( Aktif )' : '';
-                $val['latest_period'] = 0;
+                $val['project_status_name'] = 'Tersedia';
+                $val['latest_period']       = 0;
                 if (count($val->project) > 0) {
-                    $project              = collect($val->project)->sortByDesc('period')->first();
+                    $project = collect($val->project)->sortByDesc('period')->first();
+                    switch ($project->project_status) {
+                        case 1:
+                            $val['project_status_name'] = 'Pengajuan';
+                            break;
+                        case 2:
+                            $val['project_status_name'] = 'Aktif';
+                            break;
+                        case 3:
+                            $val['project_status_name'] = 'Persiapan';
+                            break;
+                    }
+
                     $val['latest_period'] = $project->period;
                 }
 
                 return [
                     'id'   => $val->kandang_id,
-                    'text' => $val->name.$active,
+                    'text' => $val->name,
                     'data' => $val,
                 ];
             })

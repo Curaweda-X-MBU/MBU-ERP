@@ -32,9 +32,9 @@
                     <tr class="font-weight-bolder">
                         <td>Total</td>
                         <td></td>
-                        <td class="total_budget_qty">-</td>
                         <td></td>
-                        <td class="budget_grand_total text-right">-</td>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td class="total_realization_qty">-</td>
                         <td></td>
@@ -179,17 +179,6 @@ $(function() {
                 let api = this.api();
 
                 const $footer = $(api.column(0).footer()).closest('tfoot');
-
-                totalBudgetQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyPengajuan), 0);
-
-                $footer.find('.total_budget_qty').html(trimLocale(totalBudgetQty));
-
-                budgetGrandTotal = (api
-                    .column('.budget_total')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
-
-                $footer.find('.budget_grand_total').html(`Rp&nbsp;${parseNumToLocale(budgetGrandTotal)}`);
 
                 totalRealizationQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyRealisasi ?? 0), 0);
 
