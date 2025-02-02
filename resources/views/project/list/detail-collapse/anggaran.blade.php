@@ -1,6 +1,6 @@
 <div class="card mb-1">
     <div id="headingCollapse4" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse4" aria-expanded="true" aria-controls="collapse4">
-        <span class="lead collapse-title"> Anggaran </span>
+        <span class="lead collapse-title"> Estimasi Anggaran </span>
     </div>
     <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">

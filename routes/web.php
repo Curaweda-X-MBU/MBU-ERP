@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/copy/{id}', [App\Http\Controllers\Project\ListController::class, 'copy'])->name('project.list.copy')->middleware('permission:project.list.copy');
             Route::any('/approve/{id}', [App\Http\Controllers\Project\ListController::class, 'approve'])->name('project.list.approve')->middleware('permission:project.list.approve');
             Route::any('/delete/{id}', [App\Http\Controllers\Project\ListController::class, 'delete'])->name('project.list.delete')->middleware('permission:project.list.delete');
+            Route::any('/closing/{id}', [App\Http\Controllers\Project\ListController::class, 'closing'])->name('project.list.closing')->middleware('permission:project.list.closing');
             Route::get('/search', [App\Http\Controllers\Project\ListController::class, 'searchProject'])->name('project.list.search');
             Route::get('/search-period', [App\Http\Controllers\Project\ListController::class, 'searchPeriod'])->name('project.list.search-period');
             Route::get('/search-budget', [App\Http\Controllers\Project\ListController::class, 'searchBudget'])->name('project.list.search-budget');

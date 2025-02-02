@@ -30,13 +30,15 @@ class Project extends Model
         'period',
         'pic',
         'fcr_id',
-        // 'target_depletion',
+        'standard_mortality',
         'total_budget',
         'chickin_status',
         'project_status',
         'approval_date',
         'chickin_approval_date',
         'first_day_old_chick',
+        'closing_date',
+        'closing_by',
         'created_by',
     ];
 
@@ -58,6 +60,11 @@ class Project extends Model
     public function createdby()
     {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
+    public function closingby()
+    {
+        return $this->belongsTo(User::class, 'closing_by', 'user_id');
     }
 
     public function project_phase()

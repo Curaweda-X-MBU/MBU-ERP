@@ -20,10 +20,16 @@
                     <i data-feather="download" class="mr-50"></i>
                     Download
                 </button> --}}
-                @if (Auth::user()->role->hasPermissionTo('project.list.edit'))
+                {{-- @if (Auth::user()->role->hasPermissionTo('project.list.edit'))
                 <a href="{{ route('project.list.edit', $data->project_id) }}" class="btn btn-primary">
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
+                </a>
+                @endif --}}
+                @if (Auth::user()->role->hasPermissionTo('project.list.closing') && $data->project_status === 2)
+                <a class="btn btn-danger" href="javascript:void(0);" data-id="{{ $data->project_id }}" data-toggle="modal" data-target="#closing">
+                    <i data-feather='check-circle' class="mr-50"></i>
+                    Closing
                 </a>
                 @endif
                 {{-- @if (Auth::user()->role->hasPermissionTo('project.list.copy'))
@@ -83,6 +89,31 @@
         </div>
     </div>
 </div>
+<div class="modal fade text-left" id="closing" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form method="post" action="{{ route('project.list.closing', 'test') }}">
+            {{csrf_field()}}
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Closing Project</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="id" value="">
+                    <input type="hidden" name="act" id="act" value="">
+                    <p>Apakah kamu yakin ingin mengakhiri project ini ?</p>
+                    <i style="color: red;">*Pastikan persediaan produk di gudang terkait sudah kosong.</i>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Ya</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script src="{{asset('app-assets/js/scripts/components/components-collapse.js')}}"></script>
 <script>
@@ -93,6 +124,13 @@
         });
 
         $('#approve').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) 
+            var id = button.data('id')
+            var modal = $(this)
+            modal.find('.modal-body #id').val(id)
+        });
+
+        $('#closing').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget) 
             var id = button.data('id')
             var modal = $(this)

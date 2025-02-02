@@ -105,7 +105,7 @@
                     
                     if (parseInt(totalUsed) > parseInt(currentStock) ) {
                         $(this).val(null);
-                        alert('Jumlah stok digunakan harus lebih kecil atau sama dengan total stok saat ini');
+                        alert('Jumlah stok digunakan harus kurang dari atau sama dengan total stok saat ini');
                     }
                 });
             },

@@ -105,6 +105,18 @@
         });
 
         function calculateWeight(set) {
+            const qtyTotal = calculateTotalFromSelector('.total');
+            const existingChick = $('.total-chicken').val();
+            console.log({
+                'qtyTotal': qtyTotal,
+                'existingChick': existingChick
+            });
+            
+            if (parseInt(qtyTotal) > parseInt(existingChick)) {
+                alert('Jumlah ayam tidak boleh melebihi jumlah ayam saat ini');
+                set.find('.weight, .total').val('');
+            }
+
             let weight = set.find('.weight').val();
             let qty = set.find('.total').val();
             if (weight && qty) {
@@ -131,21 +143,21 @@
             }
         }
 
+        function calculateTotalFromSelector(selector) {
+            let total = 0;
+            $(selector).each(function() {
+                const value = parseFloat($(this).val().replace(/\./g, '').replace(/,/g, '.')) || 0;
+                // console.log(value);
+                
+                total += value;
+            });
+            return total;
+        }
+
         function calculateTotal() {
             let totalWeight = 0;
             let totalChick = 0;
             let totalCalc = 0;
-            
-            function calculateTotalFromSelector(selector) {
-                let total = 0;
-                $(selector).each(function() {
-                    const value = parseFloat($(this).val().replace(/\./g, '').replace(/,/g, '.')) || 0;
-                    // console.log(value);
-                    
-                    total += value;
-                });
-                return total;
-            }
 
             totalWeight = calculateTotalFromSelector('.weight')/1000;
             totalChick = calculateTotalFromSelector('.total');

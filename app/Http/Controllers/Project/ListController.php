@@ -27,6 +27,7 @@ class ListController extends Controller
         'farm_type'           => 'required',
         'period'              => 'required',
         'fcr_id'              => 'required',
+        'standard_mortality'  => 'required',
         // 'target_depletion'    => 'required',
     ];
 
@@ -35,6 +36,7 @@ class ListController extends Controller
         'farm_type'           => 'Tipe Kandang tidak boleh kosong',
         'period'              => 'Periode tidak boleh kosong',
         'fcr_id'              => 'FCR tidak boleh kosong',
+        'standard_mortality'  => 'Standar Mortalitas tidak boleh kosong',
         // 'target_depletion'    => 'Target Deplesi tidak boleh kosong',
     ];
 
@@ -108,6 +110,7 @@ class ListController extends Controller
                             'capacity'            => $dtKandang->capacity ?? 0,
                             'farm_type'           => $req->input('farm_type'),
                             'fcr_id'              => $req->input('fcr_id'),
+                            'standard_mortality'  => $req->input('standard_mortality'),
                             'period'              => $req->input('period'),
                             'pic'                 => $dtKandang->user->name ?? '',
                             'total_budget'        => $req->input('total_budget'),
@@ -231,7 +234,7 @@ class ListController extends Controller
     public function detail(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom'])->findOrFail($req->id);
+            $project = Project::with(['kandang', 'product_category', 'project_phase', 'project_budget', 'fcr', 'fcr.fcr_standard', 'project_budget.product', 'project_budget.nonstock', 'project_recording', 'project_recording.uom', 'closingby'])->findOrFail($req->id);
             $param   = [
                 'title' => 'Project > List > Detail',
                 'data'  => $project,
@@ -268,6 +271,32 @@ class ListController extends Controller
         }
     }
 
+    public function closing(Request $req)
+    {
+        try {
+            DB::beginTransaction();
+            $project = Project::with(['recording.recording_depletion.product_warehouse'])->findOrFail($req->id);
+            $kandang = Kandang::find($project->kandang_id);
+
+            $kandang->update([
+                'project_status' => false,
+            ]);
+            $project->update([
+                'project_status' => array_search('Selesai', Constants::PROJECT_STATUS),
+                'closing_date'   => date('Y-m-d H:i:s'),
+                'closing_by'     => Auth::user()->user_id ?? '',
+            ]);
+            DB::commit();
+            $success = ['success' => 'Closing project berhasil'];
+
+            return redirect()->route('project.list.index')->with($success);
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
     public function delete(Request $req)
     {
         try {
@@ -296,7 +325,7 @@ class ListController extends Controller
     public function searchProject(Request $request)
     {
         $search   = $request->input('q');
-        $projects = Project::with(['kandang', 'kandang.user', 'kandang.warehouse', 'product_category', 'project_budget', 'project_chick_in', 'fcr', 'fcr.fcr_standard'])
+        $projects = Project::with(['kandang', 'recording', 'kandang.user', 'kandang.warehouse', 'product_category', 'project_budget', 'project_chick_in', 'fcr', 'fcr.fcr_standard'])
             ->whereHas('kandang', function($query) use ($search) {
                 $query->where('name', 'like', '%'.$search.'%');
             });
