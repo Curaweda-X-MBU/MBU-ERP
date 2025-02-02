@@ -298,9 +298,9 @@ class ReportKandangController extends Controller
                 ->flatMap(function($m) {
                     return $m->marketing_delivery_vehicles->map(function($d) {
                         return [
-                            'id_marketing' => $d->marketing->id_marketing,
-                            'supplier'     => $d->supplier->name,
-                            'delivery_fee' => $d->delivery_fee,
+                            'id_marketing'       => $d->marketing->id_marketing,
+                            'supplier_name'      => $d->supplier->name,
+                            'total_delivery_fee' => $d->delivery_fee,
                         ];
                     });
                 });

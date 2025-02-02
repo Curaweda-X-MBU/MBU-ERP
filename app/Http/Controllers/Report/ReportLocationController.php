@@ -134,7 +134,7 @@ class ReportLocationController extends Controller
 
             $detail = (object) [
                 'location_id' => $location->location_id,
-                'project_id'  => 1,
+                'project_id'  => 'nothing',
                 'location'    => $location->name,
                 'period'      => $period,
                 'product'     => $latestProject->product_category->name,
