@@ -25,7 +25,7 @@
             </tr>
         </thead>
         <tbody data-repeater-list="expense_main_prices">
-            @if (@$data->expense_main_prices)
+            @if (@$data->expense_main_prices && @$data->expense_main_prices->count() > 0)
                 @foreach ($data->expense_main_prices as $mp)
                 @php
                 $uom = \App\Models\DataMaster\Nonstock::where('name', $mp->sub_category)->first()->uom;
@@ -86,7 +86,6 @@
             const qty = parseLocaleToNum($row.find('input.unit-qty').val() || '0');
             const price = parseLocaleToNum($row.find('input.unit-price').val() || '0');
             const countKandang = JSON.parse($('input[name="selected_kandangs"]').val()).length ? JSON.parse($('input[name="selected_kandangs"]').val()).length : 1;
-            console.log(countKandang);
 
             if (price > 0) {
                 const totalAmount = price * countKandang;

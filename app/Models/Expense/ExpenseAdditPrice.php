@@ -24,9 +24,11 @@ class ExpenseAdditPrice extends Model
 
     public function getTotalPriceAttribute()
     {
-        $countKandang = count($this->expense->expense_kandang) ?: 1;
+        // $countKandang = count($this->expense->expense_kandang) ?: 1;
+        //
+        // return $this->price * $countKandang;
 
-        return $this->price * $countKandang;
+        return $this->price;
     }
 
     public function expense()

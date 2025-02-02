@@ -32,6 +32,18 @@ class Kandang extends Model
         'created_by',
     ];
 
+    protected $appends = ['latest_period', 'latest_project'];
+
+    public function getLatestPeriodAttribute()
+    {
+        return $this->latest_project ? $this->latest_project->period : 0;
+    }
+
+    public function getLatestProjectAttribute()
+    {
+        return $this->project->sortByDesc('period')->first() ?? null;
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id');

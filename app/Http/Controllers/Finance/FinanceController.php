@@ -19,10 +19,8 @@ class FinanceController extends Controller
     public function index(Request $req)
     {
         try {
-            $input      = $req->query();
-            $data       = collect();
-            $expenses   = collect();
-            $marketings = collect();
+            $input = $req->query();
+            $data  = collect();
 
             if (count($input) > 0) {
                 $location = Location::find($input['location_id']);
@@ -80,24 +78,30 @@ class FinanceController extends Controller
 
                 // PURCHASE by company_id
                 // $purchases = Purchase::whereHas('purchase_item');
+
+                $data = $data->concat($expenses)->concat($marketings);
+
+                if (isset($input['date_start'])) {
+                    $data = $data->whereBetween('created_at', [
+                        $input['date_start'], $input['date_end'] ?? now(),
+                    ]);
+                }
             }
 
-            $data = $data->concat($expenses)->concat($marketings);
+            // OLD::BEGIN
+            $old = $req->query();
 
-            if (isset($input['date_start'])) {
-                $data = $data->whereBetween('created_at', [
-                    $input['date_start'], $input['date_end'] ?? now(),
-                ]);
-            }
-
-            $old                  = $req->query();
             $old['location_id']   = isset($location) ? $location->location_id : null;
             $old['location_name'] = isset($location) ? $location->name : null;
-            $old['company_id']    = isset($company) ? $company->company_id : null;
-            $old['company_name']  = isset($company) ? $company->name : null;
-            $old['kandang_id']    = isset($kandang) ? $kandang->kandang_id : null;
-            $old['kandang_name']  = isset($kandang) ? $kandang->name : null;
-            $param                = [
+
+            $old['company_id']   = isset($company) ? $company->company_id : null;
+            $old['company_name'] = isset($company) ? $company->name : null;
+
+            $old['kandang_id']   = isset($kandang) ? $kandang->kandang_id : null;
+            $old['kandang_name'] = isset($kandang) ? $kandang->name : null;
+            // OLD::END
+
+            $param = [
                 'title' => 'Keuangan > List',
                 'data'  => $data,
                 'old'   => $old,

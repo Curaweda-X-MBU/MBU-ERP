@@ -5,6 +5,8 @@ namespace App\Models\Project;
 use App\Models\DataMaster\Fcr;
 use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\ProductCategory;
+use App\Models\Expense\ExpenseKandang;
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -86,5 +88,15 @@ class Project extends Model
     public function recording()
     {
         return $this->hasMany(Recording::class, 'project_id');
+    }
+
+    public function marketing_products()
+    {
+        return $this->hasMany(MarketingProduct::class, 'project_id');
+    }
+
+    public function expense_kandangs()
+    {
+        return $this->hasMany(ExpenseKandang::class, 'project_id');
     }
 }
