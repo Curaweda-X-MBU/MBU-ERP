@@ -504,8 +504,8 @@ class ReportKandangController extends Controller
             $totalUnit     = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('qty'));
             $totalPrice    = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('total_price'));
 
-            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice   / $totalWeightKg : 0;
-            $averageWeightPerUnit = $totalUnit  > 0 ? $totalWeightKg / $totalUnit : 0;
+            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice    / $totalWeightKg : 0;
+            $averageWeightPerUnit = $totalUnit     > 0 ? $totalWeightKg / $totalUnit : 0;
 
             return [
                 'penjualan_kg'    => Parser::toLocale($totalWeightKg).' Kg',
