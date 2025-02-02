@@ -76,7 +76,7 @@ class ReportKandangController extends Controller
                 'product'        => $project->product_category->name,
                 'doc'            => $project->project_chick_in->first()->total_chickin ?? 0,
                 'farm_type'      => $project->farm_type,
-                'closing_date'   => 'dummy',
+                'closing_date'   => Carbon::parse($project->closing_date)->format('d-M-Y') ?? '-',
                 'project_status' => $project->project_status,
                 'kandang_name'   => $project->kandang->name,
                 'chickin_date'   => $project->project_chick_in->first()->chickin_date ?? null,
@@ -324,12 +324,37 @@ class ReportKandangController extends Controller
         try {
             $period = intval($req->query('period') ?? $project->period);
 
+            $pembelian = $this->getProduksiPembelian($period, $location, $project);
+
             $penjualan = $this->getProduksiPenjualan($period, $location, $project);
 
+            $recording = Recording::with(['project', 'project.fcr', 'project.fcr.fcr_standard', 'recording_depletion'])
+                ->whereHas('recording_depletion')
+                ->whereHas('project', fn ($query) => $query->where([
+                    ['project_id', $project->project_id],
+                    ['period', $period],
+                ]))
+                ->get();
+
+            $performence = [
+                'deplesi'        => $recording->pluck('recording_depletion')->flatten()->sum('total'),
+                'mortalitas_std' => 0,
+                'mortalitas_act' => $recording->pluck('recording_depletion')
+                    ->flatten()
+                    ->where(fn ($rd) => str_contains(strtolower($rd->product_warehouse->product->name ?? ''), 'mati'))
+                    ->sum('total'),
+                'deff_mortralitas' => 0,
+                'fcr_std'          => $recording->pluck('project.fcr.frc_standard')->flatten()->sum('fcr'),
+                'fcr_act'          => $recording->pluck('fcr_value')->sum() ?? 0,
+                'deff_fcr'         => 0,
+                'adg'              => $recording->pluck('avg_daily_gain')->sum() ?? 0,
+                'ip'               => 0,
+            ];
+
             return [
-                'pembelian'   => null,
+                'pembelian'   => $pembelian,
                 'penjualan'   => $penjualan,
-                'performence' => null,
+                'performence' => $performence,
                 'selisih'     => null,
             ];
         } catch (\Exception $e) {
@@ -504,8 +529,8 @@ class ReportKandangController extends Controller
             $totalUnit     = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('qty'));
             $totalPrice    = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('total_price'));
 
-            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice   / $totalWeightKg : 0;
-            $averageWeightPerUnit = $totalUnit  > 0 ? $totalWeightKg / $totalUnit : 0;
+            $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice    / $totalWeightKg : 0;
+            $averageWeightPerUnit = $totalUnit     > 0 ? $totalWeightKg / $totalUnit : 0;
 
             return [
                 'penjualan_kg'    => Parser::toLocale($totalWeightKg).' Kg',
@@ -514,6 +539,46 @@ class ReportKandangController extends Controller
                 'harga_jual_rata' => Parser::toLocale($averagePricePerKg),
                 'total_harga'     => Parser::toLocale($totalPrice),
             ];
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function getProduksiPembelian(int $period, Location $location, Project $project)
+    {
+        try {
+            $pembelian = $project->with([
+                'recording' => function($query) {
+                    $query->whereHas('recording_depletion.product_warehouse.product', function($q) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ['%culling%']);
+                    })->withSum(['recording_depletion as culling_total' => function($q) {
+                        $q->whereHas('product_warehouse.product', function($q) {
+                            $q->whereRaw('LOWER(name) LIKE ?', ['%culling%']);
+                        });
+                    }], 'total');
+                },
+                'project_chick_in',
+            ])
+                ->where([
+                    ['project_id', $project->project_id],
+                    ['period', $period],
+                ])
+                ->get()
+                ->flatMap(function($p) {
+                    $populasiAwal = optional($p->project_chick_in->first())->total_chickin ?? 0;
+                    $culling      = $p->recording->sum('culling_total')                    ?? 0;
+
+                    return [
+                        'populasi_awal'       => $populasiAwal,
+                        'culling'             => $culling,
+                        'populasi_akhir'      => $populasiAwal - $culling,
+                        'pakan_masuk'         => 0,
+                        'pakan_terpakai'      => 0,
+                        'pakan_terpakai_ekor' => 0,
+                    ];
+                });
+
+            return $pembelian;
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
