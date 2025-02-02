@@ -134,6 +134,7 @@ class ReportLocationController extends Controller
 
             $detail = (object) [
                 'location_id' => $location->location_id,
+                'project_id'  => 1,
                 'location'    => $location->name,
                 'period'      => $period,
                 'product'     => $latestProject->product_category->name,
@@ -199,6 +200,8 @@ class ReportLocationController extends Controller
                 [
                     'marketing_products.product.uom',
                     'marketing_products.warehouse.kandang',
+                    'marketing_addit_prices',
+                    'customer',
                     'marketing_products.project.project_chick_in' => function($ci) {
                         $ci->orderBy('chickin_date');
                     },
@@ -214,7 +217,7 @@ class ReportLocationController extends Controller
                     $k->where('location_id', $location->location_id);
                 })
                 ->get()
-                ->map(function($m) {
+                ->transform(function($m) {
                     $chickinDate = $m->marketing_products
                         ->sortByDesc('project.first_day_old_chick')
                         ->first()
@@ -225,8 +228,6 @@ class ReportLocationController extends Controller
                     $umur          = $m->realized_at ? $chickinParsed->diffInDays(Carbon::parse($m->realized_at)) : '-';
 
                     return [
-                        'realized_at'            => Carbon::parse($m->realized_at),
-                        'chickin_date'           => $chickinParsed,
                         'tanggal'                => $m->realized_at ? date('d-M-Y', strtotime($m->realized_at)) : '-',
                         'umur'                   => $umur,
                         'no_do'                  => $m->id_marketing,
@@ -257,55 +258,44 @@ class ReportLocationController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
-            $formatted_expenses = [
-                'bop'  => [],
-                'nbop' => [],
-            ];
-
-            $query = Expense::with([
+            $expenses = Expense::with([
                 'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
                 'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
                 'expense_kandang.project.project_budget.nonstock' => function($query) {
-                    $query->select('id', 'project_budget_id', 'name'); // Load only necessary fields
+                    $query->select('nonstock_id', 'name'); // Load only necessary fields
                 },
             ])
                 ->where('location_id', $location->location_id)
                 ->where('expense_status', 2)
-                ->whereIn('category', [1, 2]);
+                ->whereIn('category', [1, 2])
+                ->where(function($q) use ($period) {
+                    $q->where('category', 2)
+                        ->orWhereHas('expense_kandang.project', function($p) use ($period) {
+                            $p->where('period', $period);
+                        });
+                })
+                ->get();
 
-            $query->where(function($q) use ($period) {
-                $q->where('category', 2)
-                    ->orWhereHas('expense_kandang.project', function($p) use ($period) {
-                        $p->where('period', $period);
-                    });
-            });
-
-            $expenses = $query->cursor();
-
-            $bop_expenses  = [];
-            $nbop_expenses = [];
-
-            foreach ($expenses as $e) {
-                $processed = collect($e->expense_main_prices
+            $formatted_expenses = collect($expenses)->flatMap(function($e) {
+                return collect($e->expense_main_prices)
                     ->concat($e->expense_addit_prices)
-                    ->transform(function($p) use ($e) {
+                    ->map(function($p) use ($e) {
                         $product_name = strtolower($p->sub_category ?? $p->name);
                         $budget       = null;
 
                         foreach ($e->expense_kandang as $k) {
                             $budget = optional(optional($k->project)->project_budget)
                                 ->firstWhere(fn ($b) => str_contains(strtolower(optional($b->nonstock)->name), $product_name));
-
                             if ($budget) {
                                 break;
                             }
                         }
 
                         return [
+                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
                             'tanggal'           => Carbon::parse($p->expense->approved_at)->format('d-M-Y'),
                             'no_ref'            => '####', // dummy
-                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
-                            'budget_qty'        => $budget->qty     ?? '-',
+                            'budget_qty'        => $budget->qty ?? '-',
                             'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
                             'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
                             'realization_qty'   => ($p->total_qty ?? $p->qty) ?? '-',
@@ -314,17 +304,13 @@ class ReportLocationController extends Controller
                             'realization_total' => Parser::toLocale($p->total_price),
                             'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
                         ];
-                    }));
+                    });
+            });
 
-                if ($e->category == 1) {
-                    $formatted_expenses['bop'] = array_merge($formatted_expenses['bop'], $processed->toArray());
-                } else {
-                    $formatted_expenses['nbop'] = array_merge($formatted_expenses['nbop'], $processed->toArray());
-                }
-            }
+            $grouped_expenses = $formatted_expenses->groupBy('produk')->collapse();
 
-            $bop_expenses  = collect($formatted_expenses['bop']);
-            $nbop_expenses = collect($formatted_expenses['nbop']);
+            $bop_expenses  = $grouped_expenses->filter(fn ($item) => $item['budget_qty'] !== '-')->values();
+            $nbop_expenses = $grouped_expenses->filter(fn ($item) => $item['budget_qty'] === '-')->values();
 
             return response()->json([
                 [
@@ -351,7 +337,7 @@ class ReportLocationController extends Controller
 
             $locationId = $location->location_id;
 
-            $deliveryVehicles = MarketingDeliveryVehicle::selectRaw('suppliers.name as supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) as total_delivery_fee')
+            $deliveryVehicles = MarketingDeliveryVehicle::selectRaw('suppliers.name AS supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) AS total_delivery_fee')
                 ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
                 ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
                 ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
