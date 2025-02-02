@@ -259,8 +259,8 @@ class ReportKandangController extends Controller
                             'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
                             'produk'  => "{$mp->sub_category} (BOP)",
                             'qty'     => "{$mp->qty} {$mp->uom}",
-                            'price'   => Parser::toLocale($mp->price),
-                            'total'   => $mp->qty != 0 ? Parser::toLocale($mp->price * $mp->qty) : Parser::toLocale($mp->price),
+                            'price'   => Parser::toLocale($mp->price / $mp->qty),
+                            'total'   => Parser::toLocale($mp->price),
                         ];
                     })->concat($e->expense_addit_prices->map(function($ap) {
                         return [
