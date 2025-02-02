@@ -429,11 +429,9 @@ class ReportKandangController extends Controller
                 'recording_stock.product_warehouse.product',
                 'recording_depletion.product_warehouse.product',
                 'recording_egg.product_warehouse.product',
+                'project:project_id,period',
             ])
-                ->where([
-                    ['project_id', $project->project_id],
-                    ['period', $period],
-                ])
+                ->whereHas('project', fn ($p) => $p->where([['project_id', $project->project_id], ['period', $period]]))
                 ->get()
                 ->flatMap(fn ($recording) => $this->formatRecordingItems($recording));
 

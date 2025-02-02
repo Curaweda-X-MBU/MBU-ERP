@@ -1,48 +1,33 @@
 <div class="card mb-1">
-    <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
+    <div id="headingSapronakKeluarCollapse" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#sapronakKeluarCollapse" aria-expanded="true" aria-controls="sapronakKeluarCollapse">
         <span class="lead collapse-title">Sapronak Keluar</span>
     </div>
-    <div id="collapse2" role="tabpanel" aria-labelledby="headingCollapse2" class="collapse show" aria-expanded="true">
+    <div id="sapronakKeluarCollapse" role="tabpanel" aria-labelledby="headingSapronakKeluarCollapse" class="collapse show" aria-expanded="true">
         <div class="table-responsive">
-            <table class="table w-100">
+            <table id="sapronak_keluar_datatable" class="table" style="margin: 0 !important;">
                 <thead>
                     <tr class="text-center">
                         <th>Tanggal</th>
                         <th>No. Referensi</th>
                         <th>Jenis Transaksi</th>
                         <th>Jenis Sapronak</th>
-                        <th>Gudang Asal</th>
+                        <th>Gudang Tujuan</th>
                         <th></th>
                         <th>Kuantitas</th>
                         <th>Keterangan</th>
                 </thead>
                 <tbody>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>Recording</td>
-                        <td>Pakan</td>
-                        <td>Gudang Banten</td>
-                        <td></td>
-                        <td>10 Kg</td>
-                        <td>-</td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>Mutasi</td>
-                        <td>DOC</td>
-                        <td>Gudang Banten</td>
-                        <td></td>
-                        <td>100 Ekor</td>
-                        <td>-</td>
+                    {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="8">Mengambil data ...</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
                         <td colspan="5">Total Sapronak Keluar</td>
-                        <td class="text-center">63 Kg</td>
-                        <td class="text-center">1.000 Ekor</td>
+                        <td class="total_1 text-center">-</td>
+                        <td class="total_2 text-center">-</td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
