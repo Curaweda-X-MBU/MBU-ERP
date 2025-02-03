@@ -17,7 +17,7 @@
                     <th rowspan="2" style="vertical-align: middle">CN (RP)</th>
                     <th rowspan="2" style="vertical-align: middle">Total (RP)</th>
                     <th rowspan="2" style="vertical-align: middle">Kandang</th>
-                    <th rowspan="2" style="vertical-align: middle">Status</th>
+                    <th rowspan="2" style="vertical-align: middle">Status Pembayaran</th>
                     </tr>
                     <tr class="text-center">
                     <th>Ekor</th>
