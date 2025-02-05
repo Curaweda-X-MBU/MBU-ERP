@@ -11,8 +11,12 @@ use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Project\Project;
+use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
+use App\Models\Project\RecordingDepletion;
+use App\Models\Project\RecordingStock;
 use App\Models\Purchase\Purchase;
+use App\Models\Purchase\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -484,38 +488,72 @@ class ReportKandangController extends Controller
 
     private function getProduksiPembelian(int $period, Location $location, Project $project)
     {
-        $pembelian = $project->with([
-            'recording' => function($query) {
-                $query->whereHas('recording_depletion.product_warehouse.product', function($q) {
-                    $q->whereRaw('LOWER(name) LIKE ?', ['%culling%']);
-                })->withSum(['recording_depletion as culling_total' => function($q) {
-                    $q->whereHas('product_warehouse.product', function($q) {
-                        $q->whereRaw('LOWER(name) LIKE ?', ['%culling%']);
-                    });
-                }], 'total');
-            },
-            'project_chick_in',
-        ])
-            ->where([
-                ['project_id', $project->project_id],
-                ['period', $period],
-            ])
-            ->get()
-            ->flatMap(function($p) {
-                $populasiAwal = optional($p->project_chick_in->first())->total_chickin ?? 0;
-                $culling      = $p->recording->sum('culling_total')                    ?? 0;
+        $pakan_masuk_subquery = PurchaseItem::selectRaw('
+                projects.project_id, COALESCE(SUM(purchase_items.qty), 0) AS pakan_masuk_qty
+            ')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->groupBy('project_id');
 
-                return [
-                    'populasi_awal'       => $populasiAwal,
-                    'culling'             => $culling,
-                    'populasi_akhir'      => $populasiAwal - $culling,
-                    'pakan_masuk'         => 0,
-                    'pakan_terpakai'      => 0,
-                    'pakan_terpakai_ekor' => 0,
-                ];
-            });
+        $pakan_mutasi_subquery = StockMovement::selectRaw('
+                projects.project_id, COALESCE(SUM(stock_movements.transfer_qty), 0) AS pakan_mutasi_qty
+            ')
+            ->join('products', 'products.product_id', '=', 'stock_movements.product_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'stock_movements.destination_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->groupBy('project_id');
 
-        return $pembelian;
+        $pakan_terpakai_subquery = RecordingStock::selectRaw('
+                projects.project_id, COALESCE(SUM(recording_stocks.decrease), 0) AS pakan_terpakai_qty
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', 'recording_stocks.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
+            ->join('recordings', 'recordings.recording_id', '=', 'recording_stocks.recording_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->whereRaw('LOWER(products.name) LIKE ?', ['%pakan%'])
+            ->groupBy('project_id');
+
+        $claim_culling_subquery = RecordingDepletion::selectRaw('
+                projects.project_id, COALESCE(SUM(recording_depletions.total), 0) AS claim_culling
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', 'recording_depletions.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
+            ->join('recordings', 'recordings.recording_id', '=', 'recording_depletions.recording_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->where('recordings.day', 1)
+            ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
+            ->groupBy('project_id');
+
+        $populasi_awal_subquery = ProjectChickIn::selectRaw('
+                projects.project_id, COALESCE(SUM(project_chickin.total_chickin), 0) AS populasi_awal
+            ')
+            ->join('projects', 'projects.project_id', '=', 'project_chickin.project_id')
+            ->groupBy('project_id');
+
+        return Project::selectRaw('
+                projects.project_id,
+                COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) AS populasi_awal,
+                COALESCE(SUM(claim_culling_subquery.claim_culling), 0) AS culling,
+                COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0) AS populasi_akhir,
+                COALESCE(SUM(pakan_masuk_subquery.pakan_masuk_qty), 0) + COALESCE(SUM(pakan_mutasi_subquery.pakan_mutasi_qty), 0) AS pakan_masuk,
+                COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) AS pakan_terpakai,
+                COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) / (COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0)) AS pakan_terpakai_per_ekor
+            ')
+            ->leftJoinSub($populasi_awal_subquery, 'populasi_awal_subquery', 'populasi_awal_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($claim_culling_subquery, 'claim_culling_subquery', 'claim_culling_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_masuk_subquery, 'pakan_masuk_subquery', 'pakan_masuk_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_mutasi_subquery, 'pakan_mutasi_subquery', 'pakan_mutasi_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_terpakai_subquery, 'pakan_terpakai_subquery', 'pakan_terpakai_subquery.project_id', '=', 'projects.project_id')
+            ->groupBy('project_id')
+            ->where('projects.project_id', $project->project_id)
+            ->where('projects.period', $period)
+            ->get()->first();
     }
 
     private function getProduksiPerformence(int $period, Location $location, Project $project)
@@ -528,14 +566,14 @@ class ReportKandangController extends Controller
             ->get();
 
         $recordingLastDay = $recording->sortByDesc('day')->first();
-        $umur             = $recordingLastDay->day                                             ?? 0;
+        $umur             = $recordingLastDay->day                                    ?? 0;
         $mortalitasStd    = $recording->pluck('project')->first()->standard_mortality ?? 0;
         $mortalitasAct    = $recordingLastDay->cum_depletion_rate                     ?? 0;
         $fcrStd           = floatval($recording->pluck('project.fcr')->first()?->fcr_standard->where('day', $umur)->first()->fcr ?? 0);
         $fcrAct           = $recording->pluck('fcr_value')->avg() ?? 0;
 
         $populasiAwal  = $recording->sortBy('day')->first()->total_chick ?? 1;
-        $populasiAkhir = $recordingLastDay->total_chick                 ?? 1;
+        $populasiAkhir = $recordingLastDay->total_chick                  ?? 1;
         $persentase    = $populasiAkhir / max($populasiAwal, 1) * 100;
 
         $ip = ($fcrAct > 0 && $umur > 0)
