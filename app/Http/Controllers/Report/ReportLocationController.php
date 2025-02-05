@@ -11,7 +11,11 @@ use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
+use App\Models\Project\Project;
+use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
+use App\Models\Project\RecordingDepletion;
+use App\Models\Project\RecordingStock;
 use App\Models\Purchase\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -269,6 +273,8 @@ class ReportLocationController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
+            // NOTE:: MAKE RAW QUERY, SELECT FROM PROJECT WHERE LOCATION
+
             $expenses = Expense::with([
                 'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
                 'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
@@ -320,8 +326,8 @@ class ReportLocationController extends Controller
 
             $grouped_expenses = $formatted_expenses->groupBy('produk')->collapse();
 
-            $bop_expenses  = $grouped_expenses->filter(fn ($item) => $item['budget_qty'] !== '-')->values();
-            $nbop_expenses = $grouped_expenses->filter(fn ($item) => $item['budget_qty'] === '-')->values();
+            $bop_expenses  = $grouped_expenses->filter(fn ($item) => $item['realization_qty'] !== '-')->values();
+            $nbop_expenses = $grouped_expenses->filter(fn ($item) => $item['realization_qty'] === '-')->values();
 
             return response()->json([
                 [
@@ -362,19 +368,22 @@ class ReportLocationController extends Controller
             return response()->json($deliveryVehicles);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage(), 500]);
-            // return response()->json(['error' => $e, 500]);
         }
     }
 
-    public function dataProduksi($projectId)
+    public function dataProduksi(Request $req, Location $location)
     {
         try {
-            //
+            $period = intval($req->query('period'));
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            $pembelian = $this->getDataProduksiPembelian($period, $location->location_id);
+
+            return response()->json($pembelian);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error', $e->getMessage()], 500);
         }
     }
 
@@ -409,7 +418,7 @@ class ReportLocationController extends Controller
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses_destination.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->where([
-                ['warehouses_destination.location_id', $location_id],
+                ['kandang.location_id', $location_id],
                 ['projects.period', $period],
                 ['stock_movements.product_id', '!=', null],
             ])
@@ -447,7 +456,7 @@ class ReportLocationController extends Controller
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->where([
-                ['warehouses.location_id', $location_id],
+                ['kandang.location_id', $location_id],
                 ['projects.period', $period],
             ])
             ->groupByRaw('
@@ -461,7 +470,7 @@ class ReportLocationController extends Controller
                 ')
             ->get()
             ->map(function($pi) {
-                $pi->tanggal = Carbon::parse(json_decode($pi->approval_line)[3]->date)->format('d-M-Y');
+                $pi->tanggal = Carbon::parse(json_decode($pi->approval_line)[4]->date)->format('d-M-Y');
                 $pi->qty     = Parser::toLocale($pi->num_qty).' '.$pi->uom;
 
                 return $pi;
@@ -489,7 +498,7 @@ class ReportLocationController extends Controller
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses_origin.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->where([
-                ['warehouses_origin.location_id', $location_id],
+                ['kandang.location_id', $location_id],
                 ['projects.period', $period],
                 ['stock_movements.product_id', '!=', null],
             ])
@@ -512,8 +521,8 @@ class ReportLocationController extends Controller
         $recordingStockQuery = Recording::selectRaw('
                 recording_stocks.decrease AS num_qty,
                 uom.name AS uom,
-                recordings.created_at AS tanggal,
-                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.record_datetime AS tanggal,
+                DATE_FORMAT(recordings.record_datetime, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
                 recordings.recording_id AS no_referensi,
                 "Recording (Persediaan)" AS transaksi,
                 products.name AS produk,
@@ -534,8 +543,8 @@ class ReportLocationController extends Controller
         $recordingDepletionQuery = Recording::selectRaw('
                 recording_depletions.total AS num_qty,
                 uom.name AS uom,
-                recordings.created_at AS tanggal,
-                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.record_datetime AS tanggal,
+                DATE_FORMAT(recordings.record_datetime, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
                 recordings.recording_id AS no_referensi,
                 "Recording (Deplesi)" AS transaksi,
                 products.name AS produk,
@@ -556,8 +565,8 @@ class ReportLocationController extends Controller
         $recordingEggQuery = Recording::selectRaw('
                 recording_eggs.total AS num_qty,
                 uom.name AS uom,
-                recordings.created_at AS tanggal,
-                DATE_FORMAT(recordings.created_at, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
+                recordings.record_datetime AS tanggal,
+                DATE_FORMAT(recordings.record_datetime, "%d-%b-%Y %H:%i:%s") AS formatted_tanggal,
                 recordings.recording_id AS no_referensi,
                 "Recording (Telur)" AS transaksi,
                 products.name AS produk,
@@ -583,5 +592,76 @@ class ReportLocationController extends Controller
             });
 
         return $stockMovement->concat($recordingItems);
+    }
+
+    public function getDataProduksiPembelian(int $period, int $location_id)
+    {
+        $pakan_masuk_subquery = PurchaseItem::selectRaw('
+                projects.project_id, COALESCE(SUM(purchase_items.qty), 0) AS pakan_masuk_qty
+            ')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->groupBy('project_id');
+
+        $pakan_mutasi_subquery = StockMovement::selectRaw('
+                projects.project_id, COALESCE(SUM(stock_movements.transfer_qty), 0) AS pakan_mutasi_qty
+            ')
+            ->join('products', 'products.product_id', '=', 'stock_movements.product_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'stock_movements.destination_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->groupBy('project_id');
+
+        $pakan_terpakai_subquery = RecordingStock::selectRaw('
+                projects.project_id, COALESCE(SUM(recording_stocks.decrease), 0) AS pakan_terpakai_qty
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', 'recording_stocks.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
+            ->join('recordings', 'recordings.recording_id', '=', 'recording_stocks.recording_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->whereRaw('LOWER(products.name) LIKE ?', ['%pakan%'])
+            ->groupBy('project_id');
+
+        $claim_culling_subquery = RecordingDepletion::selectRaw('
+                projects.project_id, COALESCE(SUM(recording_depletions.total), 0) AS claim_culling
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', 'recording_depletions.product_warehouse_id')
+            ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
+            ->join('recordings', 'recordings.recording_id', '=', 'recording_depletions.recording_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->where('recordings.day', 1)
+            ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
+            ->groupBy('project_id');
+
+        $populasi_awal_subquery = ProjectChickIn::selectRaw('
+                projects.project_id, COALESCE(SUM(project_chickin.total_chickin), 0) AS populasi_awal
+            ')
+            ->join('projects', 'projects.project_id', '=', 'project_chickin.project_id')
+            ->groupBy('project_id');
+
+        return Project::selectRaw('
+                kandang.location_id,
+                COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) AS populasi_awal,
+                COALESCE(SUM(claim_culling_subquery.claim_culling), 0) AS culling,
+                COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0) AS populasi_akhir,
+                COALESCE(SUM(pakan_masuk_subquery.pakan_masuk_qty), 0) + COALESCE(SUM(pakan_mutasi_subquery.pakan_mutasi_qty), 0) AS pakan_masuk,
+                COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) AS pakan_terpakai,
+                COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) / (COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0)) AS pakan_terpakai_per_ekor
+            ')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->leftJoinSub($populasi_awal_subquery, 'populasi_awal_subquery', 'populasi_awal_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($claim_culling_subquery, 'claim_culling_subquery', 'claim_culling_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_masuk_subquery, 'pakan_masuk_subquery', 'pakan_masuk_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_mutasi_subquery, 'pakan_mutasi_subquery', 'pakan_mutasi_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($pakan_terpakai_subquery, 'pakan_terpakai_subquery', 'pakan_terpakai_subquery.project_id', '=', 'projects.project_id')
+            ->groupBy('location_id')
+            ->where('kandang.location_id', $location_id)
+            ->where('projects.period', $period)
+            ->get()->first();
     }
 }
