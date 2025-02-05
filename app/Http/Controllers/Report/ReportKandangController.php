@@ -20,6 +20,7 @@ use App\Models\Purchase\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReportKandangController extends Controller
 {
@@ -77,6 +78,7 @@ class ReportKandangController extends Controller
                 'chickin_date'   => $project->project_chick_in->first()->chickin_date ?? null,
                 'ppl_ts'         => $project->kandang->user->name,
                 'approval_date'  => $project->approval_date,
+                'overhead'       => $this->overhead(app(Request::class), $location, $project),
             ];
 
             $param = [
@@ -228,39 +230,47 @@ class ReportKandangController extends Controller
         try {
             $period = intval($req->query('period') ?? $project->period);
 
-            $expense = Expense::with('expense_kandang', 'expense_kandang.project', 'expense_main_prices', 'expense_addit_prices')
-                ->whereHas('expense_kandang.project', function($query) use ($project, $period) {
-                    $query->where([
-                        ['project_id', $project->project_id],
-                        ['period', $period],
-                    ]);
+            $recording = Recording::with(['project', 'project.kandang', 'project.project_chick_in', 'project.fcr', 'project.fcr.fcr_standard', 'recording_depletion']);
+
+            $recordingLastDayProject = $recording->whereHas('project', fn ($query) => $query->where([
+                ['project_id', $project->project_id],
+                ['period', $period],
+            ]))
+                ->get()
+                ->sortByDesc('day')->first();
+
+            $recordingLastDayLocation = Recording::join('projects', 'recordings.project_id', '=', 'projects.project_id')
+                ->join('kandang', 'projects.kandang_id', '=', 'kandang.kandang_id')
+                ->where('kandang.location_id', $location->location_id)
+                ->whereIn('recordings.day', function($query) {
+                    $query->select(DB::raw('MAX(day)'))
+                        ->from('recordings')
+                        ->join('projects', 'recordings.project_id', '=', 'projects.project_id')
+                        ->join('kandang', 'projects.kandang_id', '=', 'kandang.kandang_id')
+                        // ->whereColumn('kandang.location_id', $location->location_id)
+                        ->groupBy('kandang.location_id');
                 })
-                ->where([
-                    ['location_id', $location->location_id],
-                    ['expense_status', 2],
+                ->groupBy('kandang.location_id')
+                ->select([
+                    'kandang.location_id',
+                    DB::raw('SUM(recordings.total_chick) as total_chick_sum'),
                 ])
                 ->get()
-                ->flatMap(function($e) {
-                    return $e->expense_main_prices->map(function($mp) {
-                        return [
-                            'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
-                            'produk'  => "{$mp->sub_category} (BOP)",
-                            'qty'     => "{$mp->qty} {$mp->uom}",
-                            'price'   => Parser::toLocale($mp->price / $mp->qty),
-                            'total'   => Parser::toLocale($mp->price),
-                        ];
-                    })->concat($e->expense_addit_prices->map(function($ap) {
-                        return [
-                            'tanggal' => Carbon::parse($ap->approved_at)->format('d-M-Y'),
-                            'produk'  => "{$ap->name} (NBOP)",
-                            'qty'     => '-',
-                            'price'   => Parser::toLocale($ap->price),
-                            'total'   => Parser::toLocale($ap->price),
-                        ];
-                    }));
-                });
+                ->first();
 
-            return response()->json($expense);
+            $expenseLocation = $this->getOverhead($period, $location, $project, false);
+
+            $populasiAkhirKandang = $recordingLastDayProject->total_chick ?? 0;
+            $pemakaianFarm        = $expenseLocation->pluck('total')->reduce(fn ($a, $b) => Parser::parseLocale($a) + Parser::parseLocale($b), 0);
+            $populasiAkhirProyek  = $recordingLastDayLocation->total_chick_sum ?? 0;
+
+            return response()->json([
+                'populasi_akhir_kandang' => $populasiAkhirKandang,
+                'pemakaian_farm'         => $pemakaianFarm,
+                'populasi_akhir_proyek'  => $populasiAkhirProyek,
+                'result'                 => ($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek,
+                'expense'                => $this->getOverhead($period, $location, $project, true),
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -594,5 +604,41 @@ class ReportKandangController extends Controller
         ];
 
         return $performence;
+    }
+
+    private function getOverhead(int $period, Location $location, Project $project, bool $isProject)
+    {
+        $expense = Expense::with(['expense_kandang.project', 'expense_main_prices', 'expense_addit_prices'])
+            ->where('location_id', $location->location_id)
+            ->when($isProject, function($query) use ($project) {
+                return $query->whereHas('expense_kandang.project', function($q) use ($project) {
+                    $q->where([
+                        ['project_id', $project->project_id],
+                    ]);
+                });
+            })
+            ->where('expense_status', 2)
+            ->get()
+            ->flatMap(function($e) {
+                return $e->expense_main_prices->map(function($mp) {
+                    return [
+                        'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
+                        'produk'  => $mp->sub_category,
+                        'qty'     => "{$mp->qty} {$mp->uom}",
+                        'price'   => Parser::toLocale($mp->price / max($mp->qty, 1)),
+                        'total'   => Parser::toLocale($mp->total_price),
+                    ];
+                })->concat($e->expense_addit_prices->map(function($ap) {
+                    return [
+                        'tanggal' => Carbon::parse($ap->approved_at)->format('d-M-Y'),
+                        'produk'  => $ap->name,
+                        'qty'     => '-',
+                        'price'   => Parser::toLocale($ap->total_price),
+                        'total'   => Parser::toLocale($ap->total_price),
+                    ];
+                }));
+            });
+
+        return $expense;
     }
 }
