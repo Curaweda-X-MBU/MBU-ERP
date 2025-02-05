@@ -3,7 +3,6 @@
 @section('content')
 @php
     $farmType = App\Constants::KANDANG_TYPE;
-    dump($data)
 @endphp
 
 <div class="row">
