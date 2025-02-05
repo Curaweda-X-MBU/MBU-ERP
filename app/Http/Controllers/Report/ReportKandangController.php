@@ -304,12 +304,12 @@ class ReportKandangController extends Controller
 
             $pembelian   = $this->getProduksiPembelian($period, $location, $project);
             $penjualan   = $this->getProduksiPenjualan($period, $location, $project);
-            $performence = $this->getProduksiPerformence($period, $location, $project);
+            $performance = $this->getProduksiPerformence($period, $location, $project);
 
             return response()->json([
                 'pembelian'   => $pembelian,
                 'penjualan'   => $penjualan,
-                'performence' => $performence,
+                'performance' => $performance,
                 'selisih'     => null,
             ]);
         } catch (\Exception $e) {
@@ -473,15 +473,16 @@ class ReportKandangController extends Controller
         $totalUnit     = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('qty'));
         $totalPrice    = $getMarketings->sum(fn ($m) => $m->marketing_products->sum('total_price'));
 
-        $averagePricePerKg    = $totalWeightKg > 0 ? $totalPrice    / $totalWeightKg : 0;
-        $averageWeightPerUnit = $totalUnit     > 0 ? $totalWeightKg / $totalUnit : 0;
+        $averagePricePerUnit  = $totalUnit > 0 ? $totalPrice    / $totalUnit : 0;
+        $averageWeightPerUnit = $totalUnit > 0 ? $totalWeightKg / $totalUnit : 0;
 
         return [
-            'penjualan_kg'    => Parser::toLocale($totalWeightKg).' Kg',
-            'penjualan_ekor'  => Parser::toLocale($totalUnit)." {$marketingUom}",
-            'bobot_rata'      => Parser::toLocale($averageWeightPerUnit)." Kg/{$marketingUom}",
-            'harga_jual_rata' => Parser::toLocale($averagePricePerKg),
-            'total_harga'     => Parser::toLocale($totalPrice),
+            'penjualan_kg'    => $totalWeightKg,
+            'penjualan_ekor'  => $totalUnit,
+            'bobot_rata'      => $averageWeightPerUnit,
+            'harga_jual_rata' => $averagePricePerUnit,
+            'total_harga'     => $totalPrice,
+            'uom'             => $marketingUom,
         ];
     }
 
@@ -580,16 +581,16 @@ class ReportKandangController extends Controller
             : 0; // Jika `fcrAct` atau `umur` nol, set IP ke 0
 
         $performence = [
-            'deplesi'          => $recordingLastDay->cum_depletion ?? 0,
-            'umur'             => $umur,
-            'mortalitas_std'   => $mortalitasStd,
-            'mortalitas_act'   => $mortalitasAct,
-            'deff_mortralitas' => abs(floatval($mortalitasAct) - $mortalitasStd),
-            'fcr_std'          => $fcrStd,
-            'fcr_act'          => $fcrAct,
-            'deff_fcr'         => abs($fcrStd - $fcrAct),
-            'adg'              => $recordingLastDay->avg_daily_gain ?? 0,
-            'ip'               => $ip,
+            'deplesi'         => $recordingLastDay->cum_depletion ?? 0,
+            'umur'            => $umur,
+            'mortalitas_std'  => $mortalitasStd,
+            'mortalitas_act'  => $mortalitasAct,
+            'deff_mortalitas' => abs(floatval($mortalitasAct) - $mortalitasStd),
+            'fcr_std'         => $fcrStd,
+            'fcr_act'         => $fcrAct,
+            'deff_fcr'        => abs($fcrStd - $fcrAct),
+            'adg'             => $recordingLastDay->avg_daily_gain ?? 0,
+            'ip'              => $ip,
         ];
 
         return $performence;

@@ -6,11 +6,13 @@ use App\Constants;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
+use App\Models\DataMaster\FcrStandard;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
@@ -379,9 +381,15 @@ class ReportLocationController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
-            $pembelian = $this->getDataProduksiPembelian($period, $location->location_id);
+            $pembelian   = $this->getDataProduksiPembelian($period, $location->location_id);
+            $penjualan   = $this->getDataProduksiPenjualan($period, $location->location_id);
+            $performance = $this->getDataProduksiPerformance($period, $location->location_id);
 
-            return response()->json($pembelian);
+            return response()->json([
+                'pembelian'   => $pembelian,
+                'penjualan'   => $penjualan,
+                'performance' => $performance,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error', $e->getMessage()], 500);
         }
@@ -663,5 +671,121 @@ class ReportLocationController extends Controller
             ->where('kandang.location_id', $location_id)
             ->where('projects.period', $period)
             ->get()->first();
+    }
+
+    public function getDataProduksiPenjualan(int $period, int $location_id)
+    {
+        $marketing_products_subquery = MarketingProduct::selectRaw('
+                projects.project_id,
+                marketing_products.qty,
+                marketing_products.weight_total,
+                marketing_products.total_price,
+                marketing_products.weight_avg AS weight_avg,
+                marketing_products.price,
+                uom.name AS uom
+            ')
+            ->join('uom', 'uom.uom_id', '=', 'marketing_products.uom_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'marketing_products.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id');
+
+        return Project::selectRaw('
+                kandang.location_id,
+                COALESCE(SUM(marketing_products_subquery.qty), 0) AS penjualan_ekor,
+                COALESCE(SUM(marketing_products_subquery.weight_total), 0) AS penjualan_kg,
+                COALESCE(SUM(marketing_products_subquery.total_price), 0) AS total_harga,
+                COALESCE(AVG(marketing_products_subquery.weight_avg), 0) AS bobot_rata,
+                COALESCE(AVG(marketing_products_subquery.price), 0) AS harga_jual_rata,
+                COALESCE(MIN(marketing_products_subquery.uom), "-") AS uom
+            ')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->leftJoinSub($marketing_products_subquery, 'marketing_products_subquery', 'marketing_products_subquery.project_id', '=', 'projects.project_id')
+            ->where('kandang.location_id', $location_id)
+            ->where('projects.period', $period)
+            ->groupBy('location_id')
+            ->get()->first();
+    }
+
+    public function getDataProduksiPerformance(int $period, int $location_id)
+    {
+        $latest_day_subquery = Recording::selectRaw('
+            projects.project_id,
+            MAX(recordings.day) AS latest_day
+        ')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->groupBy('projects.project_id');
+
+        $latest_recording_subquery = Recording::selectRaw('
+            projects.project_id,
+            recordings.day AS umur,
+            recordings.cum_depletion_rate AS mortalitas_act,
+            recordings.cum_depletion,
+            recordings.fcr_value AS fcr_act,
+            recordings.avg_daily_gain,
+            recordings.daily_gain,
+            recordings.total_chick AS populasi_akhir
+        ')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->joinSub($latest_day_subquery, 'latest_day_subquery', function($join) {
+                $join->on('recordings.project_id', '=', 'latest_day_subquery.project_id')
+                    ->on('recordings.day', '=', 'latest_day_subquery.latest_day');
+            });
+
+        $fcr_std_subquery = FcrStandard::selectRaw('
+            projects.project_id,
+            fcr_standards.day AS fcr_day,
+            fcr_standards.fcr AS fcr_std
+        ')
+            ->join('fcr', 'fcr.fcr_id', '=', 'fcr_standards.fcr_id')
+            ->join('projects', 'projects.fcr_id', '=', 'fcr.fcr_id')
+            ->joinSub($latest_day_subquery, 'latest_day_subquery', function($join) {
+                $join->on('projects.project_id', '=', 'latest_day_subquery.project_id')
+                    ->on('fcr_standards.day', '=', 'latest_day_subquery.latest_day'); // ✅ Match with latest recording day
+            });
+
+        $populasi_awal_subquery = ProjectChickIn::selectRaw('
+                projects.project_id, COALESCE(SUM(project_chickin.total_chickin), 0) AS populasi_awal
+            ')
+            ->join('projects', 'projects.project_id', '=', 'project_chickin.project_id')
+            ->groupBy('project_id');
+
+        $performance = Project::selectRaw('
+            kandang.location_id,
+            COALESCE(AVG(latest_recording_subquery.umur), 0) AS umur,
+            COALESCE(AVG(latest_recording_subquery.mortalitas_act), 0) AS mortalitas_act,
+            COALESCE(AVG(latest_recording_subquery.fcr_act), 0) AS fcr_act,
+            COALESCE(SUM(latest_recording_subquery.cum_depletion), 0) AS deplesi,
+            COALESCE(AVG(latest_recording_subquery.avg_daily_gain), 0) AS adg,
+            COALESCE(SUM(latest_recording_subquery.daily_gain), 0) AS daily_gain,
+            COALESCE(SUM(latest_recording_subquery.populasi_akhir), 0) AS populasi_akhir,
+            COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) AS populasi_awal,
+            COALESCE(AVG(projects.standard_mortality), 0) AS mortalitas_std,
+            COALESCE(MAX(fcr_std_subquery.fcr_day), 0) AS fcr_day,
+            COALESCE(AVG(fcr_std_subquery.fcr_std), 0) AS fcr_std
+        ')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->leftJoinSub($latest_recording_subquery, 'latest_recording_subquery', function($join) {
+                $join->on('latest_recording_subquery.project_id', '=', 'projects.project_id');
+            })
+            ->leftJoinSub($fcr_std_subquery, 'fcr_std_subquery', function($join) {
+                $join->on('fcr_std_subquery.project_id', '=', 'projects.project_id');
+            })
+            ->leftJoinSub($populasi_awal_subquery, 'populasi_awal_subquery', function($join) {
+                $join->on('populasi_awal_subquery.project_id', '=', 'projects.project_id');
+            })
+            ->where('kandang.location_id', $location_id)
+            ->where('projects.period', $period)
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        $performance->deff_mortalitas = abs(floatval($performance->mortalitas_std) - $performance->mortalitas_act);
+        $performance->deff_fcr        = abs(floatval($performance->fcr_std) - $performance->fcr_act);
+
+        $persentase      = $performance->populasi_akhir / max($performance->populasi_awal, 1) * 100;
+        $performance->ip = ($performance->fcr_act > 0 && $performance->umur > 0)
+        ? intval($persentase * $performance->daily_gain) / ($performance->fcr_act * $performance->umur) * 100
+        : 0;
+
+        return $performance;
     }
 }
