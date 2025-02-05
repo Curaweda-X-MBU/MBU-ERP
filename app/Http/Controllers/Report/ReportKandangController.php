@@ -268,7 +268,7 @@ class ReportKandangController extends Controller
                 'populasi_akhir_kandang' => $populasiAkhirKandang,
                 'pemakaian_farm'         => $pemakaianFarm,
                 'populasi_akhir_proyek'  => $populasiAkhirProyek,
-                'result'                 => ($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek,
+                'result'                 => $populasiAkhirProyek !== 0 ? (($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek) : 0,
                 'expense'                => $this->getOverhead($period, $location, $project, true),
             ]);
         } catch (\Exception $e) {
