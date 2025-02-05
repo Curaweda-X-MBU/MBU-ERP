@@ -71,6 +71,7 @@ $(function() {
     function fetchLocationOverheadData() {
         $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
             .then(function(result) {
+                console.log(result);
                 if (!result.error) {
                     populateBudgetTable(result);
                 }

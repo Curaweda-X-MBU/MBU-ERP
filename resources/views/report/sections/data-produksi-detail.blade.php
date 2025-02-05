@@ -1,4 +1,5 @@
 <div class="card">
+    <input type="hidden" class="location_data_produksi_loaded" value="0">
     <div class="card-body">
         <h4>Data Produksi</h4>
         <div class="row mt-2">
@@ -173,3 +174,16 @@
         </div>
     </div>
 </div>
+
+<script>
+$(function() {
+    function fetchDataProduksiData() {
+        $.get("{{ route('report.detail.location.produksi', ['location' => $detail->location_id]) . '?period=' . $detail->period }}")
+            .then(function(result) {
+                console.log(result);
+            });
+    }
+
+    $('.location_data_produksi_loaded').on('change', fetchDataProduksiData);
+});
+</script>
