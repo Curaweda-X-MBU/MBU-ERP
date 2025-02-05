@@ -77,7 +77,6 @@ class ReportKandangController extends Controller
                 'chickin_date'   => $project->project_chick_in->first()->chickin_date ?? null,
                 'ppl_ts'         => $project->kandang->user->name,
                 'approval_date'  => $project->approval_date,
-                'data_produksi'  => $this->dataProduksi(app(Request::class), $location, $project),
             ];
 
             $param = [
