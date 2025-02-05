@@ -151,7 +151,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if ($roleAccess->hasPermissionTo('report.manbu.index'))
+                        @if ($roleAccess->hasPermissionTo('report.man.index'))
                             <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=man', ENT_QUOTES, 'UTF-8') }}">
                                 <a class="d-flex align-items-center" href="{{ route('report.index').'?company=man' }}">
                                     <i data-feather="circle"></i>

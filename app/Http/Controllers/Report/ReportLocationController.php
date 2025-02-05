@@ -614,7 +614,7 @@ class ReportLocationController extends Controller
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'stock_movements.destination_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
-            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->whereRaw('LOWER(products.name) LIKE ?', ['%pakan%'])
             ->groupBy('project_id');
 
         $pakan_terpakai_subquery = RecordingStock::selectRaw('
