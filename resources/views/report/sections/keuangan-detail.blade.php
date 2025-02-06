@@ -7,6 +7,7 @@
 
 <div class="card">
     <input type="hidden" class="location_keuangan_loaded" value="0">
+    <input type="hidden" class="kandang_keuangan_loaded" value="0">
     <div class="card-body">
         @include('report.sections.keuangan-collapse.data-keuangan')
         <section id="collapsible">
@@ -28,8 +29,16 @@
 
 <script>
 $(function() {
-    function fetchKeuanganData() {
-        $.get("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
+    function fetchLocationKeuanganData() {
+        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+    }
+
+    function fetchKandangKeuanganData() {
+        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+    }
+
+    function fetchKeuanganData(route) {
+        $.get(route)
             .then(function(result) {
                 console.log(result);
                 if (!result.error) {
@@ -144,6 +153,7 @@ $(function() {
         });
     }
 
-    $('.location_keuangan_loaded').on('change', fetchKeuanganData);
+    $('.location_keuangan_loaded').on('change', fetchLocationKeuanganData);
+    $('.kandang_keuangan_loaded').on('change', fetchKandangKeuanganData);
 });
 </script>

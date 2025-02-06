@@ -176,6 +176,7 @@ Route::middleware('auth')->group(function() {
                 Route::get('/overhead', [App\Http\Controllers\Report\ReportKandangController::class, 'overhead'])->name('report.detail.kandang.overhead');
                 Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportKandangController::class, 'hppEkspedisi'])->name('report.detail.kandang.ekspedisi');
                 Route::get('/produksi', [App\Http\Controllers\Report\ReportKandangController::class, 'dataProduksi'])->name('report.detail.kandang.produksi');
+                Route::get('/keuangan', [App\Http\Controllers\Report\ReportKandangController::class, 'keuangan'])->name('report.detail.kandang.keuangan');
             });
         });
     });
