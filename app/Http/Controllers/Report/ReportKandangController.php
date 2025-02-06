@@ -10,6 +10,7 @@ use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
+use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
 use App\Models\Project\ProjectChickIn;
@@ -502,23 +503,79 @@ class ReportKandangController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
+            $bahan_baku = $this->getHppBahanBaku($project->project_id);
+
             return response()->json([
                 'pengeluaran' => [
                     [
                         'kategori'    => 'HPP dan Pengeluaran',
-                        'subkategori' => $this->getHppPembelian($period, $location->location_id, $project->project_id),
+                        'subkategori' => $this->getHppPembelian($project->project_id),
                     ],
                     [
                         'kategori'    => 'HPP dan Bahan Baku',
-                        'subkategori' => [
-                            $this->getHppBahanBaku($period, $location->location_id, $project->project_id),
-                        ],
+                        'subkategori' => $bahan_baku,
                     ],
+                ],
+                'laba_rugi' => [
+                    'bruto' => [
+                        $this->getTotalPenjualan($project->project_id),
+                        $this->getTotalPembelian($project->project_id),
+                    ],
+                    'netto' => $bahan_baku,
                 ],
             ]);
         } catch (\Exception $e) {
             return response()->json(['error', $e->getMessage()], 500);
         }
+    }
+
+    private function getTotalPenjualan(int $project_id)
+    {
+        $penjualan = Marketing::selectRaw('
+                COALESCE(SUM(marketing_products.qty), 0) as ekor,
+                COALESCE(SUM(marketing_products.weight_total), 0) as kg,
+                COALESCE(SUM(marketings.grand_total), 0) as grand_total
+            ')
+            ->join('marketing_products', 'marketing_products.marketing_id', '=', 'marketings.marketing_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'marketing_products.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        return [
+            'id'      => 1,
+            'jenis'   => 'Penjualan Ayam Besar',
+            'rp_ekor' => $penjualan->grand_total / $penjualan->ekor,
+            'rp_kg'   => $penjualan->grand_total / $penjualan->kg,
+            'rp'      => $penjualan->grand_total,
+        ];
+    }
+
+    private function getTotalPembelian(int $project_id)
+    {
+        $total_chick = $this->getTotalChick($project_id);
+
+        $bobot_sum = $this->getBobotSum($project_id);
+
+        $pembelian = Purchase::selectRaw('
+                COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+            ')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        return [
+            'id'      => 2,
+            'jenis'   => 'Pembelian Sapronak Supplier',
+            'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
+            'rp'      => $pembelian->grand_total,
+        ];
     }
 
     private function getSapronakMasuk(int $period, Location $location, Project $project)
@@ -826,7 +883,7 @@ class ReportKandangController extends Controller
         return $expense;
     }
 
-    public function getHppPembelian(int $period, int $location_id, int $project_id)
+    private function getHppPembelian(int $project_id)
     {
         // Population Initial Subquery
         $populasi_awal_subquery = ProjectChickIn::selectRaw('
@@ -929,63 +986,46 @@ class ReportKandangController extends Controller
                     ->on('project_budget_subquery.product_id', '=', 'combined_products.product_id');
             })
             ->where('projects.project_id', $project_id)
-            ->where('projects.period', $period)
             ->groupBy(['combined_products.produk', 'combined_products.product_id'])
             ->get()->toArray();
     }
 
-    public function getHppBahanBaku(int $period, int $location_id, int $project_id)
+    private function getHppBahanBaku(int $project_id)
     {
-        $budget = ProjectBudget::whereHas(
-            'project',
-            fn ($p) => $p->where([
-                ['project_id', $project_id],
-                ['period', $period],
-            ])
-        )
+        $total_chick = $this->getTotalChick($project_id);
+
+        $bobot_sum = $this->getBobotSum($project_id);
+
+        $hpp_ekspedisi = $this->getHppExpedisi($project_id)->sum('total_delivery_fee');
+
+        return [
+            $this->getHppOverhead($project_id),
+            [
+                'name'                => 'Beban Ekspedisi',
+                'budget_rp'           => '-',
+                'budget_rp_ekor'      => '-',
+                'budget_rp_kg'        => '-',
+                'realization_rp'      => $hpp_ekspedisi,
+                'realization_rp_ekor' => $total_chick ? $hpp_ekspedisi / $total_chick : 0,
+                'realization_rp_kg'   => $bobot_sum ? $hpp_ekspedisi   / $bobot_sum : 0,
+            ],
+        ];
+    }
+
+    private function getHppOverhead(int $project_id)
+    {
+        $budget = ProjectBudget::whereHas('project', fn ($p) => $p->where('project_id', $project_id))
             ->whereNotNull('nonstock_id')
             ->sum('total');
 
         $expense = Expense::where('category', 1)
-            ->whereHas(
-                'expense_kandang.project',
-                fn ($p) => $p->where([
-                    ['project_id', $project_id],
-                    ['period', $period],
-                ])
-            )
+            ->whereHas('expense_kandang.project', fn ($p) => $p->where('project_id', $project_id))
             ->get()
             ->sum('grand_total');
 
-        $total_chick = ProjectChickIn::whereHas(
-            'project',
-            fn ($p) => $p->where([
-                ['project_id', $project_id],
-                ['period', $period],
-            ])
-        )
-            ->whereHas('project.kandang', fn ($k) => $k->where('location_id', $location_id))
-            ->sum('total_chickin');
+        $total_chick = $this->getTotalChick($project_id);
 
-        $bobot_sum = Recording::whereHas(
-            'project.kandang',
-            fn ($q) => $q->where('location_id', $location_id)
-        )
-            ->whereHas(
-                'project',
-                fn ($q) => $q->where([
-                    ['project_id', $project_id],
-                    ['period', $period],
-                ])
-            )
-            ->whereIn('recordings.day', function($q) {
-                $q->selectRaw('MAX(day)')
-                    ->from('recordings')
-                    ->groupBy('project_id');
-            })
-            ->with('recording_bw')
-            ->get()
-            ->sum(fn ($recording) => optional($recording->recording_bw)->value ?? 0);
+        $bobot_sum = $this->getBobotSum($project_id);
 
         return [
             'name'                => 'Pengeluaran Overhead',
@@ -996,5 +1036,36 @@ class ReportKandangController extends Controller
             'realization_rp_ekor' => $total_chick ? $expense / $total_chick : 0,
             'realization_rp_kg'   => $bobot_sum ? $expense   / $bobot_sum : 0,
         ];
+    }
+
+    private function getHppExpedisi(int $project_id)
+    {
+        return MarketingDeliveryVehicle::selectRaw('suppliers.name AS supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) AS total_delivery_fee')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
+            ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
+            ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('suppliers.name')
+            ->get();
+    }
+
+    private function getBobotSum(int $project_id)
+    {
+        return Recording::whereHas('project.kandang', fn ($q) => $q
+            ->whereHas('project', fn ($q) => $q->where('project_id', $project_id)))
+            ->whereIn('recordings.day', function($q) {
+                $q->selectRaw('MAX(day)')
+                    ->from('recordings')
+                    ->groupBy('project_id');
+            })
+            ->with('recording_bw')
+            ->get()
+            ->sum(fn ($recording) => optional(optional($recording)->recording_bw)->value ?? 0);
+    }
+
+    private function getTotalChick(int $project_id)
+    {
+        return ProjectChickIn::whereHas('project', fn ($p) => $p->where('project_id', $project_id))
+            ->sum('total_chickin');
     }
 }
