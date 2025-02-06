@@ -29,12 +29,20 @@
 
 <script>
 $(function() {
+    function intVal (i) {
+        return typeof i === 'string'
+            ? parseLocaleToNum(i)
+            : typeof i === 'number'
+            ? i
+            : 0;
+    };
+
     function fetchLocationKeuanganData() {
         fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
     }
 
     function fetchKandangKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
     }
 
     function fetchKeuanganData(route) {
@@ -99,57 +107,90 @@ $(function() {
                 { data: "nama" },
                 {
                     data: "budget_rp_ekor",
+                    className: "text-right budget_rp_ekor",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
                 {
                     data: "budget_rp_kg",
+                    className: "text-right budget_rp_kg",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
                 {
                     data: "budget_rp",
+                    className: "text-right budget_rp",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
                 {
                     data: "realization_rp_ekor",
+                    className: "text-right realization_rp_ekor",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
                 {
                     data: "realization_rp_kg",
+                    className: "text-right realization_rp_kg",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
                 {
                     data: "realization_rp",
+                    className: "text-right realization_rp",
                     render: function(data) {
                         return parseNumToLocale(data);
                     }
                 },
             ],
-            // footerCallback: function(row, data) {
-                // let api = this.api();
+            footerCallback: function(row, data) {
+                let api = this.api();
 
-                // const $footer = $(api.column(0).footer()).closest('tfoot');
+                const $footer = $(api.column(0).footer()).closest('tfoot');
 
-                // totalRealizationQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyRealisasi ?? 0), 0);
+                budgetRpEkor = (api
+                    .column('.budget_rp_ekor')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                // $footer.find('.total_realization_qty').html(trimLocale(totalRealizationQty));
+                $footer.find('.total_budget_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(budgetRpEkor)}`);
+                budgetRpKg = (api
+                    .column('.budget_rp_kg')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                // grandTotal = (api
-                //     .column('.realization_total')
-                //     .data() ?? [])
-                //     .reduce((a, b) => intVal(a) + intVal(b), 0);
+                $footer.find('.total_budget_rp_kg').html(`Rp&nbsp;${parseNumToLocale(budgetRpKg)}`);
+                budgetRp = (api
+                    .column('.budget_rp')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                // $footer.find('.grand_total').html(`Rp&nbsp;${parseNumToLocale(grandTotal)}`);
-            // },
+                $footer.find('.total_budget_rp').html(`Rp&nbsp;${parseNumToLocale(budgetRp)}`);
+
+                realizationRpEkor = (api
+                    .column('.realization_rp_ekor')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
+                realizationRpEkor = (api
+                    .column('.realization_rp_ekor')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
+                realizationRpEkor = (api
+                    .column('.realization_rp_ekor')
+                    .data() ?? [])
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
+            },
         });
     }
 
