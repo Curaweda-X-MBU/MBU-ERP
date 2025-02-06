@@ -34,28 +34,6 @@
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">{{ $farmType[$detail->farm_type] }}</td>
                         </tr>
-                        <tr>
-                            <td class="col-md-4">Status Project</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">
-                                @switch($detail->project_status)
-                                    @case(1)
-                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
-                                        @break
-                                    @case(2)
-                                        <div class="badge badge-pill badge-primary">Aktif</div>
-                                        @break
-                                    @case(3)
-                                        <div class="badge badge-pill badge-info">Persiapan</div>
-                                        @break
-                                    @case(4)
-                                        <div class="badge badge-pill badge-success">Selesai</div>
-                                        @break
-                                    @default
-                                        <div class="badge badge-pill badge-secondary">N/A</div>
-                                @endswitch
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -86,6 +64,28 @@
                                         @break
                                     @case(2)
                                         <div class="badge badge-pill badge-success">Sudah Bayar</div>
+                                        @break
+                                    @default
+                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                @endswitch
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">Status Project</td>
+                            <td class="col-md-1">:</td>
+                            <td class="col-md-7">
+                                @switch($detail->project_status)
+                                    @case(1)
+                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                        @break
+                                    @case(2)
+                                        <div class="badge badge-pill badge-primary">Aktif</div>
+                                        @break
+                                    @case(3)
+                                        <div class="badge badge-pill badge-info">Persiapan</div>
+                                        @break
+                                    @case(4)
+                                        <div class="badge badge-pill badge-success">Selesai</div>
                                         @break
                                     @default
                                         <div class="badge badge-pill badge-secondary">N/A</div>

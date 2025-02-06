@@ -204,7 +204,6 @@ $(function() {
 
                     // PENJUALAN
                     const penjualan = result.penjualan;
-                    console.log(penjualan);
                     $('#bobot_total').text(trimLocale(penjualan.penjualan_kg));
                     $('#qty_total').text(trimLocale(penjualan.penjualan_ekor));
                     $('#bobot_rata').text(trimLocale(penjualan.bobot_rata));
