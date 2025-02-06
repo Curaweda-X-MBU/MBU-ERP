@@ -29,12 +29,12 @@
                     <tr class="font-weight-bolder text-center">
                         <td class="text-left">HPP</td>
                         <td></td>
-                        <td>Rp <span>274.235.400</span></td>
-                        <td>Rp <span>274.235.400</span></td>
-                        <td>Rp <span>274.235.400</span></td>
-                        <td>Rp <span>274.235.400</span></td>
-                        <td>Rp <span>274.235.400</span></td>
-                        <td>Rp <span>265.678.820</span></td>
+                        <td class="total_budget_rp_ekor">Rp <span>0</span></td>
+                        <td class="total_budget_rp_kg">Rp <span>0</span></td>
+                        <td class="total_budget_rp">Rp <span>0</span></td>
+                        <td class="total_realization_rp_ekor">Rp <span>0</span></td>
+                        <td class="total_realization_rp_kg">Rp <span>0</span></td>
+                        <td class="total_realization_rp">Rp <span>0</span></td>
                     </tr>
                 </tfoot>
             </table>
