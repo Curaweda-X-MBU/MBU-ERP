@@ -131,37 +131,37 @@ class ReportLocationController extends Controller
                 return $k->project->where('period', $period);
             })->max('project_status');
             if (isset($input['period'])) {
-                $period        = $input['period'];
-                $latestProject = $location->kandangs->where('project.period', $input['period'])->first();
+                $period        = intval($input['period']);
+                $latestProject = $location->kandangs->where('project.period', $period)->first();
             }
 
-            $kandangs = $location->kandangs->select(['kandang_id', 'name', 'project_status', 'latest_period', 'latest_project'])
-                ->map(function($k) use ($input) {
-                    $k['is_active']      = $k['project_status'];
-                    $k['latest_period']  = isset($input['period']) ? $input['period'] : $k['latest_period'];
-                    $k['latest_project'] = isset($input['period']) ? $k->projects->where('period', $input['period']) : ($k['latest_project'] ?? null);
+            $kandangs = $location->kandangs
+                ->transform(function($k) use ($input, $period) {
+                    // $k['is_active']      = $k['project_status'];
+                    // $k['latest_period']  = isset($input['period']) ? $period : $k['latest_period'];
+                    // $k['latest_project'] = isset($input['period']) ? $k->projects->where('period', $period) : ($k['latest_project'] ?? null);
 
-                    return (object) $k;
+                    return (object) [
+                        'kandang_id'     => $k->kandang_id,
+                        'name'           => $k->name,
+                        'project_status' => $k->project_status,
+                        'is_active'      => $k->project_status,
+                        'latest_period'  => isset($input['period']) ? $period : $k->latest_period,
+                        'latest_project' => isset($input['period']) ? optional($k->project())->where('period', $period)->get()->first() : ($k->latest_project ?? null),
+                    ];
                 });
 
             $detail = (object) [
-                'location_id' => $location->location_id,
-                'project_id'  => 'nothing',
-                'location'    => $location->name,
-                'period'      => $period,
-                'product'     => $latestProject->product_category->name,
-                'doc'         => $latestProject->project_chick_in->first()->total_chickin ?? 0,
-                'farm_type'   => $latestProject->farm_type,
-                // 'closing_date' => $proj,
+                'location_id'    => $location->location_id,
+                'project_id'     => 'nothing',
+                'location'       => $location->name,
+                'period'         => $period,
+                'product'        => $latestProject ? $latestProject->product_category->name : '-',
+                'doc'            => $latestProject ? $latestProject->project_chick_in->first()->total_chickin : 0,
+                'farm_type'      => $latestProject->farm_type ?? 1,
                 'project_status' => $projectStatus,
                 'active_kandang' => count($kandangs->where('project_status', 1)),
-                'chickin_date'   => $latestProject->project_chick_in->sortByDesc('chickin_date')->first()->chickin_date ?? null, // NOTE: NEED FIX
-                'approval_date'  => $latestProject->approval_date,
-                // 'payment_status' => $proj,
-                // 'closing_status' => $proj,
-                'kandangs'      => $kandangs,
-                'hpp_pembelian' => $this->getHppPembelian($period, $location->location_id),
-                'bahan_baku'    => $this->getHppBahanBaku($period, $location->location_id),
+                'kandangs'       => $kandangs,
             ];
 
             $param = [
@@ -614,7 +614,7 @@ class ReportLocationController extends Controller
             'id'      => 2,
             'jenis'   => 'Pembelian Sapronak Supplier',
             'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
-            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total   / $bobot_sum : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
             'rp'      => $pembelian->grand_total,
         ];
     }

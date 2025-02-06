@@ -23,6 +23,8 @@
 
 <script>
 $(function() {
+    const period = getQueryParam('period');
+
     function populatePerhitunganTable(table_selector, data) {
         $(table_selector).DataTable({
             destroy: true,
@@ -89,11 +91,11 @@ $(function() {
     }
 
     function fetchLocationPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchPerhitunganSapronakData(route) {

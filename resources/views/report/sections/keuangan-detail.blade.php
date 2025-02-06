@@ -29,6 +29,8 @@
 
 <script>
 $(function() {
+    const period = getQueryParam('period');
+
     function secureReduce(arr) {
         return arr.reduce((a, b) => {
             let add = parseFloat(b);
@@ -41,11 +43,11 @@ $(function() {
     }
 
     function fetchLocationKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchKeuanganData(route) {

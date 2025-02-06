@@ -55,12 +55,14 @@
 
 <script>
 $(function() {
+    const period = getQueryParam('period');
+
     function fetchLocationPenjualanData() {
-        fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangPenjualanData() {
-        fetchPenjualanData("{{ route('report.detail.kandang.penjualan', [ 'location' => $detail->location_id , 'project' => $detail->project_id]) . '?period=' . $detail->period }}");
+        fetchPenjualanData("{{ route('report.detail.kandang.penjualan', [ 'location' => $detail->location_id , 'project' => $detail->project_id]) . '?period=' }}" + period);
     }
 
     function fetchPenjualanData(route) {

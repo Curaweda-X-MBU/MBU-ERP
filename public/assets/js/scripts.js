@@ -283,3 +283,8 @@ function trimLocale(num) {
     const locale = parseNumToLocale(num);
     return locale.split(",")[1] === "00" ? locale.split(",")[0] : locale;
 }
+
+function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}

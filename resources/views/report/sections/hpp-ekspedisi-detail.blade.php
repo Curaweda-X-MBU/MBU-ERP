@@ -42,12 +42,14 @@
 
 <script>
 $(function() {
+    const period = getQueryParam('period');
+
     function fetchLocationHppEkspedisiData() {
-        fetchHppEkspedisiData("{{ route('report.detail.location.ekspedisi', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchHppEkspedisiData("{{ route('report.detail.location.ekspedisi', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangHppEkspedisiData() {
-        fetchHppEkspedisiData("{{ route('report.detail.kandang.ekspedisi', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchHppEkspedisiData("{{ route('report.detail.kandang.ekspedisi', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchHppEkspedisiData(route) {

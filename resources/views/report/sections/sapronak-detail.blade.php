@@ -22,12 +22,14 @@
 
 <script>
 $(function() {
+    const period = getQueryParam('period');
+
     function fetchLocationSapronakData() {
-        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangSapronakData() {
-        fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchSapronakData(route) {
