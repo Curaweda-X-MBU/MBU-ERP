@@ -23,14 +23,6 @@
 
 <script>
 $(function() {
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
-
     function populatePerhitunganTable(table_selector, data) {
         $(table_selector).DataTable({
             destroy: true,

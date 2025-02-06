@@ -256,3 +256,26 @@ function parseDateToString(datestring, format = "d-M-Y") {
         return "Invalid Format"; // Handle unsupported formats
     }
 }
+
+/**
+ * Parse a number string to type number
+ * @param {number | string} num
+ * @returns {number}
+ */
+function intVal(num) {
+    return typeof num === "string"
+        ? parseLocaleToNum(i)
+        : typeof num === "number"
+          ? i
+          : 0;
+}
+
+/**
+ * Parse a number to locale string and trim excess 0 decimal
+ * @param {number} num
+ * @returns {number}
+ */
+function trimLocale(num) {
+    const locale = parseNumToLocale(num);
+    return locale.split(",")[1] === "00" ? locale.split(",")[0] : locale;
+}

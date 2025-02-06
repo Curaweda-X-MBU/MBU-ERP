@@ -178,13 +178,6 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
-
     function fetchLocationDataProduksiData() {
         fetchDataProduksiData("{{ route('report.detail.location.produksi', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
     }

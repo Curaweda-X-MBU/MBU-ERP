@@ -42,14 +42,6 @@
 
 <script>
 $(function() {
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
-
     function fetchLocationHppEkspedisiData() {
         fetchHppEkspedisiData("{{ route('report.detail.location.ekspedisi', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
     }

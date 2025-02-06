@@ -77,21 +77,6 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
-
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
-
     function fetchKandangOverheadData() {
         $.get("{{ route('report.detail.kandang.overhead', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}")
             .then(function(result) {

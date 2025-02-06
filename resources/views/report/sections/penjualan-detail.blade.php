@@ -55,13 +55,6 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
-
     function fetchLocationPenjualanData() {
         fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
     }
