@@ -101,7 +101,6 @@ $(function() {
     function fetchPerhitunganSapronakData(route) {
         $.get(route)
             .then(function(result) {
-                console.log(result);
                 if (!result.error) {
                     const doc = result.doc;
                     populatePerhitunganTable('#perhitungan_doc_datatable', doc);

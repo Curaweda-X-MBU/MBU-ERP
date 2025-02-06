@@ -126,21 +126,25 @@ class ReportLocationController extends Controller
             $input                    = $req->all();
             $kandangWithLatestProject = $location->kandangs->sortByDesc('latest_period')->first();
             $latestProject            = $kandangWithLatestProject->latest_project;
+            $latestPeriod             = $latestProject->period;
             $period                   = $latestProject->period;
             $projectStatus            = $location->kandangs->flatMap(function($k) use ($period) {
                 return $k->project->where('period', $period);
             })->max('project_status');
             if (isset($input['period'])) {
-                $period        = intval($input['period']);
-                $latestProject = $location->kandangs->where('project.period', $period)->first();
+                $period = intval($input['period']);
+
+                $allKandangInPeriod = $location->kandangs()->whereHas('project', fn ($p) => $p->where('period', $period));
+
+                $kandangWithPeriodProject = (clone $allKandangInPeriod)->first();
+
+                if ($kandangWithPeriodProject) {
+                    $latestProject = $kandangWithPeriodProject->project()->where('period', $period)->first();
+                }
             }
 
             $kandangs = $location->kandangs
                 ->transform(function($k) use ($input, $period) {
-                    // $k['is_active']      = $k['project_status'];
-                    // $k['latest_period']  = isset($input['period']) ? $period : $k['latest_period'];
-                    // $k['latest_project'] = isset($input['period']) ? $k->projects->where('period', $period) : ($k['latest_project'] ?? null);
-
                     return (object) [
                         'kandang_id'     => $k->kandang_id,
                         'name'           => $k->name,
@@ -151,17 +155,24 @@ class ReportLocationController extends Controller
                     ];
                 });
 
+            $projectChickinArr = $allKandangInPeriod->get()->flatMap(function($k) {
+                return $k->project()->whereHas('project_chick_in')->get()->flatMap(function($p) {
+                    return $p->project_chick_in->pluck('total_chickin');
+                });
+            });
+
             $detail = (object) [
                 'location_id'    => $location->location_id,
                 'project_id'     => 'nothing',
                 'location'       => $location->name,
                 'period'         => $period,
                 'product'        => $latestProject ? $latestProject->product_category->name : '-',
-                'doc'            => $latestProject ? $latestProject->project_chick_in->first()->total_chickin : 0,
+                'doc'            => Parser::trimLocale($projectChickinArr->sum()),
                 'farm_type'      => $latestProject->farm_type ?? 1,
                 'project_status' => $projectStatus,
                 'active_kandang' => count($kandangs->where('project_status', 1)),
                 'kandangs'       => $kandangs,
+                'latest_period'  => $latestPeriod,
             ];
 
             $param = [
@@ -171,11 +182,10 @@ class ReportLocationController extends Controller
 
             return $this->checkAccess($company, $param, 'detail');
         } catch (\Exception $e) {
-            dd($e);
-            // return redirect()
-            //     ->back()
-            //     ->with('error', $e->getMessage())
-            //     ->withInput();
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
     }
 

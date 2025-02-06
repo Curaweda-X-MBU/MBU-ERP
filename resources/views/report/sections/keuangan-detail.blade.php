@@ -58,7 +58,6 @@ $(function() {
                     populateHPPTable(pengeluaran);
 
                     const labaRugi = result.laba_rugi;
-                    console.log((labaRugi.bruto || []))
                     populateLabaRugiTable(labaRugi.bruto ?? [], labaRugi.netto ?? []);
                 }
             });
