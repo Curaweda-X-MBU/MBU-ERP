@@ -53,14 +53,14 @@
                             <div class="col-1 d-flex align-items-center justify-content-center">=</div>
                             <div class="col-3">
                                 <div class="row text-center d-flex align-items-center justify-content-center">
-                                    50.000 X 512.447.584
+                                    <span id="populasi_akhir_kandang">0</span>&nbsp;X&nbsp;<span id="pemakaian_farm">0</span>
                                 </div>
                                 <div><hr class="p-0 border-dark" style="border-width: 3px;"></div>
                                 <div class="row d-flex align-items-center justify-content-center">
-                                    387.200
+                                    <span id="populasi_akhir_proyek">0</span>
                                 </div>
                             </div>
-                            <div class="col-2 text-center d-flex align-items-center"><span class="pl-2 pr-3">=</span>66.173.153.23</div>
+                            <div class="col-2 text-center d-flex align-items-center"><span class="pl-2 pr-3">=</span><span class="result">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -70,7 +70,7 @@
         {{-- total --}}
         <div class="row mt-1 mx-0 font-weight-bolder d-flex justify-content-between">
             <div class="">TOTAL PEMBEBANAN KANDANG</div>
-            <div class="text-right ">66.173.501.29</div>
+            <div class="text-right "><span class="result">0</span></div>
         </div>
     </div>
 </div>
@@ -96,12 +96,19 @@ $(function() {
         $.get("{{ route('report.detail.kandang.overhead', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}")
             .then(function(result) {
                 if (!result.error) {
+                    const perhitungan = result.perhitungan;
+                    $('#populasi_akhir_kandang').text(trimLocale(perhitungan.populasi_akhir_kandang));
+                    $('#pemakaian_farm').text(trimLocale(perhitungan.pemakaian_farm));
+                    $('#populasi_akhir_proyek').text(trimLocale(perhitungan.populasi_akhir_proyek));
+                    $('.result').text(trimLocale(perhitungan.result));
+
+                    const expense = result.expense;
                     $('#kandang_overhead_datatable').DataTable({
                         destroy: true,
                         responsive: true,
                         ordering: true,
                         dom: '<"custom-table-wrapper"t>',
-                        data: result,
+                        data: expense,
                         columns: [
                             {
                                 data: null,

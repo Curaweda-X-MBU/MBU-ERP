@@ -1090,7 +1090,7 @@ class ReportLocationController extends Controller
             })
             ->with('recording_bw')
             ->get()
-            ->sum(fn ($recording) => optional($recording->recording_bw)->value ?? 0);
+            ->sum(fn ($recording) => optional(optional($recording)->recording_bw)->value ?? 0);
 
         return [
             'name'                => 'Pengeluaran Overhead',
