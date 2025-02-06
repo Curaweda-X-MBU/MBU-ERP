@@ -249,7 +249,7 @@
                                                 <thead>
                                                     <th>No</th>
                                                     <th>Nama Biaya</th>
-                                                    <th>Nominla Biaya</th>
+                                                    <th>Nominal Biaya</th>
                                                     <th>Catatan</th>
                                                 </thead>
                                                 <tbody>

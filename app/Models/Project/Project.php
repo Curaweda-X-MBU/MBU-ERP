@@ -5,11 +5,15 @@ namespace App\Models\Project;
 use App\Models\DataMaster\Fcr;
 use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\ProductCategory;
+use App\Models\Expense\ExpenseKandang;
+use App\Models\Marketing\MarketingProduct;
 use App\Models\Purchase\PurchaseItem;
 use App\Models\UserManagement\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {
@@ -39,6 +43,41 @@ class Project extends Model
         'closing_by',
         'created_by',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function(Project $project) {
+            if ($project->isDirty('approval_date') && $project->approval_date !== null) {
+                DB::transaction(function() use ($project) {
+                    ActiveProjectLog::create([
+                        'period'     => (Carbon::parse($project->approval_date)->year * 12) + Carbon::parse($project->approval_date)->month,
+                        'project_id' => $project->project_id,
+                    ]);
+                });
+            }
+
+            if ($project->isDirty('closing_date') && $project->closing_date !== null) {
+                DB::transaction(function() use ($project) {
+                    $lastPeriod = ActiveProjectLog::where('project_id', $project->project_id)
+                        ->value('period');
+
+                    $closingDate = $project->closing_date;
+                    $newPeriod   = (Carbon::parse($closingDate)->year * 12) + Carbon::parse($closingDate)->month;
+
+                    if ($lastPeriod < $newPeriod) {
+                        for ($period = $lastPeriod + 1; $period <= $newPeriod; $period++) {
+                            ActiveProjectLog::create([
+                                'period'     => $period,
+                                'project_id' => $project->project_id,
+                            ]);
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     public function product_category()
     {
@@ -93,5 +132,20 @@ class Project extends Model
     public function recording()
     {
         return $this->hasMany(Recording::class, 'project_id');
+    }
+
+    public function marketing_products()
+    {
+        return $this->hasMany(MarketingProduct::class, 'project_id');
+    }
+
+    public function expense_kandangs()
+    {
+        return $this->hasMany(ExpenseKandang::class, 'project_id');
+    }
+
+    public function active_projects_log()
+    {
+        return $this->hasMany(ActiveProjectLog::class, 'project_id');
     }
 }

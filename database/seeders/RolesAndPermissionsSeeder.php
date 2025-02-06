@@ -51,6 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'project.list.copy',
             'project.list.approve',
             'project.list.delete',
+            'project.list.closing',
             'project.chick-in.index',
             'project.chick-in.add',
             'project.chick-in.edit',
@@ -59,7 +60,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'project.chick-in.delete',
             'project.recording.index',
             'project.recording.add',
+            'project.recording.edit',
             'project.recording.detail',
+            'project.recording.revision-submission',
+            'project.recording.revision-approval',
             'project.perparation.index',
             'ph.performance.index',
             'ph.performance.detail',
@@ -118,8 +122,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'expense.recap.index',
             'finance.index',
             'report.mbu.index',
-            'report.manbu.index',
+            'report.mbu.detail',
+            'report.mbu.kandang',
+            'report.man.index',
+            'report.man.detail',
+            'report.man.kandang',
             'report.lti.index',
+            'report.lti.detail',
+            'report.lti.kandang',
             'purchase.index',
             'purchase.add',
             'purchase.copy',
@@ -128,10 +138,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'purchase.detail',
             'purchase.delete',
             'inventory.product.index',
-            'inventory.product.edit',
             'inventory.product.detail',
             'inventory.adjustment.index',
             'inventory.adjustment.add',
+            'inventory.movement.index',
+            'inventory.movement.add',
+            'inventory.movement.detail',
             'data-master.product-category.index',
             'data-master.product-category.add',
             'data-master.product-category.edit',
@@ -277,20 +289,20 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Assign permissions to roles
         Role::find(1)->givePermissionTo($permissions);
-        Role::find(2)->givePermissionTo($adminMarketingPermissions);
-        Role::find(3)->givePermissionTo($adminFinancePermissions);
-        Role::find(4)->givePermissionTo($managerMarketingPermissions);
-        Role::find(5)->givePermissionTo($managerFinancePermissions);
+        // Role::find(2)->givePermissionTo($adminMarketingPermissions);
+        // Role::find(3)->givePermissionTo($adminFinancePermissions);
+        // Role::find(4)->givePermissionTo($managerMarketingPermissions);
+        // Role::find(5)->givePermissionTo($managerFinancePermissions);
         $user1 = User::find(1);
         $user1->assignRole('Super Admin');
-        $user2 = User::find(2);
-        $user2->assignRole('Admin Marketing');
-        $user3 = User::find(3);
-        $user3->assignRole('Admin Finance');
-        $user4 = User::find(4);
-        $user4->assignRole('Manager Marketing');
-        $user5 = User::find(5);
-        $user5->assignRole('Manager Finance');
+        // $user2 = User::find(2);
+        // $user2->assignRole('Admin Marketing');
+        // $user3 = User::find(3);
+        // $user3->assignRole('Admin Finance');
+        // $user4 = User::find(4);
+        // $user4->assignRole('Manager Marketing');
+        // $user5 = User::find(5);
+        // $user5->assignRole('Manager Finance');
         // $adminFarm->givePermissionTo($permissions);
         // $managerArea->givePermissionTo(['project.list', 'pembelian.submit']);
         // $staffAudit->givePermissionTo(['audit.access', 'pembelian.submit']);

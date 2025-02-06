@@ -15,9 +15,9 @@
                 <th>Kandang/Hatchery<i class="text-danger">*</i></th>
                 <th class="col-2">Nama Produk<i class="text-danger">*</i></th>
                 <th>Harga Satuan (Rp)<i class="text-danger">*</i></th>
-                <th>Bobot Avg<i class="text-danger">*</i></th>
-                <th>UOM<i class="text-danger">*</i></th>
+                <th>Bobot Avg (Kg)<i class="text-danger">*</i></th>
                 <th>Qty<i class="text-danger">*</i></th>
+                <th>UOM</th>
                 <th>Total Bobot</th>
                 <th>Total Penjualan (Rp)</th>
                 <th>
@@ -52,14 +52,14 @@
                 <td class="pt-2 pb-3">
                     <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
-                <td class="pt-2 pb-3">
-                    <input type="hidden" name="uom_id" required>
-                    <input name="uom_name" class="form-control" disabled>
-                </td>
                 <td class="pt-2 pb-3 position-relative">
                     <input type="number" name="qty" id="qty" max="0" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
                     <input type="text" id="qty_mask" class="form-control numeral-mask" placeholder="Qty" required>
                     <span id="invalid_qty" class="text-danger text-right small position-absolute pr-1" style="right: 0; font-size: 80%; opacity: 0;">Melebihi stock</span>
+                </td>
+                <td class="pt-2 pb-3">
+                    <input type="hidden" name="uom_id" required>
+                    <span class="uom_name"></span>
                 </td>
                 <td class="pt-2 pb-3">
                     <input type="text" id="weight_total" class="form-control" value="0,00" disabled>
@@ -110,7 +110,7 @@
         $rowScope.find('#qty').attr('max', qty);
         $rowScope.find('input[name*="price"]').val(price).trigger('input');
         $rowScope.find('input[name*="uom_id"]').val(uom_id);
-        $rowScope.find('input[name*="uom_name"]').val(uom_name);
+        $rowScope.find('.uom_name').text(uom_name);
         initNumeralMask('.numeral-mask');
     }
     // ? END :: SET VALUE :: QTY & CURRENT STOCK
@@ -237,7 +237,7 @@
 
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`input[name="marketing_products[${i}][uom_id]"]`).val(product.uom_id);
-            $(`input[name="marketing_products[${i}][uom_name]"]`).val(product.uom.name);
+            $('.uom_name').text(product.uom.name);
             $(`input[name="marketing_products[${i}][weight_avg]"]`).val(parseNumToLocale(product.weight_avg));
             let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
             productIdRoute = productIdRoute.replace(':id', product.warehouse_id);

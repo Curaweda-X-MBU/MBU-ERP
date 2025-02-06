@@ -14,7 +14,6 @@
                             <th class="text-right">Total Anggaran (Rp)</th>
                         </thead>
                         <tbody>
-                            {{-- @dd($data->project_budget) --}}
                             @if ($data->project_budget)
                                 @foreach ($data->project_budget as $item)
                                     <tr>
@@ -45,6 +44,6 @@
 
 <script>
     $(function () {
-        
+
     });
 </script>

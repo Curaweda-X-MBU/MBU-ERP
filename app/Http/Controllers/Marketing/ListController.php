@@ -6,6 +6,7 @@ use App\Constants;
 use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
+use App\Models\DataMaster\Warehouse;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Inventory\StockLog;
 use App\Models\Marketing\Marketing;
@@ -60,7 +61,7 @@ class ListController extends Controller
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
 
-                DB::transaction(function() use ($req) {
+                $success = DB::transaction(function() use ($req) {
                     $input            = $req->all();
                     $productPrice     = 0;
                     $additPrice       = 0;
@@ -95,6 +96,7 @@ class ListController extends Controller
                         'created_by' => Auth::id(),
                     ]);
 
+                    $arrProduct = [];
                     if ($req->has('marketing_products')) {
                         $arrProduct = $req->input('marketing_products');
 
@@ -104,7 +106,7 @@ class ListController extends Controller
                             $qty       = Parser::parseLocale($value['qty']);
 
                             $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $weightTotal;
+                            $totalPrice  = $price     * $qty;
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
@@ -116,6 +118,16 @@ class ListController extends Controller
                             $arrProduct[$key]['qty']          = $qty;
                             $arrProduct[$key]['weight_total'] = $weightTotal;
                             $arrProduct[$key]['total_price']  = $totalPrice;
+
+                            // assign project_id
+                            $project = Warehouse::find($value['warehouse_id'])->kandang->project()->where([
+                                ['chickin_status', '=', 3],
+                                ['project_status', '!=', 4],
+                            ])->first() ?? null;
+
+                            if ($project) {
+                                $arrProduct[$key]['project_id'] = $project->project_id;
+                            }
                         }
 
                         MarketingProduct::insert($arrProduct);
@@ -152,9 +164,17 @@ class ListController extends Controller
                     $createdMarketing->update([
                         'id_marketing' => "DO.{$company->alias}.{$createdMarketing->marketing_id}",
                     ]);
-                });
 
-                $success = ['success' => 'Data Berhasil disimpan'];
+                    // Success message according to project_id
+                    if (! empty($arrProduct)) {
+                        $projectIds       = array_column($arrProduct, 'project_id');
+                        $projectIdsString = implode(', ', $projectIds);
+
+                        return ['success' => "Penjualan Berhasil Disimpan | Terhubung Pada Project ID {$projectIdsString}"];
+                    } else {
+                        return ['success' => 'Penjualan Berhasil Disimpan | Tidak Terhubung Pada Project'];
+                    }
+                });
 
                 return redirect()
                     ->route('marketing.list.index')
@@ -220,7 +240,7 @@ class ListController extends Controller
                     return redirect()->back()->with('error', 'Produk Penjualan tidak boleh kosong')->withInput($input);
                 }
 
-                DB::transaction(function() use ($req, $marketing) {
+                $success = DB::transaction(function() use ($req, $marketing) {
                     $input            = $req->all();
                     $productPrice     = 0;
                     $additPrice       = 0;
@@ -250,6 +270,7 @@ class ListController extends Controller
                         'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
+                    $arrProduct = [];
                     if ($req->has('marketing_products')) {
                         $marketing->marketing_products()->delete();
                         $arrProduct = $req->input('marketing_products');
@@ -272,6 +293,16 @@ class ListController extends Controller
                             $arrProduct[$key]['qty']          = $qty;
                             $arrProduct[$key]['weight_total'] = $weightTotal;
                             $arrProduct[$key]['total_price']  = $totalPrice;
+
+                            // assign project_id
+                            $project = Warehouse::find($value['warehouse_id'])->kandang->project()->where([
+                                ['chickin_status', '=', 3],
+                                ['project_status', '!=', 4],
+                            ])->first() ?? null;
+
+                            if ($project) {
+                                $arrProduct[$key]['project_id'] = $project->project_id;
+                            }
                         }
 
                         MarketingProduct::insert($arrProduct);
@@ -305,9 +336,17 @@ class ListController extends Controller
                         'sub_total'   => $subTotal,
                         'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
-                });
 
-                $success = ['success' => 'Data Berhasil diubah'];
+                    // Success message according to project_id
+                    if (! empty($arrProduct)) {
+                        $projectIds       = array_column($arrProduct, 'project_id');
+                        $projectIdsString = implode(', ', $projectIds);
+
+                        return ['success' => "Penjualan Berhasil Disimpan | Terhubung Pada Project ID {$projectIdsString}"];
+                    } else {
+                        return ['success' => 'Penjualan Berhasil Disimpan | Tidak Terhubung Pada Project'];
+                    }
+                });
 
                 return redirect()->route('marketing.list.detail', $marketing->marketing_id)->with($success);
             }
@@ -446,8 +485,7 @@ class ListController extends Controller
                             $weightAvg = Parser::parseLocale($value['weight_avg']);
                             $qty       = Parser::parseLocale($value['qty']);
 
-                            $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $weightTotal;
+                            $totalPrice = $price * $qty;
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['price']      = $price;
@@ -590,6 +628,7 @@ class ListController extends Controller
 
         $productWarehouses = ProductWarehouse::where('warehouse_id', $warehouseId)
             ->with(['product', 'product.uom'])
+            ->whereHas('product', fn ($p) => $p->where('can_be_sold', 1))
             ->get();
 
         $val = $productWarehouses->map(function($productWarehouse) {

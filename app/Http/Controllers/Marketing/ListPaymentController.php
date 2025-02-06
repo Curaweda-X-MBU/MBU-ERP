@@ -476,6 +476,8 @@ class ListPaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
 
+            dd($e);
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }

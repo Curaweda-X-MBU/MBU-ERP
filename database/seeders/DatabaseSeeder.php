@@ -22,82 +22,82 @@ class DatabaseSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        Company::truncate();
-        Area::truncate();
-        Location::truncate();
-        Department::truncate();
-        Role::truncate();
+        // Company::truncate();
+        // Area::truncate();
+        // Location::truncate();
+        // Department::truncate();
+        // Role::truncate();
         User::truncate();
 
-        Company::insert([
-            [
-                'name'       => 'PT MITRA BERLIAN UNGGAS',
-                'alias'      => 'MBU',
-                'created_at' => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'       => 'PT MANDIRI BERLIAN UNGGAS',
-                'alias'      => 'MAN',
-                'created_at' => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'       => 'PT LUMBUNG TELUR INDONESIA',
-                'alias'      => 'LTI',
-                'created_at' => date('Y-m-d H:i:s'),
-            ],
-        ]);
-
-        Area::insert([
-            [
-                'name'       => 'Priangan',
-                'created_at' => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'       => 'Banten',
-                'created_at' => date('Y-m-d H:i:s'),
-            ],
-        ]);
-
-        Location::create([
-            'name'       => 'Singaparna',
-            'address'    => 'Singaparna',
-            'area_id'    => 1,
-            'company_id' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        Department::insert([
-            [
-                'name'        => 'Super Admin',
-                'company_id'  => 1,
-                'location_id' => 1,
-                'created_at'  => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'        => 'Admin Marketing',
-                'company_id'  => 1,
-                'location_id' => 1,
-                'created_at'  => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'        => 'Admin Finance',
-                'company_id'  => 1,
-                'location_id' => 1,
-                'created_at'  => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'        => 'Manager Marketing',
-                'company_id'  => 1,
-                'location_id' => 1,
-                'created_at'  => date('Y-m-d H:i:s'),
-            ],
-            [
-                'name'        => 'Manager Finance',
-                'company_id'  => 1,
-                'location_id' => 1,
-                'created_at'  => date('Y-m-d H:i:s'),
-            ],
-        ]);
+        // Company::insert([
+        //     [
+        //         'name'       => 'PT MITRA BERLIAN UNGGAS',
+        //         'alias'      => 'MBU',
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'PT MANDIRI BERLIAN UNGGAS',
+        //         'alias'      => 'MAN',
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'PT LUMBUNG TELUR INDONESIA',
+        //         'alias'      => 'LTI',
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        // ]);
+        //
+        // Area::insert([
+        //     [
+        //         'name'       => 'Priangan',
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'       => 'Banten',
+        //         'created_at' => date('Y-m-d H:i:s'),
+        //     ],
+        // ]);
+        //
+        // Location::create([
+        //     'name'       => 'Singaparna',
+        //     'address'    => 'Singaparna',
+        //     'area_id'    => 1,
+        //     'company_id' => 1,
+        //     'created_at' => date('Y-m-d H:i:s'),
+        // ]);
+        //
+        // Department::insert([
+        //     [
+        //         'name'        => 'Super Admin',
+        //         'company_id'  => 1,
+        //         'location_id' => 1,
+        //         'created_at'  => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'        => 'Admin Marketing',
+        //         'company_id'  => 1,
+        //         'location_id' => 1,
+        //         'created_at'  => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'        => 'Admin Finance',
+        //         'company_id'  => 1,
+        //         'location_id' => 1,
+        //         'created_at'  => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'        => 'Manager Marketing',
+        //         'company_id'  => 1,
+        //         'location_id' => 1,
+        //         'created_at'  => date('Y-m-d H:i:s'),
+        //     ],
+        //     [
+        //         'name'        => 'Manager Finance',
+        //         'company_id'  => 1,
+        //         'location_id' => 1,
+        //         'created_at'  => date('Y-m-d H:i:s'),
+        //     ],
+        // ]);
 
         // Role::insert([
         //     [

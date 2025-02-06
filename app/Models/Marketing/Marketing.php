@@ -65,6 +65,11 @@ class Marketing extends Model
         return $this->grand_total - $this->is_paid;
     }
 
+    public function created_user()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
     public function marketing_return()
     {
         return $this->hasOne(MarketingReturn::class, 'marketing_id', 'marketing_id');

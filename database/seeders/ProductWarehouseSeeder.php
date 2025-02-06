@@ -22,31 +22,26 @@ class ProductWarehouseSeeder extends Seeder
                 'product_id'   => 1, // Telur Sehat
                 'warehouse_id' => 3,
                 'quantity'     => 25_000,
-                'created_by'   => 1,
             ],
             [
                 'product_id'   => 2, // Telur Retak
                 'warehouse_id' => 3,
                 'quantity'     => 5_000,
-                'created_by'   => 1,
             ],
             [
                 'product_id'   => 4, // Parent Stock Sehat
                 'warehouse_id' => 2,
                 'quantity'     => 25_000,
-                'created_by'   => 1,
             ],
             [
                 'product_id'   => 5, // Parent Stock Culling
                 'warehouse_id' => 2,
                 'quantity'     => 800,
-                'created_by'   => 1,
             ],
             [
                 'product_id'   => 7, // Final Stock Baik
                 'warehouse_id' => 1,
                 'quantity'     => 25_000,
-                'created_by'   => 1,
             ],
         ]);
 

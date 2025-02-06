@@ -73,13 +73,12 @@ Route::middleware('auth')->group(function() {
         });
         Route::group(['prefix' => 'recording'], function() {
             Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
-            Route::any('/', [App\Http\Controllers\Project\RecordingController::class, 'index'])->name('project.recording.index')->middleware('permission:project.recording.index');
             Route::any('/add', [App\Http\Controllers\Project\RecordingController::class, 'add'])->name('project.recording.add')->middleware('permission:project.recording.add');
             Route::any('/edit/{id}', [App\Http\Controllers\Project\RecordingController::class, 'edit'])->name('project.recording.edit')->middleware('permission:project.recording.edit');
             Route::any('/detail/{id}', [App\Http\Controllers\Project\RecordingController::class, 'detail'])->name('project.recording.detail')->middleware('permission:project.recording.detail');
             Route::any('/revision-submission/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionSubmission'])->name('project.recording.revision-submission')->middleware('permission:project.recording.revision-submission');
             Route::any('/revision-approval/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionApproval'])->name('project.recording.revision-approval')->middleware('permission:project.recording.revision-approval');
-            Route::any('/delete/{id}', [App\Http\Controllers\Project\RecordingController::class, 'delete'])->name('project.recording.delete'); //->middleware('permission:project.recording.index');
+            Route::any('/delete/{id}', [App\Http\Controllers\Project\RecordingController::class, 'delete'])->name('project.recording.delete'); // ->middleware('permission:project.recording.index');
             // Route::any('/approve/{id}', [App\Http\Controllers\Project\RecordingController::class, 'approve'])->name('project.recording.approve');//->middleware('permission:project.recording.index');
         });
     });
@@ -160,14 +159,26 @@ Route::middleware('auth')->group(function() {
     });
 
     Route::group(['prefix' => 'report'], function() {
-        Route::group(['prefix' => 'mbu'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexMbu'])->name('report.mbu.index')->middleware('permission:report.mbu.index');
-        });
-        Route::group(['prefix' => 'manbu'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexManbu'])->name('report.manbu.index')->middleware('permission:report.manbu.index');
-        });
-        Route::group(['prefix' => 'lti'], function() {
-            Route::get('/', [App\Http\Controllers\Report\ReportController::class, 'indexLti'])->name('report.lti.index')->middleware('permission:report.lti.index');
+        Route::get('/', [App\Http\Controllers\Report\ReportLocationController::class, 'index'])->name('report.index');
+        Route::get('/{location}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail.location');
+        Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
+        Route::group(['prefix' => 'detail/{location}'], function() {
+            Route::get('/sapronak', [App\Http\Controllers\Report\ReportLocationController::class, 'sapronak'])->name('report.detail.location.sapronak');
+            Route::get('/perhitungan', [App\Http\Controllers\Report\ReportLocationController::class, 'perhitunganSapronak'])->name('report.detail.location.perhitungan');
+            Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
+            Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
+            Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportLocationController::class, 'hppEkspedisi'])->name('report.detail.location.ekspedisi');
+            Route::get('/produksi', [App\Http\Controllers\Report\ReportLocationController::class, 'dataProduksi'])->name('report.detail.location.produksi');
+            Route::get('/keuangan', [App\Http\Controllers\Report\ReportLocationController::class, 'keuangan'])->name('report.detail.location.keuangan');
+            Route::group(['prefix' => '{project}'], function() {
+                Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
+                Route::get('/perhitungan', [App\Http\Controllers\Report\ReportKandangController::class, 'perhitunganSapronak'])->name('report.detail.kandang.perhitungan');
+                Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');
+                Route::get('/overhead', [App\Http\Controllers\Report\ReportKandangController::class, 'overhead'])->name('report.detail.kandang.overhead');
+                Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportKandangController::class, 'hppEkspedisi'])->name('report.detail.kandang.ekspedisi');
+                Route::get('/produksi', [App\Http\Controllers\Report\ReportKandangController::class, 'dataProduksi'])->name('report.detail.kandang.produksi');
+                Route::get('/keuangan', [App\Http\Controllers\Report\ReportKandangController::class, 'keuangan'])->name('report.detail.kandang.keuangan');
+            });
         });
     });
 
