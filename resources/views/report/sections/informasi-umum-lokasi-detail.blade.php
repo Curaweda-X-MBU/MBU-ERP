@@ -30,11 +30,6 @@
                             <td class="col-md-7">{{ $detail->doc }} Ekor</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Tanggal Closing</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">11-12-2024</td>
-                        </tr>
-                        <tr>
                             <td class="col-md-4">Jenis Project</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">{{ $farmType[$detail->farm_type] }}</td>
@@ -77,16 +72,6 @@
                             <td class="col-md-4">Kandang AKtif</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">{{ $detail->active_kandang }} Kandang</td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">Tanggal Chickin</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ @$detail->chickin_date ? date('d-M-Y', strtotime($detail->chickin_date)) : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">Tanggal Approval</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ @$detail->approval_date ? date('d-M-Y', strtotime($detail->approval_date)) : '-' }}</td>
                         </tr>
                         <tr>
                             <td class="col-md-4">Status Pembayaran</td>

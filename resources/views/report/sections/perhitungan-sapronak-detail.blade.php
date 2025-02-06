@@ -1,4 +1,5 @@
 <div class="card">
+    <input type="hidden" class="location_perhitungan_sapronak_loaded">
     <input type="hidden" class="kandang_perhitungan_sapronak_loaded">
     <div class="card-body">
         <h4 class="mb-2">Perhitungan Sapronak</h4>
@@ -95,8 +96,16 @@ $(function() {
         });
     }
 
-    function fetchPerhitunganSapronakData() {
-        $.get("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}")
+    function fetchLocationPerhitunganSapronakData() {
+        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+    }
+
+    function fetchKandangPerhitunganSapronakData() {
+        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+    }
+
+    function fetchPerhitunganSapronakData(route) {
+        $.get(route)
             .then(function(result) {
                 console.log(result);
                 if (!result.error) {
@@ -112,6 +121,7 @@ $(function() {
             });
     }
 
-    $('.kandang_perhitungan_sapronak_loaded').on('change', fetchPerhitunganSapronakData);
+    $('.location_perhitungan_sapronak_loaded').on('change', fetchLocationPerhitunganSapronakData);
+    $('.kandang_perhitungan_sapronak_loaded').on('change', fetchKandangPerhitunganSapronakData);
 });
 </script>
