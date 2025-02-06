@@ -29,29 +29,37 @@
 
 <script>
 $(function() {
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
+    const period = getQueryParam('period');
+
+    function secureReduce(arr) {
+        return arr.reduce((a, b) => {
+            let add = parseFloat(b);
+
+            if (isNaN(add)) {
+                add = 0;
+            }
+            return intVal(a) + add;
+        }, 0);
+    }
 
     function fetchLocationKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchKeuanganData(route) {
         $.get(route)
             .then(function(result) {
-                console.log(result);
                 if (!result.error) {
                     const pengeluaran = result.pengeluaran;
                     populateHPPTable(pengeluaran);
+
+                    const labaRugi = result.laba_rugi;
+                    console.log((labaRugi.bruto || []))
+                    populateLabaRugiTable(labaRugi.bruto ?? [], labaRugi.netto ?? []);
                 }
             });
     }
@@ -153,45 +161,116 @@ $(function() {
 
                 const $footer = $(api.column(0).footer()).closest('tfoot');
 
-                budgetRpEkor = (api
+                budgetRpEkor = secureReduce((api
                     .column('.budget_rp_ekor')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                    .data() ?? []));
 
                 $footer.find('.total_budget_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(budgetRpEkor)}`);
-                budgetRpKg = (api
+                budgetRpKg = secureReduce((api
                     .column('.budget_rp_kg')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                    .data() ?? []));
 
                 $footer.find('.total_budget_rp_kg').html(`Rp&nbsp;${parseNumToLocale(budgetRpKg)}`);
-                budgetRp = (api
+                budgetRp = secureReduce((api
                     .column('.budget_rp')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                    .data() ?? []));
 
                 $footer.find('.total_budget_rp').html(`Rp&nbsp;${parseNumToLocale(budgetRp)}`);
 
-                realizationRpEkor = (api
+                realizationRpEkor = secureReduce((api
                     .column('.realization_rp_ekor')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                    .data() ?? []));
 
                 $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
-                realizationRpEkor = (api
-                    .column('.realization_rp_ekor')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                realizationRpKg = secureReduce((api
+                    .column('.realization_rp_kg')
+                    .data() ?? []));
 
-                $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
-                realizationRpEkor = (api
-                    .column('.realization_rp_ekor')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+                $footer.find('.total_realization_rp_kg').html(`Rp&nbsp;${parseNumToLocale(realizationRpKg)}`);
+                realizationRp = secureReduce((api
+                    .column('.realization_rp')
+                    .data() ?? []));
 
-                $footer.find('.total_realization_rp_ekor').html(`Rp&nbsp;${parseNumToLocale(realizationRpEkor)}`);
+                $footer.find('.total_realization_rp').html(`Rp&nbsp;${parseNumToLocale(realizationRp)}`);
             },
         });
+    }
+
+    function populateLabaRugiTable(data1, data2) {
+        const $tbody = $('#laba-rugi-tbody');
+        $tbody.empty();
+
+        // START :: Laba Rugi Brutto
+        data1.forEach((item) => {
+            const row1 = document.createElement("tr");
+            row1.className = "text-right";
+
+            row1.innerHTML = `
+                <td colspan="3" class="text-left">${item.jenis}</td>
+                <td>Rp <span>${parseNumToLocale(item.rp_ekor)}</span></td>
+                <td>Rp <span>${parseNumToLocale(item.rp_kg)}</span></td>
+                <td>Rp <span>${parseNumToLocale(item.rp)}</span></td>
+            `;
+            $tbody.append(row1);
+        });
+
+        // substract
+        sumEkor1 = data1[0].rp_ekor - data1[1].rp_ekor;
+        sumKg1 = data1[0].rp_kg - data1[1].rp_kg;
+        sum1 = data1[0].rp - data1[1].rp;
+
+        const footerRow1 = document.createElement("tr");
+        footerRow1.className = "font-weight-bolder text-right";
+        footerRow1.innerHTML = `
+            <td></td>
+            <td colspan="2" class="text-left pt-1"><h4>LABA RUGI BRUTTO</h4></td>
+            <td>Rp <span>${parseNumToLocale(sumEkor1)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sumKg1)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sum1)}</span></td>
+        `;
+        $tbody.append(footerRow1);
+        // END :: Laba Rugi Brutto
+
+        // START :: Laba Rugi Netto
+        data2.forEach((item) => {
+            const row2 = document.createElement("tr");
+            row2.className = "text-right";
+
+            row2.innerHTML = `
+                <td colspan="3" class="text-left">${item.name}</td>
+                <td>Rp <span>${parseNumToLocale(item.realization_rp_ekor)}</span></td>
+                <td>Rp <span>${parseNumToLocale(item.realization_rp_kg)}</span></td>
+                <td>Rp <span>${parseNumToLocale(item.realization_rp)}</span></td>
+            `;
+            $tbody.append(row2);
+        });
+
+        // add to substract later
+        sumEkor2 = data2.reduce((a, b) => intVal(a) + intVal(b.realization_rp_ekor), 0);
+        sumKg2 = data2.reduce((a, b) => intVal(a) + intVal(b.realization_rp_kg), 0);
+        sum2 = data2.reduce((a, b) => intVal(a) + intVal(b.realization_rp), 0);
+
+        const footerRow2 = document.createElement("tr");
+        footerRow2.className = "font-weight-bolder text-right";
+        footerRow2.innerHTML = `
+            <td></td>
+            <td colspan="2" class="text-left pt-1"><h4>SUB TOTAL</h4></td>
+            <td>Rp <span>${parseNumToLocale(sumEkor2)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sumKg2)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sum2)}</span></td>
+        `;
+        $tbody.append(footerRow2);
+        // END :: Laba Rugi Netto
+
+        $('#laba-rugi-perusahaan').html(`
+            <td colspan="3" class="text-left">LABA RUGI NETTO</td>
+            <td>Rp <span>${parseNumToLocale(sumEkor1 - sumEkor2)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sumKg1 - sumKg2)}</span></td>
+            <td>Rp <span>${parseNumToLocale(sum1 - sum2)}</span></td>
+        `);
+
+        $('#laba_rugi_bruto').text(parseNumToLocale(sum1));
+        $('#laba_rugi_netto').text(parseNumToLocale(sum1 - sum2));
     }
 
     $('.location_keuangan_loaded').on('change', fetchLocationKeuanganData);

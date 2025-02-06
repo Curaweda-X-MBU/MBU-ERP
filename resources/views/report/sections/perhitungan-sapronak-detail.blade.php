@@ -23,13 +23,7 @@
 
 <script>
 $(function() {
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
+    const period = getQueryParam('period');
 
     function populatePerhitunganTable(table_selector, data) {
         $(table_selector).DataTable({
@@ -97,11 +91,11 @@ $(function() {
     }
 
     function fetchLocationPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchPerhitunganSapronakData(route) {
