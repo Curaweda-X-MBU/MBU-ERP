@@ -160,14 +160,6 @@ $(function() {
                         footerCallback: function(row, data) {
                             let api = this.api();
 
-                            let intVal = function (i) {
-                                return typeof i === 'string'
-                                    ? parseLocaleToNum(i)
-                                    : typeof i === 'number'
-                                    ? i
-                                    : 0;
-                            };
-
                             const $footer = $(api.column(0).footer()).closest('tfoot');
 
                             sumQty = (api
@@ -260,14 +252,6 @@ $(function() {
             footerCallback: function(row, data) {
                 let api = this.api();
 
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
-
                 total = (api
                     .column('.total_price')
                     .data() ?? [])
@@ -308,14 +292,6 @@ $(function() {
             ],
             footerCallback: function(row, data) {
                 let api = this.api();
-
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
 
                 total = (api
                     .column('.price')

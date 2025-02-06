@@ -37,7 +37,7 @@ function initNumeralMask(selector) {
  */
 function parseLocaleToNum(value) {
     const parsed = parseFloat(
-        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, "") || 0,
+        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, ""),
     );
     return isNaN(parsed) ? 0 : parsed;
     // return parseFloat(value.replace(/\,/g, "") || 0);
@@ -263,11 +263,15 @@ function parseDateToString(datestring, format = "d-M-Y") {
  * @returns {number}
  */
 function intVal(num) {
-    return typeof num === "string"
-        ? parseLocaleToNum(i)
-        : typeof num === "number"
-          ? i
-          : 0;
+    switch (typeof num) {
+        case typeof "":
+            const parsed = parseLocaleToNum(num);
+            return isNaN(parsed) ? 0 : parsed;
+        case typeof 0:
+            return num;
+        default:
+            return 0;
+    }
 }
 
 /**

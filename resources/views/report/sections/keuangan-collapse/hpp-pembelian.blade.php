@@ -23,7 +23,12 @@
                     </tr>
                 </thead>
 
-                <tbody></tbody>
+                <tbody>
+                    {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="8">Mengambil data ...</td>
+                    </tr>
+                </tbody>
 
                 <tfoot>
                     <tr class="font-weight-bolder text-center">
