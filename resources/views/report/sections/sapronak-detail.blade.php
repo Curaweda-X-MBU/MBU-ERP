@@ -48,7 +48,6 @@ $(function() {
     function fetchSapronakData(route) {
         $.get(route)
             .then(function(result) {
-                console.log(result);
                 if (!result.error) {
                     $('#sapronak_masuk_datatable').DataTable({
                         destroy: true,
