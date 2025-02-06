@@ -1,9 +1,6 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
-@php
-    dump($detail);
-@endphp
 
 <style>
     .nav-link {

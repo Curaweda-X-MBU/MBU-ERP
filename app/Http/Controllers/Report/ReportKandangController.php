@@ -78,8 +78,6 @@ class ReportKandangController extends Controller
                 'chickin_date'   => $project->project_chick_in->first()->chickin_date ?? null,
                 'ppl_ts'         => $project->kandang->user->name,
                 'approval_date'  => $project->approval_date,
-                // 'sapronak'       => $this->sapronak(app(Request::class), $location, $project),
-                'perhitungan_sapronak' => $this->perhitunganSapronak(app(Request::class), $location, $project),
             ];
 
             $param = [
@@ -127,8 +125,8 @@ class ReportKandangController extends Controller
                 ])
                 ->get();
 
-            $purchaseDoc = $this->getPurchaseItem($period, $project, null, $projectData->first()->product_category_id);
-            $mutasiDoc   = $this->getMutasiMasuk($period, $location, $project, null, $projectData->first()->product_category_id);
+            $purchaseDoc = $this->getPurchaseItem($period, $project, 'doc');
+            $mutasiDoc   = $this->getMutasiMasuk($period, $location, $project, 'doc');
 
             $qtyPakaiDoc  = optional($projectData->first()->project_chick_in->first())->total_chickin ?? 0;
             $hargaBeliDoc = optional($purchaseDoc->first())->price                                    ?? 0;
