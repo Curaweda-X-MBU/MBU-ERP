@@ -4,7 +4,7 @@
     </div>
     <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse show" aria-expanded="true">
         <div class="table-responsive">
-            <table class="table w-100">
+            <table id="perhitungan_doc_datatable" class="table" style="margin: 0 !important;">
                 <thead>
                     <tr class="text-center">
                         <th>Tanggal</th>
@@ -12,41 +12,25 @@
                         <th>QTY Masuk</th>
                         <th>QTY Pakai</th>
                         <th>Kategori Produk</th>
-                        <th>Harga Beli/Qty</th>
-                        <th>Total Harga</th>
+                        <th>Harga Beli/Qty (Rp)</th>
+                        <th>Total Harga (Rp)</th>
                         <th>Keterangan</th>
                 </thead>
                 <tbody>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>46.000</td>
-                        <td>46.000</td>
-                        <td>DOC Broiler</td>
-                        <td>6.400</td>
-                        <td>294.400.000</td>
-                        <td>untuk kandang</td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>46.000</td>
-                        <td>46.000</td>
-                        <td>DOC Broiler</td>
-                        <td>6.400</td>
-                        <td>294.400.000</td>
-                        <td>untuk kandang</td>
+                    {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="8">Mengambil data ...</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder text-center">
                         <td class="text-left">TOTAL DOC BROILER</td>
                         <td></td>
-                        <td>184.000</td>
-                        <td>184.000</td>
+                        <td class="total_qty_masuk">-</td>
+                        <td class="total_qty_pakai">-</td>
                         <td></td>
-                        <td>25.600</td>
-                        <td>1.177.600.000</td>
+                        <td class="total_harga_beli">-</td>
+                        <td class="grand_total">-</td>
                         <td></td>
                     </tr>
                 </tfoot>
