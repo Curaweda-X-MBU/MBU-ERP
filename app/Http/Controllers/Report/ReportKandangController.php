@@ -430,11 +430,13 @@ class ReportKandangController extends Controller
             $populasiAkhirProyek  = $recordingLastDayLocation->total_chick_sum ?? 0;
 
             return response()->json([
-                'populasi_akhir_kandang' => $populasiAkhirKandang,
-                'pemakaian_farm'         => $pemakaianFarm,
-                'populasi_akhir_proyek'  => $populasiAkhirProyek,
-                'result'                 => $populasiAkhirProyek !== 0 ? (($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek) : 0,
-                'expense'                => $this->getOverhead($period, $location, $project, true),
+                'perhitungan' => [
+                    'populasi_akhir_kandang' => $populasiAkhirKandang,
+                    'pemakaian_farm'         => $pemakaianFarm,
+                    'populasi_akhir_proyek'  => $populasiAkhirProyek,
+                    'result'                 => $populasiAkhirProyek !== 0 ? (($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek) : 0,
+                ],
+                'expense' => $this->getOverhead($period, $location, $project, true),
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
