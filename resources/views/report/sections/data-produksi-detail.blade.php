@@ -59,22 +59,22 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Penjualan (Kg)</td>
-                                    <td id="bobot_total" class="col-md-3 text-right font-weight-bolder">594.994,90</td>
+                                    <td id="bobot_total" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Penjualan (Ekor)</td>
-                                    <td id="qty_total" class="col-md-3 text-right font-weight-bolder">371.460</td>
+                                    <td id="qty_total" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Bobot Rata-Rata</td>
-                                    <td id="bobot_rata" class="col-md-3 text-right font-weight-bolder">1,60</td>
+                                    <td id="bobot_rata" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg/Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Harga Jual Rata-Rata</td>
-                                    <td id="harga_jual_rata" class="col-md-3 text-right font-weight-bolder">19.997,93</td>
+                                    <td id="harga_jual_rata" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Rupiah</td>
                                 </tr>
                             </tbody>
@@ -97,7 +97,7 @@
                                     <td class="col-md-5">Deplesi</td>
                                     <td id="deplesi" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-2">Ekor</td>
-                                    <td class="mortalitas_act col-md-1 text-primary">4,07</td>
+                                    <td class="mortalitas_act col-md-1 text-primary">0</td>
                                     <td class="col-md-1">%</td>
                                 </tr>
                                 <tr>
@@ -153,18 +153,18 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Selisih Ayam</td>
-                                    <td class="col-md-3 text-right font-weight-bolder text-danger">(3.177)</td>
+                                    <td class="col-md-3 text-right font-weight-bolder text-danger">-</td>
                                     <td class="col-md-2">Ekor</td>
                                     <td class="col-md-2"></td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">% Selisih Ayam</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">-0,82</td>
+                                    <td class="col-md-3 text-right font-weight-bolder">-</td>
                                     <td class="col-md-2">%</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Selisih Pakan</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">0</td>
+                                    <td class="col-md-3 text-right font-weight-bolder">-</td>
                                     <td class="col-md-2">Kg</td>
                                 </tr>
                             </tbody>

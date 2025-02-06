@@ -14,6 +14,7 @@ use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Project\Project;
+use App\Models\Project\ProjectBudget;
 use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
 use App\Models\Project\RecordingDepletion;
@@ -22,6 +23,7 @@ use App\Models\Purchase\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReportLocationController extends Controller
 {
@@ -156,7 +158,9 @@ class ReportLocationController extends Controller
                 'approval_date'  => $latestProject->approval_date,
                 // 'payment_status' => $proj,
                 // 'closing_status' => $proj,
-                'kandangs' => $kandangs,
+                'kandangs'      => $kandangs,
+                'hpp_pembelian' => $this->getHppPembelian($period, $location->location_id),
+                'bahan_baku'    => $this->getHppBahanBaku($period, $location->location_id),
             ];
 
             $param = [
@@ -166,10 +170,11 @@ class ReportLocationController extends Controller
 
             return $this->checkAccess($company, $param, 'detail');
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            dd($e);
+            // return redirect()
+            //     ->back()
+            //     ->with('error', $e->getMessage())
+            //     ->withInput();
         }
     }
 
@@ -322,14 +327,15 @@ class ReportLocationController extends Controller
                             'realization_price' => Parser::toLocale($p->price),
                             'realization_total' => Parser::toLocale($p->total_price),
                             'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
+                            'category'          => $e->category,
                         ];
                     });
             });
 
             $grouped_expenses = $formatted_expenses->groupBy('produk')->collapse();
 
-            $bop_expenses  = $grouped_expenses->filter(fn ($item) => $item['realization_qty'] !== '-')->values();
-            $nbop_expenses = $grouped_expenses->filter(fn ($item) => $item['realization_qty'] === '-')->values();
+            $bop_expenses  = $grouped_expenses->filter(fn ($item) => $item['category'] == 1)->values();
+            $nbop_expenses = $grouped_expenses->filter(fn ($item) => $item['category'] == 2)->values();
 
             return response()->json([
                 [
@@ -395,15 +401,30 @@ class ReportLocationController extends Controller
         }
     }
 
-    public function keuangan($projectId)
+    public function keuangan(Request $req, Location $location)
     {
         try {
-            //
+            $period = intval($req->query('period'));
+            if (! $period) {
+                throw new \Exception('Periode tidak ditemukan');
+            }
+
+            return response()->json([
+                'pengeluaran' => [
+                    [
+                        'kategori'    => 'HPP dan Pengeluaran',
+                        'subkategori' => $this->getHppPembelian($period, $location->location_id),
+                    ],
+                    [
+                        'kategori'    => 'HPP dan Bahan Baku',
+                        'subkategori' => [
+                            $this->getHppBahanBaku($period, $location->location_id),
+                        ],
+                    ],
+                ],
+            ]);
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
+            return response()->json(['error', $e->getMessage()], 500);
         }
     }
 
@@ -450,7 +471,7 @@ class ReportLocationController extends Controller
                 purchase_items.qty AS num_qty,
                 uom.name AS uom,
                 purchases.approval_line,
-                purchase_items.purchase_id AS no_referensi,
+                COALESCE(purchases.po_number, purchases.pr_number) AS no_referensi,
                 "Pembelian" AS transaksi,
                 products.name AS produk,
                 "-" AS gudang_asal,
@@ -469,7 +490,8 @@ class ReportLocationController extends Controller
             ])
             ->groupByRaw('
                     purchases.approval_line,
-                    purchase_items.purchase_id,
+                    purchases.pr_number,
+                    purchases.po_number,
                     products.name,
                     purchase_items.qty,
                     uom.name,
@@ -478,7 +500,8 @@ class ReportLocationController extends Controller
                 ')
             ->get()
             ->map(function($pi) {
-                $pi->tanggal = Carbon::parse(json_decode($pi->approval_line)[4]->date)->format('d-M-Y');
+                $approval    = collect(json_decode($pi->approval_line))->firstWhere('status', 3);
+                $pi->tanggal = $approval ? Carbon::parse($approval->date)->format('d-M-Y') : '-';
                 $pi->qty     = Parser::toLocale($pi->num_qty).' '.$pi->uom;
 
                 return $pi;
@@ -659,7 +682,7 @@ class ReportLocationController extends Controller
                 COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0) AS populasi_akhir,
                 COALESCE(SUM(pakan_masuk_subquery.pakan_masuk_qty), 0) + COALESCE(SUM(pakan_mutasi_subquery.pakan_mutasi_qty), 0) AS pakan_masuk,
                 COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) AS pakan_terpakai,
-                COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) / (COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0)) AS pakan_terpakai_per_ekor
+                COALESCE(COALESCE(SUM(pakan_terpakai_subquery.pakan_terpakai_qty), 0) / (COALESCE(SUM(populasi_awal_subquery.populasi_awal), 0) - COALESCE(SUM(claim_culling_subquery.claim_culling), 0)), 0) AS pakan_terpakai_per_ekor
             ')
             ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
             ->leftJoinSub($populasi_awal_subquery, 'populasi_awal_subquery', 'populasi_awal_subquery.project_id', '=', 'projects.project_id')
@@ -787,5 +810,153 @@ class ReportLocationController extends Controller
         : 0;
 
         return $performance;
+    }
+
+    public function getHppPembelian(int $period, int $location_id)
+    {
+        // Population Initial Subquery
+        $populasi_awal_subquery = ProjectChickIn::selectRaw('
+                projects.project_id,
+                COALESCE(SUM(project_chickin.total_chickin), 0) AS populasi_awal
+            ')
+            ->join('projects', 'projects.project_id', '=', 'project_chickin.project_id')
+            ->groupBy('projects.project_id');
+
+        // Purchase Items Subquery
+        $produk_pembelian_subquery = PurchaseItem::selectRaw('
+                projects.project_id,
+                products.product_id,
+                products.name AS produk,
+                COALESCE(SUM(purchase_items.amount_received), 0) AS realization_total
+            ')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->groupBy(['projects.project_id', 'products.product_id', 'products.name']);
+
+        // Latest Recording Subquery
+        $latest_day_subquery = Recording::selectRaw('
+                projects.project_id,
+                MAX(recordings.day) AS latest_day
+            ')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->groupBy('projects.project_id');
+
+        $latest_recording_subquery = Recording::selectRaw('
+                projects.project_id,
+                recording_bw.value AS bobot,
+                recordings.total_chick AS populasi_akhir
+            ')
+            ->join('recording_bw', 'recording_bw.recording_id', '=', 'recordings.recording_id')
+            ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
+            ->joinSub($latest_day_subquery, 'latest_day_subquery', function($join) {
+                $join->on('recordings.project_id', '=', 'latest_day_subquery.project_id')
+                    ->on('recordings.day', '=', 'latest_day_subquery.latest_day');
+            });
+
+        // Budget Subquery
+        $project_budget_subquery = ProjectBudget::selectRaw('
+                projects.project_id,
+                project_budgets.product_id,
+                products.name AS budget_name,
+                COALESCE(SUM(project_budgets.total), 0) AS budget_total
+            ')
+            ->join('projects', 'projects.project_id', '=', 'project_budgets.project_id')
+            ->join('products', 'products.product_id', '=', 'project_budgets.product_id')
+            ->groupBy(['projects.project_id', 'project_budgets.product_id', 'products.name']);
+
+        // Combined Products Subquery
+        $combined_products_subquery = DB::table(function($query) use ($produk_pembelian_subquery, $project_budget_subquery) {
+            $query->selectRaw('
+                    project_id,
+                    product_id,
+                    produk
+                ')
+                ->fromSub($produk_pembelian_subquery, 'purchase_items')
+                ->union(
+                    DB::table($project_budget_subquery)
+                        ->selectRaw('project_id, product_id, budget_name AS produk')
+                );
+        }, 'combined_products');
+
+        return Project::selectRaw('
+                COALESCE(
+                    SUM(produk_pembelian_subquery.realization_total) / NULLIF(SUM(populasi_awal_subquery.populasi_awal), 0)
+                , 0) AS realization_rp_ekor,
+                COALESCE(
+                    SUM(produk_pembelian_subquery.realization_total) / NULLIF(SUM(latest_recording_subquery.bobot), 0)
+                , 0) AS realization_rp_kg,
+                COALESCE(SUM(produk_pembelian_subquery.realization_total), 0) AS realization_rp,
+                COALESCE(
+                    SUM(project_budget_subquery.budget_total) / NULLIF(SUM(populasi_awal_subquery.populasi_awal), 0)
+                , 0) AS budget_rp_ekor,
+                COALESCE(
+                    SUM(project_budget_subquery.budget_total) / NULLIF(SUM(latest_recording_subquery.bobot), 0)
+                , 0) AS budget_rp_kg,
+                COALESCE(SUM(project_budget_subquery.budget_total), 0) AS budget_rp,
+
+                combined_products.produk AS name,
+                combined_products.product_id
+            ')
+            ->join('kandang', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->leftJoinSub($populasi_awal_subquery, 'populasi_awal_subquery', 'populasi_awal_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($latest_recording_subquery, 'latest_recording_subquery', 'latest_recording_subquery.project_id', '=', 'projects.project_id')
+            ->leftJoinSub($combined_products_subquery, 'combined_products', function($join) {
+                $join->on('combined_products.project_id', '=', 'projects.project_id');
+            })
+            ->leftJoinSub($produk_pembelian_subquery, 'produk_pembelian_subquery', function($join) {
+                $join->on('produk_pembelian_subquery.project_id', '=', 'projects.project_id')
+                    ->on('produk_pembelian_subquery.product_id', '=', 'combined_products.product_id');
+            })
+            ->leftJoinSub($project_budget_subquery, 'project_budget_subquery', function($join) {
+                $join->on('project_budget_subquery.project_id', '=', 'projects.project_id')
+                    ->on('project_budget_subquery.product_id', '=', 'combined_products.product_id');
+            })
+            ->where('kandang.location_id', $location_id)
+            ->where('projects.period', $period)
+            ->groupBy(['combined_products.produk', 'combined_products.product_id'])
+            ->get()->toArray();
+    }
+
+    public function getHppBahanBaku(int $period, int $location_id)
+    {
+        $budget = ProjectBudget::whereHas('project', fn ($p) => $p->where('period', $period))
+            ->whereHas('project.kandang', fn ($k) => $k->where('location_id', $location_id))
+            ->whereNotNull('nonstock_id')
+            ->sum('total');
+
+        $expense = Expense::where('category', 1)
+            ->where('location_id', $location_id)
+            ->whereHas('expense_kandang.project', fn ($p) => $p->where('period', $period))
+            ->get()
+            ->sum('grand_total');
+
+        $total_chick = ProjectChickIn::whereHas('project', fn ($p) => $p->where('period', $period))
+            ->whereHas('project.kandang', fn ($k) => $k->where('location_id', $location_id))
+            ->sum('total_chickin');
+
+        $bobot_sum = Recording::whereHas('project.kandang', fn ($q) => $q
+            ->where('location_id', $location_id))
+            ->whereHas('project', fn ($q) => $q->where('period', $period))
+            ->whereIn('recordings.day', function($q) {
+                $q->selectRaw('MAX(day)')
+                    ->from('recordings')
+                    ->groupBy('project_id');
+            })
+            ->with('recording_bw')
+            ->get()
+            ->sum(fn ($recording) => $recording->recording_bw->value ?? 0);
+
+        return [
+            'name'                => 'Pengeluaran Overhead',
+            'budget_rp'           => $budget,
+            'budget_rp_ekor'      => $total_chick ? $budget / $total_chick : 0,
+            'budget_rp_kg'        => $bobot_sum ? $budget   / $bobot_sum : 0,
+            'realization_rp'      => $expense,
+            'realization_rp_ekor' => $total_chick ? $expense / $total_chick : 0,
+            'realization_rp_kg'   => $bobot_sum ? $expense   / $bobot_sum : 0,
+        ];
     }
 }

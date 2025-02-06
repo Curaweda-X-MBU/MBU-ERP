@@ -372,9 +372,12 @@ class ReportKandangController extends Controller
             ->get()
             ->flatMap(function($p) {
                 return $p->purchase_item->map(function($item) use ($p) {
+                    $approval = collect(json_decode($p->approval_line))->firstWhere('status', 3);
+                    $tanggal  = $approval ? Carbon::parse($approval->date)->format('d-M-Y') : '-';
+
                     return [
-                        'tanggal'      => Carbon::parse(json_decode($p->approval_line)[4]->date)->format('d-M-Y'),
-                        'no_referensi' => $p->po_number ?? '-',
+                        'tanggal'      => $tanggal,
+                        'no_referensi' => ($p->po_number ?? $p->pr_number) ?? '-',
                         'transaksi'    => 'Pembelian',
                         'produk'       => $item->product->name,
                         'gudang_asal'  => '-',

@@ -51,7 +51,7 @@ function parseLocaleToNum(value) {
 function parseNumToLocale(value) {
     const parsed = parseFloat(value);
     return isNaN(parsed)
-        ? value
+        ? "" + value
         : parsed.toLocaleString("id-ID", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
