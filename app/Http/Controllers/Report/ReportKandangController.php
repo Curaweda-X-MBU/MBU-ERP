@@ -777,8 +777,8 @@ class ReportKandangController extends Controller
             ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
             ->join('recordings', 'recordings.recording_id', '=', 'recording_depletions.recording_id')
             ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
-            ->where('recordings.day', 1)
-            ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
+            // ->where('recordings.day', 1)
+            // ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
             ->groupBy('project_id');
 
         $populasi_awal_subquery = ProjectChickIn::selectRaw('
@@ -828,7 +828,7 @@ class ReportKandangController extends Controller
         $persentase    = $populasiAkhir / max($populasiAwal, 1) * 100;
 
         $ip = ($fcrAct > 0 && $umur > 0)
-            ? intval(($persentase * ($recordingLastDay->daily_gain ?? 0)) / ($fcrAct * $umur) * 100)
+            ? ($persentase * ($recordingLastDay->daily_gain ?? 0)) / ($fcrAct * $umur)
             : 0; // Jika `fcrAct` atau `umur` nol, set IP ke 0
 
         $performence = [

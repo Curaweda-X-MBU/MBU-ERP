@@ -233,25 +233,25 @@ class ReportLocationController extends Controller
 
             $doc = $purchaseDoc->map(function($p) use ($projects) {
                 return [
-                    'tanggal'      => Carbon::parse($p->po_date)->format('d-M-Y'),
-                    'no_reference' => $p->po_number ?? '-',
-                    'qty_masuk'    => Parser::toLocale($p->qty ?? 0),
+                    'tanggal'      => Carbon::parse(optional($p)->po_date)->format('d-M-Y'),
+                    'no_reference' => optional($p)->po_number ?? '-',
+                    'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => Parser::toLocale($projects->firstWhere('project_id', $p->project_id)->qty_pakai_doc ?? 0),
-                    'product'      => $p->product_name ?? '-',
-                    'harga_beli'   => Parser::toLocale($p->price),
+                    'product'      => optional($p)->product_name ?? '-',
+                    'harga_beli'   => Parser::toLocale(optional($p)->price),
                     'total_harga'  => Parser::toLocale(($projects->firstWhere('project_id', $p->project_id)->qty_pakai_doc ?? 0) * $p->price),
-                    'notes'        => $p->purchase_notes ?? null,
+                    'notes'        => optional($p)->purchase_notes ?? null,
                 ];
             })->concat($mutasiDoc->map(function($m) use ($projects) {
                 return [
-                    'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
-                    'no_reference' => $m->stock_movement_id,
-                    'qty_masuk'    => Parser::toLocale($m->transfer_qty),
+                    'tanggal'      => Carbon::parse(optional($m)->created_at)->format('d-M-Y'),
+                    'no_reference' => optional($m)->stock_movement_id,
+                    'qty_masuk'    => Parser::toLocale(optional($m)->transfer_qty),
                     'qty_pakai'    => Parser::toLocale($projects->firstWhere('project_id', $m->project_id)->qty_pakai_doc ?? 0),
-                    'product'      => $m->product_name,
+                    'product'      => optional($m)->product_name,
                     'harga_beli'   => '-',
                     'total_harga'  => '-',
-                    'notes'        => $m->notes,
+                    'notes'        => optional($m)->notes,
                 ];
             }));
 
@@ -866,8 +866,8 @@ class ReportLocationController extends Controller
             ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
             ->join('recordings', 'recordings.recording_id', '=', 'recording_depletions.recording_id')
             ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
-            ->where('recordings.day', 1)
-            ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
+            // ->where('recordings.day', 1)
+            // ->whereRaw('LOWER(products.name) LIKE ?', ['%culling%'])
             ->groupBy('project_id');
 
         $populasi_awal_subquery = ProjectChickIn::selectRaw('
@@ -964,7 +964,7 @@ class ReportLocationController extends Controller
             ->join('projects', 'projects.fcr_id', '=', 'fcr.fcr_id')
             ->joinSub($latest_day_subquery, 'latest_day_subquery', function($join) {
                 $join->on('projects.project_id', '=', 'latest_day_subquery.project_id')
-                    ->on('fcr_standards.day', '=', 'latest_day_subquery.latest_day'); // ✅ Match with latest recording day
+                    ->on('fcr_standards.day', '=', 'latest_day_subquery.latest_day');
             });
 
         $populasi_awal_subquery = ProjectChickIn::selectRaw('
@@ -1002,12 +1002,12 @@ class ReportLocationController extends Controller
             ->groupBy('kandang.location_id')
             ->get()->first();
 
-        $performance->deff_mortalitas = abs(floatval($performance->mortalitas_std) - $performance->mortalitas_act);
-        $performance->deff_fcr        = abs(floatval($performance->fcr_std) - $performance->fcr_act);
+        $performance->deff_mortalitas = abs($performance->mortalitas_std - $performance->mortalitas_act);
+        $performance->deff_fcr        = abs($performance->fcr_std - $performance->fcr_act);
 
         $persentase      = $performance->populasi_akhir / max($performance->populasi_awal, 1) * 100;
         $performance->ip = ($performance->fcr_act > 0 && $performance->umur > 0)
-        ? intval($persentase * $performance->daily_gain) / ($performance->fcr_act * $performance->umur) * 100
+        ? ($persentase * ($performance->daily_gain ?? 0)) / ($performance->fcr_act * $performance->umur)
         : 0;
 
         return $performance;
