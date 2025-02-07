@@ -22,27 +22,14 @@
 
 <script>
 $(function() {
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    }
-
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
+    const period = getQueryParam('period');
 
     function fetchLocationSapronakData() {
-        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangSapronakData() {
-        fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchSapronakData(route) {

@@ -49,29 +49,15 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
-
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
+    const period = getQueryParam('period');
 
     function sumValues (arr, column) {
         const sum = arr.reduce((a, b) => intVal(a) + intVal(b[column]), 0);
     }
 
     function fetchLocationOverheadData() {
-        $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
+        $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' }}" + period)
             .then(function(result) {
-                console.log(result);
                 if (!result.error) {
                     populateBudgetTable(result);
                 }

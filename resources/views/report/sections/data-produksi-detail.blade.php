@@ -178,19 +178,14 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
+    const period = getQueryParam('period');
 
     function fetchLocationDataProduksiData() {
-        fetchDataProduksiData("{{ route('report.detail.location.produksi', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchDataProduksiData("{{ route('report.detail.location.produksi', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangDataProduksiData() {
-        fetchDataProduksiData("{{ route('report.detail.kandang.produksi', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' . $detail->period }}");
+        fetchDataProduksiData("{{ route('report.detail.kandang.produksi', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchDataProduksiData(route) {
@@ -209,7 +204,6 @@ $(function() {
 
                     // PENJUALAN
                     const penjualan = result.penjualan;
-                    console.log(penjualan);
                     $('#bobot_total').text(trimLocale(penjualan.penjualan_kg));
                     $('#qty_total').text(trimLocale(penjualan.penjualan_ekor));
                     $('#bobot_rata').text(trimLocale(penjualan.bobot_rata));

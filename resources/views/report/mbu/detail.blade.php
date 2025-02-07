@@ -126,9 +126,29 @@
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 
 <script>
-    // select period
+    const period = parseInt(getQueryParam('period'));
     const $periodSelect = $('#period');
+    const latestPeriod = parseInt("{{ $detail->latest_period }}");
+    for (let i = 0; i <= latestPeriod; i++) {
+        const option = $('<option>', {
+            text: i,
+            value: i,
+        });
+
+        $periodSelect.append(option);
+    }
+
+    $periodSelect.val(period).trigger('change');
+
+    // select period
     initSelect2($periodSelect, 'Pilih Periode');
+
+    $periodSelect.on('select2:select', function() {
+        const period = $(this).val();
+        const url = @js(route('report.detail.location', $detail->location_id) . '?company=mbu&period=') + period;
+
+        window.location.href = url;
+    });
 
     $('.nav-tabs .nav-link').on('click', function() {
         const $loadState = $(`.${$(this).data('load')}_loaded`);

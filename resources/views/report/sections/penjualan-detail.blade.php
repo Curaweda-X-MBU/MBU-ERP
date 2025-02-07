@@ -55,19 +55,14 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
+    const period = getQueryParam('period');
 
     function fetchLocationPenjualanData() {
-        fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}");
+        fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangPenjualanData() {
-        fetchPenjualanData("{{ route('report.detail.kandang.penjualan', [ 'location' => $detail->location_id , 'project' => $detail->project_id]) . '?period=' . $detail->period }}");
+        fetchPenjualanData("{{ route('report.detail.kandang.penjualan', [ 'location' => $detail->location_id , 'project' => $detail->project_id]) . '?period=' }}" + period);
     }
 
     function fetchPenjualanData(route) {
@@ -167,14 +162,6 @@ $(function() {
                         footerCallback: function(row, data) {
                             let api = this.api();
 
-                            let intVal = function (i) {
-                                return typeof i === 'string'
-                                    ? parseLocaleToNum(i)
-                                    : typeof i === 'number'
-                                    ? i
-                                    : 0;
-                            };
-
                             const $footer = $(api.column(0).footer()).closest('tfoot');
 
                             sumQty = (api
@@ -267,14 +254,6 @@ $(function() {
             footerCallback: function(row, data) {
                 let api = this.api();
 
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
-
                 total = (api
                     .column('.total_price')
                     .data() ?? [])
@@ -315,14 +294,6 @@ $(function() {
             ],
             footerCallback: function(row, data) {
                 let api = this.api();
-
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
 
                 total = (api
                     .column('.price')
