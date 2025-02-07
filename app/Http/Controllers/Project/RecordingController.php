@@ -79,6 +79,10 @@ class RecordingController extends Controller
                     return redirect()->back()->with('error', 'Body Weight harus diisi');
                 }
 
+                if (! $req->has('depletions')) {
+                    return redirect()->back()->with('error', 'Data Deplesi harus diisi');
+                }
+
                 $project = Project::with([
                     'kandang',
                     'recording',
@@ -107,7 +111,7 @@ class RecordingController extends Controller
                 $productCategory  = ProductCategory::find($input['product_category_id']);
                 $projectWarehouse = ProductWarehouse::whereHas('product', function($query) {
                     $query->whereHas('product_category', function($query) {
-                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS', 'LYR', 'TLR', 'GPS']);
+                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS', 'LYR', 'GPS']);
                     });
                 })
                     ->where('warehouse_id', $input['warehouse_id'])
