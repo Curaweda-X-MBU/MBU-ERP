@@ -86,7 +86,6 @@
 <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
 <script>
     // ? START :: SET VALUE :: QTY & CURRENT STOCK
-    const localeOpts = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
     function setField($this, reset) {
         let qty;
         let price;
@@ -208,7 +207,6 @@
             initNumeralMask('.numeral-mask');
         },
         hide: function(deleteElement) {
-            confirmDelete($(this), deleteElement);
             confirmDelete($(this), () => {
                 deleteElement();
                 updateTotalValue();

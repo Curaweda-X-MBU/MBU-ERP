@@ -57,4 +57,17 @@ class Supplier extends Model
     {
         return $this->hasMany(ProjectChickIn::class, 'supplier_id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_supplier', 'supplier_id', 'product_id')
+            ->withPivot(['product_price', 'selling_price'])
+            ->withTimestamps();
+    }
+
+    public function nonstocks()
+    {
+        return $this->belongsToMany(Nonstock::class, 'nonstock_supplier', 'supplier_id', 'nonstock_id')
+            ->withTimestamps();
+    }
 }

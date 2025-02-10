@@ -81,4 +81,11 @@ class Product extends Model
     {
         return $this->hasMany(MarketingProduct::class, 'product_id', 'product_id');
     }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'product_supplier', 'product_id', 'supplier_id')
+            ->withPivot(['product_price', 'selling_price'])
+            ->withTimestamps();
+    }
 }
