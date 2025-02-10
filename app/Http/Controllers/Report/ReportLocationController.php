@@ -672,7 +672,7 @@ class ReportLocationController extends Controller
         $purchaseItems = PurchaseItem::selectRaw('
                 purchase_items.qty AS num_qty,
                 uom.name AS uom,
-                purchase_item_receptions.received_date AS tanggal,
+                MAX(purchase_item_receptions.received_date) AS tanggal,
                 COALESCE(purchases.po_number, purchases.pr_number) AS no_referensi,
                 "Pembelian" AS transaksi,
                 products.name AS produk,
@@ -693,7 +693,6 @@ class ReportLocationController extends Controller
             ])
             ->whereNotNull('purchase_item_receptions.received_date')
             ->groupByRaw('
-                    purchase_item_receptions.received_date,
                     purchases.pr_number,
                     purchases.po_number,
                     products.name,
@@ -1214,10 +1213,11 @@ class ReportLocationController extends Controller
     {
         $query = DB::table('purchase_items')
             ->select([
-                'purchase_items.*',
+                'purchase_items.purchase_item_id',
+                'purchase_items.qty',
                 'purchases.po_number',
-                'purchase_item_receptions.received_date AS tanggal',
-                'purchases.notes as purchase_notes',
+                DB::raw('MAX(purchase_item_receptions.received_date) AS tanggal'),
+                'purchases.notes AS purchase_notes',
                 'products.name as product_name',
                 'purchase_items.price',
                 'projects.project_id',
@@ -1236,7 +1236,16 @@ class ReportLocationController extends Controller
             ->where(function($query) {
                 $query->whereNotNull('purchases.po_number')
                     ->orWhereNotNull('purchase_item_receptions.received_date');
-            });
+            })
+            ->groupBy([
+                'purchase_items.purchase_item_id',
+                'purchase_items.qty',
+                'purchases.po_number',
+                'purchases.notes',
+                'products.name',
+                'purchase_items.price',
+                'projects.project_id',
+            ]);
 
         if ($filter_product) {
             $query->whereRaw('LOWER(product_sub_categories.name) LIKE ?', [strtolower('%'.$filter_product.'%')]);
