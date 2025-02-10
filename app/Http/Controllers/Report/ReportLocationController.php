@@ -308,11 +308,11 @@ class ReportLocationController extends Controller
                 $purchasePakan->map(fn ($p) => [
                     'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number ?? '-',
-                    'qty_masuk'    => Parser::toLocale($p->qty ?? 0),
+                    'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name ?? '-',
-                    'harga_beli'   => Parser::toLocale($p->price),
-                    'total_harga'  => Parser::toLocale($p->price * $p->qty),
+                    'harga_beli'   => Parser::toLocale(optional($p)->price),
+                    'total_harga'  => Parser::toLocale(optional($p)->price ?? 0 * $p->qty),
                     'notes'        => $p->purchase_notes ?? null,
                 ])->concat(
                     $mutasiPakan->map(fn ($m) => [
@@ -323,7 +323,7 @@ class ReportLocationController extends Controller
                         'product'      => $m->product_name,
                         'harga_beli'   => '-',
                         'total_harga'  => '-',
-                        'notes'        => $m->notes,
+                        'notes'        => optional($m)->notes,
                     ])
                 ),
                 collect($recordingPakan)
@@ -333,12 +333,12 @@ class ReportLocationController extends Controller
                 $purchaseOvk->map(fn ($p) => [
                     'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number,
-                    'qty_masuk'    => Parser::toLocale($p->qty),
+                    'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name,
-                    'harga_beli'   => Parser::toLocale($p->price),
-                    'total_harga'  => Parser::toLocale($p->total),
-                    'notes'        => $p->notes,
+                    'harga_beli'   => Parser::toLocale(optional($p)->price ?? 0),
+                    'total_harga'  => Parser::toLocale(optional($p)->total ?? 0),
+                    'notes'        => optional($p)->notes ?? '-',
                 ])->concat(
                     $mutasiOvk->map(fn ($m) => [
                         'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
@@ -348,7 +348,7 @@ class ReportLocationController extends Controller
                         'product'      => $m->product_name,
                         'harga_beli'   => '-',
                         'total_harga'  => '-',
-                        'notes'        => $m->notes,
+                        'notes'        => optional($m)->notes ?? '-',
                     ])
                 ),
                 $recordingOvk
@@ -597,9 +597,9 @@ class ReportLocationController extends Controller
         return [
             'id'      => 1,
             'jenis'   => 'Penjualan Ayam Besar',
-            'rp_ekor' => $penjualan->grand_total / $penjualan->ekor,
-            'rp_kg'   => $penjualan->grand_total / $penjualan->kg,
-            'rp'      => $penjualan->grand_total,
+            'rp_ekor' => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->ekor, 1),
+            'rp_kg'   => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->kg, 1),
+            'rp'      => optional($penjualan)->grand_total ?? 0,
         ];
     }
 
