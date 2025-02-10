@@ -129,7 +129,7 @@
     const period = parseInt(getQueryParam('period'));
     const $periodSelect = $('#period');
     const latestPeriod = parseInt("{{ $detail->latest_period }}");
-    for (let i = 0; i <= latestPeriod; i++) {
+    for (let i = 1; i <= latestPeriod; i++) {
         const option = $('<option>', {
             text: i,
             value: i,
