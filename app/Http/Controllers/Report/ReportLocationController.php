@@ -233,7 +233,7 @@ class ReportLocationController extends Controller
 
             $doc = $purchaseDoc->map(function($p) use ($projects) {
                 return [
-                    'tanggal'      => Carbon::parse(optional($p)->po_date)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse(optional($p)->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => optional($p)->po_number ?? '-',
                     'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => Parser::toLocale($projects->firstWhere('project_id', $p->project_id)->qty_pakai_doc ?? 0),
@@ -244,7 +244,7 @@ class ReportLocationController extends Controller
                 ];
             })->concat($mutasiDoc->map(function($m) use ($projects) {
                 return [
-                    'tanggal'      => Carbon::parse(optional($m)->created_at)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse(optional($m)->created_at)->format('d-M-Y H:i'),
                     'no_reference' => optional($m)->stock_movement_id,
                     'qty_masuk'    => Parser::toLocale(optional($m)->transfer_qty),
                     'qty_pakai'    => Parser::toLocale($projects->firstWhere('project_id', $m->project_id)->qty_pakai_doc ?? 0),
@@ -306,7 +306,7 @@ class ReportLocationController extends Controller
             // Update pakan calculation
             $pakan = $mergeWithRecording(
                 $purchasePakan->map(fn ($p) => [
-                    'tanggal'      => Carbon::parse($p->po_date)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number ?? '-',
                     'qty_masuk'    => Parser::toLocale($p->qty ?? 0),
                     'qty_pakai'    => '-',
@@ -316,7 +316,7 @@ class ReportLocationController extends Controller
                     'notes'        => $p->purchase_notes ?? null,
                 ])->concat(
                     $mutasiPakan->map(fn ($m) => [
-                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
+                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
                         'no_reference' => $m->stock_movement_id,
                         'qty_masuk'    => Parser::toLocale($m->transfer_qty),
                         'qty_pakai'    => '-',
@@ -331,7 +331,7 @@ class ReportLocationController extends Controller
 
             $ovk = $mergeWithRecording(
                 $purchaseOvk->map(fn ($p) => [
-                    'tanggal'      => Carbon::parse($p->po_date)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number,
                     'qty_masuk'    => Parser::toLocale($p->qty),
                     'qty_pakai'    => '-',
@@ -341,7 +341,7 @@ class ReportLocationController extends Controller
                     'notes'        => $p->notes,
                 ])->concat(
                     $mutasiOvk->map(fn ($m) => [
-                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
+                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
                         'no_reference' => $m->stock_movement_id,
                         'qty_masuk'    => Parser::toLocale($m->transfer_qty),
                         'qty_pakai'    => '-',
@@ -634,7 +634,7 @@ class ReportLocationController extends Controller
         $stockMovement = StockMovement::selectRaw('
                 stock_movements.transfer_qty AS num_qty,
                 uom.name AS uom,
-                DATE_FORMAT(stock_movements.created_at, "%d-%b-%Y") AS tanggal,
+                stock_movements.created_at AS tanggal,
                 stock_movements.stock_movement_id AS no_referensi,
                 "Mutasi Masuk" as transaksi,
                 products.name AS produk,
@@ -663,7 +663,8 @@ class ReportLocationController extends Controller
                 ')
             ->get()
             ->map(function($sm) {
-                $sm->qty = Parser::toLocale($sm->num_qty).' '.$sm->uom;
+                $sm->tanggal = Carbon::parse($sm->tanggal)->format('d-M-Y H:i');
+                $sm->qty     = Parser::toLocale($sm->num_qty).' '.$sm->uom;
 
                 return $sm;
             });
@@ -671,7 +672,7 @@ class ReportLocationController extends Controller
         $purchaseItems = PurchaseItem::selectRaw('
                 purchase_items.qty AS num_qty,
                 uom.name AS uom,
-                purchases.approval_line,
+                purchase_item_receptions.received_date AS tanggal,
                 COALESCE(purchases.po_number, purchases.pr_number) AS no_referensi,
                 "Pembelian" AS transaksi,
                 products.name AS produk,
@@ -680,6 +681,7 @@ class ReportLocationController extends Controller
                 purchase_items.price AS harga_satuan
             ')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
+            ->join('purchase_item_receptions', 'purchase_item_receptions.purchase_item_id', '=', 'purchase_items.purchase_item_id')
             ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
             ->join('uom', 'uom.uom_id', '=', 'products.uom_id')
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
@@ -689,8 +691,9 @@ class ReportLocationController extends Controller
                 ['kandang.location_id', $location_id],
                 ['projects.period', $period],
             ])
+            ->whereNotNull('purchase_item_receptions.received_date')
             ->groupByRaw('
-                    purchases.approval_line,
+                    purchase_item_receptions.received_date,
                     purchases.pr_number,
                     purchases.po_number,
                     products.name,
@@ -701,8 +704,7 @@ class ReportLocationController extends Controller
                 ')
             ->get()
             ->map(function($pi) {
-                $approval    = collect(json_decode($pi->approval_line))->firstWhere('status', 3);
-                $pi->tanggal = $approval ? Carbon::parse($approval->date)->format('d-M-Y') : '-';
+                $pi->tanggal = Carbon::parse($pi->tanggal)->format('d-M-Y H:i');
                 $pi->qty     = Parser::toLocale($pi->num_qty).' '.$pi->uom;
 
                 return $pi;
@@ -818,7 +820,8 @@ class ReportLocationController extends Controller
 
         $recordingItems = $recordingStockQuery->unionAll($recordingDepletionQuery)->unionAll($recordingEggQuery)->get()
             ->map(function($item) {
-                $item->qty = Parser::toLocale($item->num_qty).' '.$item->uom;
+                $item->tanggal = Carbon::parse($item->tanggal)->format('d-M-Y H:i');
+                $item->qty     = Parser::toLocale($item->num_qty).' '.$item->uom;
 
                 return $item;
             });
@@ -1207,20 +1210,22 @@ class ReportLocationController extends Controller
             ->sum('total_chickin');
     }
 
-    private function getPurchaseItem(int $period, int $location_id, ?string $filter_product = null, ?int $product_id = null)
+    private function getPurchaseItem(int $period, int $location_id, ?string $filter_product = null)
     {
         $query = DB::table('purchase_items')
             ->select([
                 'purchase_items.*',
                 'purchases.po_number',
-                'purchases.po_date',
+                'purchase_item_receptions.received_date AS tanggal',
                 'purchases.notes as purchase_notes',
                 'products.name as product_name',
                 'purchase_items.price',
                 'projects.project_id',
             ])
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.purchase_id')
+            ->join('purchase_item_receptions', 'purchase_item_receptions.purchase_item_id', '=', 'purchase_items.purchase_item_id')
             ->join('products', 'purchase_items.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->join('warehouses', 'purchases.warehouse_id', '=', 'warehouses.warehouse_id')
             ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
             ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
@@ -1230,15 +1235,11 @@ class ReportLocationController extends Controller
             ])
             ->where(function($query) {
                 $query->whereNotNull('purchases.po_number')
-                    ->orWhereNotNull('purchases.po_date');
+                    ->orWhereNotNull('purchase_item_receptions.received_date');
             });
 
-        if ($product_id) {
-            $query->where('purchase_items.product_id', '=', $product_id);
-        }
-
         if ($filter_product) {
-            $query->whereRaw('LOWER(products.name) LIKE ?', [strtolower('%'.$filter_product.'%')]);
+            $query->whereRaw('LOWER(product_sub_categories.name) LIKE ?', [strtolower('%'.$filter_product.'%')]);
         }
 
         return $query->get();
@@ -1257,6 +1258,7 @@ class ReportLocationController extends Controller
             ])
             ->join('warehouses', 'stock_movements.destination_id', '=', 'warehouses.warehouse_id')
             ->join('products', 'stock_movements.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
             ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
             ->where('kandang.location_id', $location_id)
@@ -1271,7 +1273,7 @@ class ReportLocationController extends Controller
                 $subQuery->select(DB::raw(1))
                     ->from('products')
                     ->whereColumn('products.product_id', 'stock_movements.product_id')
-                    ->whereRaw('LOWER(products.name) LIKE ?', [strtolower('%'.$filterProduct.'%')]);
+                    ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', [strtolower('%'.$filterProduct.'%')]);
             });
         }
 
@@ -1291,12 +1293,13 @@ class ReportLocationController extends Controller
             ->join('recording_stocks', 'recordings.recording_id', '=', 'recording_stocks.recording_id')
             ->join('product_warehouses', 'recording_stocks.product_warehouse_id', '=', 'product_warehouses.product_warehouse_id')
             ->join('products', 'product_warehouses.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->leftJoin('uom', 'products.uom_id', '=', 'uom.uom_id')
             ->where('kandang.location_id', $location_id)
             ->where('projects.period', $period);
 
         if ($filterProduct) {
-            $query->whereRaw('LOWER(products.name) LIKE ?', [strtolower('%'.$filterProduct.'%')]);
+            $query->whereRaw('LOWER(product_sub_categories.name) LIKE ?', [strtolower('%'.$filterProduct.'%')]);
         }
 
         return $query->get()
