@@ -542,9 +542,9 @@ class ReportKandangController extends Controller
         return [
             'id'      => 1,
             'jenis'   => 'Penjualan Ayam Besar',
-            'rp_ekor' => $penjualan->grand_total / $penjualan->ekor,
-            'rp_kg'   => $penjualan->grand_total / $penjualan->kg,
-            'rp'      => $penjualan->grand_total,
+            'rp_ekor' => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->ekor, 1),
+            'rp_kg'   => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->kg, 1),
+            'rp'      => optional($penjualan)->grand_total ?? 0,
         ];
     }
 
