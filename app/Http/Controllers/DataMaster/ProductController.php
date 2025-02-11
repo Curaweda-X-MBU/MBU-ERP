@@ -134,7 +134,10 @@ class ProductController extends Controller
                 $suppliersToSync = [];
                 foreach ($req->input('product_supplier') ?? [] as $key => $value) {
                     if (isset($value['supplier_id']) ?? false) {
-                        $suppliersToSync[$value['supplier_id']] = ['product_price' => Parser::parseLocale($value['product_price']) ?? 0];
+                        $suppliersToSync[$value['supplier_id']] = [
+                            'product_price' => Parser::parseLocale($value['product_price']) ?? 0,
+                            'selling_price' => $input['selling_price'],
+                        ];
                     }
                 }
 
