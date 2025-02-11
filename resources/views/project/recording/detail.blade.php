@@ -20,8 +20,6 @@
                     ->product
                     ->name === 'Pakan';
             })->first();
-
-    
 @endphp
 
                     <div class="row">
@@ -145,32 +143,32 @@
                                                                 <tr>
                                                                     <td>Bobot</td>
                                                                     <td class="text-center">{{ formatnumber($data->recording_bw[0]->value) }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->weight)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->weight)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Peningkatan Harian</td>
                                                                     <td class="text-center">{{ formatnumber($data->daily_gain) }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->daily_gain)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->daily_gain)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Peningkatan Rata - rata</td>
                                                                     <td class="text-center">{{ formatnumber($data->avg_daily_gain) }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->avg_daily_gain)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->avg_daily_gain)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Asupan Harian</td>
-                                                                    <td class="text-center">{{ formatnumber(($pakanRecord->decrease*1000/$data->total_chick)) ?? '' }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->daily_intake)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber(($pakanRecord->decrease*1000/($data->total_chick ?: 1))) ?? '' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->daily_intake)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Asupan Kumulatif</td>
                                                                     <td class="text-center">{{ formatnumber($data->cum_intake) }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->cum_intake)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->cum_intake)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>FCR</td>
                                                                     <td class="text-center">{{ formatnumber($data->fcr_value) }}</td>
-                                                                    <td class="text-center">{{ formatnumber($fcrStandar->fcr)??'' }}</td>
+                                                                    <td class="text-center">{{ formatnumber($fcrStandar?->fcr)??'' }}</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -397,7 +395,7 @@
                     <script>
                         $(document).ready(function() {
                             $('#showFcr').on('show.bs.modal', function (event) {
-                                var button = $(event.relatedTarget) 
+                                var button = $(event.relatedTarget)
                                 var id = button.data('id')
                                 var modal = $(this)
 
@@ -411,7 +409,7 @@
                                         let html = '';
                                         modal.find('#fcr-name').html(`- ${response.name}`);
                                         const arrFcr = response.fcr_standard;
-                                        
+
                                         arrFcr.forEach(val => {
                                             html += `<tr>
                                                         <td>${formatMoney(val.day)}</td>
@@ -431,9 +429,9 @@
 
                             function formatMoney(amount) {
                                 const number = parseFloat(amount);
-                                const formatted = number.toFixed(2) 
-                                    .replace('.', ',')   
-                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.'); 
+                                const formatted = number.toFixed(2)
+                                    .replace('.', ',')
+                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
                                 return formatted.replace(/,00$/, '');
                             }
                         });

@@ -3,7 +3,6 @@
 @section('content')
 @php
     $farmType = App\Constants::KANDANG_TYPE;
-    dump($data)
 @endphp
 
 <div class="row">
@@ -81,7 +80,7 @@
                                                 <i data-feather="more-vertical"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('report.detail.location', $item->location_id).'?company=mbu'}}">
+                                                <a class="dropdown-item" href="{{ route('report.detail.location', $item->location_id) . '?company=mbu&period=' . $item->period }}">
                                                     <i data-feather='eye' class="mr-50"></i>
                                                     <span>Detail</span>
                                                 </a>

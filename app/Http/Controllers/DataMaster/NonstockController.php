@@ -68,10 +68,15 @@ class NonstockController extends Controller
                         ->withInput($input);
                 }
 
-                Nonstock::create([
+                $nonstock = Nonstock::create([
                     'name'   => $req->input('name'),
                     'uom_id' => $req->input('uom_id'),
                 ]);
+
+                // Sync suppliers
+                if ($req->has('supplier_id')) {
+                    $nonstock->suppliers()->sync($req->input('supplier_id'));
+                }
 
                 $success = ['success' => 'Data Berhasil disimpan'];
 
@@ -87,7 +92,7 @@ class NonstockController extends Controller
     public function edit(Request $req)
     {
         try {
-            $nonstock = Nonstock::with(['uom'])->findOrFail($req->id);
+            $nonstock = Nonstock::with(['uom', 'suppliers'])->findOrFail($req->id);
             $param    = [
                 'title' => 'Master Data > Non Stock > Ubah',
                 'data'  => $nonstock,
@@ -114,6 +119,11 @@ class NonstockController extends Controller
                     'name'   => $req->input('name'),
                     'uom_id' => $req->input('uom_id'),
                 ]);
+
+                // Sync suppliers
+                if ($req->has('supplier_id')) {
+                    $nonstock->suppliers()->sync($req->input('supplier_id'));
+                }
 
                 $success = ['success' => 'Data berhasil dirubah'];
 

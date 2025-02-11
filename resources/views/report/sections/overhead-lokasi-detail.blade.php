@@ -32,9 +32,9 @@
                     <tr class="font-weight-bolder">
                         <td>Total</td>
                         <td></td>
-                        <td class="total_budget_qty">-</td>
                         <td></td>
-                        <td class="budget_grand_total text-right">-</td>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td class="total_realization_qty">-</td>
                         <td></td>
@@ -49,27 +49,14 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
-
-    function intVal (i) {
-        return typeof i === 'string'
-            ? parseLocaleToNum(i)
-            : typeof i === 'number'
-            ? i
-            : 0;
-    };
+    const period = getQueryParam('period');
 
     function sumValues (arr, column) {
         const sum = arr.reduce((a, b) => intVal(a) + intVal(b[column]), 0);
     }
 
     function fetchLocationOverheadData() {
-        $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
+        $.get("{{ route('report.detail.location.overhead', [ 'location' => $detail->location_id ]) . '?period=' }}" + period)
             .then(function(result) {
                 if (!result.error) {
                     populateBudgetTable(result);
@@ -179,17 +166,6 @@ $(function() {
                 let api = this.api();
 
                 const $footer = $(api.column(0).footer()).closest('tfoot');
-
-                totalBudgetQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyPengajuan), 0);
-
-                $footer.find('.total_budget_qty').html(trimLocale(totalBudgetQty));
-
-                budgetGrandTotal = (api
-                    .column('.budget_total')
-                    .data() ?? [])
-                    .reduce((a, b) => intVal(a) + intVal(b), 0);
-
-                $footer.find('.budget_grand_total').html(`Rp&nbsp;${parseNumToLocale(budgetGrandTotal)}`);
 
                 totalRealizationQty = data.reduce((a, b) => intVal(a) + intVal(b.qtyRealisasi ?? 0), 0);
 

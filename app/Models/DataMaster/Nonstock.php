@@ -42,4 +42,10 @@ class Nonstock extends Model
     {
         return $this->hasMany(RecordingNonstock::class, 'nonstock_id');
     }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'nonstock_supplier', 'nonstock_id', 'supplier_id')
+            ->withTimestamps();
+    }
 }

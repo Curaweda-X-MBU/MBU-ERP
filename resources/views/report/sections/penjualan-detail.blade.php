@@ -1,10 +1,11 @@
 <div class="card">
     <input type="hidden" class="location_penjualan_loaded" value="0">
+    <input type="hidden" class="kandang_penjualan_loaded" value="0">
     <div class="card-body">
         <h4>Penjualan Ayam Besar</h4>
         <div class="table-responsive mt-2" style="overflow-x: auto;">
             @include('report.sections.modal-penjualan.index')
-            <table id="location_penjualan_datatable" class="table" style="margin: 0 0 !important;">
+            <table id="penjualan_datatable" class="table" style="margin: 0 0 !important;">
                 <thead>
                     <tr class="text-center">
                     <th rowspan="2" style="vertical-align: middle">Tanggal</th>
@@ -16,7 +17,7 @@
                     <th rowspan="2" style="vertical-align: middle">CN (RP)</th>
                     <th rowspan="2" style="vertical-align: middle">Total (RP)</th>
                     <th rowspan="2" style="vertical-align: middle">Kandang</th>
-                    <th rowspan="2" style="vertical-align: middle">Status</th>
+                    <th rowspan="2" style="vertical-align: middle">Status Pembayaran</th>
                     </tr>
                     <tr class="text-center">
                     <th>Ekor</th>
@@ -54,18 +55,21 @@
 
 <script>
 $(function() {
-    function trimLocale(num) {
-        const locale = parseNumToLocale(num);
-        return locale.split(',')[1] === '00'
-            ? locale.split(',')[0]
-            : locale;
-    }
+    const period = getQueryParam('period');
 
     function fetchLocationPenjualanData() {
-        $.get("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' . $detail->period }}")
+        fetchPenjualanData("{{ route('report.detail.location.penjualan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
+    }
+
+    function fetchKandangPenjualanData() {
+        fetchPenjualanData("{{ route('report.detail.kandang.penjualan', [ 'location' => $detail->location_id , 'project' => $detail->project_id]) . '?period=' }}" + period);
+    }
+
+    function fetchPenjualanData(route) {
+        $.get(route)
             .then(function(result) {
                 if (!result.error) {
-                    $('#location_penjualan_datatable').DataTable({
+                    $('#penjualan_datatable').DataTable({
                         destroy: true,  // Allows reloading data dynamically
                         responsive: true,
                         ordering: true,
@@ -158,14 +162,6 @@ $(function() {
                         footerCallback: function(row, data) {
                             let api = this.api();
 
-                            let intVal = function (i) {
-                                return typeof i === 'string'
-                                    ? parseLocaleToNum(i)
-                                    : typeof i === 'number'
-                                    ? i
-                                    : 0;
-                            };
-
                             const $footer = $(api.column(0).footer()).closest('tfoot');
 
                             sumQty = (api
@@ -210,7 +206,7 @@ $(function() {
 
     function populatePenjualanModal(noDo, products, prices) {
         $('#penjualanModalLabel').text('Detail Penjualan Ayam Besar | ' + noDo);
-        $('#location_penjualan_produk_datatable').DataTable({
+        $('#penjualan_produk_datatable').DataTable({
             destroy: true,  // Allows reloading data dynamically
             responsive: true,
             ordering: true,
@@ -258,14 +254,6 @@ $(function() {
             footerCallback: function(row, data) {
                 let api = this.api();
 
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
-
                 total = (api
                     .column('.total_price')
                     .data() ?? [])
@@ -274,7 +262,7 @@ $(function() {
                 $(api.column(0).footer()).closest('tfoot').find('.grand_total').html(`Rp&nbsp;${parseNumToLocale(total)}`);
             },
         });
-        $('#location_penjualan_lainnya_datatable').DataTable({
+        $('#penjualan_lainnya_datatable').DataTable({
             destroy: true,  // Allows reloading data dynamically
             responsive: true,
             ordering: true,
@@ -307,14 +295,6 @@ $(function() {
             footerCallback: function(row, data) {
                 let api = this.api();
 
-                let intVal = function (i) {
-                    return typeof i === 'string'
-                        ? parseLocaleToNum(i)
-                        : typeof i === 'number'
-                        ? i
-                        : 0;
-                };
-
                 total = (api
                     .column('.price')
                     .data() ?? [])
@@ -326,7 +306,8 @@ $(function() {
     }
 
     $('.location_penjualan_loaded').on('change', fetchLocationPenjualanData);
-    $('#location_penjualan_datatable').on('click', '.toggle_do_modal', function() {
+    $('.kandang_penjualan_loaded').on('change', fetchKandangPenjualanData);
+    $('#penjualan_datatable').on('click', '.toggle_do_modal', function() {
         const marketingProducts = JSON.parse($(this).attr('data-products'));
         const marketingAdditPrices = JSON.parse($(this).attr('data-addit-prices'));
         const noDo = $(this).text();

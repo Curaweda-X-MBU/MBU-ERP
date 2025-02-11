@@ -163,13 +163,21 @@ Route::middleware('auth')->group(function() {
         Route::get('/{location}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail.location');
         Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
         Route::group(['prefix' => 'detail/{location}'], function() {
+            Route::get('/sapronak', [App\Http\Controllers\Report\ReportLocationController::class, 'sapronak'])->name('report.detail.location.sapronak');
+            Route::get('/perhitungan', [App\Http\Controllers\Report\ReportLocationController::class, 'perhitunganSapronak'])->name('report.detail.location.perhitungan');
             Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
             Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
             Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportLocationController::class, 'hppEkspedisi'])->name('report.detail.location.ekspedisi');
+            Route::get('/produksi', [App\Http\Controllers\Report\ReportLocationController::class, 'dataProduksi'])->name('report.detail.location.produksi');
+            Route::get('/keuangan', [App\Http\Controllers\Report\ReportLocationController::class, 'keuangan'])->name('report.detail.location.keuangan');
             Route::group(['prefix' => '{project}'], function() {
                 Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
+                Route::get('/perhitungan', [App\Http\Controllers\Report\ReportKandangController::class, 'perhitunganSapronak'])->name('report.detail.kandang.perhitungan');
                 Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');
+                Route::get('/overhead', [App\Http\Controllers\Report\ReportKandangController::class, 'overhead'])->name('report.detail.kandang.overhead');
                 Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportKandangController::class, 'hppEkspedisi'])->name('report.detail.kandang.ekspedisi');
+                Route::get('/produksi', [App\Http\Controllers\Report\ReportKandangController::class, 'dataProduksi'])->name('report.detail.kandang.produksi');
+                Route::get('/keuangan', [App\Http\Controllers\Report\ReportKandangController::class, 'keuangan'])->name('report.detail.kandang.keuangan');
             });
         });
     });

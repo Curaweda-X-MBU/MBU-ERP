@@ -1,10 +1,10 @@
 <div class="card mb-1">
-    <div id="headingCollapse1" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+    <div id="headingSapronakMasukCollapse" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#sapronakMasukCollapse" aria-expanded="true" aria-controls="headingSapronakMasukCollapse">
         <span class="lead collapse-title">Sapronak Masuk</span>
     </div>
-    <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse show" aria-expanded="true">
+    <div id="sapronakMasukCollapse" role="tabpanel" aria-labelledby="headingSapronakMasukCollapse" class="collapse show" aria-expanded="true">
         <div class="table-responsive">
-            <table class="table w-100">
+            <table id="sapronak_masuk_datatable" class="table" style="margin: 0 !important;">
                 <thead>
                     <tr class="text-center">
                         <th>Tanggal</th>
@@ -17,32 +17,17 @@
                         <th>Keterangan</th>
                 </thead>
                 <tbody>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>Recording</td>
-                        <td>Pakan</td>
-                        <td>Gudang Banten</td>
-                        <td></td>
-                        <td>10 Kg</td>
-                        <td>-</td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>1-10-2024</td>
-                        <td class="text-primary">PND.MBU00912</td>
-                        <td>Mutasi</td>
-                        <td>DOC</td>
-                        <td>Gudang Banten</td>
-                        <td></td>
-                        <td>100 Ekor</td>
-                        <td>-</td>
+                    {{-- DATA from AJAX --}}
+                    <tr>
+                        <td class="text-center" colspan="8">Mengambil data ...</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
                         <td colspan="5">Total Sapronak Masuk</td>
-                        <td class="text-center">63 Kg</td>
-                        <td class="text-center">1.000 Ekor</td>
+                        <td class="total_1 text-center">-</td>
+                        <td class="total_2 text-center">-</td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>

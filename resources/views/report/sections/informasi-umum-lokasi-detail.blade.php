@@ -30,36 +30,9 @@
                             <td class="col-md-7">{{ $detail->doc }} Ekor</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Tanggal Closing</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">11-12-2024</td>
-                        </tr>
-                        <tr>
                             <td class="col-md-4">Jenis Project</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">{{ $farmType[$detail->farm_type] }}</td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">Status Project</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">
-                                @switch($detail->project_status)
-                                    @case(1)
-                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
-                                        @break
-                                    @case(2)
-                                        <div class="badge badge-pill badge-primary">Aktif</div>
-                                        @break
-                                    @case(3)
-                                        <div class="badge badge-pill badge-info">Persiapan</div>
-                                        @break
-                                    @case(4)
-                                        <div class="badge badge-pill badge-success">Selesai</div>
-                                        @break
-                                    @default
-                                        <div class="badge badge-pill badge-secondary">N/A</div>
-                                @endswitch
-                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -79,16 +52,6 @@
                             <td class="col-md-7">{{ $detail->active_kandang }} Kandang</td>
                         </tr>
                         <tr>
-                            <td class="col-md-4">Tanggal Chickin</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ @$detail->chickin_date ? date('d-M-Y', strtotime($detail->chickin_date)) : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="col-md-4">Tanggal Approval</td>
-                            <td class="col-md-1">:</td>
-                            <td class="col-md-7">{{ @$detail->approval_date ? date('d-M-Y', strtotime($detail->approval_date)) : '-' }}</td>
-                        </tr>
-                        <tr>
                             <td class="col-md-4">Status Pembayaran</td>
                             <td class="col-md-1">:</td>
                             <td class="col-md-7">
@@ -101,6 +64,28 @@
                                         @break
                                     @case(2)
                                         <div class="badge badge-pill badge-success">Sudah Bayar</div>
+                                        @break
+                                    @default
+                                        <div class="badge badge-pill badge-secondary">N/A</div>
+                                @endswitch
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">Status Project</td>
+                            <td class="col-md-1">:</td>
+                            <td class="col-md-7">
+                                @switch($detail->project_status)
+                                    @case(1)
+                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
+                                        @break
+                                    @case(2)
+                                        <div class="badge badge-pill badge-primary">Aktif</div>
+                                        @break
+                                    @case(3)
+                                        <div class="badge badge-pill badge-info">Persiapan</div>
+                                        @break
+                                    @case(4)
+                                        <div class="badge badge-pill badge-success">Selesai</div>
                                         @break
                                     @default
                                         <div class="badge badge-pill badge-secondary">N/A</div>

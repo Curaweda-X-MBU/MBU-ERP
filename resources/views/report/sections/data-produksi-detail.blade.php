@@ -1,4 +1,6 @@
 <div class="card">
+    <input type="hidden" class="location_data_produksi_loaded" value="0">
+    <input type="hidden" class="kandang_data_produksi_loaded" value="0">
     <div class="card-body">
         <h4>Data Produksi</h4>
         <div class="row mt-2">
@@ -14,32 +16,32 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Populasi Awal</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">387.200</td>
+                                    <td id="populasi_awal" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Claim Culling</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">0</td>
+                                    <td id="claim_culling" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Populasi Akhir</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">387.200</td>
+                                    <td id="populasi_akhir" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Ekor</td>
                                 </tr>
                                 <tr>
-                                    <td class="col-md-6">Pakan Terkirim</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">850.700</td>
+                                    <td class="col-md-6">Pakan Masuk</td>
+                                    <td id="pakan_masuk" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Pakan Terpakai</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">850.700</td>
+                                    <td id="pakan_terpakai" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Pakan Terpakai per Ekor</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">2,20</td>
+                                    <td id="pakan_terpakai_per_ekor" class="col-md-3 text-right font-weight-bolder">0,00</td>
                                     <td class="col-md-3">Kg</td>
                                 </tr>
                             </tbody>
@@ -57,22 +59,22 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Penjualan (Kg)</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">594.994,90</td>
+                                    <td id="bobot_total" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Penjualan (Ekor)</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">371.460</td>
+                                    <td id="qty_total" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Bobot Rata-Rata</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">1,60</td>
+                                    <td id="bobot_rata" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Kg/Ekor</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-6">Harga Jual Rata-Rata</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">19.997,93</td>
+                                    <td id="harga_jual_rata" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-3">Rupiah</td>
                                 </tr>
                             </tbody>
@@ -93,48 +95,48 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Deplesi</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">15.740</td>
+                                    <td id="deplesi" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-2">Ekor</td>
-                                    <td class="col-md-1 text-primary">4,07</td>
+                                    <td class="mortalitas_act col-md-1 text-primary">0</td>
                                     <td class="col-md-1">%</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Umur</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">28,14</td>
+                                    <td id="umur" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-2">Hari</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Mortalitas Std</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">3,46</td>
+                                    <td id="mortalitas_std" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Mortalitas Act</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">4,07</td>
+                                    <td class="mortalitas_act col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">DEFF Mortalitas</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">0,61</td>
+                                    <td id="deff_mortalitas" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">FCR Std</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">1,368</td>
+                                    <td id="fcr_std" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">FCR Act</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">1,430</td>
+                                    <td id="fcr_act" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">DEFF FCR</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">0,062</td>
+                                    <td id="deff_fcr" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">ADG</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">5,69</td>
+                                    <td id="adg" class="col-md-3 text-right font-weight-bolder">0</td>
                                     <td class="col-md-2">Gr/Hari</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">IP</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">381</td>
+                                    <td id="ip" class="col-md-3 text-right font-weight-bolder">0</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -151,18 +153,18 @@
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Selisih Ayam</td>
-                                    <td class="col-md-3 text-right font-weight-bolder text-danger">(3.177)</td>
+                                    <td class="col-md-3 text-right font-weight-bolder text-danger">-</td>
                                     <td class="col-md-2">Ekor</td>
                                     <td class="col-md-2"></td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">% Selisih Ayam</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">-0,82</td>
+                                    <td class="col-md-3 text-right font-weight-bolder">-</td>
                                     <td class="col-md-2">%</td>
                                 </tr>
                                 <tr>
                                     <td class="col-md-5">Selisih Pakan</td>
-                                    <td class="col-md-3 text-right font-weight-bolder">0</td>
+                                    <td class="col-md-3 text-right font-weight-bolder">-</td>
                                     <td class="col-md-2">Kg</td>
                                 </tr>
                             </tbody>
@@ -173,3 +175,57 @@
         </div>
     </div>
 </div>
+
+<script>
+$(function() {
+    const period = getQueryParam('period');
+
+    function fetchLocationDataProduksiData() {
+        fetchDataProduksiData("{{ route('report.detail.location.produksi', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
+    }
+
+    function fetchKandangDataProduksiData() {
+        fetchDataProduksiData("{{ route('report.detail.kandang.produksi', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
+    }
+
+    function fetchDataProduksiData(route) {
+        $.get(route)
+            .then(function(result) {
+                if (!result.error) {
+                    // PEMBELIAN
+                    const pembelian = result.pembelian;
+
+                    $('#populasi_awal').text(trimLocale(pembelian.populasi_awal));
+                    $('#claim_culling').text(trimLocale(pembelian.culling));
+                    $('#populasi_akhir').text(trimLocale(pembelian.populasi_akhir));
+                    $('#pakan_masuk').text(trimLocale(pembelian.pakan_masuk));
+                    $('#pakan_terpakai').text(trimLocale(pembelian.pakan_terpakai));
+                    $('#pakan_terpakai_per_ekor').text(trimLocale(pembelian.pakan_terpakai_per_ekor));
+
+                    // PENJUALAN
+                    const penjualan = result.penjualan;
+                    $('#bobot_total').text(trimLocale(penjualan.penjualan_kg));
+                    $('#qty_total').text(trimLocale(penjualan.penjualan_ekor));
+                    $('#bobot_rata').text(trimLocale(penjualan.bobot_rata));
+                    $('#harga_jual_rata').text(trimLocale(penjualan.harga_jual_rata));
+
+                    // PERFORMANCE
+                    const performance = result.performance;
+                    $('#deplesi').text(trimLocale(performance.deplesi));
+                    $('#umur').text(trimLocale(performance.umur));
+                    $('#mortalitas_std').text(trimLocale(performance.mortalitas_std));
+                    $('.mortalitas_act').text(trimLocale(performance.mortalitas_act));
+                    $('#deff_mortalitas').text(trimLocale(performance.deff_mortalitas));
+                    $('#fcr_std').text(trimLocale(performance.fcr_std));
+                    $('#fcr_act').text(trimLocale(performance.fcr_act));
+                    $('#deff_fcr').text(trimLocale(performance.deff_fcr));
+                    $('#adg').text(trimLocale(performance.adg));
+                    $('#ip').text(trimLocale(performance.ip));
+                }
+            });
+    }
+
+    $('.location_data_produksi_loaded').on('change', fetchLocationDataProduksiData);
+    $('.kandang_data_produksi_loaded').on('change', fetchKandangDataProduksiData);
+});
+</script>

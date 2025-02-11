@@ -3,13 +3,13 @@
 <div class="row justify-content-between mt-2">
     <div class="col-md-5 mx-1 border p-1">
         <div>Laba Rugi Bruto</div>
-        <div class="font-weight-bolder">Rp <span>0</span></div>
+        <div class="font-weight-bolder">Rp <span id="laba_rugi_bruto">0</span></div>
     </div>
     <div class="col-md-6 mx-1 border p-1">
         <div class="row">
             <div class="col">
                 <div>Laba Rugi Netto</div>
-                <div class="font-weight-bolder">Rp <span>0</span></div>
+                <div class="font-weight-bolder">Rp <span id="laba_rugi_netto">0</span></div>
             </div>
             <div class="col">
                 <div>Total Komponen</div>

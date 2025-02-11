@@ -628,6 +628,7 @@ class ListController extends Controller
 
         $productWarehouses = ProductWarehouse::where('warehouse_id', $warehouseId)
             ->with(['product', 'product.uom'])
+            ->whereHas('product', fn ($p) => $p->where('can_be_sold', 1))
             ->get();
 
         $val = $productWarehouses->map(function($productWarehouse) {

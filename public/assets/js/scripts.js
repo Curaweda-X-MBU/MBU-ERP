@@ -37,7 +37,7 @@ function initNumeralMask(selector) {
  */
 function parseLocaleToNum(value) {
     const parsed = parseFloat(
-        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, "") || 0,
+        value.replace(/\./g, "_").replace(",", ".").replace(/_/g, ""),
     );
     return isNaN(parsed) ? 0 : parsed;
     // return parseFloat(value.replace(/\,/g, "") || 0);
@@ -51,7 +51,7 @@ function parseLocaleToNum(value) {
 function parseNumToLocale(value) {
     const parsed = parseFloat(value);
     return isNaN(parsed)
-        ? value
+        ? "" + value
         : parsed.toLocaleString("id-ID", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -255,4 +255,36 @@ function parseDateToString(datestring, format = "d-M-Y") {
     } else {
         return "Invalid Format"; // Handle unsupported formats
     }
+}
+
+/**
+ * Parse a number string to type number
+ * @param {number | string} num
+ * @returns {number}
+ */
+function intVal(num) {
+    switch (typeof num) {
+        case typeof "":
+            const parsed = parseLocaleToNum(num);
+            return isNaN(parsed) ? 0 : parsed;
+        case typeof 0:
+            return num;
+        default:
+            return 0;
+    }
+}
+
+/**
+ * Parse a number to locale string and trim excess 0 decimal
+ * @param {number} num
+ * @returns {number}
+ */
+function trimLocale(num) {
+    const locale = parseNumToLocale(num);
+    return locale.split(",")[1] === "00" ? locale.split(",")[0] : locale;
+}
+
+function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
 }

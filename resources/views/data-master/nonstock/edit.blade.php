@@ -1,7 +1,7 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
-            
+
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -42,6 +42,22 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-12">
+                                                <div class="form-group row">
+                                                    <div class="col-sm-3 col-form-label">
+                                                        <label for="supplier_id" class="float-right">Vendor</label>
+                                                    </div>
+                                                    <div class="col-sm-5">
+                                                        <select name="supplier_id[]" id="supplier_id" class="form-control" multiple="multiple">
+                                                            @if($data->has('suppliers'))
+                                                                @foreach($data->suppliers as $supplier)
+                                                                    <option value="{{ $supplier->supplier_id }}" selected>{{ $supplier->name }}</option>
+                                                                @endforeach
+                                                            @endif
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="col-sm-9 offset-sm-3">
                                                 <button type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Ubah</button>
                                                 <a href="{{ route('data-master.nonstock.index') }}" class="btn btn-outline-warning waves-effect">Batal</a>
@@ -56,15 +72,17 @@
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
+                            const supplierIdRoute = "{{ route('data-master.supplier.search') }}";
+                            initSelect2($('#supplier_id'), 'Pilih Vendor', supplierIdRoute);
                             $('#uom_id').select2({
                                 placeholder: "Pilih UOM",
                                 ajax: {
-                                    url: '{{ route("data-master.uom.search") }}', 
+                                    url: '{{ route("data-master.uom.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
