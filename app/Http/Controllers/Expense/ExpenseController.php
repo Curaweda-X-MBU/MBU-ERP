@@ -364,7 +364,7 @@ class ExpenseController extends Controller
 
             if ($req->has('po_number')) {
                 if ($req->query('po_number') == $expense->po_number) {
-                    // return view('expense.list.po', $param);
+                    return view('expense.list.po', $param);
                 }
             }
 

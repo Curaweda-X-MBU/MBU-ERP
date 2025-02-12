@@ -66,7 +66,7 @@
                                             <td style="width: 5%">:</td>
                                             <td>
                                                 @if (isset($data->po_number))
-                                                <a class="btn btn-sm btn-primary" target="_blank" href="#">
+                                                <a class="btn btn-sm btn-primary" target="_blank" href="{{ route('expense.list.detail', $data->expense_id) . '?po_number=' . $data->po_number }}">
                                                     {{ $data->po_number }}
                                                 </a>
                                                 @else
