@@ -625,18 +625,34 @@ class ListController extends Controller
     public function searchProductByWarehouse(Request $req)
     {
         $warehouseId = $req->id;
+        $selected    = [];
 
-        $productWarehouses = ProductWarehouse::where('warehouse_id', $warehouseId)
+        if ($req->has('selected')) {
+            $selected = json_decode($req->query('selected'), true);
+
+            $excludedProductIds = collect($selected)
+                ->filter(fn ($item) => $item[0] == $warehouseId)
+                ->pluck(1)
+                ->unique()
+                ->toArray();
+        }
+
+        $query = ProductWarehouse::where('warehouse_id', $warehouseId)
             ->with(['product', 'product.uom'])
-            ->whereHas('product', fn ($p) => $p->where('can_be_sold', 1))
-            ->get();
+            ->whereHas('product', fn ($p) => $p->where('can_be_sold', 1));
+
+        if (! empty($excludedProductIds)) {
+            $query->whereNotIn('product_id', $excludedProductIds);
+        }
+
+        $productWarehouses = $query->get();
 
         $val = $productWarehouses->map(function($productWarehouse) {
             return [
                 'id'       => $productWarehouse->product_id,
                 'text'     => $productWarehouse->product->name,
                 'qty'      => $productWarehouse->quantity,
-                'price'    => $productWarehouse->product->selling_price,
+                'price'    => ($productWarehouse->product->selling_price ?? $productWarehouse->product->product_price) ?? 0,
                 'uom_id'   => $productWarehouse->product->uom_id,
                 'uom_name' => $productWarehouse->product->uom->name,
                 'data'     => $productWarehouse,

@@ -171,9 +171,18 @@
                 const marketingWarehouseId = $(this).val();
                 $marketingProductSelect.val(null).trigger('change').html('');
 
+                const otherProducts = $('.marketing_product_select').not($marketingProductSelect);
+                const selectedProducts = [];
+                if (otherProducts.length) {
+                    otherProducts.each(function() {
+                        const warehouseId = $(this).closest('tr').find('.marketing_warehouse_select').val();
+                        selectedProducts.push([parseInt(warehouseId), parseInt($(this).val())]);
+                    });
+                }
+
                 if (marketingWarehouseId) {
-                    let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
-                    productIdRoute = productIdRoute.replace(':id', marketingWarehouseId);
+                    let productIdRoute = '{{ route("marketing.list.search-product", ["id" => ":id"]) }}';
+                    productIdRoute = productIdRoute.replace(':id', marketingWarehouseId) + "?selected=" + JSON.stringify(selectedProducts);
                     initSelect2($marketingProductSelect, 'Pilih Produk', productIdRoute, 'productWarehouse');
                     setField($marketingProductSelect, true);
                 } else {
