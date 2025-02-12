@@ -22,8 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('expense_main_prices', function(Blueprint $table) {
-            $table->string('sub_category');
-            $table->string('uom');
+            $table->string('sub_category')->nullable()->after('expense_id');
+            $table->string('uom')->nullable()->after('sub_category');
         });
     }
 };

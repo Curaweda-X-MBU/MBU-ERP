@@ -1,6 +1,6 @@
 <div class="table-responsive mt-2">
     <div class="row bg-primary d-flex justify-content-center align-items-center py-1 text-white px-2">
-        <p class="col-md-6 mb-0">Biaya Utama Per Kandang</p>
+        <p class="col-md-6 mb-0">Biaya Utama</p>
         @if (@$data->expense_main_prices)
         <p class="col-md-6 mb-0 text-right">Rp. <span id="total-biaya-utama">{{ \App\Helpers\Parser::toLocale(@$data->expense_main_prices->sum('price')) }}</span></p>
         @else
@@ -10,12 +10,13 @@
     <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
-                <th>Sub Kategori<i class="text-danger">*</i></th>
-                <th>QTY<i class="text-danger">*</i></th>
-                <th>Total Qty</th>
+                <th>Supplier</th>
+                <th>Non Stock<i class="text-danger">*</i></th>
+                <th>Total Qty<i class="text-danger">*</i></th>
+                <th>QTY per Kandang</th>
                 <th>UOM</th>
-                <th>Harga Satuan (Rp)</th>
                 <th>Total Biaya (Rp)<i class="text-danger">*</i></th>
+                <th>Harga per Kandang (Rp)</th>
                 <th>Catatan</th>
                 <th class="col-1">
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
@@ -33,17 +34,20 @@
                 @endphp
                 <tr data-repeater-item>
                     <td>
-                        <select name="sub_category" class="form-control sub-category-select" required>
-                            <option value="{{ $mp->sub_category }}" selected>{{ $mp->sub_category }}</option>
+                        <select name="supplier_id" class="form-control supplier-select">
+                            <option value="{{ $mp->supplier_id }}" selected>{{ $mp->supplier_id }}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select name="nonstock_id" class="form-control nonstock-select" required>
+                            <option value="{{ $mp->nonstock_id }}" selected>{{ $mp->nonstock_id }}</option>
                         </select>
                     </td>
                     <td><input name="qty" type="text" class="unit-qty form-control numeral-mask" value="{{ \App\Helpers\Parser::toLocale($mp->qty) }}" placeholder="0" required></td>
                     <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="{{ \App\Helpers\Parser::toLocale($mp->total_qty) }}" placeholder="0" disabled></td>
-                    <td>
-                        <input name="uom" class="form-control uom" value="{{ $uom->name }}" readonly>
-                    </td>
-                    <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price) }}" placeholder="0" required></td>
-                    <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price * $countKandang) }}" placeholder="0" disabled></td>
+                    <td><span class="uom" readonly></span></td>
+                    <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price / $countKandang) }}" placeholder="0" required></td>
+                    <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price) }}" placeholder="0" disabled></td>
                     <td><input name="notes" type="text" class="form-control" value="{{ $mp->notes }}" placeholder="Masukkan catatan"></td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -54,16 +58,13 @@
                 @endforeach
             @else
             <tr data-repeater-item>
-                <td>
-                    <select name="sub_category" class="form-control sub-category-select" required></select>
-                </td>
-                <td><input name="qty" type="text" class="unit-qty form-control numeral-mask" value="0" placeholder="0" required></td>
+                <td><select name="supplier_id" class="form-control supplier-select"></select></td>
+                <td><select name="nonstock_id" class="form-control nonstock-select" required></select></td>
+                <td><input name="qty"type="text" class="unit-qty form-control numeral-mask" value="0" placeholder="0" required></td>
                 <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="0" placeholder="0" disabled></td>
-                <td>
-                    <input name="uom" class="form-control uom" readonly></input>
-                </td>
+                <td><span class="uom" readonly></span></td>
                 <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="0" placeholder="0" required></td>
-                <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0" disabled></td>
+                <td><input type="text" class=" total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0" disabled></td>
                 <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -88,14 +89,14 @@
             const countKandang = JSON.parse($('input[name="selected_kandangs"]').val()).length ? JSON.parse($('input[name="selected_kandangs"]').val()).length : 1;
 
             if (price > 0) {
-                const totalAmount = price * countKandang;
+                const totalAmount = price / countKandang;
                 $row.find('input.total-amount-all-farms').val(parseNumToLocale(totalAmount));
             } else {
                 $row.find('input.total-amount-all-farms').val('');
             }
 
             if (qty > 0) {
-                const totalQty = qty * countKandang;
+                const totalQty = qty / countKandang;
                 $row.find('input.total-qty-all-farms').val(parseNumToLocale(totalQty));
             } else {
                 $row.find('input.total-qty-all-farms').val('');
@@ -104,20 +105,35 @@
 
         function calculateBiayaUtama() {
             let total = 0;
-            $('.total-amount-all-farms').each(function() {
+            $('.unit-price').each(function() {
                 const value = $(this).val() || '0';
                 total += parseLocaleToNum(value);
             });
             $('#total-biaya-utama').text(parseNumToLocale(total)).trigger('change');
         }
 
+        const nonstockIdRoute = '{{ route("data-master.nonstock.search") }}';
+
+        $(document).on('change', '.supplier-select', function() {
+            $(this).closest('tr').find('.nonstock-select').val('');
+            $(this).closest('tr').find('.uom').text('');
+            $(this).closest('tr').find('.nonstock-select').select2('destroy');
+            if ($(this).val() && $(this).val() !== '') {
+                initSelect2($(this).closest('tr').find('.nonstock-select'), 'Pilih Non Stock', nonstockIdRoute + '?supplier_id=' + $(this).val());
+            } else {
+                initSelect2($(this).closest('tr').find('.nonstock-select'), 'Pilih Non Stock', nonstockIdRoute);
+            }
+        });
+
         function initializeRows($row) {
-            const $subCategorySelect = $row.find('.sub-category-select');
-            const subCategoryIdRoute = '{{ route("data-master.nonstock.search") }}';
-            initSelect2($subCategorySelect, 'Pilih Sub Kategori', subCategoryIdRoute, 'nonStock');
-            $subCategorySelect.on('select2:select', function(){
+            const $supplierSelect = $row.find('.supplier-select');
+            const $nonstockSelect = $row.find('.nonstock-select');
+            const supplierIdRoute = '{{ route("data-master.supplier.search") }}';
+            initSelect2($supplierSelect, 'Pilih Supplier', supplierIdRoute, '', { allowClear: true });
+            initSelect2($nonstockSelect, 'Pilih Non Stock', nonstockIdRoute);
+            $nonstockSelect.on('select2:select', function(){
                 const data = $(this).select2('data')[0];
-                $row.find('input.uom').val(data.uom_name);
+                $row.find('.uom').text(data.uom_name);
             })
 
             const $numeralInput = $row.find('.numeral-mask');

@@ -94,7 +94,7 @@ $(function() {
                         destroy: true,
                         responsive: true,
                         ordering: true,
-                        dom: '<"custom-table-wrapper"t>',
+                        dom: '<"custom-table-wrapper"t>p',
                         data: expense,
                         columns: [
                             {

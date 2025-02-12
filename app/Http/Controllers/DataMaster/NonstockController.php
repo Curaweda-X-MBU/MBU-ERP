@@ -4,6 +4,7 @@ namespace App\Http\Controllers\DataMaster;
 
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Nonstock;
+use App\Models\DataMaster\Supplier;
 use App\Models\DataMaster\Uom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -153,9 +154,15 @@ class NonstockController extends Controller
     public function searchNonstock(Request $request)
     {
         $search      = $request->input('q');
-        $nonstocks   = Nonstock::with('uom')->where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
+
+        if (isset($queryParams['supplier_id'])) {
+            $nonstocks = Supplier::find($queryParams['supplier_id'])->nonstocks()->with('uom')->where('name', 'like', "%{$search}%");
+        } else {
+            $nonstocks = Nonstock::with('uom')->where('name', 'like', "%{$search}%");
+        }
+
         foreach ($queryParams as $key => $value) {
             $nonstocks->where($key, $value);
         }

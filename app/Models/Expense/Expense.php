@@ -20,6 +20,8 @@ class Expense extends Model
 
     protected $fillable = [
         'id_expense',
+        'po_number',
+        'transaction_date',
         'is_approved',
         'approver_id',
         'approval_notes',

@@ -863,8 +863,8 @@ class ReportKandangController extends Controller
                 return $e->expense_main_prices->map(function($mp) {
                     return [
                         'tanggal' => Carbon::parse($mp->approved_at)->format('d-M-Y'),
-                        'produk'  => $mp->sub_category,
-                        'qty'     => "{$mp->qty} {$mp->uom}",
+                        'produk'  => $mp->nonstock->name,
+                        'qty'     => "{$mp->qty} {$mp->nonstock->uom->name}",
                         'price'   => Parser::toLocale($mp->price / max($mp->qty, 1)),
                         'total'   => Parser::toLocale($mp->total_price),
                     ];
