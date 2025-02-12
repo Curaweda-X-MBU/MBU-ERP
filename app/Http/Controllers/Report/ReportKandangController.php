@@ -10,6 +10,7 @@ use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
+use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
 use App\Models\Project\ProjectChickIn;
@@ -133,7 +134,7 @@ class ReportKandangController extends Controller
             $hargaBeliDoc = optional($purchaseDoc->first())->price                                    ?? 0;
 
             $doc = collect($purchaseDoc)->map(fn ($p) => [
-                'tanggal'      => Carbon::parse($p->purchase->po_date)->format('d-M-Y'),
+                'tanggal'      => Carbon::parse($p->purchase_item_reception->last()->received_date)->format('d-M-Y H:i'),
                 'no_reference' => $p->purchase->po_number ?? '-',
                 'qty_masuk'    => Parser::toLocale($p->qty ?? 0),
                 'qty_pakai'    => Parser::toLocale($qtyPakaiDoc ?? 0),
@@ -143,7 +144,7 @@ class ReportKandangController extends Controller
                 'notes'        => $p->purchase->notes ?? null,
             ])->concat(
                 collect($mutasiDoc)->map(fn ($m) => [
-                    'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
                     'no_reference' => $m->stock_movement_id,
                     'qty_masuk'    => Parser::toLocale($m->transfer_qty),
                     'qty_pakai'    => Parser::toLocale($qtyPakaiDoc ?? 0),
@@ -197,7 +198,7 @@ class ReportKandangController extends Controller
 
             $pakan = $mergeWithRecording(
                 collect($purchasePakan)->map(fn ($p) => [
-                    'tanggal'      => Carbon::parse($p->purchase->po_date)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($p->purchase_item_reception->last()->received_date)->format('d-M-Y H:i'),
                     'no_reference' => $p->purchase->po_number,
                     'qty_masuk'    => Parser::toLocale($p->qty),
                     'qty_pakai'    => '-',
@@ -207,7 +208,7 @@ class ReportKandangController extends Controller
                     'notes'        => $p->purchase->notes,
                 ])->concat(
                     collect($mutasiPakan)->map(fn ($m) => [
-                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
+                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
                         'no_reference' => $m->stock_movement_id,
                         'qty_masuk'    => Parser::toLocale($m->transfer_qty),
                         'qty_pakai'    => '-',
@@ -222,7 +223,7 @@ class ReportKandangController extends Controller
 
             $ovk = $mergeWithRecording(
                 collect($purchaseOvk)->map(fn ($p) => [
-                    'tanggal'      => Carbon::parse($p->purchase->po_date)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($p->purchase_item_reception->last()->received_date)->format('d-M-Y H:i'),
                     'no_reference' => $p->purchase->po_number,
                     'qty_masuk'    => Parser::toLocale($p->qty),
                     'qty_pakai'    => '-',
@@ -232,7 +233,7 @@ class ReportKandangController extends Controller
                     'notes'        => $p->purchase->notes,
                 ])->concat(
                     collect($mutasiOvk)->map(fn ($m) => [
-                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y'),
+                        'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
                         'no_reference' => $m->stock_movement_id,
                         'qty_masuk'    => Parser::toLocale($m->transfer_qty),
                         'qty_pakai'    => '-',
@@ -256,9 +257,9 @@ class ReportKandangController extends Controller
         }
     }
 
-    private function getPurchaseItem(int $period, Project $project, ?string $filterProduct = null, ?int $productId = null)
+    private function getPurchaseItem(int $period, Project $project, ?string $filterProduct = null)
     {
-        return PurchaseItem::with(['purchase', 'purchase.warehouse.kandang.project', 'product'])
+        return PurchaseItem::with(['purchase', 'purchase_item_reception', 'purchase.warehouse.kandang.project', 'product.product_sub_category'])
             ->whereHas(
                 'purchase.warehouse.kandang.project',
                 fn ($q) => $q->where([
@@ -269,25 +270,24 @@ class ReportKandangController extends Controller
             ->whereHas(
                 'purchase',
                 fn ($q) => $q->whereNotNull('po_number')
-                    ->orWhereNotNull('po_date')
             )
-            ->when(
-                $productId,
-                fn ($q) => $q->where('product_id', $productId)
+            ->whereHas(
+                'purchase_item_reception',
+                fn ($q) => $q->whereNotNull('received_date')
             )
             ->when(
                 $filterProduct,
                 fn ($q) => $q->whereHas(
-                    'product',
+                    'product.product_sub_category',
                     fn ($q) => $q->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($filterProduct).'%'])
                 )
             )
             ->get();
     }
 
-    public function getMutasiMasuk(int $period, Location $location, Project $project, ?string $filterProduct = null, ?int $productId = null)
+    public function getMutasiMasuk(int $period, Location $location, Project $project, ?string $filterProduct = null)
     {
-        return StockMovement::with(['product', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
+        return StockMovement::with(['product.product_sub_category', 'product.uom', 'origin', 'destination', 'destination.kandang.project'])
             ->whereHas('destination.kandang.project', function($query) use ($project, $period) {
                 $query->where([
                     ['project_id', $project->project_id],
@@ -298,13 +298,9 @@ class ReportKandangController extends Controller
                 $query->where('location_id', $location->location_id);
             })
             ->when(
-                $productId,
-                fn ($q) => $q->where('product_id', $productId)
-            )
-            ->when(
                 $filterProduct,
                 fn ($q) => $q->whereHas(
-                    'product',
+                    'product.product_sub_category',
                     fn ($q) => $q->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($filterProduct).'%'])
                 )
             )
@@ -313,7 +309,7 @@ class ReportKandangController extends Controller
 
     private function getRecordingStock(int $period, Project $project, ?string $filterProduct = null)
     {
-        return Recording::with('recording_stock.product_warehouse.product')
+        return Recording::with('recording_stock.product_warehouse.product.product_sub_category')
             ->whereHas(
                 'project',
                 fn ($q) => $q->where([
@@ -324,7 +320,7 @@ class ReportKandangController extends Controller
             ->get()
             ->flatMap(
                 fn ($recording) => $recording->recording_stock
-                    ->filter(fn ($rs) => str_contains(strtolower(optional($rs->product_warehouse->product)->name ?? ''), $filterProduct))
+                    ->filter(fn ($rs) => str_contains(strtolower(optional($rs->product_warehouse->product->product_sub_category)->name ?? ''), $filterProduct))
                     ->map(fn ($rs) => [
                         'product'   => optional($rs->product_warehouse->product)->name ?? '-',
                         'qty_pakai' => Parser::toLocale($rs->decrease).' '.optional($rs->product_warehouse->product->uom)->name,
@@ -423,7 +419,7 @@ class ReportKandangController extends Controller
                 ->get()
                 ->first();
 
-            $expenseLocation = $this->getOverhead($period, $location, $project, false);
+            $expenseLocation = $this->getOverhead($location, $project, false);
 
             $populasiAkhirKandang = $recordingLastDayProject->total_chick ?? 0;
             $pemakaianFarm        = $expenseLocation->pluck('total')->reduce(fn ($a, $b) => Parser::parseLocale($a) + Parser::parseLocale($b), 0);
@@ -436,7 +432,7 @@ class ReportKandangController extends Controller
                     'populasi_akhir_proyek'  => $populasiAkhirProyek,
                     'result'                 => $populasiAkhirProyek !== 0 ? (($populasiAkhirKandang * $pemakaianFarm) / $populasiAkhirProyek) : 0,
                 ],
-                'expense' => $this->getOverhead($period, $location, $project, true),
+                'expense' => $this->getOverhead($location, $project, true),
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -479,9 +475,9 @@ class ReportKandangController extends Controller
         try {
             $period = intval($req->query('period') ?? $project->period);
 
-            $pembelian   = $this->getProduksiPembelian($period, $location, $project);
+            $pembelian   = $this->getProduksiPembelian($period, $project);
             $penjualan   = $this->getProduksiPenjualan($period, $location, $project);
-            $performance = $this->getProduksiPerformence($period, $location, $project);
+            $performance = $this->getProduksiPerformence($period, $project);
 
             return response()->json([
                 'pembelian'   => $pembelian,
@@ -502,23 +498,79 @@ class ReportKandangController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
+            $bahan_baku = $this->getHppBahanBaku($project->project_id);
+
             return response()->json([
                 'pengeluaran' => [
                     [
                         'kategori'    => 'HPP dan Pengeluaran',
-                        'subkategori' => $this->getHppPembelian($period, $location->location_id, $project->project_id),
+                        'subkategori' => $this->getHppPembelian($project->project_id),
                     ],
                     [
                         'kategori'    => 'HPP dan Bahan Baku',
-                        'subkategori' => [
-                            $this->getHppBahanBaku($period, $location->location_id, $project->project_id),
-                        ],
+                        'subkategori' => $bahan_baku,
                     ],
+                ],
+                'laba_rugi' => [
+                    'bruto' => [
+                        $this->getTotalPenjualan($project->project_id),
+                        $this->getTotalPembelian($project->project_id),
+                    ],
+                    'netto' => $bahan_baku,
                 ],
             ]);
         } catch (\Exception $e) {
             return response()->json(['error', $e->getMessage()], 500);
         }
+    }
+
+    private function getTotalPenjualan(int $project_id)
+    {
+        $penjualan = Marketing::selectRaw('
+                COALESCE(SUM(marketing_products.qty), 0) as ekor,
+                COALESCE(SUM(marketing_products.weight_total), 0) as kg,
+                COALESCE(SUM(marketings.grand_total), 0) as grand_total
+            ')
+            ->join('marketing_products', 'marketing_products.marketing_id', '=', 'marketings.marketing_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'marketing_products.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        return [
+            'id'      => 1,
+            'jenis'   => 'Penjualan Ayam Besar',
+            'rp_ekor' => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->ekor, 1),
+            'rp_kg'   => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->kg, 1),
+            'rp'      => optional($penjualan)->grand_total ?? 0,
+        ];
+    }
+
+    private function getTotalPembelian(int $project_id)
+    {
+        $total_chick = $this->getTotalChick($project_id);
+
+        $bobot_sum = $this->getBobotSum($project_id);
+
+        $pembelian = Purchase::selectRaw('
+                COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+            ')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        return [
+            'id'      => 2,
+            'jenis'   => 'Pembelian Sapronak Supplier',
+            'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
+            'rp'      => $pembelian->grand_total,
+        ];
     }
 
     private function getSapronakMasuk(int $period, Location $location, Project $project)
@@ -536,7 +588,7 @@ class ReportKandangController extends Controller
             ->get()
             ->transform(function($si) {
                 return [
-                    'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y'),
+                    'tanggal'      => Carbon::parse($si->created_at)->format('d-M-Y H:i'),
                     'no_referensi' => $si->stock_movement_id,
                     'transaksi'    => 'Mutasi Masuk',
                     'produk'       => $si->product->name,
@@ -546,18 +598,22 @@ class ReportKandangController extends Controller
                 ];
             });
 
-        $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item', 'purchase_item.product'])
+        $purchaseItems = Purchase::with(['warehouse.kandang.project', 'purchase_item.purchase_item_reception', 'purchase_item.product'])
             ->whereHas('warehouse.kandang.project', function($query) use ($project, $period) {
                 $query->where([
                     ['project_id', $project->project_id],
                     ['period', $period],
                 ]);
             })
+            ->whereHas(
+                'purchase_item.purchase_item_reception',
+                fn ($q) => $q->whereNotNull('received_date')
+            )
             ->get()
             ->flatMap(function($p) {
                 return $p->purchase_item->map(function($item) use ($p) {
                     return [
-                        'tanggal'      => Carbon::parse($p->po_date)->format('d-M-Y'),
+                        'tanggal'      => Carbon::parse($item->purchase_item_reception->last()->received_date)->format('d-M-Y H:i'),
                         'no_referensi' => $p->po_number ?? '-',
                         'transaksi'    => 'Pembelian',
                         'produk'       => $item->product->name,
@@ -592,7 +648,7 @@ class ReportKandangController extends Controller
             )
             ->get()
             ->transform(fn ($so) => [
-                'tanggal'       => Carbon::parse($so->created_at)->format('d-M-Y'),
+                'tanggal'       => Carbon::parse($so->created_at)->format('d-M-Y H:i'),
                 'no_referensi'  => $so->stock_movement_id,
                 'transaksi'     => 'Mutasi Keluar',
                 'produk'        => $so->product->name,
@@ -624,7 +680,7 @@ class ReportKandangController extends Controller
 
         return $recordingData->flatMap(function($type, $relation) use ($recording) {
             return $recording->$relation->map(fn ($item) => [
-                'tanggal'       => Carbon::parse($recording->created_at)->format('d-M-Y H:i:s'),
+                'tanggal'       => Carbon::parse($recording->created_at)->format('d-M-Y H:i'),
                 'no_referensi'  => $recording->recording_id,
                 'transaksi'     => 'Recording '."({$type})",
                 'produk'        => optional($item->product_warehouse->product)->name ?? '-',
@@ -680,7 +736,7 @@ class ReportKandangController extends Controller
         ];
     }
 
-    private function getProduksiPembelian(int $period, Location $location, Project $project)
+    private function getProduksiPembelian(int $period, Project $project)
     {
         $pakan_masuk_subquery = PurchaseItem::selectRaw('
                 projects.project_id, COALESCE(SUM(purchase_items.qty), 0) AS pakan_masuk_qty
@@ -750,7 +806,7 @@ class ReportKandangController extends Controller
             ->get()->first();
     }
 
-    private function getProduksiPerformence(int $period, Location $location, Project $project)
+    private function getProduksiPerformence(int $period, Project $project)
     {
         $recording = Recording::with(['project', 'project.project_chick_in', 'project.fcr', 'project.fcr.fcr_standard', 'recording_depletion'])
             ->whereHas('project', fn ($query) => $query->where([
@@ -790,7 +846,7 @@ class ReportKandangController extends Controller
         return $performence;
     }
 
-    private function getOverhead(int $period, Location $location, Project $project, bool $isProject)
+    private function getOverhead(Location $location, Project $project, bool $isProject)
     {
         $expense = Expense::with(['expense_kandang.project', 'expense_main_prices', 'expense_addit_prices'])
             ->where('location_id', $location->location_id)
@@ -826,7 +882,7 @@ class ReportKandangController extends Controller
         return $expense;
     }
 
-    public function getHppPembelian(int $period, int $location_id, int $project_id)
+    private function getHppPembelian(int $project_id)
     {
         // Population Initial Subquery
         $populasi_awal_subquery = ProjectChickIn::selectRaw('
@@ -929,63 +985,46 @@ class ReportKandangController extends Controller
                     ->on('project_budget_subquery.product_id', '=', 'combined_products.product_id');
             })
             ->where('projects.project_id', $project_id)
-            ->where('projects.period', $period)
             ->groupBy(['combined_products.produk', 'combined_products.product_id'])
             ->get()->toArray();
     }
 
-    public function getHppBahanBaku(int $period, int $location_id, int $project_id)
+    private function getHppBahanBaku(int $project_id)
     {
-        $budget = ProjectBudget::whereHas(
-            'project',
-            fn ($p) => $p->where([
-                ['project_id', $project_id],
-                ['period', $period],
-            ])
-        )
+        $total_chick = $this->getTotalChick($project_id);
+
+        $bobot_sum = $this->getBobotSum($project_id);
+
+        $hpp_ekspedisi = $this->getHppExpedisi($project_id)->sum('total_delivery_fee');
+
+        return [
+            $this->getHppOverhead($project_id),
+            [
+                'name'                => 'Beban Ekspedisi',
+                'budget_rp'           => '-',
+                'budget_rp_ekor'      => '-',
+                'budget_rp_kg'        => '-',
+                'realization_rp'      => $hpp_ekspedisi,
+                'realization_rp_ekor' => $total_chick ? $hpp_ekspedisi / $total_chick : 0,
+                'realization_rp_kg'   => $bobot_sum ? $hpp_ekspedisi   / $bobot_sum : 0,
+            ],
+        ];
+    }
+
+    private function getHppOverhead(int $project_id)
+    {
+        $budget = ProjectBudget::whereHas('project', fn ($p) => $p->where('project_id', $project_id))
             ->whereNotNull('nonstock_id')
             ->sum('total');
 
         $expense = Expense::where('category', 1)
-            ->whereHas(
-                'expense_kandang.project',
-                fn ($p) => $p->where([
-                    ['project_id', $project_id],
-                    ['period', $period],
-                ])
-            )
+            ->whereHas('expense_kandang.project', fn ($p) => $p->where('project_id', $project_id))
             ->get()
             ->sum('grand_total');
 
-        $total_chick = ProjectChickIn::whereHas(
-            'project',
-            fn ($p) => $p->where([
-                ['project_id', $project_id],
-                ['period', $period],
-            ])
-        )
-            ->whereHas('project.kandang', fn ($k) => $k->where('location_id', $location_id))
-            ->sum('total_chickin');
+        $total_chick = $this->getTotalChick($project_id);
 
-        $bobot_sum = Recording::whereHas(
-            'project.kandang',
-            fn ($q) => $q->where('location_id', $location_id)
-        )
-            ->whereHas(
-                'project',
-                fn ($q) => $q->where([
-                    ['project_id', $project_id],
-                    ['period', $period],
-                ])
-            )
-            ->whereIn('recordings.day', function($q) {
-                $q->selectRaw('MAX(day)')
-                    ->from('recordings')
-                    ->groupBy('project_id');
-            })
-            ->with('recording_bw')
-            ->get()
-            ->sum(fn ($recording) => optional($recording->recording_bw)->value ?? 0);
+        $bobot_sum = $this->getBobotSum($project_id);
 
         return [
             'name'                => 'Pengeluaran Overhead',
@@ -996,5 +1035,36 @@ class ReportKandangController extends Controller
             'realization_rp_ekor' => $total_chick ? $expense / $total_chick : 0,
             'realization_rp_kg'   => $bobot_sum ? $expense   / $bobot_sum : 0,
         ];
+    }
+
+    private function getHppExpedisi(int $project_id)
+    {
+        return MarketingDeliveryVehicle::selectRaw('suppliers.name AS supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) AS total_delivery_fee')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
+            ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
+            ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('suppliers.name')
+            ->get();
+    }
+
+    private function getBobotSum(int $project_id)
+    {
+        return Recording::whereHas('project.kandang', fn ($q) => $q
+            ->whereHas('project', fn ($q) => $q->where('project_id', $project_id)))
+            ->whereIn('recordings.day', function($q) {
+                $q->selectRaw('MAX(day)')
+                    ->from('recordings')
+                    ->groupBy('project_id');
+            })
+            ->with('recording_bw')
+            ->get()
+            ->sum(fn ($recording) => optional(optional($recording)->recording_bw)->value ?? 0);
+    }
+
+    private function getTotalChick(int $project_id)
+    {
+        return ProjectChickIn::whereHas('project', fn ($p) => $p->where('project_id', $project_id))
+            ->sum('total_chickin');
     }
 }
