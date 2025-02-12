@@ -110,7 +110,7 @@ $(function() {
             destroy: true,  // Allows reloading data dynamically
             responsive: true,
             ordering: false,
-            dom: '<"custom-table-wrapper"t>',
+            dom: '<"custom-table-wrapper"t>p',
             data: formattedData,
             columns: [
                 {

@@ -437,7 +437,7 @@ class ReportLocationController extends Controller
             // NOTE:: MAKE RAW QUERY, SELECT FROM PROJECT WHERE LOCATION
 
             $expenses = Expense::with([
-                'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
+                'expense_main_prices:expense_item_id,expense_id,nonstock_id,qty,price',
                 'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
                 'expense_kandang.project.project_budget.nonstock' => function($query) {
                     $query->select('nonstock_id', 'name'); // Load only necessary fields
@@ -458,7 +458,7 @@ class ReportLocationController extends Controller
                 return collect($e->expense_main_prices)
                     ->concat($e->expense_addit_prices)
                     ->map(function($p) use ($e) {
-                        $product_name = strtolower($p->sub_category ?? $p->name);
+                        $product_name = strtolower($p->nonstock->name ?? $p->name);
                         $budget       = null;
 
                         foreach ($e->expense_kandang as $k) {
@@ -470,14 +470,14 @@ class ReportLocationController extends Controller
                         }
 
                         return [
-                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
+                            'produk'            => $p->nonstock->name ?? "{$p->name} (Lainnya)",
                             'tanggal'           => Carbon::parse($p->expense->approved_at)->format('d-M-Y'),
                             'no_ref'            => '####', // dummy
                             'budget_qty'        => $budget->qty ?? '-',
                             'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
                             'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
-                            'realization_qty'   => ($p->total_qty ?? $p->qty) ?? '-',
-                            'uom'               => $p->uom                    ?? '',
+                            'realization_qty'   => ($p->total_qty ?? $p->qty)                  ?? '-',
+                            'uom'               => optional(optional($p->nonstock)->uom)->name ?? '',
                             'realization_price' => Parser::toLocale($p->price),
                             'realization_total' => Parser::toLocale($p->total_price),
                             'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',

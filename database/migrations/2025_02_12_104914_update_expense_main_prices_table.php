@@ -24,12 +24,7 @@ return new class extends Migration
     public function up(): void
     {
         try {
-            DB::beginTransaction();
             Schema::table('expense_main_prices', function(Blueprint $table) {
-                $table->renameColumn('expense_item_id', 'expense_main_price_id');
-                $table->dropForeign('expense_items_expense_id_foreign');
-                $table->foreign(['expense_id'], 'expense_main_prices_expense_id_foreign')->references('expense_id')->on('expenses')->onDelete('cascade');
-
                 $table->integer('nonstock_id')->nullable()->after('expense_id');
                 $table->integer('supplier_id')->nullable()->after('nonstock_id');
             });
@@ -40,22 +35,15 @@ return new class extends Migration
                 $table->foreign('nonstock_id')->references('nonstock_id')->on('nonstocks')->onDelete('set null');
                 $table->foreign('supplier_id')->references('supplier_id')->on('suppliers')->onDelete('set null');
             });
-            DB::commit();
         } catch (\Throwable $th) {
-            DB::rollBack();
+            throw $th;
         }
     }
 
     public function down(): void
     {
         try {
-            DB::beginTransaction();
             Schema::table('expense_main_prices', function(Blueprint $table) {
-                $table->renameColumn('expense_main_price_id', 'expense_item_id');
-                $table->dropForeign('expense_main_prices_expense_id_foreign');
-                $table->foreign('expense_items_expense_id_foreign');
-                $table->foreign(['expense_id'], 'expense_items_expense_id_foreign')->references('expense_id')->on('expenses')->onDelete('cascade');
-
                 $table->dropForeign(['nonstock_id']);
                 $table->dropForeign(['supplier_id']);
             });
@@ -66,9 +54,8 @@ return new class extends Migration
                 $table->dropColumn('nonstock_id');
                 $table->dropColumn('supplier_id');
             });
-            DB::commit();
         } catch (\Throwable $th) {
-            DB::rollBack();
+            throw $th;
         }
     }
 };
