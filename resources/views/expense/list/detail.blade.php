@@ -62,9 +62,27 @@
                                 <div class="col-md-12">
                                     <table class="table table-striped w-100">
                                         <tr>
+                                            <td style="width: 25%"><b>Nomor PO</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @if (isset($data->po_number))
+                                                <a class="btn btn-sm btn-primary" target="_blank" href="#">
+                                                    {{ $data->po_number }}
+                                                </a>
+                                                @else
+                                                <i class="text-muted">Belum dibuat</i>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>ID</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>{{ $data->id_expense }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Transaksi</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->transaction_date)) ?? '-' }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Lokasi</b></td>
