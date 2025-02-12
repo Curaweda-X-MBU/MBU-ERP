@@ -193,8 +193,8 @@
                                             <table class="table table-bordered w-100">
                                                 <thead>
                                                     <th>No</th>
-                                                    <th>Non Persediaan</th>
                                                     <th>Supplier</th>
+                                                    <th>Non Stock</th>
                                                     <th>Qty</th>
                                                     <th>Total Qty</th>
                                                     <th>UOM</th>
@@ -207,8 +207,8 @@
                                                         @foreach ($data->expense_main_prices as $index => $item)
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
-                                                                <td>{{ $item->nonstock->name ?? '-' }}</td>
                                                                 <td>{{ $item->supplier->name ?? '-' }}</td>
+                                                                <td>{{ $item->nonstock->name ?? '-' }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->total_qty) }}</td>
                                                                 <td>{{ $item->nonstock->uom->name ?? '-' }}</td>

@@ -278,7 +278,7 @@ class ExpenseController extends Controller
 
                             $arrMainPrices[$key]['expense_id']  = $expenseID;
                             $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
-                            $arrMainPrices[$key]['supplier_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'] ?? null;
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
                             $arrMainPrices[$key]['notes']       = $value['notes'];
