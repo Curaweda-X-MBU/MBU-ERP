@@ -41,7 +41,7 @@ class Expense extends Model
 
     public function getGrandTotalAttribute()
     {
-        return $this->expense_main_prices->sum('total_price') + $this->expense_addit_prices->sum('total_price');
+        return $this->expense_main_prices->sum('price') + $this->expense_addit_prices->sum('price');
     }
 
     public function getIsPaidAttribute()

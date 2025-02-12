@@ -30,14 +30,14 @@ class ExpenseMainPrice extends Model
     {
         $countKandang = count($this->expense->expense_kandang) ?: 1;
 
-        return $this->qty * $countKandang;
+        return $this->qty / $countKandang;
     }
 
     public function getTotalPriceAttribute()
     {
         $countKandang = count($this->expense->expense_kandang) ?: 1;
 
-        return $this->price * $countKandang;
+        return $this->price / $countKandang;
     }
 
     public function expense()

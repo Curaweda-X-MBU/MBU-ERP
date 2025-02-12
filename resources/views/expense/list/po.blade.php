@@ -45,8 +45,8 @@
     <table class="tabel w-100">
         <tr>
             <td rowspan="2" style="width: 75%">
-                <h1>
-                    PURCHASE ORDER
+                <h1 class="font-weight-bolder">
+                    EXPENSE ITEMS
                 </h1>
             </td>
             <td>PO Number</td>
@@ -58,84 +58,97 @@
             <td class="pl-2">:</td>
             <td>{{ date('d-M-Y', strtotime($data->approved_at)) }}</td>
         </tr>
+        <tr>
+            <td>Location</td>
+            <td class="pl-2">:</td>
+            <td>{{ $data->location->name }}</td>
+        </tr>
+        <tr>
+            <td>Selected Kandang</td>
+            <td class="pl-2">:</td>
+            <td>{!! $data->expense_kandang?->map(fn($kandang) => $kandang->kandang->name ?? '')->join('<br>') ?: '-' !!}</td>
+        </tr>
     </table>
     <br>
+    <h3>MAIN PRICES</h3>
     <table class="table table-bordered w-100">
-        <thead>
-            <th style="width: 50%">Vendor</th>
-            <th style="width: 50%">Ship To</th>
+        <thead class="font-weight-bolder">
+            <th>No</th>
+            <th>Supplier</th>
+            <th>Item</th>
+            <th>Qty/Kandang</th>
+            <th>Total Qty</th>
+            <th>UOM</th>
+            <th>Price/Kandang</th>
+            <th>Total Price</th>
+            <th>Notes</th>
         </thead>
         <tbody>
-            <tr>
-                <td>
-                    {{-- {{ $data->supplier->name }}<br>
-                    {{ $data->supplier->pic_name }}<br>
-                    {{ $data->supplier->phone??''}}
-                    {{ $data->supplier->email ? ' / ' .$data->supplier->email : '' }}<br>
-                    {{ $data->supplier->address }} --}}
-                </td>
-                <td>
-                    {{-- {{ $data->createdBy->department->company->name}}<br>
-                    {{ $data->createdBy->name}}<br>
-                    {{ $data->createdBy->phone??''}}
-                    {{ $data->createdBy->email ? ' / ' .$data->createdBy->email : '' }}<br>
-                    {{ $data->createdBy->department->location->address }} --}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <br>
-    <table class="table table-bordered w-100">
-        <thead>
-            <th>Requestioner</th>
-            <th>Ship VIA</th>
-            <th>F.O.B</th>
-            <th>Shipping Terms</th>
-        </thead>
-        <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-    <br>
-    <table class="table table-bordered w-100">
-        <thead>
-            <th>Item Description</th>
-            <th>Unit Price</th>
-            <th>Quantity</th>
-            <th>Total Amount</th>
-        </thead>
-        <tbody>
-            {{-- @foreach ($data->purchase_item as $item)
+            @foreach ($data->expense_main_prices as $index => $item)
                 <tr>
-                    <td>{{ $item->product->name??'' }}</td>
-                    <td>Rp. <span class="float-right">{{ number_format($item->price, '0', ',', '.') }}</span></td>
-                    <td class="text-right">{{ number_format($item->qty, '0', ',', '.') }}</td>
-                    <td>Rp. <span class="float-right">{{ number_format($item->price*$item->qty, '0', ',', '.') }}</span></td>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $item->supplier->name }}</td>
+                    <td>{{ $item->nonstock->name }}</td>
+                    <td>{{ \App\Helpers\Parser::trimLocale($item->total_qty) }}</td>
+                    <td>{{ \App\Helpers\Parser::trimLocale($item->qty) }}</td>
+                    <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
+                    <td>Rp<span class="float-right">{{ \App\Helpers\Parser::toLocale($item->total_price) }}</span></td>
+                    <td>Rp<span class="float-right">{{ \App\Helpers\Parser::toLocale($item->price) }}</span></td>
+                    <td>{{ $item->notes ?? '-' }}</td>
                 </tr>
-            @endforeach --}}
+            @endforeach
         </tbody>
-        <tfoot>
-            <td colspan="3" class="text-right">Grand Total</td>
-            {{-- <td>Rp. <span class="float-right">{{ number_format($data->total_before_tax, '0', ',', '.') }}</span></td> --}}
+    </table>
+    <br>
+    <h3>ADDITIONAL PRICES</h3>
+    <table class="table table-bordered w-100">
+        <thead class="font-weight-bolder">
+            <th>No</th>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Notes</th>
+        </thead>
+        <tbody>
+            @if (count($data->expense_addit_prices) > 0)
+                @foreach ($data->expense_addit_prices as $index => $item)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $item->name }}</td>
+                    <td class="text-right">Rp{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
+                    <td>{{ $item->notes ?? '-' }}</td>
+                </tr>
+                @endforeach
+            @else
+            <tr>
+                <td class="text-center" colspan="4">No data Additional Prices</td>
+            </tr>
+            @endif
+        </tbody>
+    </table>
+    <br>
+    <h3>ACCUMULATION</h3>
+    <table class="table table-bordered w-100">
+        <thead class="font-weight-bolder">
+            <th>Transaction</th>
+            <th>Total Price</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>MAIN PRICES</td>
+                <td>+ Rp<span class="float-right">{{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('price')) }}</span></td>
+            </tr>
+            <tr>
+                <td>ADDITIONAL PRICES</td>
+                <td>+ Rp<span class="float-right">{{ \App\Helpers\Parser::toLocale($data->expense_addit_prices->sum('price')) }}</span></td>
+            </tr>
+        </tbody>
+        <tfoot class="font-weight-bolder">
+            <td colspan="1" class="text-right">Grand Total</td>
+            <td>Rp<span class="float-right">{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</span></td>
         </tfoot>
     </table>
     <br>
     <span class="float-right"><h2>PT MITRA BERLIAN UNGGAS</h2></span>
-    <table class="table table-bordered w-50">
-        <thead>
-            <th>Special Instruction</th>
-        </thead>
-        <tbody>
-            <tr>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
 </body>
 <script>
     window.print();
