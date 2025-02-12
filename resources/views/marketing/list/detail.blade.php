@@ -343,7 +343,7 @@
                                                         @endforeach
                                                     @else
                                                     <tr>
-                                                        <td class="text-center" colspan="7">Belum ada data armada angkut</td>
+                                                        <td class="text-center" colspan="10">Belum ada data armada angkut</td>
                                                     </tr>
                                                     @endif
                                                 </tbody>

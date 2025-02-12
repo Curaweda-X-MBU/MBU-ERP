@@ -15,10 +15,10 @@
                 <th>Kandang/Hatchery<i class="text-danger">*</i></th>
                 <th class="col-2">Nama Produk<i class="text-danger">*</i></th>
                 <th>Harga Satuan (Rp)<i class="text-danger">*</i></th>
-                <th>Bobot Avg (Kg)<i class="text-danger">*</i></th>
+                <th>Total Bobot (Kg)<i class="text-danger">*</i></th>
                 <th>Qty<i class="text-danger">*</i></th>
                 <th>UOM</th>
-                <th>Total Bobot</th>
+                <th>Bobot Avg (Kg)</th>
                 <th>Total Penjualan (Rp)</th>
                 <th>
                     <button class="btn btn-sm btn-icon btn-primary {{ @$is_realization || @$is_return ? 'd-none' : '' }}" type="button" data-repeater-create title="Tambah Produk">
@@ -50,7 +50,7 @@
                     <input name="price" type="text" class="form-control numeral-mask" placeholder="Harga Satuan (Rp)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
                 <td class="pt-2 pb-3">
-                    <input name="weight_avg" type="text" class="form-control numeral-mask" placeholder="Bobot Avg (Kg)" {{ @$is_return ? 'readonly' : 'required'}}>
+                    <input name="weight_total" type="text" class="form-control numeral-mask" placeholder="Total Bobot (Kg)" {{ @$is_return ? 'readonly' : 'required'}}>
                 </td>
                 <td class="pt-2 pb-3 position-relative">
                     <input type="number" name="qty" id="qty" max="0" class="position-absolute" style="opacity: 0; pointer-events: none;" tabindex="-1">
@@ -62,10 +62,10 @@
                     <span class="uom_name"></span>
                 </td>
                 <td class="pt-2 pb-3">
-                    <input type="text" id="weight_total" class="form-control" value="0,00" disabled>
+                    <span id="weight_avg">0,00</span>
                 </td>
                 <td class="pt-2 pb-3">
-                    <input type="text" id="price_total" class="form-control" value="0,00" disabled>
+                    <span id="price_total">0,00</span>
                 </td>
                 @if (@$is_realization || @$is_return)
                 @else
@@ -116,24 +116,24 @@
 
     // ? START :: CALCULATION ::  PRODUCT ROWS
     function calculateTotalPerRow() {
-        $('#marketing-product-repeater-1').on('input', '[data-repeater-item] #qty_mask, [data-repeater-item] input[name*="weight_avg"], [data-repeater-item] input[name*="price"]', function () {
+        $('#marketing-product-repeater-1').on('input', '[data-repeater-item] #qty_mask, [data-repeater-item] input[name*="weight_total"], [data-repeater-item] input[name*="price"]', function () {
             const $row = $(this).closest('tr');
 
             const $qtyInput = $row.find('#qty_mask');
-            const $weightAvgInput = $row.find('input[name*="weight_avg"]');
             const $priceInput = $row.find('input[name*="price"]');
-            const $weightTotalInput = $row.find('#weight_total');
+            const $weightTotalInput = $row.find('input[name*="weight_total"]');
             const $priceTotalInput = $row.find('#price_total');
+            const $weightAvgInput = $row.find('#weight_avg');
 
             const qty = parseLocaleToNum($qtyInput.val());
-            const weightAvg = parseLocaleToNum($weightAvgInput.val());
+            const weightTotal = parseLocaleToNum($weightTotalInput.val());
             const price = parseLocaleToNum($priceInput.val());
 
-            const weightTotal = qty * weightAvg;
+            const weightAvg = weightTotal / Math.max(qty, 1);
             const priceTotal = weightTotal * price;
 
-            $weightTotalInput.val(parseNumToLocale(weightTotal));
-            $priceTotalInput.val(parseNumToLocale(priceTotal));
+            $weightAvgInput.text(parseNumToLocale(weightAvg));
+            $priceTotalInput.text(parseNumToLocale(priceTotal));
 
             updateTotalValue();
         });
@@ -144,7 +144,7 @@
 
         setTimeout(function(){
             const priceAllRow = $('#marketing-product-repeater-1 #price_total').get().reduce(function(acc, elem) {
-                const value = parseLocaleToNum($(elem).val());
+                const value = parseLocaleToNum($(elem).text());
                 return acc + value;
             }, 0);
             $totalSebelumPajak.text(parseNumToLocale(priceAllRow)).trigger('change');
@@ -236,7 +236,7 @@
             $(`input[name="marketing_products[${i}][price]"]`).val(product.price);
             $(`input[name="marketing_products[${i}][uom_id]"]`).val(product.uom_id);
             $('.uom_name').text(product.uom.name);
-            $(`input[name="marketing_products[${i}][weight_avg]"]`).val(parseNumToLocale(product.weight_avg));
+            $(`input[name="marketing_products[${i}][weight_total]"]`).val(parseNumToLocale(product.weight_total));
             let productIdRoute = '{{ route("marketing.list.search-product", ['id' => ':id']) }}';
             productIdRoute = productIdRoute.replace(':id', product.warehouse_id);
             const ajaxProduct = $.get({

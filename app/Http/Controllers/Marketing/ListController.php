@@ -101,12 +101,12 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = Parser::parseLocale($value['price']);
-                            $weightAvg = Parser::parseLocale($value['weight_avg']);
-                            $qty       = Parser::parseLocale($value['qty']);
+                            $price       = Parser::parseLocale($value['price']);
+                            $weightTotal = Parser::parseLocale($value['weight_total']);
+                            $qty         = Parser::parseLocale($value['qty']);
 
-                            $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $weightAvg  = $weightTotal / max($qty, 1);
+                            $totalPrice = $weightTotal * $price;
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $createdMarketing->marketing_id;
@@ -276,12 +276,12 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = Parser::parseLocale($value['price']);
-                            $weightAvg = Parser::parseLocale($value['weight_avg']);
-                            $qty       = Parser::parseLocale($value['qty']);
+                            $price       = Parser::parseLocale($value['price']);
+                            $weightTotal = Parser::parseLocale($value['weight_total']);
+                            $qty         = Parser::parseLocale($value['qty']);
 
-                            $weightTotal = $weightAvg * $qty;
-                            $totalPrice  = $price     * $qty;
+                            $weightAvg  = $weightTotal / max($qty, 1);
+                            $totalPrice = $weightTotal * $price;
                             $productPrice += $totalPrice;
 
                             $arrProduct[$key]['marketing_id'] = $marketing->marketing_id;
