@@ -2,6 +2,8 @@
 
 namespace App\Models\Expense;
 
+use App\Models\DataMaster\Nonstock;
+use App\Models\DataMaster\Supplier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,9 +17,9 @@ class ExpenseMainPrice extends Model
 
     protected $fillable = [
         'expense_id',
-        'sub_category',
+        'nonstock_id',
+        'supplier_id',
         'qty',
-        'uom',
         'price',
         'notes',
     ];
@@ -41,5 +43,15 @@ class ExpenseMainPrice extends Model
     public function expense()
     {
         return $this->belongsTo(Expense::class, 'expense_id', 'expense_id');
+    }
+
+    public function nonstock()
+    {
+        return $this->belongsTo(Nonstock::class, 'nonstock_id', 'nonstock_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }

@@ -205,18 +205,6 @@ class ExpenseController extends Controller
         }
     }
 
-    public function recapExport()
-    {
-        try {
-            //
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
     public function add(Request $req)
     {
         try {
@@ -288,12 +276,12 @@ class ExpenseController extends Controller
                             $qty        = Parser::parseLocale($value['qty']);
                             $totalPrice = Parser::parseLocale($value['price']);
 
-                            $arrMainPrices[$key]['expense_id']   = $expenseID;
-                            $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
-                            $arrMainPrices[$key]['qty']          = $qty;
-                            $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['price']        = $totalPrice;
-                            $arrMainPrices[$key]['notes']        = $value['notes'];
+                            $arrMainPrices[$key]['expense_id']  = $expenseID;
+                            $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['qty']         = $qty;
+                            $arrMainPrices[$key]['price']       = $totalPrice;
+                            $arrMainPrices[$key]['notes']       = $value['notes'];
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
@@ -445,12 +433,12 @@ class ExpenseController extends Controller
                             $qty        = Parser::parseLocale($value['qty']);
                             $totalPrice = Parser::parseLocale($value['price']);
 
-                            $arrMainPrices[$key]['expense_id']   = $expense->expense_id;
-                            $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
-                            $arrMainPrices[$key]['qty']          = $qty;
-                            $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['price']        = $totalPrice;
-                            $arrMainPrices[$key]['notes']        = $value['notes'];
+                            $arrMainPrices[$key]['expense_id']  = $expense->expense_id;
+                            $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'];
+                            $arrMainPrices[$key]['qty']         = $qty;
+                            $arrMainPrices[$key]['price']       = $totalPrice;
+                            $arrMainPrices[$key]['notes']       = $value['notes'];
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
