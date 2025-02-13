@@ -64,4 +64,9 @@ class PurchaseItem extends Model
     {
         return $this->hasMany(StockLog::class, 'purchase_item_id');
     }
+
+    public function purchase_item_alocation()
+    {
+        return $this->hasMany(PurchaseItemAlocation::class, 'purchase_item_id');
+    }
 }

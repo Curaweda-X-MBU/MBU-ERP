@@ -164,10 +164,18 @@ class WarehouseController extends Controller
 
     public function searchWarehouse(Request $request)
     {
-        $search      = $request->input('q');
-        $warehouses  = Warehouse::with(['location', 'kandang'])->where('name', 'like', "%{$search}%");
+        $search       = $request->input('q');
+        $locationIds  = $request->input('location_ids');
+        $warehouseIds = $request->input('warehouse_ids');
+        $warehouses   = Warehouse::with(['location', 'kandang'])->where('name', 'like', "%{$search}%");
+        if ($locationIds) {
+            $warehouses->whereIn('location_id', $locationIds);
+        }
+        if ($warehouseIds) {
+            $warehouses->whereIn('warehouse_id', $warehouseIds);
+        }
         $queryParams = $request->query();
-        $queryParams = Arr::except($queryParams, ['q']);
+        $queryParams = Arr::except($queryParams, ['q', 'location_ids', 'warehouse_ids']);
         // if (auth()->user()->role->name !== 'Super Admin') {
         foreach ($queryParams as $key => $value) {
             $warehouses->where($key, $value);
