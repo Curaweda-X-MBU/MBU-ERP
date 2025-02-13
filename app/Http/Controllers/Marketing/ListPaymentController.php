@@ -477,13 +477,11 @@ class ListPaymentController extends Controller
                 $success = ['success' => 'Pembayaran berhasil ditolak'];
             }
 
-            DB::commit(); // Commit transaksi jika semua berhasil
+            DB::commit();
 
             return redirect()->back()->with($success);
         } catch (\Exception $e) {
-            DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
-
-            dd($e);
+            DB::rollBack();
 
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
