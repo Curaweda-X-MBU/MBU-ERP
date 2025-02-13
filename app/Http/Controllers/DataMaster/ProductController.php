@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\DataMaster;
 
+use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Product;
@@ -112,7 +113,7 @@ class ProductController extends Controller
                         ->withInput($input);
                 }
 
-                Product::create([
+                $product = Product::create([
                     'name'                    => $req->input('name'),
                     'company_id'              => $req->input('company_id'),
                     'product_category_id'     => $req->input('product_category_id'),
@@ -128,6 +129,19 @@ class ProductController extends Controller
                     'can_be_purchased'        => $req->input('can_be_purchased') ? true : false,
                     'is_active'               => $req->input('is_active') ? true : false,
                 ]);
+
+                // Sync suppliers
+                $suppliersToSync = [];
+                foreach ($req->input('product_supplier') ?? [] as $key => $value) {
+                    if (isset($value['supplier_id']) ?? false) {
+                        $suppliersToSync[$value['supplier_id']] = [
+                            'product_price' => Parser::parseLocale($value['product_price']) ?? 0,
+                            'selling_price' => $input['selling_price'],
+                        ];
+                    }
+                }
+
+                $product->suppliers()->sync($suppliersToSync);
 
                 $success = ['success' => 'Data Berhasil disimpan'];
 
@@ -148,6 +162,7 @@ class ProductController extends Controller
                 'product_category',
                 'product_sub_category',
                 'uom',
+                'suppliers',
             ])->findOrFail($req->id);
             $param = [
                 'title' => 'Master Data > Produk > Ubah',
@@ -194,6 +209,16 @@ class ProductController extends Controller
                     'can_be_purchased'        => $req->input('can_be_purchased') ? true : false,
                     'is_active'               => $req->input('is_active') ? true : false,
                 ]);
+
+                // Sync suppliers
+                $suppliersToSync = [];
+                foreach ($req->input('product_supplier') ?? [] as $key => $value) {
+                    if (isset($value['supplier_id']) ?? false) {
+                        $suppliersToSync[$value['supplier_id']] = ['product_price' => Parser::parseLocale($value['product_price']) ?? 0];
+                    }
+                }
+
+                $product->suppliers()->sync($suppliersToSync);
 
                 $success = ['success' => 'Data berhasil dirubah'];
 

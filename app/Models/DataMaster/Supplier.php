@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Ph\PhComplaint;
 use App\Models\Ph\PhPerformance;
 use App\Models\Project\ProjectChickIn;
@@ -56,5 +57,23 @@ class Supplier extends Model
     public function project_chick_in()
     {
         return $this->hasMany(ProjectChickIn::class, 'supplier_id');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_supplier', 'supplier_id', 'product_id')
+            ->withPivot(['product_price', 'selling_price'])
+            ->withTimestamps();
+    }
+
+    public function nonstocks()
+    {
+        return $this->belongsToMany(Nonstock::class, 'nonstock_supplier', 'supplier_id', 'nonstock_id')
+            ->withTimestamps();
+    }
+
+    public function expense_main_prices()
+    {
+        return $this->hasMany(ExpenseMainPrice::class, 'supplier_id');
     }
 }

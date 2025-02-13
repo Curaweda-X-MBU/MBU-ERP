@@ -62,6 +62,19 @@
                                 <div class="col-md-12">
                                     <table class="table table-striped w-100">
                                         <tr>
+                                            <td style="width: 25%"><b>Nomor PO</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>
+                                                @if (isset($data->po_number))
+                                                <a class="btn btn-sm btn-primary" target="_blank" href="{{ route('expense.list.detail', $data->expense_id) . '?po_number=' . $data->po_number }}">
+                                                    {{ $data->po_number }}
+                                                </a>
+                                                @else
+                                                <i class="text-muted">Belum dibuat</i>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td style="width: 25%"><b>ID</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>{{ $data->id_expense }}</td>
@@ -96,7 +109,12 @@
                                             <td>{{ $data->expense_kandang?->map(fn($kandang) => $kandang->kandang->name ?? '')->join(', ') ?: '-' }}</td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 25%"><b>Tanggal</b></td>
+                                            <td style="width: 25%"><b>Tanggal Transaksi</b></td>
+                                            <td style="width: 5%">:</td>
+                                            <td>{{ date('d-M-Y', strtotime($data->transaction_date)) ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 25%"><b>Tanggal Dibuat</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>{{ date('d-M-Y', strtotime($data->created_at)) }}</td>
                                         </tr>
@@ -193,12 +211,13 @@
                                             <table class="table table-bordered w-100">
                                                 <thead>
                                                     <th>No</th>
-                                                    <th>Sub Categori</th>
-                                                    <th>Qty</th>
+                                                    <th>Supplier</th>
+                                                    <th>Non Stock</th>
+                                                    <th>Qty Per Kandang</th>
                                                     <th>Total Qty</th>
                                                     <th>UOM</th>
-                                                    <th>Harga Satuan</th>
-                                                    <th>Nominal Biaya</th>
+                                                    <th>Harga Per Kandang</th>
+                                                    <th>Total Biaya</th>
                                                     <th>Catatan</th>
                                                 </thead>
                                                 <tbody>
@@ -206,21 +225,14 @@
                                                         @foreach ($data->expense_main_prices as $index => $item)
                                                             <tr>
                                                                 <td>{{  $index + 1 }}</td>
-                                                                <td>{{ $item->sub_category }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->qty) }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_qty) }}</td>
-                                                                <td>{{ $item->uom }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
+                                                                <td>{{ $item->supplier->name ?? '-' }}</td>
+                                                                <td>{{ $item->nonstock->name ?? '-' }}</td>
+                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->total_qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->qty) }}</td>
+                                                                <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
-                                                                <td>
-                                                                    @if ($item->notes)
-                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Utama">
-                                                                            Lihat Catatan
-                                                                        </button>
-                                                                    @else
-                                                                        <span>-</span>
-                                                                    @endif
-                                                                </td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
+                                                                <td>{{ $item->notes }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @else
@@ -288,23 +300,6 @@
         </div>
     </div>
 </section>
-
-<!-- Modal Catatan -->
-<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="notesModalLabel">-</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="notesContent">-</p>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Modal Approval -->
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">

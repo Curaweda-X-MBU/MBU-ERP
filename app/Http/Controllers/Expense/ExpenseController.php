@@ -205,18 +205,6 @@ class ExpenseController extends Controller
         }
     }
 
-    public function recapExport()
-    {
-        try {
-            //
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
     public function add(Request $req)
     {
         try {
@@ -240,21 +228,23 @@ class ExpenseController extends Controller
                     if ($expenseStatus == 0) {
                         // Save as Draft
                         $createdExpense = Expense::create([
-                            'location_id'    => $input['location_id'],
-                            'category'       => $category,
-                            'payment_status' => 0,
-                            'expense_status' => 0,
-                            'created_by'     => Auth::id(),
+                            'location_id'      => $input['location_id'],
+                            'category'         => $category,
+                            'transaction_date' => $input['transaction_date'],
+                            'payment_status'   => 0,
+                            'expense_status'   => 0,
+                            'created_by'       => Auth::id(),
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
                     } else {
                         $createdExpense = Expense::create([
-                            'location_id'    => $input['location_id'],
-                            'category'       => $category,
-                            'payment_status' => 1,
-                            'expense_status' => 1,
-                            'created_by'     => Auth::id(),
+                            'location_id'      => $input['location_id'],
+                            'category'         => $category,
+                            'transaction_date' => $input['transaction_date'],
+                            'payment_status'   => 1,
+                            'expense_status'   => 1,
+                            'created_by'       => Auth::id(),
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
@@ -288,12 +278,12 @@ class ExpenseController extends Controller
                             $qty        = Parser::parseLocale($value['qty']);
                             $totalPrice = Parser::parseLocale($value['price']);
 
-                            $arrMainPrices[$key]['expense_id']   = $expenseID;
-                            $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
-                            $arrMainPrices[$key]['qty']          = $qty;
-                            $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['price']        = $totalPrice;
-                            $arrMainPrices[$key]['notes']        = $value['notes'];
+                            $arrMainPrices[$key]['expense_id']  = $expenseID;
+                            $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'] ?? null;
+                            $arrMainPrices[$key]['qty']         = $qty;
+                            $arrMainPrices[$key]['price']       = $totalPrice;
+                            $arrMainPrices[$key]['notes']       = $value['notes'];
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
@@ -355,7 +345,7 @@ class ExpenseController extends Controller
         }
     }
 
-    public function detail(Expense $expense)
+    public function detail(Request $req, Expense $expense)
     {
         try {
             $data = $expense->load([
@@ -371,6 +361,12 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > Detail',
                 'data'  => $data,
             ];
+
+            if ($req->has('po_number')) {
+                if ($req->query('po_number') == $expense->po_number) {
+                    return view('expense.list.po', $param);
+                }
+            }
 
             return view('expense.list.detail', $param);
         } catch (\Exception $e) {
@@ -409,9 +405,10 @@ class ExpenseController extends Controller
 
                     if ($expense->expense_status == 1) {
                         $expense->update([
-                            'location_id'    => $input['location_id'],
-                            'payment_status' => 1,
-                            'expense_status' => 1,
+                            'location_id'      => $input['location_id'],
+                            'transaction_date' => $input['transaction_date'],
+                            'payment_status'   => 1,
+                            'expense_status'   => 1,
                         ]);
                     }
 
@@ -445,12 +442,12 @@ class ExpenseController extends Controller
                             $qty        = Parser::parseLocale($value['qty']);
                             $totalPrice = Parser::parseLocale($value['price']);
 
-                            $arrMainPrices[$key]['expense_id']   = $expense->expense_id;
-                            $arrMainPrices[$key]['sub_category'] = $value['sub_category'];
-                            $arrMainPrices[$key]['qty']          = $qty;
-                            $arrMainPrices[$key]['uom']          = $value['uom'];
-                            $arrMainPrices[$key]['price']        = $totalPrice;
-                            $arrMainPrices[$key]['notes']        = $value['notes'];
+                            $arrMainPrices[$key]['expense_id']  = $expense->expense_id;
+                            $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'];
+                            $arrMainPrices[$key]['qty']         = $qty;
+                            $arrMainPrices[$key]['price']       = $totalPrice;
+                            $arrMainPrices[$key]['notes']       = $value['notes'];
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
@@ -541,8 +538,12 @@ class ExpenseController extends Controller
                 $expenseStatus = array_search('Disetujui', Constants::EXPENSE_STATUS);
             }
 
+            $increment = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
+            $category  = $expense->category == 1 ? 'BOP' : 'NBOP';
+
             $expense->update([
                 'is_approved'    => $input['is_approved'],
+                'po_number'      => "PO-{$expense->created_user->role->company->alias}-{$category}-{$increment}",
                 'approver_id'    => Auth::id(),
                 'approval_notes' => $input['approval_notes'],
                 'approved_at'    => $approvedAt,

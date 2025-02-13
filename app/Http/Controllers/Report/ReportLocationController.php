@@ -9,6 +9,7 @@ use App\Models\DataMaster\Company;
 use App\Models\DataMaster\FcrStandard;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
+use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
@@ -308,11 +309,11 @@ class ReportLocationController extends Controller
                 $purchasePakan->map(fn ($p) => [
                     'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number ?? '-',
-                    'qty_masuk'    => Parser::toLocale($p->qty ?? 0),
+                    'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name ?? '-',
-                    'harga_beli'   => Parser::toLocale($p->price),
-                    'total_harga'  => Parser::toLocale($p->price * $p->qty),
+                    'harga_beli'   => Parser::toLocale(optional($p)->price),
+                    'total_harga'  => Parser::toLocale((optional($p)->price ?? 0) * optional($p)->qty),
                     'notes'        => $p->purchase_notes ?? null,
                 ])->concat(
                     $mutasiPakan->map(fn ($m) => [
@@ -323,7 +324,7 @@ class ReportLocationController extends Controller
                         'product'      => $m->product_name,
                         'harga_beli'   => '-',
                         'total_harga'  => '-',
-                        'notes'        => $m->notes,
+                        'notes'        => optional($m)->notes,
                     ])
                 ),
                 collect($recordingPakan)
@@ -333,12 +334,12 @@ class ReportLocationController extends Controller
                 $purchaseOvk->map(fn ($p) => [
                     'tanggal'      => Carbon::parse($p->tanggal)->format('d-M-Y H:i'),
                     'no_reference' => $p->po_number,
-                    'qty_masuk'    => Parser::toLocale($p->qty),
+                    'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name,
-                    'harga_beli'   => Parser::toLocale($p->price),
-                    'total_harga'  => Parser::toLocale($p->total),
-                    'notes'        => $p->notes,
+                    'harga_beli'   => Parser::toLocale(optional($p)->price ?? 0),
+                    'total_harga'  => Parser::toLocale((optional($p)->price ?? 0) * optional($p)->qty),
+                    'notes'        => optional($p)->notes ?? '-',
                 ])->concat(
                     $mutasiOvk->map(fn ($m) => [
                         'tanggal'      => Carbon::parse($m->created_at)->format('d-M-Y H:i'),
@@ -348,7 +349,7 @@ class ReportLocationController extends Controller
                         'product'      => $m->product_name,
                         'harga_beli'   => '-',
                         'total_harga'  => '-',
-                        'notes'        => $m->notes,
+                        'notes'        => optional($m)->notes ?? '-',
                     ])
                 ),
                 $recordingOvk
@@ -437,7 +438,7 @@ class ReportLocationController extends Controller
             // NOTE:: MAKE RAW QUERY, SELECT FROM PROJECT WHERE LOCATION
 
             $expenses = Expense::with([
-                'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
+                'expense_main_prices:expense_item_id,expense_id,nonstock_id,qty,price',
                 'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
                 'expense_kandang.project.project_budget.nonstock' => function($query) {
                     $query->select('nonstock_id', 'name'); // Load only necessary fields
@@ -458,7 +459,7 @@ class ReportLocationController extends Controller
                 return collect($e->expense_main_prices)
                     ->concat($e->expense_addit_prices)
                     ->map(function($p) use ($e) {
-                        $product_name = strtolower($p->sub_category ?? $p->name);
+                        $product_name = strtolower($p->nonstock->name ?? $p->name);
                         $budget       = null;
 
                         foreach ($e->expense_kandang as $k) {
@@ -470,14 +471,14 @@ class ReportLocationController extends Controller
                         }
 
                         return [
-                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
+                            'produk'            => $p->nonstock->name ?? "{$p->name} (Lainnya)",
                             'tanggal'           => Carbon::parse($p->expense->approved_at)->format('d-M-Y'),
                             'no_ref'            => '####', // dummy
                             'budget_qty'        => $budget->qty ?? '-',
                             'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
                             'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
-                            'realization_qty'   => ($p->total_qty ?? $p->qty) ?? '-',
-                            'uom'               => $p->uom                    ?? '',
+                            'realization_qty'   => ($p->total_qty ?? $p->qty)                  ?? '-',
+                            'uom'               => optional(optional($p->nonstock)->uom)->name ?? '',
                             'realization_price' => Parser::toLocale($p->price),
                             'realization_total' => Parser::toLocale($p->total_price),
                             'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
@@ -597,9 +598,9 @@ class ReportLocationController extends Controller
         return [
             'id'      => 1,
             'jenis'   => 'Penjualan Ayam Besar',
-            'rp_ekor' => $penjualan->grand_total / $penjualan->ekor,
-            'rp_kg'   => $penjualan->grand_total / $penjualan->kg,
-            'rp'      => $penjualan->grand_total,
+            'rp_ekor' => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->ekor, 1),
+            'rp_kg'   => optional($penjualan)->grand_total ?? 0 / max(optional($penjualan)->kg, 1),
+            'rp'      => optional($penjualan)->grand_total ?? 0,
         ];
     }
 
@@ -609,23 +610,60 @@ class ReportLocationController extends Controller
 
         $bobot_sum = $this->getBobotSum($period, $location_id);
 
-        $pembelian = Purchase::selectRaw('
-                COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+        // $pembelian = Purchase::selectRaw('
+        //         COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+        //     ')
+        //     ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+        //     ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+        //     ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+        //     ->where('kandang.location_id', $location_id)
+        //     ->where('projects.period', $period)
+        //     ->groupBy('kandang.location_id')
+        //     ->get()->first();
+
+        $doc = PurchaseItem::selectRaw('
+                kandang.location_id,
+                COALESCE(SUM(purchase_items.total), 0) AS grand_total
             ')
+            ->join('products', 'purchase_items.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.purchase_id')
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('projects.first_day_old_chick')
+            ->where([
+                ['kandang.location_id', '=', $location_id],
+                ['projects.period', '=', $period],
+            ])
+            ->whereNotNull('purchases.po_number')
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%doc%'])
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        $pemakaian = StockAvailability::selectRaw('
+                COALESCE(SUM(stock_availabilities.current_qty), 0)
+                * COALESCE(SUM(stock_availabilities.product_price), 0)
+                AS grand_total
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', '=', 'stock_availabilities.product_warehouse_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'product_warehouses.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('recording_stock_id')
             ->where('kandang.location_id', $location_id)
             ->where('projects.period', $period)
             ->groupBy('kandang.location_id')
             ->get()->first();
 
+        $grand_total = $pemakaian->grand_total + $doc->grand_total;
+
         return [
             'id'      => 2,
             'jenis'   => 'Pembelian Sapronak Supplier',
-            'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
-            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
-            'rp'      => $pembelian->grand_total,
+            'rp_ekor' => $total_chick > 0 ? $grand_total / $total_chick : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $grand_total / $bobot_sum : 0,
+            'rp'      => $grand_total,
         ];
     }
 
