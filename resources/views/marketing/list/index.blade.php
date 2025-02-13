@@ -72,6 +72,7 @@
                                 <th>No.DO</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
+                                <th>Aging</th>
                                 <th>customer_id</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
@@ -88,6 +89,7 @@
                                         <td>{{ $item->id_marketing }}</td>
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
+                                        <td>{{ isset($item->realized_at) ? \Carbon\Carbon::parse($item->realized_at)->diffInDays(now()) . ' hari' : '-' }}</td>
                                         <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
@@ -334,7 +336,7 @@
             });
         }
 
-        $table.columns(3).visible(false);
+        $table.columns(4).visible(false);
 
         $.ajax({
             method: 'get',
