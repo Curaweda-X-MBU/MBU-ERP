@@ -12,7 +12,6 @@ use App\Models\Expense\Expense;
 use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
-use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
@@ -20,7 +19,6 @@ use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
 use App\Models\Project\RecordingDepletion;
 use App\Models\Project\RecordingStock;
-use App\Models\Purchase\Purchase;
 use App\Models\Purchase\PurchaseItemReception;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -1206,14 +1204,18 @@ class ReportLocationController extends Controller
 
     private function getHppExpedisi(int $period, int $location_id)
     {
-        return MarketingDeliveryVehicle::selectRaw('suppliers.name AS supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) AS total_delivery_fee')
-            ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
-            ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
-            ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
-            ->whereIn('projects.kandang_id', function($query) use ($location_id) {
-                $query->select('kandang_id')->from('kandang')->where('location_id', $location_id);
-            })
-            ->where('projects.period', $period)
+        return PurchaseItemReception::selectRaw('
+                suppliers.name AS supplier_name,
+                COALESCE(SUM(purchase_item_receptions.transport_total), 0) AS total_delivery_fee
+            ')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'purchase_item_receptions.supplier_id')
+            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
+            ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
+            ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->where([
+                ['kandang.location_id', $location_id],
+                ['projects.period', $period],
+            ])
             ->groupBy('suppliers.name')
             ->get();
     }
