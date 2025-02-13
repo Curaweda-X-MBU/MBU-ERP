@@ -24,9 +24,13 @@
                 </tbody>
                 <tfoot>
                     <tr class="font-weight-bolder">
-                        <td colspan="5">Total Sapronak Masuk</td>
-                        <td class="total_1 text-center">-</td>
-                        <td class="total_2 text-center">-</td>
+                        <td>Total</td>
+                        <td class="text-center"></td>
+                        <td class="text-center"></td>
+                        <td class="text-center"></td>
+                        <td class="text-center"></td>
+                        <td class="text-center"></td>
+                        <td class="text-center"></td>
                         <td></td>
                     </tr>
                 </tfoot>
