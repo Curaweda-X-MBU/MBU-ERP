@@ -18,12 +18,16 @@ class Purchase extends Model
 
     protected $primaryKey = 'purchase_id';
 
+    protected $casts = [
+        'warehouse_ids' => 'array',
+    ];
+
     protected $fillable = [
         'pr_number',
         'po_number',
         'po_date',
-        'warehouse_id',
         'supplier_id',
+        'warehouse_ids',
         'require_date',
         'total_before_tax',
         'total_after_tax',
@@ -71,13 +75,19 @@ class Purchase extends Model
         return $this->hasMany(PurchasePayment::class, 'purchase_id');
     }
 
-    /**
-     * Get the warehouse that owns the Purchase
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function warehouse()
+    public function getWarehouseDetailsAttribute()
     {
-        return $this->belongsTo(Warehouse::class, 'warehouse_id');
+        return Warehouse::whereIn('warehouse_id', $this->warehouse_ids)
+            ->with(['location', 'location.area', 'location.company'])
+            ->get()
+            ->map(function($warehouse) {
+                return [
+                    'warehouse_name' => $warehouse->name,
+                    'location_name'  => $warehouse->location->name         ?? 'N/A',
+                    'area_name'      => $warehouse->location->area->name       ?? 'N/A',
+                    'company_name'   => $warehouse->location->company->name ?? 'N/A',
+                ];
+            })
+            ->toArray();
     }
 }
