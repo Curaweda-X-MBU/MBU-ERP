@@ -79,6 +79,11 @@
                                             <td>{{ @$data->realized_at ? date('d-M-Y', strtotime($data->realized_at)) : '-' }}</td>
                                         </tr>
                                         <tr>
+                                            <td><b>Aging</b></td>
+                                            <td>:</td>
+                                            <td>{{ isset($item->realized_at) ? \Carbon\Carbon::parse($item->realized_at)->diffInDays(now()) . ' hari' : '-' }}</td>
+                                        </tr>
+                                        <tr>
                                             <td><b>Nama Pelanggan</b></td>
                                             <td>:</td>
                                             <td>{{ $data->customer->name }}</td>
