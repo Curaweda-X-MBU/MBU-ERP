@@ -1,3 +1,9 @@
+<style>
+    .tbl-alocation thead th {
+        font-size: 15px;
+    }
+</style>
+
 <section id="collapsibleModal">
     <div class="row">
         <div class="col-sm-12">
@@ -33,13 +39,13 @@
                                                         </td>
                                                         <td>{{ $item->product->uom->name??'' }}</td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price }}" required>
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price??$item->product->product_price }}" required>
                                                         </td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
                                                         </td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
                                                         </td>
                                                         <td class="text-right">
                                                             <input type="text" class="form-control-plaintext text-right numeral-mask" id="total-{{$key}}" value="{{$item->total}}" readonly>
@@ -50,6 +56,43 @@
                                                 </tbody>
                                             </table>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <div class="col-12">
+                                        <h4><li>Alokasi Produk</li></h4>
+                                        @foreach ($data->purchase_item as $key => $item)
+                                        <div class="table-responsive mt-2">
+                                            <input type="hidden" id="item-qty-{{$item->product_id}}" value="{{ $item->qty??0 }}">
+                                            <table class="table table-bordered w-100 no-wrap text-center tbl-alocation" id="purchase-alocation-repeater-{{ $item->product_id }}">
+                                                <thead>
+                                                    <th class="text-left w-50">{{ $item->product->name??'' }}</th>
+                                                    <th id="remain-qty-{{$item->product_id}}" class="remain-item">{{ $item->qty??'' }}</th>
+                                                    <th class="w-25">
+                                                        <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn-alocation" data-repeater-create title="Tambah Item">
+                                                            <i data-feather="plus"></i>
+                                                        </button>
+                                                    </th>
+                                                </thead>
+                                                <tbody>
+                                                    <tbody data-repeater-list="purchase_alocation[{{ $item->product_id }}]">
+                                                        <tr data-repeater-item>
+                                                            <td>
+                                                                <input type="hidden" class="alocation-product-id" value="{{ $item->product_id }}">
+                                                                <select name="warehouse_id" class="form-control warehouseid" required></select>
+                                                            </td>
+                                                            <td><input type="text" name="alocation_qty" class="alocation-qty-{{ $item->product_id }} alocation-input form-control numeral-mask text-right" placeholder="Jumlah Alokasi" required/></td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
+                                                                    <i data-feather="x"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -75,8 +118,8 @@
                                             </thead>
                                             <tbody data-repeater-list="purchase_other">
                                                 <tr data-repeater-item>
-                                                    <td><input type="text" name="name" class="form-control" placeholder="Nama Biaya"/></td>
-                                                    <td><input type="text" name="amount" class="amount form-control numeral-mask text-right" placeholder="Harga"/></td>
+                                                    <td><input type="text" name="name" class="form-control" placeholder="Nama Biaya" required/></td>
+                                                    <td><input type="text" name="amount" class="amount form-control numeral-mask text-right" placeholder="Harga" required/></td>
                                                     <td>
                                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
                                                             <i data-feather="x"></i>
@@ -136,6 +179,8 @@
                 });
             }
         }
+
+        $('.price-text').trigger('change');
     });
 </script>
 

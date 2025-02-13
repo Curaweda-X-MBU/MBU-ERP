@@ -57,7 +57,7 @@ $initialPaymentLeftLocale = \App\Helpers\Parser::toLocale($initialPaymentLeft);
 @endphp
 
 <div class="card-header color-header collapsed rounded-lg {{ $payment['has_invalid'] ? 'red' : '' }}" role="button">
-    <span class="lead collapse-title">DO # {{ $index + 1 }} | {{ strtoupper($payment['do_number']) }}</span>
+    <span class="lead collapse-title">ID # {{ $index + 1 }} | {{ strtoupper($payment['expense_id']) }}</span>
     <div class="float-right lead">
         <span>Sisa Bayar | Rp.</span>
         <span class="sisa-bayar">{{ $initialPaymentLeftLocale }}</span>
@@ -69,9 +69,9 @@ $initialPaymentLeftLocale = \App\Helpers\Parser::toLocale($initialPaymentLeft);
             <tbody>
                 <tr>
                     <td>
-                        <label for="payment_batch_upload[{{ $index }}][id_marketing]">No. DO<i class="text-danger">*</i></label>
-                        <input type="hidden" name="payment_batch_upload[{{ $index }}][marketing_id]" value="{{ $payment['marketing_id'] }}">
-                        <input type="text" name="payment_batch_upload[{{ $index }}][id_marketing]" class="form-control" value="{{ $payment['do_number'] }}" readonly>
+                        <label for="payment_batch_upload[{{ $index }}][id_expense]">ID Biaya<i class="text-danger">*</i></label>
+                        <input type="hidden" name="payment_batch_upload[{{ $index }}][expense_id]" value="{{ $payment['expense_id'] }}">
+                        <input type="text" name="payment_batch_upload[{{ $index }}][id_expense]" class="form-control" value="{{ $payment['id_expense'] }}" readonly>
                     </td>
                     <td>
                         <label for="payment_method">Metode Pembayaran<i class="text-danger">*</i></label>

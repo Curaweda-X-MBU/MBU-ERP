@@ -229,6 +229,13 @@ class ListPaymentController extends Controller
                         continue;
                     }
 
+                    $paymentNominal = Parser::parseLocale($value['payment_nominal_mask']);
+
+                    // skip if payment_nominal == 0
+                    if ($paymentNominal == 0) {
+                        continue;
+                    }
+
                     $docPath = '';
                     if (isset($value['document_path'])) {
                         $docUrl = FileHelper::upload($value['document_path'], Constants::MARKETING_PAYMENT_DOC_PATH);
@@ -237,8 +244,6 @@ class ListPaymentController extends Controller
                         }
                         $docPath = $docUrl['url'];
                     }
-
-                    $paymentNominal = Parser::parseLocale($value['payment_nominal_mask']);
 
                     $arrPayments[] = [
                         'marketing_id'       => $value['marketing_id'],
@@ -249,6 +254,8 @@ class ListPaymentController extends Controller
                         'bank_id'            => $value['bank_id'] ?? null,
                         'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
                         'payment_nominal'    => $paymentNominal,
+                        'is_approved'        => 1,
+                        'approved_at'        => now()->format('Y-m-d'),
                         'verify_status'      => array_search(
                             'Terverifikasi',
                             Constants::MARKETING_VERIFY_PAYMENT_STATUS
@@ -470,13 +477,11 @@ class ListPaymentController extends Controller
                 $success = ['success' => 'Pembayaran berhasil ditolak'];
             }
 
-            DB::commit(); // Commit transaksi jika semua berhasil
+            DB::commit();
 
             return redirect()->back()->with($success);
         } catch (\Exception $e) {
-            DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
-
-            dd($e);
+            DB::rollBack();
 
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

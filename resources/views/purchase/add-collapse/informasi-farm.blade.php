@@ -1,4 +1,4 @@
-<div class="table-responsive">
+{{-- <div class="table-responsive">
     <table class="table table-striped table-bordered w-100" id="tbl-kandang">
         <thead>
             <tr>
@@ -60,7 +60,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 <script>
     $(function () {
@@ -101,16 +101,18 @@
         $('#location_id').on('select2:select', function (e) {
             e.preventDefault();
             const locationId = $(this).val();
+            
             $('#warehouse_id').val(null).trigger('change');
             $('#warehouse_id').select2({
                 placeholder: "Pilih Gudang",
                 ajax: {
-                    url: `{{ route("data-master.warehouse.search") }}?location_id=${locationId}`, 
+                    url: `{{ route("data-master.warehouse.search") }}`, 
                     dataType: 'json',
                     delay: 250, 
                     data: function(params) {
                         return {
-                            q: params.term 
+                            q: params.term,
+                            location_ids: locationId
                         };
                     },
                     processResults: function(data) {

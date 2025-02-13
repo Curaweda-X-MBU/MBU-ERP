@@ -9,9 +9,9 @@ use App\Models\DataMaster\Company;
 use App\Models\DataMaster\FcrStandard;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
+use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
-use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectBudget;
@@ -19,8 +19,7 @@ use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
 use App\Models\Project\RecordingDepletion;
 use App\Models\Project\RecordingStock;
-use App\Models\Purchase\Purchase;
-use App\Models\Purchase\PurchaseItem;
+use App\Models\Purchase\PurchaseItemReception;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -238,7 +237,7 @@ class ReportLocationController extends Controller
                     'qty_masuk'    => Parser::toLocale(optional($p)->qty ?? 0),
                     'qty_pakai'    => Parser::toLocale($projects->firstWhere('project_id', $p->project_id)->qty_pakai_doc ?? 0),
                     'product'      => optional($p)->product_name ?? '-',
-                    'harga_beli'   => Parser::toLocale(optional($p)->price),
+                    'harga_beli'   => Parser::toLocale(optional($p)->price ?? 0),
                     'total_harga'  => Parser::toLocale(($projects->firstWhere('project_id', $p->project_id)->qty_pakai_doc ?? 0) * $p->price),
                     'notes'        => optional($p)->purchase_notes ?? null,
                 ];
@@ -312,7 +311,7 @@ class ReportLocationController extends Controller
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name ?? '-',
                     'harga_beli'   => Parser::toLocale(optional($p)->price),
-                    'total_harga'  => Parser::toLocale(optional($p)->price ?? 0 * $p->qty),
+                    'total_harga'  => Parser::toLocale((optional($p)->price ?? 0) * optional($p)->qty),
                     'notes'        => $p->purchase_notes ?? null,
                 ])->concat(
                     $mutasiPakan->map(fn ($m) => [
@@ -337,7 +336,7 @@ class ReportLocationController extends Controller
                     'qty_pakai'    => '-',
                     'product'      => $p->product_name,
                     'harga_beli'   => Parser::toLocale(optional($p)->price ?? 0),
-                    'total_harga'  => Parser::toLocale(optional($p)->total ?? 0),
+                    'total_harga'  => Parser::toLocale((optional($p)->price ?? 0) * optional($p)->qty),
                     'notes'        => optional($p)->notes ?? '-',
                 ])->concat(
                     $mutasiOvk->map(fn ($m) => [
@@ -437,7 +436,7 @@ class ReportLocationController extends Controller
             // NOTE:: MAKE RAW QUERY, SELECT FROM PROJECT WHERE LOCATION
 
             $expenses = Expense::with([
-                'expense_main_prices:expense_item_id,expense_id,sub_category,qty,uom,price',
+                'expense_main_prices:expense_item_id,expense_id,nonstock_id,qty,price',
                 'expense_addit_prices:expense_addit_price_id,expense_id,name,price',
                 'expense_kandang.project.project_budget.nonstock' => function($query) {
                     $query->select('nonstock_id', 'name'); // Load only necessary fields
@@ -458,7 +457,7 @@ class ReportLocationController extends Controller
                 return collect($e->expense_main_prices)
                     ->concat($e->expense_addit_prices)
                     ->map(function($p) use ($e) {
-                        $product_name = strtolower($p->sub_category ?? $p->name);
+                        $product_name = strtolower($p->nonstock->name ?? $p->name);
                         $budget       = null;
 
                         foreach ($e->expense_kandang as $k) {
@@ -470,14 +469,14 @@ class ReportLocationController extends Controller
                         }
 
                         return [
-                            'produk'            => $p->sub_category ?? "{$p->name} (Lainnya)",
+                            'produk'            => $p->nonstock->name ?? "{$p->name} (Lainnya)",
                             'tanggal'           => Carbon::parse($p->expense->approved_at)->format('d-M-Y'),
                             'no_ref'            => '####', // dummy
                             'budget_qty'        => $budget->qty ?? '-',
                             'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
                             'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
-                            'realization_qty'   => ($p->total_qty ?? $p->qty) ?? '-',
-                            'uom'               => $p->uom                    ?? '',
+                            'realization_qty'   => ($p->total_qty ?? $p->qty)                  ?? '-',
+                            'uom'               => optional(optional($p->nonstock)->uom)->name ?? '',
                             'realization_price' => Parser::toLocale($p->price),
                             'realization_total' => Parser::toLocale($p->total_price),
                             'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
@@ -609,23 +608,50 @@ class ReportLocationController extends Controller
 
         $bobot_sum = $this->getBobotSum($period, $location_id);
 
-        $pembelian = Purchase::selectRaw('
-                COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+        $doc = PurchaseItemReception::selectRaw('
+                kandang.location_id,
+                COALESCE(SUM(purchase_items.price), 0)
+                * COALESCE(SUM(purchase_item_receptions.total_received), 0) AS grand_total
             ')
-            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.purchase_id')
+            ->join('products', 'purchase_items.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchase_item_receptions.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('projects.first_day_old_chick')
+            ->where([
+                ['kandang.location_id', '=', $location_id],
+                ['projects.period', '=', $period],
+            ])
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%doc%'])
+            ->groupBy('kandang.location_id')
+            ->get()->first();
+
+        $pemakaian = StockAvailability::selectRaw('
+                COALESCE(SUM(stock_availabilities.current_qty), 0)
+                * COALESCE(SUM(stock_availabilities.product_price), 0)
+                AS grand_total
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', '=', 'stock_availabilities.product_warehouse_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'product_warehouses.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('recording_stock_id')
             ->where('kandang.location_id', $location_id)
             ->where('projects.period', $period)
             ->groupBy('kandang.location_id')
             ->get()->first();
 
+        $grand_total = (optional($pemakaian)->grand_total ?? 0) + (optional($doc)->grand_total ?? 0);
+
         return [
             'id'      => 2,
             'jenis'   => 'Pembelian Sapronak Supplier',
-            'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
-            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
-            'rp'      => $pembelian->grand_total,
+            'rp_ekor' => $total_chick > 0 ? $grand_total / $total_chick : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $grand_total / $bobot_sum : 0,
+            'rp'      => $grand_total,
         ];
     }
 
@@ -669,10 +695,10 @@ class ReportLocationController extends Controller
                 return $sm;
             });
 
-        $purchaseItems = PurchaseItem::selectRaw('
-                purchase_items.qty AS num_qty,
+        $purchaseItems = PurchaseItemReception::selectRaw('
+                purchase_item_receptions.total_received AS num_qty,
                 uom.name AS uom,
-                MAX(purchase_item_receptions.received_date) AS tanggal,
+                purchase_item_receptions.received_date AS tanggal,
                 COALESCE(purchases.po_number, purchases.pr_number) AS no_referensi,
                 "Pembelian" AS transaksi,
                 products.name AS produk,
@@ -680,11 +706,11 @@ class ReportLocationController extends Controller
                 purchases.notes AS notes,
                 purchase_items.price AS harga_satuan
             ')
+            ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
-            ->join('purchase_item_receptions', 'purchase_item_receptions.purchase_item_id', '=', 'purchase_items.purchase_item_id')
             ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
             ->join('uom', 'uom.uom_id', '=', 'products.uom_id')
-            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchase_item_receptions.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->where([
@@ -693,11 +719,12 @@ class ReportLocationController extends Controller
             ])
             ->whereNotNull('purchase_item_receptions.received_date')
             ->groupByRaw('
+                    purchase_item_receptions.total_received,
+                    uom.name,
+                    purchase_item_receptions.received_date,
                     purchases.pr_number,
                     purchases.po_number,
                     products.name,
-                    purchase_items.qty,
-                    uom.name,
                     purchases.notes,
                     purchase_items.price
                 ')
@@ -830,12 +857,13 @@ class ReportLocationController extends Controller
 
     private function getDataProduksiPembelian(int $period, int $location_id)
     {
-        $pakan_masuk_subquery = PurchaseItem::selectRaw('
-                projects.project_id, COALESCE(SUM(purchase_items.qty), 0) AS pakan_masuk_qty
+        $pakan_masuk_subquery = PurchaseItemReception::selectRaw('
+                projects.project_id, COALESCE(SUM(purchase_item_receptions.total_received), 0) AS pakan_masuk_qty
             ')
-            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
-            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchase_item_receptions.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
@@ -1026,15 +1054,16 @@ class ReportLocationController extends Controller
             ->groupBy('projects.project_id');
 
         // Purchase Items Subquery
-        $produk_pembelian_subquery = PurchaseItem::selectRaw('
+        $produk_pembelian_subquery = PurchaseItemReception::selectRaw('
                 projects.project_id,
                 products.product_id,
                 products.name AS produk,
-                COALESCE(SUM(purchase_items.amount_received), 0) AS realization_total
+                COALESCE(SUM(purchase_item_receptions.total_received), 0) AS realization_total
             ')
-            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
-            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
+            ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchase_item_receptions.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
             ->groupBy(['projects.project_id', 'products.product_id', 'products.name']);
@@ -1175,14 +1204,18 @@ class ReportLocationController extends Controller
 
     private function getHppExpedisi(int $period, int $location_id)
     {
-        return MarketingDeliveryVehicle::selectRaw('suppliers.name AS supplier_name, SUM(marketing_delivery_vehicles.delivery_fee) AS total_delivery_fee')
-            ->join('suppliers', 'suppliers.supplier_id', '=', 'marketing_delivery_vehicles.supplier_id')
-            ->join('marketing_products', 'marketing_products.marketing_product_id', '=', 'marketing_delivery_vehicles.marketing_product_id')
-            ->join('projects', 'projects.project_id', '=', 'marketing_products.project_id')
-            ->whereIn('projects.kandang_id', function($query) use ($location_id) {
-                $query->select('kandang_id')->from('kandang')->where('location_id', $location_id);
-            })
-            ->where('projects.period', $period)
+        return PurchaseItemReception::selectRaw('
+                suppliers.name AS supplier_name,
+                COALESCE(SUM(purchase_item_receptions.transport_total), 0) AS total_delivery_fee
+            ')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'purchase_item_receptions.supplier_id')
+            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
+            ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
+            ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->where([
+                ['kandang.location_id', $location_id],
+                ['projects.period', $period],
+            ])
             ->groupBy('suppliers.name')
             ->get();
     }
@@ -1211,35 +1244,31 @@ class ReportLocationController extends Controller
 
     private function getPurchaseItem(int $period, int $location_id, ?string $filter_product = null)
     {
-        $query = DB::table('purchase_items')
-            ->select([
-                'purchase_items.purchase_item_id',
-                'purchase_items.qty',
-                'purchases.po_number',
-                DB::raw('MAX(purchase_item_receptions.received_date) AS tanggal'),
-                'purchases.notes AS purchase_notes',
-                'products.name as product_name',
-                'purchase_items.price',
-                'projects.project_id',
-            ])
+        $query = PurchaseItemReception::selectRaw('
+                purchase_item_receptions.purchase_item_reception_id,
+                purchase_item_receptions.total_received AS qty,
+                purchases.po_number,
+                purchase_item_receptions.received_date AS tanggal,
+                purchases.notes AS purchase_notes,
+                products.name AS product_name,
+                purchase_items.price AS price,
+                projects.project_id
+            ')
+            ->join('purchase_items', 'purchase_item_receptions.purchase_item_id', '=', 'purchase_items.purchase_item_id')
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.purchase_id')
-            ->join('purchase_item_receptions', 'purchase_item_receptions.purchase_item_id', '=', 'purchase_items.purchase_item_id')
             ->join('products', 'purchase_items.product_id', '=', 'products.product_id')
             ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
-            ->join('warehouses', 'purchases.warehouse_id', '=', 'warehouses.warehouse_id')
+            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
             ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
             ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
             ->where([
                 ['kandang.location_id', '=', $location_id],
                 ['projects.period', '=', $period],
             ])
-            ->where(function($query) {
-                $query->whereNotNull('purchases.po_number')
-                    ->orWhereNotNull('purchase_item_receptions.received_date');
-            })
             ->groupBy([
-                'purchase_items.purchase_item_id',
-                'purchase_items.qty',
+                'purchase_item_receptions.purchase_item_reception_id',
+                'purchase_item_receptions.total_received',
+                'purchase_item_receptions.received_date',
                 'purchases.po_number',
                 'purchases.notes',
                 'products.name',
