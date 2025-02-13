@@ -40,7 +40,7 @@ $(function() {
                         destroy: true,
                         responsive: true,
                         ordering: true,
-                        dom: '<"custom-table-wrapper"t>',
+                        dom: '<"custom-table-wrapper"t>p',
                         data: result.sapronak_masuk,
                         columns: [
                             { data: 'tanggal' },
@@ -69,18 +69,22 @@ $(function() {
                                 .column('.qty')
                                 .data() ?? []);
 
-                            const uomArr = qtyColumn.map((q) => q.split(' ')[1].trim()).unique();
+                            const uomArr = qtyColumn.map((q) => q.split(' ').slice(1).join(' ').trim()).unique();
 
-                            const qtyArr = qtyColumn.map((q, i) => q.split(' '));
+                            const qtyArr = qtyColumn.map((q) => q.split(' '));
 
-                            if (uomArr.length) {
-                                totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                                $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            const setFooter = (column, text) => {
+                                $(api.column(column).footer()).text(text);
                             }
 
-                            if (uomArr.length > 1) {
-                                totalQty2 = qtyArr.filter((q) => q[1] === uomArr[1]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                                $footer.find('.total_1').html(`${trimLocale(totalQty2)} ${uomArr[1]}`);
+                            for (let i = 0; i < uomArr.length; i++) {
+                                const filteredSum = qtyArr
+                                    .filter((q) => q.slice(1).join(' ').trim() === uomArr[i])
+                                    .reduce((a, b) => intVal(a) + intVal(b[0]), 0);
+
+                                if (i < 6) {
+                                    setFooter(6 - i, [trimLocale(filteredSum), uomArr[i]].join(' '));
+                                }
                             }
                         }
                     });
@@ -89,7 +93,7 @@ $(function() {
                         destroy: true,
                         responsive: true,
                         ordering: true,
-                        dom: '<"custom-table-wrapper"t>',
+                        dom: '<"custom-table-wrapper"t>p',
                         data: result.sapronak_keluar,
                         columns: [
                             { data: 'tanggal' },
@@ -122,14 +126,18 @@ $(function() {
 
                             const qtyArr = qtyColumn.map((q, i) => q.split(' '));
 
-                            if (uomArr.length) {
-                                totalQty1 = qtyArr.filter((q) => q[1] === uomArr[0]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                                $footer.find('.total_2').html(`${trimLocale(totalQty1)} ${uomArr[0]}`);
+                            const setFooter = (column, text) => {
+                                $(api.column(column).footer()).text(text);
                             }
 
-                            if (uomArr.length > 1) {
-                                totalQty2 = qtyArr.filter((q) => q[1] === uomArr[1]).reduce((a, b) => intVal(a) + intVal(b[0]), 0);
-                                $footer.find('.total_1').html(`${trimLocale(totalQty2)} ${uomArr[1]}`);
+                            for (let i = 0; i < uomArr.length; i++) {
+                                const filteredSum = qtyArr
+                                    .filter((q) => q.slice(1).join(' ').trim() === uomArr[i])
+                                    .reduce((a, b) => intVal(a) + intVal(b[0]), 0);
+
+                                if (i < 6) {
+                                    setFooter(6 - i, [trimLocale(filteredSum), uomArr[i]].join(' '));
+                                }
                             }
                         }
                     });

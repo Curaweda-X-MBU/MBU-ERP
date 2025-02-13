@@ -103,9 +103,38 @@
 
         }
 
+        function updateMax($this) {
+            const updatedProductId = $this.closest('tr').find('.marketing_product_select').val();
+            const $allTargetOptions = $(`#marketing-delivery-vehicles-repeater-1 option[data-product-id="${updatedProductId}"]`);
+            $allTargetOptions.attr('data-qty', parseLocaleToNum($this.val()));
+
+            $allTargetOptions.filter(':selected').each(function() {
+                updateCurrentStock($(this));
+            });
+        }
+
+        function updateCurrentStock($option) {
+            const $select = $option.parent();
+            const $rowScope = $select.closest('tr');
+
+            const $currentStock = $rowScope.find('.current_stock');
+            const $qty = $rowScope.find('input[name*="qty"]');
+            const qty = $option.attr('data-qty');
+
+            if ($qty.length) {
+                $qty.attr('max', qty);
+                const currentVal = parseInt($qty.val() || 0);
+                const remaining = parseInt(qty) - currentVal;
+                $currentStock.text(trimLocale(remaining));
+            }
+
+            updateQty($rowScope.find('.qty_mask'));
+        }
+
         function updateQty($this) {
             const $rowScope = $this.closest('tr');
             const $qty = $rowScope.find('input[name*="qty"]');
+            const $currentStock = $rowScope.find('.current_stock');
             const max = $qty.attr('max');
 
             const val = parseLocaleToNum($this.val());
@@ -127,13 +156,24 @@
 
             const currentStock = parseNumToLocale(parseInt(max - val - otherQty)).split(',')[0];
 
-            $rowScope.find('.current_stock').text(currentStock);
+            $currentStock.text(currentStock);
             $filteredProducts.map(function() {
                 return $(this).closest('tr').find('.current_stock');
             }).each(function() {
                 $(this).text(currentStock);
             });
+
+            const stock = parseLocaleToNum($currentStock.text());
+            if (stock < 0) {
+                $qty.siblings('.invalid').css('opacity', 1);
+            } else {
+                $qty.siblings('.invalid').css('opacity', 0);
+            }
         }
+
+        $('#marketing-product-repeater-1 #qty_mask').on('change', function() {
+            updateMax($(this));
+        });
 
         const dateTimeOpt = { dateFormat: 'd-M-Y H:i', enableTime: true };
         const optMarketingDeliveryVehicles = {
@@ -154,7 +194,7 @@
                 if ('{{ @$data->marketing_products }}') {
                     const marketingProducts = @json($data->marketing_products);
                     marketingProducts.forEach((marketingProduct, i) => {
-                        $productSelect.append(`<option data-qty="${marketingProduct.qty}" data-uom_id="${marketingProduct.uom.uom_id}" data-uom_name="${marketingProduct.uom.name}" value="${marketingProduct.marketing_product_id}">${marketingProduct.product.name}</option>`)
+                        $productSelect.append(`<option data-qty="${marketingProduct.qty}" data-product-id="${marketingProduct.product.product_id}" data-uom_id="${marketingProduct.uom.uom_id}" data-uom_name="${marketingProduct.uom.name}" value="${marketingProduct.marketing_product_id}">${marketingProduct.product.name}</option>`)
                     });
                 }
 
@@ -167,13 +207,6 @@
 
                 $row.find('.qty_mask').on('input', function() {
                     updateQty($(this));
-                    const $stock = $row.find('.current_stock');
-                    const stock = parseLocaleToNum($stock.text());
-                    if (stock < 0) {
-                        $(this).siblings('.invalid').css('opacity', 1);
-                    } else {
-                        $(this).siblings('.invalid').css('opacity', 0);
-                    }
                 });
 
                 initNumeralMask('.numeral-mask');

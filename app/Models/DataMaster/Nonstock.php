@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Project\RecordingNonstock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,5 +42,16 @@ class Nonstock extends Model
     public function recording_nonstock()
     {
         return $this->hasMany(RecordingNonstock::class, 'nonstock_id');
+    }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'nonstock_supplier', 'nonstock_id', 'supplier_id')
+            ->withTimestamps();
+    }
+
+    public function expense_main_prices()
+    {
+        return $this->hasMany(ExpenseMainPrice::class, 'nonstock_id');
     }
 }

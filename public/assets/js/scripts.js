@@ -53,9 +53,9 @@ function parseNumToLocale(value) {
     return isNaN(parsed)
         ? "" + value
         : parsed.toLocaleString("id-ID", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-          }) || "0,00";
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }) || "0,00";
 }
 
 /**
@@ -183,6 +183,8 @@ function initSelect2(
                             results: data.map((item) => ({
                                 id: item.id,
                                 text: item.text,
+                                ...item,
+                                data: item.data ? JSON.stringify(item.data) : null,
                             })),
                         };
                     }

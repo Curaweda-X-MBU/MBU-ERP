@@ -23,6 +23,9 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 }
 </style>
 
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
+<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+
 <div class="row">
     <!-- Lokasi -->
     <div class="col-md-2 mt-1">
@@ -41,6 +44,10 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
             <option value="1" {{ @$data->category == array_search('Biaya Operasional', $category) ? 'selected' : '' }}>Biaya Operasional</option>
             <option value="2" {{ @$data->category == array_search('Bukan BOP', $category) ? 'selected' : '' }}>Bukan BOP</option>
         </select>
+    </div>
+    <div class="col-md-2 mt-1">
+        <label for="category_id" class="form-label">Tanggal Transaksi<i class="text-danger">*</i></label>
+        <input name="transaction_date" id="transaction_date" class="form-control flatpickr-basic" aria-desribedby="transaction_date" placeholder="Pilih Tanggal Transaksi" value="{{ now() }}" required>
     </div>
     <!-- Color information -->
     <div class="color-information col mt-1">
@@ -76,6 +83,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 </div>
 
 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+<script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 <script>
     $(function() {
         // Initialize Select2
@@ -88,6 +96,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 
         initSelect2($locationSelect, 'Pilih Lokasi', locationIdRoute);
         initSelect2($categorySelect, 'Pilih Kategori');
+        initFlatpickrDate($('.flatpickr-basic'));
         $locationSelect.trigger('select2:select');
         $categorySelect.trigger('select2:select');
 
