@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Company;
 use App\Models\DataMaster\Location;
 use App\Models\Expense\Expense;
+use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockMovement;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
@@ -554,22 +555,44 @@ class ReportKandangController extends Controller
 
         $bobot_sum = $this->getBobotSum($project_id);
 
-        $pembelian = Purchase::selectRaw('
-                COALESCE(SUM(purchases.grand_total), 0) AS grand_total
+        $doc = PurchaseItem::selectRaw('
+                COALESCE(SUM(purchase_items.total), 0) AS grand_total
             ')
+            ->join('products', 'purchase_items.product_id', '=', 'products.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.purchase_id')
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchases.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('projects.first_day_old_chick')
+            ->whereNotNull('purchases.po_number')
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%doc%'])
             ->where('projects.project_id', $project_id)
-            ->groupBy('kandang.location_id')
+            ->groupBy('projects.project_id')
             ->get()->first();
+
+        $pemakaian = StockAvailability::selectRaw('
+                COALESCE(SUM(stock_availabilities.current_qty), 0)
+                * COALESCE(SUM(stock_availabilities.product_price), 0)
+                AS grand_total
+            ')
+            ->join('product_warehouses', 'product_warehouses.product_warehouse_id', '=', 'stock_availabilities.product_warehouse_id')
+            ->join('warehouses', 'warehouses.warehouse_id', '=', 'product_warehouses.warehouse_id')
+            ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
+            ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
+            ->whereNotNull('recording_stock_id')
+            ->where('projects.project_id', $project_id)
+            ->groupBy('projects.project_id')
+            ->get()->first();
+
+        $grand_total = $pemakaian->grand_total + $doc->grand_total;
 
         return [
             'id'      => 2,
             'jenis'   => 'Pembelian Sapronak Supplier',
-            'rp_ekor' => $total_chick > 0 ? $pembelian->grand_total / $total_chick : 0,
-            'rp_kg'   => $bobot_sum   > 0 ? $pembelian->grand_total / $bobot_sum : 0,
-            'rp'      => $pembelian->grand_total,
+            'rp_ekor' => $total_chick > 0 ? $grand_total / $total_chick : 0,
+            'rp_kg'   => $bobot_sum   > 0 ? $grand_total / $bobot_sum : 0,
+            'rp'      => $grand_total,
         ];
     }
 
