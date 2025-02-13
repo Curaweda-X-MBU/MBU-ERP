@@ -127,7 +127,12 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-12 col-md-6 offset-md-6 my-1">
+                        <div class="col-12 col-md-6 my-1">
+                            @if (auth()->user()->role->hasPermissionTo('expense.list.payment.add') && auth()->user()->role->hasPermissionTo('expense.list.payment.approve'))
+                            @include('expense.list.sections.batch-upload-modal')
+                            @endif
+                        </div>
+                        <div class="col-12 col-md-6 my-1">
                             <table class="table table-borderless">
                                 <tbody class="text-right">
                                     <tr>

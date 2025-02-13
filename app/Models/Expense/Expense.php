@@ -37,6 +37,7 @@ class Expense extends Model
         'grand_total',
         'is_paid',
         'total_qty',
+        'not_paid',
     ];
 
     public function getGrandTotalAttribute()
@@ -52,6 +53,11 @@ class Expense extends Model
     public function getTotalQtyAttribute()
     {
         return $this->expense_main_prices->sum('total_qty');
+    }
+
+    public function getNotPaidAttribute()
+    {
+        return $this->grand_total - $this->is_paid;
     }
 
     public function calculatePaymentStatus()
