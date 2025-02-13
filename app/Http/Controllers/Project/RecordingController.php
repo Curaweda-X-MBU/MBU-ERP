@@ -19,6 +19,7 @@ use App\Models\Project\RecordingStock;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class RecordingController extends Controller
 {
@@ -277,7 +278,7 @@ class RecordingController extends Controller
         $recordings = Recording::with([
             'recording_bw',
             'recording_stock',
-            'recording_stock.product_warehouse.product',
+            'recording_stock.product_warehouse.product.product_sub_category',
         ])->find($recordingId);
 
         $lastDay        = $recordings->day - 1;
@@ -288,9 +289,7 @@ class RecordingController extends Controller
         $lastWeight     = $fcrStandard->weight;
         $currentWeight  = $recordings->recording_bw[0]->value;
         $pakanRecord    = collect($recordings->recording_stock)->filter(function($recordingStock) {
-            return optional($recordingStock->product_warehouse)
-                ->product
-                ->name === 'Pakan';
+            return Str::contains(strtolower($recordingStock->product_warehouse?->product?->product_sub_category?->name ?? ''), 'pakan');
         })->first();
         $cumIntake = ($pakanRecord->decrease * 1000) / $remainChick; // 1kg = 1000gram
 

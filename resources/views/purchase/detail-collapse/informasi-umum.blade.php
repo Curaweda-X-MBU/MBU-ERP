@@ -1,3 +1,23 @@
+<style>
+    .td-top{
+        vertical-align: top;
+    }
+</style>
+
+@php
+    $warehouseNames = [];
+    $locationNames = [];
+    $companyName = '';
+    $areaName = '';
+    foreach ($data->warehouse_details as $key => $value) {
+        $warehouseNames[] = $value['warehouse_name'];
+        $locationNames[] = $value['location_name'];
+        $companyName = $value['company_name'];
+        $areaName = $value['area_name'];
+    }
+    $locationNames = array_unique($locationNames);
+@endphp
+
 <div class="card mb-1">
     <div id="headingCollapse3" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse3" aria-expanded="true" aria-controls="collapse3">
         <span class="lead collapse-title"> Item Pembelian </span>
@@ -11,22 +31,31 @@
                             <tr>
                                 <td><b>Unit Bisnis</b></td>
                                 <td>:</td>
-                                <td>{{ $data->warehouse->location->company->name??'' }}</td>
+                                <td>{{ $companyName }}</td>
                             </tr>
                             <tr>
                                 <td><b>Area</b></td>
                                 <td>:</td>
-                                <td>{{ $data->warehouse->location->area->name??'' }}</td>
+                                <td>{{ $areaName }}</td>
                             </tr>
                             <tr>
-                                <td><b>Lokasi</b></td>
-                                <td>:</td>
-                                <td>{{ $data->warehouse->location->name??'' }}</td>
+                                <td class="td-top"><b>Lokasi</b></td>
+                                <td class="td-top">:</td>
+                                <td class="td-top">
+                                    @foreach ($locationNames as $item)
+                                        <div class="badge badge-light-primary">{{ $item }}</div>
+                                    @endforeach
+                                </td>
                             </tr>
                             <tr>
-                                <td><b>Gudang Penyimpanan</b></td>
-                                <td>:</td>
-                                <td>{{ $data->warehouse->name??'' }}</td>
+                                <td class="td-top"><b>Gudang Penyimpanan</b></td>
+                                <td class="td-top">:</td>
+                                {{-- <td class="td-top">{{ implode(', ', $data->warehouse_names)??'' }}</td> --}}
+                                <td class="td-top">
+                                    @foreach ($warehouseNames as $item)
+                                        <div class="badge badge-light-primary">{{ $item }}</div>
+                                    @endforeach
+                                </td>
                             </tr>
                         </table>
                     </td>
