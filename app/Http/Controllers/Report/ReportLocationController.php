@@ -696,15 +696,14 @@ class ReportLocationController extends Controller
             });
 
         $purchaseItems = PurchaseItemReception::selectRaw('
-                purchase_item_receptions.total_received AS num_qty,
+                COALESCE(SUM(purchase_item_receptions.total_received), 0) AS num_qty,
                 uom.name AS uom,
                 purchase_item_receptions.received_date AS tanggal,
                 COALESCE(purchases.po_number, purchases.pr_number) AS no_referensi,
                 "Pembelian" AS transaksi,
                 products.name AS produk,
                 "-" AS gudang_asal,
-                purchases.notes AS notes,
-                purchase_items.price AS harga_satuan
+                purchases.notes AS notes
             ')
             ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
@@ -717,16 +716,13 @@ class ReportLocationController extends Controller
                 ['kandang.location_id', $location_id],
                 ['projects.period', $period],
             ])
-            ->whereNotNull('purchase_item_receptions.received_date')
             ->groupByRaw('
-                    purchase_item_receptions.total_received,
                     uom.name,
                     purchase_item_receptions.received_date,
                     purchases.pr_number,
                     purchases.po_number,
                     products.name,
-                    purchases.notes,
-                    purchase_items.price
+                    purchases.notes
                 ')
             ->get()
             ->map(function($pi) {
