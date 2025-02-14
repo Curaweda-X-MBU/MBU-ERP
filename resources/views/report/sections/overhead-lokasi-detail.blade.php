@@ -68,6 +68,8 @@ $(function() {
         // Flatten the data to match DataTable structure
         let formattedData = [];
 
+        console.log(data);
+
         $.each(data, function(_, item) {
             let index = 1;
             formattedData.push({
@@ -78,9 +80,9 @@ $(function() {
                 totalPengajuan: "",
                 tanggal: "",
                 qtyRealisasi: "",
-                rpPerQty: "",
-                totalRealisasi: "",
                 hargaSatuanRealisasi: "",
+                totalRealisasi: "",
+                rpPerQty: "",
             });
             $.each(item.subkategori, function(_, sub) {
                 formattedData.push({
@@ -90,11 +92,11 @@ $(function() {
                     hargaSatuanPengajuan: item.kategori.toLowerCase() == 'pengeluaran operasional' ? sub.budget_price : '-',
                     totalPengajuan: sub.budget_total,
                     tanggal: sub.tanggal,
-                    qtyRealisasi: sub.realization_qty,
                     uom: sub.uom,
-                    rpPerQty: sub.price_per_qty,
-                    totalRealisasi: sub.realization_total,
+                    qtyRealisasi: sub.realization_qty,
                     hargaSatuanRealisasi: item.kategori.toLowerCase() == 'pengeluaran operasional' ? sub.realization_price : '-',
+                    totalRealisasi: sub.realization_total,
+                    rpPerQty: sub.price_per_qty,
                 });
                 index += 1;
             });
