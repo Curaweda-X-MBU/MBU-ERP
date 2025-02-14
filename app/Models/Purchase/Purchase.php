@@ -83,8 +83,8 @@ class Purchase extends Model
             ->map(function($warehouse) {
                 return [
                     'warehouse_name' => $warehouse->name,
-                    'location_name'  => $warehouse->location->name         ?? 'N/A',
-                    'area_name'      => $warehouse->location->area->name       ?? 'N/A',
+                    'location_name'  => $warehouse->location->name          ?? 'N/A',
+                    'area_name'      => $warehouse->location->area->name    ?? 'N/A',
                     'company_name'   => $warehouse->location->company->name ?? 'N/A',
                 ];
             })

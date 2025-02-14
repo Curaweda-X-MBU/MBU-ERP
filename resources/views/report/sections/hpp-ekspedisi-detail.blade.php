@@ -8,9 +8,6 @@
                 <thead>
                     <tr class="text-center">
                         <th>No</th>
-                        @if (@$detail->project_id !== 'nothing')
-                        <th class="text-left">No. DO</th>
-                        @endif
                         <th class="text-left">Nama Ekspedisi</th>
                         <th>HPP Ekspedisi</th>
                     </tr>
@@ -18,20 +15,13 @@
 
                 <tbody>
                     <tr>
-                        @if (@$detail->project_id === 'nothing')
                         <td class="text-center" colspan="3">Mengambil data ...</td>
-                        @else
-                        <td class="text-center" colspan="4">Mengambil data ...</td>
-                        @endif
                     </tr>
                 </tbody>
 
                 <tfoot>
                     <tr class="font-weight-bolder">
                         <td colspan="2">Total HPP Ekspedisi</td>
-                        @if (@$detail->project_id !== 'nothing')
-                        <td></td>
-                        @endif
                         <td class="total_delivery_fee text-right"></td>
                     </tr>
                 </tfoot>
@@ -69,9 +59,6 @@ $(function() {
                                     return meta.row + 1;
                                 }
                             },
-                            @if (@$detail->project_id !== 'nothing')
-                            {data: 'id_marketing'},
-                            @endif
                             {data: 'supplier_name'},
                             {
                                 data: 'total_delivery_fee',
