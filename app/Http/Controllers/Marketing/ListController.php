@@ -481,16 +481,18 @@ class ListController extends Controller
                         $arrProduct = $req->input('marketing_products');
 
                         foreach ($arrProduct as $key => $value) {
-                            $price     = Parser::parseLocale($value['price']);
-                            $weightAvg = Parser::parseLocale($value['weight_avg']);
-                            $qty       = Parser::parseLocale($value['qty']);
+                            $price       = Parser::parseLocale($value['price']);
+                            $weightTotal = Parser::parseLocale($value['weight_total']);
+                            $qty         = Parser::parseLocale($value['qty']);
 
+                            $weightAvg  = $weightTotal / max($qty, 1);
                             $totalPrice = $price * $qty;
                             $productPrice += $totalPrice;
 
-                            $arrProduct[$key]['price']      = $price;
-                            $arrProduct[$key]['weight_avg'] = $weightAvg;
-                            $arrProduct[$key]['qty']        = $qty;
+                            $arrProduct[$key]['price']        = $price;
+                            $arrProduct[$key]['weight_avg']   = $weightAvg;
+                            $arrProduct[$key]['weight_total'] = $weightTotal;
+                            $arrProduct[$key]['qty']          = $qty;
                             MarketingProduct::find($value['marketing_product_id'])->update($arrProduct);
                         }
                     }
