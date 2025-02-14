@@ -475,11 +475,11 @@ class ReportLocationController extends Controller
                             'budget_qty'        => $budget->qty ?? '-',
                             'budget_price'      => isset($budget->price) ? Parser::toLocale($budget->price) : '-',
                             'budget_total'      => isset($budget->total) ? Parser::toLocale($budget->total) : '-',
-                            'realization_qty'   => ($p->total_qty ?? $p->qty)                  ?? '-',
                             'uom'               => optional(optional($p->nonstock)->uom)->name ?? '',
-                            'realization_price' => Parser::toLocale($p->price),
-                            'realization_total' => Parser::toLocale($p->total_price),
-                            'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / ($p->qty ?? 1)) : '-',
+                            'realization_qty'   => $p->qty                                     ?? '-',
+                            'realization_price' => Parser::toLocale($p->price / max($e->expense_kandang->count(), 1)), // per kandang
+                            'realization_total' => Parser::toLocale($p->price),
+                            'price_per_qty'     => $p->qty ? Parser::toLocale($p->price / max($p->qty, 1)) : '-',
                             'category'          => $e->category,
                         ];
                     });
