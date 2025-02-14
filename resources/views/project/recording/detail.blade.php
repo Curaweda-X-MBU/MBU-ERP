@@ -15,11 +15,17 @@
         }
     }
 
-    $pakanRecord = collect($data->recording_stock)->filter(function ($recordingStock) {
-                return optional($recordingStock->product_warehouse)
-                    ->product
-                    ->name === 'Pakan';
-            })->first();
+    // $pakanRecord = collect($data->recording_stock)->filter(function ($recordingStock) {
+    //             return optional($recordingStock->product_warehouse)
+    //                 ->product
+    //                 ->name === 'Pakan';
+    //         })->first();
+
+    $pakanRecord = collect($data->recording_stock)->filter(function($recordingStock) {
+            return Str::contains(strtolower($recordingStock->product_warehouse?->product?->product_sub_category?->name ?? ''), 'pakan');
+        })->first();
+    // dd($pakaRecord);
+
 @endphp
 
                     <div class="row">
@@ -157,7 +163,7 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Asupan Harian</td>
-                                                                    <td class="text-center">{{ formatnumber(($pakanRecord->decrease*1000/($data->total_chick ?: 1))) ?? '' }}</td>
+                                                                    <td class="text-center">{{ formatnumber(($pakanRecord->decrease??0*1000/($data->total_chick ?: 1))) ?? '' }}</td>
                                                                     <td class="text-center">{{ formatnumber($fcrStandar?->daily_intake)??'' }}</td>
                                                                 </tr>
                                                                 <tr>
