@@ -600,29 +600,28 @@ class ReportKandangController extends Controller
                 ];
             });
 
-        $purchaseItems = PurchaseItemReception::with(['warehouse.kandang.project', 'purchase_item.purchase_item_reception', 'purchase_item.product'])
+        $purchaseItems = PurchaseItemReception::with(['warehouse.kandang.project', 'purchase_item.product'])
             ->whereHas('warehouse.kandang.project', function($query) use ($project, $period) {
                 $query->where([
                     ['project_id', $project->project_id],
                     ['period', $period],
                 ]);
             })
-            ->whereHas(
-                'purchase_item.purchase_item_reception',
-                fn ($q) => $q->whereNotNull('received_date')
-            )
+            ->whereNotNull('received_date')
             ->get()
-            ->map(function($item) {
-                return [
-                    'tanggal'      => Carbon::parse($item->received_date)->format('d-M-Y H:i'),
-                    'no_referensi' => $item->purchase_item->purchase->po_number ?? '-',
-                    'transaksi'    => 'Pembelian',
-                    'produk'       => $item->purchase_item->product->name,
-                    'gudang_asal'  => '-',
-                    'qty'          => Parser::toLocale($item->total_received).' '.$item->purchase_item->product->uom->name,
-                    'notes'        => $item->purchase_item->purchase->notes,
-                    'harga_satuan' => $item->price,
-                ];
+            ->transform(function($p) {
+                if (isset($p)) {
+                    return [
+                        'tanggal'      => Carbon::parse($p->received_date)->format('d-M-Y H:i'),
+                        'no_referensi' => $p->purchase_item->purchase->po_number ?? '-',
+                        'transaksi'    => 'Pembelian',
+                        'produk'       => $p->purchase_item->product->name,
+                        'gudang_asal'  => '-',
+                        'qty'          => Parser::toLocale($p->total_received).' '.$p->purchase_item->product->uom->name,
+                        'notes'        => $p->purchase_item->purchase->notes,
+                        'harga_satuan' => $p->purchase_item->price,
+                    ];
+                }
             });
 
         return $sapronakMasuk->concat($purchaseItems);
