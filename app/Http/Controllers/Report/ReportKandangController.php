@@ -17,8 +17,6 @@ use App\Models\Project\ProjectChickIn;
 use App\Models\Project\Recording;
 use App\Models\Project\RecordingDepletion;
 use App\Models\Project\RecordingStock;
-use App\Models\Purchase\Purchase;
-use App\Models\Purchase\PurchaseItem;
 use App\Models\Purchase\PurchaseItemReception;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -746,20 +744,22 @@ class ReportKandangController extends Controller
             ->join('purchase_items', 'purchase_items.purchase_item_id', '=', 'purchase_item_receptions.purchase_item_id')
             ->join('purchases', 'purchases.purchase_id', '=', 'purchase_items.purchase_id')
             ->join('products', 'products.product_id', '=', 'purchase_items.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'purchase_item_receptions.warehouse_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
-            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%pakan%'])
             ->groupBy('project_id');
 
         $pakan_mutasi_subquery = StockMovement::selectRaw('
                 projects.project_id, COALESCE(SUM(stock_movements.transfer_qty), 0) AS pakan_mutasi_qty
             ')
             ->join('products', 'products.product_id', '=', 'stock_movements.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->join('warehouses', 'warehouses.warehouse_id', '=', 'stock_movements.destination_id')
             ->join('kandang', 'kandang.kandang_id', '=', 'warehouses.kandang_id')
             ->join('projects', 'projects.kandang_id', '=', 'kandang.kandang_id')
-            ->whereRaw('LOWER(products.name) LIKE?', ['%pakan%'])
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%pakan%'])
             ->groupBy('project_id');
 
         $pakan_terpakai_subquery = RecordingStock::selectRaw('
@@ -767,9 +767,10 @@ class ReportKandangController extends Controller
             ')
             ->join('product_warehouses', 'product_warehouses.product_warehouse_id', 'recording_stocks.product_warehouse_id')
             ->join('products', 'products.product_id', '=', 'product_warehouses.product_id')
+            ->join('product_sub_categories', 'product_sub_categories.product_sub_category_id', '=', 'products.product_sub_category_id')
             ->join('recordings', 'recordings.recording_id', '=', 'recording_stocks.recording_id')
             ->join('projects', 'projects.project_id', '=', 'recordings.project_id')
-            ->whereRaw('LOWER(products.name) LIKE ?', ['%pakan%'])
+            ->whereRaw('LOWER(product_sub_categories.name) LIKE ?', ['%pakan%'])
             ->groupBy('project_id');
 
         $claim_culling_subquery = RecordingDepletion::selectRaw('
