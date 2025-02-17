@@ -10,6 +10,7 @@ use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockLog;
 use App\Models\Purchase\Purchase;
 use App\Models\Purchase\PurchaseItem;
+use App\Models\Purchase\PurchaseItemAlocation;
 use App\Models\Purchase\PurchaseItemReception;
 use App\Models\Purchase\PurchaseOther;
 use App\Models\Purchase\PurchasePayment;
@@ -65,10 +66,11 @@ class ListController extends Controller
                             'date'      => date('Y-m-d H:i:s'),
                         ];
 
+                        $warehouseIds   = collect($purchaseItem)->pluck('warehouse_id')->unique()->values()->toArray();
                         $purchaseInsert = Purchase::create([
                             'pr_number'     => 'PR-'.$alias.'-'.$prNumber,
                             'supplier_id'   => $input['supplier_id'],
-                            'warehouse_id'  => $input['warehouse_id'],
+                            'warehouse_ids' => $warehouseIds,
                             'require_date'  => date('Y-m-d', strtotime($input['require_date'])),
                             'notes'         => $input['notes'] ?? null,
                             'status'        => $this->getStatus('Approval Manager'),
@@ -77,15 +79,31 @@ class ListController extends Controller
                         ]);
 
                         $purchaseId = $purchaseInsert->purchase_id;
+                        $grouped    = collect($purchaseItem)->groupBy('product_id')->map(function($items) {
+                            return [
+                                'product_id' => $items->first()['product_id'],
+                                'qty'        => $items->sum(fn ($item) => str_replace('.', '', str_replace(',', '.', $item['qty']))),
+                            ];
+                        })->values()->toArray();
+
                         if ($req->has('purchase_item')) {
-                            foreach ($purchaseItem as $key => $value) {
-                                PurchaseItem::create([
+                            foreach ($grouped as $k => $v) {
+                                $purchaseItemInsert = PurchaseItem::create([
                                     'purchase_id' => $purchaseId,
-                                    'product_id'  => $value['product_id'],
-                                    // 'warehouse_id' => $value['warehouse_id'],
-                                    // 'project_id'   => $value['project_id'] ?? null,
-                                    'qty' => str_replace('.', '', str_replace(',', '.', $value['qty'])),
+                                    'product_id'  => $v['product_id'],
+                                    'qty'         => $v['qty'],
                                 ]);
+
+                                foreach ($purchaseItem as $key => $value) {
+                                    if ($v['product_id'] === $value['product_id']) {
+                                        $alocationQty = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                                        PurchaseItemAlocation::create([
+                                            'purchase_item_id' => $purchaseItemInsert->purchase_item_id,
+                                            'warehouse_id'     => $value['warehouse_id'],
+                                            'alocation_qty'    => $alocationQty,
+                                        ]);
+                                    }
+                                }
                             }
                         }
                     });
@@ -192,7 +210,7 @@ class ListController extends Controller
                 'supplier', 'createdBy', 'purchase_other', 'purchase_payment',
             ])
                 ->with('purchase_item', function($query) {
-                    $query->with(['product', 'purchase_item_reception']);
+                    $query->with(['product', 'purchase_item_reception', 'purchase_item_reception.supplier', 'purchase_item_alocation', 'purchase_item_alocation.warehouse', 'purchase_item_alocation.warehouse.location', 'purchase_item_alocation.warehouse.kandang.user']);
                 })
                 ->findOrFail($req->id);
             $param = [
@@ -229,7 +247,9 @@ class ListController extends Controller
                 $nextStatus = $data->status + 1;
                 break;
             case 'Manager Area':
-                $ovkProduct = collect($data)->where('product_category.name', 'OVK');
+                $ovkProduct = collect($data)->filter(function($purchase) {
+                    return Str::contains(strtolower($purchase->purchase_item?->product?->product_sub_category?->name ?? ''), 'ovk');
+                });
                 if (count($ovkProduct) > 0) {
                     $nextStatus = $this->getStatus('Approval Poultry Health');
                 } else {
@@ -279,7 +299,7 @@ class ListController extends Controller
     {
         try {
             DB::beginTransaction();
-            $purchase          = Purchase::findOrFail($req->id);
+            $purchase          = Purchase::with('purchase_item.product.product_sub_category')->findOrFail($req->id);
             $roleName          = Auth::user()->role->name;
             $actionBy          = Auth::user()->name;
             $arrPurchaseStatus = Constants::PURCHASE_STATUS;
@@ -329,24 +349,27 @@ class ListController extends Controller
                 $notReceivedPurchaseAmount = 0;
                 $returPurchaseAmount       = 0;
 
+                $warehouseIds = $purchase->warehouse_ids;
                 foreach ($purchase->purchase_item as $key => $value) {
-                    $stockLog     = StockLog::where('purchase_item_id', $value->purchase_item_id)->get();
-                    $currentStock = ProductWarehouse::firstOrCreate([
-                        'product_id'   => $value->product_id,
-                        'warehouse_id' => $purchase->warehouse_id,
-                    ]);
+                    for ($i = 0; $i < count($warehouseIds); $i++) {
+                        $stockLog     = StockLog::where('purchase_item_id', $value->purchase_item_id)->get();
+                        $currentStock = ProductWarehouse::firstOrCreate([
+                            'product_id'   => $value->product_id,
+                            'warehouse_id' => $warehouseIds[$i],
+                        ]);
 
-                    if (count($stockLog) > 0) {
-                        foreach ($stockLog as $idx => $val) {
-                            if ($currentStock) {
-                                $currentStock->update([
-                                    'quantity' => $currentStock->quantity - $val->increase + $val->decrease,
-                                ]);
+                        if (count($stockLog) > 0) {
+                            foreach ($stockLog as $idx => $val) {
+                                if ($currentStock) {
+                                    $currentStock->update([
+                                        'quantity' => $currentStock->quantity - $val->increase + $val->decrease,
+                                    ]);
 
+                                }
                             }
+                            StockLog::where('purchase_item_id', $value->purchase_item_id)->delete();
+                            StockAvailability::where('purchase_item_id', $value->purchase_item_id)->delete();
                         }
-                        StockLog::where('purchase_item_id', $value->purchase_item_id)->delete();
-                        StockAvailability::where('purchase_item_id', $value->purchase_item_id)->delete();
                     }
 
                     $receivedItem          = 0;
@@ -360,7 +383,7 @@ class ListController extends Controller
                     $arrFileReception = $req->file('purchase_item_reception_'.$value->purchase_item_id);
                     if ($req->has('purchase_item_reception_'.$value->purchase_item_id)) {
                         foreach ($arrItemReception as $k => $v) {
-                            $dateTime     = $arrItemReception[$k]['date'].' '.$arrItemReception[$k]['time'];
+                            $dateTime     = $arrItemReception[$k]['date'];
                             $receivedDate = date('Y-m-d H:i', strtotime($dateTime));
                             $travelDoc    = null;
                             if (isset($arrItemReception[$k]['travel_number_document'])) {
@@ -383,19 +406,23 @@ class ListController extends Controller
 
                             $saveReceivedItem                         = new PurchaseItemReception;
                             $saveReceivedItem->purchase_item_id       = $value->purchase_item_id;
+                            $saveReceivedItem->warehouse_id           = $arrItemReception[$k]['warehouse_id'];
                             $saveReceivedItem->received_date          = $receivedDate;
                             $saveReceivedItem->travel_number          = $arrItemReception[$k]['travel_number'];
                             $saveReceivedItem->travel_number_document = $travelDoc;
                             $saveReceivedItem->vehicle_number         = $arrItemReception[$k]['vehicle_number'];
                             $saveReceivedItem->total_received         = $received;
                             $saveReceivedItem->total_retur            = $retur;
+                            $saveReceivedItem->supplier_id            = $arrItemReception[$k]['supplier_id'];
+                            $saveReceivedItem->transport_per_item     = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['transport_per_item']));
+                            $saveReceivedItem->transport_total        = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['transport_total']));
                             $saveReceivedItem->save();
 
                             $adjusmentStock = $received - $retur;
                             $triggerStock   = StockLog::triggerStock([
                                 'product_id'                 => $value->product_id,
                                 'stock_date'                 => date('Y-m-d', strtotime($receivedDate)),
-                                'warehouse_id'               => $purchase->warehouse_id,
+                                'warehouse_id'               => $arrItemReception[$k]['warehouse_id'],
                                 'increase'                   => $adjusmentStock,
                                 'stocked_by'                 => 'Pembelian',
                                 'notes'                      => $arrItemReception[$k]['travel_number'],
@@ -465,8 +492,9 @@ class ListController extends Controller
                     $dataApproval['total_before_tax'] += $itemPrice              * $itemQty;
                     $dataApproval['total_tax']        += ($itemPrice * $itemQty) * $value['tax']      / 100;
                     $dataApproval['total_discount']   += ($itemPrice * $itemQty) * $value['discount'] / 100;
-                    $value['price'] = $itemPrice;
-                    PurchaseItem::where('purchase_item_id', $idPurchaseItem)->update($value);
+                    $value['price']     = $itemPrice;
+                    $updatePurchaseItem = PurchaseItem::find($idPurchaseItem);
+                    $updatePurchaseItem->update($value);
                 }
 
                 $totalItem                               = $dataApproval['total_before_tax'] + $dataApproval['total_tax'] - $dataApproval['total_discount'];

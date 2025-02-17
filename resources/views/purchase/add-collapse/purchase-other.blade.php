@@ -1,3 +1,9 @@
+<style>
+    .tbl-alocation thead th {
+        font-size: 15px;
+    }
+</style>
+
 <section id="collapsibleModal">
     <div class="row">
         <div class="col-sm-12">
@@ -14,6 +20,7 @@
                                         <div class="table-responsive">
                                             <table class="table table-bordered w-100 no-wrap text-center">
                                                 <thead>
+                                                    <th>Gudang</th>
                                                     <th>Produk</th>
                                                     <th>Jenis Produk</th>
                                                     <th width="30">Jumlah</th>
@@ -25,7 +32,11 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($data->purchase_item as $key => $item)
+                                                    @php
+                                                        $warehouseNames = collect($item->purchase_item_alocation)->where('purchase_item_id', $item->purchase_item_id)->pluck('warehouse.name')->implode("<br>");;
+                                                    @endphp
                                                     <tr>
+                                                        <td><?=$warehouseNames?></td>
                                                         <td>{{ $item->product->name??'' }}</td>
                                                         <td>{{ $item->product->product_category->name??'' }}</td>
                                                         <td>
@@ -33,13 +44,13 @@
                                                         </td>
                                                         <td>{{ $item->product->uom->name??'' }}</td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price }}" required>
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price||$item->price===0?$item->product->product_price:0 }}" required>
                                                         </td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
                                                         </td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
                                                         </td>
                                                         <td class="text-right">
                                                             <input type="text" class="form-control-plaintext text-right numeral-mask" id="total-{{$key}}" value="{{$item->total}}" readonly>
@@ -75,8 +86,8 @@
                                             </thead>
                                             <tbody data-repeater-list="purchase_other">
                                                 <tr data-repeater-item>
-                                                    <td><input type="text" name="name" class="form-control" placeholder="Nama Biaya"/></td>
-                                                    <td><input type="text" name="amount" class="amount form-control numeral-mask text-right" placeholder="Harga"/></td>
+                                                    <td><input type="text" name="name" class="form-control" placeholder="Nama Biaya" required/></td>
+                                                    <td><input type="text" name="amount" class="amount form-control numeral-mask text-right" placeholder="Harga" required/></td>
                                                     <td>
                                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
                                                             <i data-feather="x"></i>
@@ -136,6 +147,8 @@
                 });
             }
         }
+
+        $('.price-text').trigger('change');
     });
 </script>
 

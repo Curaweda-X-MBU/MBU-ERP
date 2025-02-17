@@ -11,8 +11,8 @@
     $area_name = old('area_name');
     $location_id = old('location_id');
     $location_name = old('location_name');
-    $warehouse_id = old('warehouse_id');
-    $warehouse_name = old('warehouse_name');
+    $warehouse_ids = old('warehouse_ids');
+    $warehouse_name = old('warehouse_names');
 
     if (isset($data)) {
         $company_id = $data->warehouse->location->company_id??'';
@@ -21,7 +21,7 @@
         $area_name = $data->warehouse->location->area->name??'';
         $location_id = $data->warehouse->location_id??'';
         $location_name = $data->warehouse->location->name??'';
-        $warehouse_id = $data->warehouse_id??'';
+        $warehouse_ids = $data->warehouse_ids??'';
         $warehouse_name = $data->warehouse->name??'';
         $supplier_id = $data->supplier->supplier_id??"";
         $supplier_name = $data->supplier->name;
@@ -36,6 +36,10 @@
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+
+<style>
+     
+</style>
 
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 
@@ -120,8 +124,8 @@
                                 <label for="location_id" class="float-right">Lokasi</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="location_id" id="location_id" class="form-control" required>
-                                    <option disabled selected>Pilih Area terlebih dahulu</option>
+                                <select name="location_id[]" id="location_id" class="form-control" multiple="multiple" required>
+                                    {{-- <option disabled selected>Pilih Area terlebih dahulu</option> --}}
                                     @if($location_id && $location_name)
                                     <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
                                     @endif
@@ -130,19 +134,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-sm-3 col-form-label">
-                                <label for="warehouse_id" class="float-right">Gudang</label>
-                            </div>
-                            <div class="col-sm-9">
-                                <select name="warehouse_id" id="warehouse_id" class="form-control" required>
-                                    <option disabled selected>Pilih Lokasi terlebih dahulu</option>
-                                    @if($warehouse_id && $warehouse_name)
-                                    <option value="{{ $warehouse_id }}" selected="selected">{{ $warehouse_name }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -154,6 +146,7 @@
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
+                            <th>Gudang</th>
                             <th>Kategori<br>Produk</th>
                             <th>Produk</th>
                             {{-- <th>Project Aktif</th> --}}
@@ -168,6 +161,7 @@
                         </thead>
                         <tbody data-repeater-list="purchase_item">
                             <tr data-repeater-item>
+                                <td><select name="warehouse_id" class="form-control warehouse_id" required> </select></td>
                                 <td><select name="product_category_id" class="product_category_id form-control" required></select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
                                 {{-- <td><select name="project_id" class="project_id form-control"></select></td> --}}
@@ -212,6 +206,14 @@
                 },
                 cache: true
         }
+
+        $('#location_id').select2({
+            placeholder: "Pilih Area Telebih Dahulu"
+        })
+
+        $('#warehouse_id').select2({
+            placeholder: "Pilih Lokasi Telebih Dahulu"
+        })
 
         const companyId = $('#company_id').val();
         const qryProduct = companyId?`?company_id=${companyId}`:'';
@@ -306,6 +308,27 @@
                     }
                 });
 
+                $this.find('.warehouse_id').select2({
+                    placeholder: "Pilih Gudang",
+                    ajax: {
+                        url: `{{ route("data-master.warehouse.search") }}`, 
+                        dataType: 'json',
+                        delay: 250, 
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                location_ids: $('#location_id').val()
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
+                    }
+                });
+
                 $this.find('.product_category_id').change(function (e) { 
                     e.preventDefault();
                     const prodCatId = $(this).val();
@@ -316,7 +339,28 @@
                         placeholder: "Pilih Produk",
                         ajax: {
                             url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}&can_be_purchased=1`, 
-                            ...select2Opt
+                            dataType: 'json',
+                            delay: 250, 
+                            data: function(params) {
+                                return {
+                                    q: params.term 
+                                };
+                            },
+                            processResults: function(data) {
+                                data.forEach(val => {
+                                    const searchSub = 'doc';
+                                    if (val.data.product_sub_category) {
+                                        const subCategory = val.data.product_sub_category.name.toLowerCase();
+                                        if (subCategory.includes(searchSub)) {
+                                            val.text = `${val.data.name} (DOC)`
+                                        }
+                                    }
+                                });
+                                return {
+                                    results: data
+                                };
+                            },
+                            cache: true
                         }
                     });
 
@@ -351,7 +395,6 @@
         if ('{{ $dataPurchase }}'.length) {
             const dataPurchase = @json($dataPurchase);
             console.log(dataPurchase);
-            getKandangByLocationId('{{$location_id}}');
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {

@@ -1,4 +1,4 @@
-<div class="table-responsive">
+{{-- <div class="table-responsive">
     <table class="table table-striped table-bordered w-100" id="tbl-kandang">
         <thead>
             <tr>
@@ -60,7 +60,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 <script>
     $(function () {
@@ -98,41 +98,23 @@
             });
         });
 
-        $('#location_id').on('select2:select', function (e) {
+        $('#location_id').on('select2:select select2:unselect', function (e) {
             e.preventDefault();
             const locationId = $(this).val();
-            $('#warehouse_id').val(null).trigger('change');
-            $('#warehouse_id').select2({
-                placeholder: "Pilih Gudang",
-                ajax: {
-                    url: `{{ route("data-master.warehouse.search") }}?location_id=${locationId}`, 
-                    dataType: 'json',
-                    delay: 250, 
-                    data: function(params) {
-                        return {
-                            q: params.term 
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                }
-            });
+            
+            $('.warehouse_id').val(null).trigger('change');
 
-            getKandangByLocationId(locationId);
+            // getKandangByLocationId(locationId);
 
-            $('#checkAll').change(function() {
-                const isChecked = $(this).is(':checked');
-                $('.rowCheckbox').prop('checked', isChecked);
-            });
+            // $('#checkAll').change(function() {
+            //     const isChecked = $(this).is(':checked');
+            //     $('.rowCheckbox').prop('checked', isChecked);
+            // });
 
-            $('#tbl-kandang').on('change', '.rowCheckbox', function() {
-                const allChecked = $('.rowCheckbox').length === $('.rowCheckbox:checked').length;
-                $('#checkAll').prop('checked', allChecked);
-            });
+            // $('#tbl-kandang').on('change', '.rowCheckbox', function() {
+            //     const allChecked = $('.rowCheckbox').length === $('.rowCheckbox:checked').length;
+            //     $('#checkAll').prop('checked', allChecked);
+            // });
         });
     });
 

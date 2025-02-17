@@ -95,7 +95,7 @@
                                         <td>{{ $item->company->alias }}</td>
                                         <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
                                         <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
-                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->grand_total - $item->is_paid) }}</td>
+                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->not_paid) }}</td>
                                         <td>
                                             @switch($item->payment_status)
                                                 @case(1)
@@ -288,14 +288,17 @@
 
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
+                let notPaidSum = 0;
 
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[6]);
-                    const isPaid = parseLocaleToNum(data[7]);
+                    const grandTotal = parseLocaleToNum(data[7]);
+                    const isPaid = parseLocaleToNum(data[8]);
+                    const notPaid = parseLocaleToNum(data[9]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
+                    notPaidSum += notPaid;
                 });
 
                 const $grandTotal = $("#grand_total");
@@ -304,7 +307,7 @@
 
                 $grandTotal.text(parseNumToLocale(grandTotalSum));
                 $isPaid.text(parseNumToLocale(isPaidSum));
-                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+                $notPaid.text(parseNumToLocale(notPaidSum));
 
                 feather.replace();
             },

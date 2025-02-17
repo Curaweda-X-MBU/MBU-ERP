@@ -19,6 +19,7 @@ use App\Models\Project\RecordingStock;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class RecordingController extends Controller
 {
@@ -79,6 +80,10 @@ class RecordingController extends Controller
                     return redirect()->back()->with('error', 'Body Weight harus diisi');
                 }
 
+                if (! $req->has('depletions')) {
+                    return redirect()->back()->with('error', 'Data Deplesi harus diisi');
+                }
+
                 $project = Project::with([
                     'kandang',
                     'recording',
@@ -107,7 +112,7 @@ class RecordingController extends Controller
                 $productCategory  = ProductCategory::find($input['product_category_id']);
                 $projectWarehouse = ProductWarehouse::whereHas('product', function($query) {
                     $query->whereHas('product_category', function($query) {
-                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS', 'LYR', 'TLR', 'GPS']);
+                        $query->whereIn('category_code', ['BRO', 'PRS', 'FLS', 'LYR', 'GPS']);
                     });
                 })
                     ->where('warehouse_id', $input['warehouse_id'])
@@ -273,7 +278,7 @@ class RecordingController extends Controller
         $recordings = Recording::with([
             'recording_bw',
             'recording_stock',
-            'recording_stock.product_warehouse.product',
+            'recording_stock.product_warehouse.product.product_sub_category',
         ])->find($recordingId);
 
         $lastDay        = $recordings->day - 1;
@@ -284,9 +289,7 @@ class RecordingController extends Controller
         $lastWeight     = $fcrStandard->weight;
         $currentWeight  = $recordings->recording_bw[0]->value;
         $pakanRecord    = collect($recordings->recording_stock)->filter(function($recordingStock) {
-            return optional($recordingStock->product_warehouse)
-                ->product
-                ->name === 'Pakan';
+            return Str::contains(strtolower($recordingStock->product_warehouse?->product?->product_sub_category?->name ?? ''), 'pakan');
         })->first();
         $cumIntake = ($pakanRecord->decrease * 1000) / $remainChick; // 1kg = 1000gram
 

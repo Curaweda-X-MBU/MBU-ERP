@@ -14,6 +14,7 @@
         body {
             background-color: black;
             font-family: 'Poppins';
+            font-size: calc(100% - 3px);
         }
 
         td {
@@ -74,18 +75,25 @@
                     {{ $data->supplier->email ? ' / ' .$data->supplier->email : '' }}<br>
                     {{ $data->supplier->address }}
                 </td>
-                <td>
+                <td style="vertical-align: top">
                     {{ $data->createdBy->department->company->name}}<br>
-                    {{ $data->createdBy->name}}<br>
-                    {{ $data->createdBy->phone??''}}
-                    {{ $data->createdBy->email ? ' / ' .$data->createdBy->email : '' }}<br>
-                    {{ $data->createdBy->department->location->address }}
+                    @php
+                        $warehouseIds = $data->warehouse_ids;
+                        $warehouses = App\Models\DataMaster\Warehouse::with(['location', 'kandang'])
+                            ->whereIn('warehouse_id', $warehouseIds)->get();
+                        $locationNames = [];
+                        foreach ($warehouses as $key => $value) {
+                            $locationNames[] = $value->location->name ?? 'N/A';
+                        }
+                        $shipTo = array_unique($locationNames);
+                    @endphp
+                    {{ implode(', ', $shipTo) }}
                 </td>
             </tr>
         </tbody>
     </table>
     <br>
-    <table class="table table-bordered w-100">
+    {{-- <table class="table table-bordered w-100">
         <thead>
             <th>Requestioner</th>
             <th>Ship VIA</th>
@@ -100,13 +108,13 @@
                 <td></td>
             </tr>
         </tbody>
-    </table>
+    </table> --}}
     <br>
     <table class="table table-bordered w-100">
         <thead>
             <th>Item Description</th>
             <th>Unit Price</th>
-            <th>Quantity</th>
+            <th>Total Quantity</th>
             <th>Total Amount</th>
         </thead>
         <tbody>
@@ -123,6 +131,68 @@
             <td colspan="3" class="text-right">Grand Total</td>
             <td>Rp. <span class="float-right">{{ number_format($data->total_before_tax, '0', ',', '.') }}</span></td>
         </tfoot>
+    </table>
+    <br>
+    <h4><li>Product Alocation</li></h4>
+    <table class="table table-bordered w-100">
+        <thead>
+            <th>Warehouse Name</th>
+            <th>PIC</th>
+            <th>Address Detail</th>
+            <th>Product Alocation</th>
+        </thead>
+        <tbody>
+            @php
+                $arrProductNames = collect($data->purchase_item);
+                $collection = collect($data->purchase_item)
+                    ->flatMap(function ($item) {
+                        return collect($item['purchase_item_alocation'])->map(function ($alocation) use ($item) {
+                            return [
+                                'warehouse_id' => $alocation['warehouse_id'],
+                                'warehouse' => $alocation['warehouse']['name'],
+                                'address' => $alocation['warehouse']['location']['address'],
+                                'pic' => $alocation['warehouse']['kandang']['user']['name'] ?? '',
+                                'phone' => $alocation['warehouse']['kandang']['user']['phone'] ?? '',
+                                'product_id' => $item['product']['name'],
+                                'alocation_qty' => $alocation['alocation_qty']
+                            ];
+                        });
+                    })
+                    ->groupBy('warehouse_id')
+                    ->map(function ($group) {
+                        return [
+                            'warehouse' => $group->first()['warehouse'],
+                            'address' => $group->first()['address'],
+                            'pic' => $group->first()['pic'],
+                            'phone' => $group->first()['phone'],
+                            'alocation_product' => $group->map(function ($alocation) {
+                                return [
+                                    'product_name' => $alocation['product_id'],
+                                    'alocation_qty' => $alocation['alocation_qty']
+                                ];
+                            })->toArray()
+                        ];
+                    })
+                    ->values(); 
+            @endphp
+            @foreach ($collection->toArray() as $item)
+                <tr>
+                    <td style="vertical-align: top">{{ $item['warehouse'] }}</td>
+                    <td style="vertical-align: top">{{ $item['pic'] }}<br>{{ $item['phone'] }}</td>
+                    <td style="vertical-align: top">{{ $item['address'] }}</td>
+                    <td>
+                        <table class="w-100">
+                            @foreach ($item['alocation_product'] as $val)
+                                <tr>
+                                    <td>{{ $val['product_name'] }}</td>
+                                    <td class="text-right">{{ number_format($val['alocation_qty'], '0', ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
     </table>
     <br>
     <span class="float-right"><h2>PT MITRA BERLIAN UNGGAS</h2></span>

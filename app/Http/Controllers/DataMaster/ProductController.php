@@ -248,7 +248,7 @@ class ProductController extends Controller
     public function searchProduct(Request $request)
     {
         $search      = $request->input('q');
-        $query       = Product::with(['uom', 'product_category'])->where('name', 'like', "%{$search}%");
+        $query       = Product::with(['uom', 'product_category', 'product_sub_category'])->where('name', 'like', "%{$search}%");
         $queryParams = $request->query();
         $queryParams = Arr::except($queryParams, ['q']);
         foreach ($queryParams as $key => $value) {

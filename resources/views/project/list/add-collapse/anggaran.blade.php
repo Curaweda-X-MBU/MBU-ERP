@@ -200,7 +200,28 @@
                                 placeholder: "Pilih Produk",
                                 ajax: {
                                     url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}&can_be_purchased=1`, 
-                                    ...optSelect2
+                                    dataType: 'json',
+                                    delay: 250, 
+                                    data: function(params) {
+                                        return {
+                                            q: params.term 
+                                        };
+                                    },
+                                    processResults: function(data) {
+                                        data.forEach(val => {
+                                            const searchSub = 'doc';
+                                            if (val.data.product_sub_category) {
+                                                const subCategory = val.data.product_sub_category.name.toLowerCase();
+                                                if (subCategory.includes(searchSub)) {
+                                                    val.text = `${val.data.name} (DOC)`
+                                                }
+                                            }
+                                        });
+                                        return {
+                                            results: data
+                                        };
+                                    },
+                                    cache: true
                                 }
                             });
                         });
