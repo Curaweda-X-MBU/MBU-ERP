@@ -134,19 +134,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-sm-3 col-form-label">
-                                <label for="warehouse_id" class="float-right">Gudang</label>
-                            </div>
-                            <div class="col-sm-9">
-                                <select name="warehouse_ids[]" id="warehouse_id" class="form-control" multiple="multiple" required>
-                                    {{-- <option disabled selected>Pilih Lokasi terlebih dahulu</option> --}}
-                                    @if($warehouse_ids && $warehouse_names)
-                                    <option value="{{ $warehouse_ids }}" selected="selected">{{ $warehouse_names }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -158,6 +146,7 @@
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
+                            <th>Gudang</th>
                             <th>Kategori<br>Produk</th>
                             <th>Produk</th>
                             {{-- <th>Project Aktif</th> --}}
@@ -172,6 +161,7 @@
                         </thead>
                         <tbody data-repeater-list="purchase_item">
                             <tr data-repeater-item>
+                                <td><select name="warehouse_id" class="form-control warehouse_id" required> </select></td>
                                 <td><select name="product_category_id" class="product_category_id form-control" required></select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
                                 {{-- <td><select name="project_id" class="project_id form-control"></select></td> --}}
@@ -318,6 +308,27 @@
                     }
                 });
 
+                $this.find('.warehouse_id').select2({
+                    placeholder: "Pilih Gudang",
+                    ajax: {
+                        url: `{{ route("data-master.warehouse.search") }}`, 
+                        dataType: 'json',
+                        delay: 250, 
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                location_ids: $('#location_id').val()
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
+                    }
+                });
+
                 $this.find('.product_category_id').change(function (e) { 
                     e.preventDefault();
                     const prodCatId = $(this).val();
@@ -384,7 +395,6 @@
         if ('{{ $dataPurchase }}'.length) {
             const dataPurchase = @json($dataPurchase);
             console.log(dataPurchase);
-            getKandangByLocationId('{{$location_id}}');
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {

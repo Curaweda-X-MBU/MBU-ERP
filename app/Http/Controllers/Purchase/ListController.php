@@ -66,10 +66,11 @@ class ListController extends Controller
                             'date'      => date('Y-m-d H:i:s'),
                         ];
 
+                        $warehouseIds   = collect($purchaseItem)->pluck('warehouse_id')->unique()->values()->toArray();
                         $purchaseInsert = Purchase::create([
                             'pr_number'     => 'PR-'.$alias.'-'.$prNumber,
                             'supplier_id'   => $input['supplier_id'],
-                            'warehouse_ids' => $input['warehouse_ids'],
+                            'warehouse_ids' => $warehouseIds,
                             'require_date'  => date('Y-m-d', strtotime($input['require_date'])),
                             'notes'         => $input['notes'] ?? null,
                             'status'        => $this->getStatus('Approval Manager'),
@@ -78,15 +79,31 @@ class ListController extends Controller
                         ]);
 
                         $purchaseId = $purchaseInsert->purchase_id;
+                        $grouped    = collect($purchaseItem)->groupBy('product_id')->map(function($items) {
+                            return [
+                                'product_id' => $items->first()['product_id'],
+                                'qty'        => $items->sum(fn ($item) => str_replace('.', '', str_replace(',', '.', $item['qty']))),
+                            ];
+                        })->values()->toArray();
+
                         if ($req->has('purchase_item')) {
-                            foreach ($purchaseItem as $key => $value) {
-                                PurchaseItem::create([
+                            foreach ($grouped as $k => $v) {
+                                $purchaseItemInsert = PurchaseItem::create([
                                     'purchase_id' => $purchaseId,
-                                    'product_id'  => $value['product_id'],
-                                    // 'warehouse_id' => $value['warehouse_id'],
-                                    // 'project_id'   => $value['project_id'] ?? null,
-                                    'qty' => str_replace('.', '', str_replace(',', '.', $value['qty'])),
+                                    'product_id'  => $v['product_id'],
+                                    'qty'         => $v['qty'],
                                 ]);
+
+                                foreach ($purchaseItem as $key => $value) {
+                                    if ($v['product_id'] === $value['product_id']) {
+                                        $alocationQty = str_replace('.', '', str_replace(',', '.', $value['qty']));
+                                        PurchaseItemAlocation::create([
+                                            'purchase_item_id' => $purchaseItemInsert->purchase_item_id,
+                                            'warehouse_id'     => $value['warehouse_id'],
+                                            'alocation_qty'    => $alocationQty,
+                                        ]);
+                                    }
+                                }
                             }
                         }
                     });
@@ -478,17 +495,6 @@ class ListController extends Controller
                     $value['price']     = $itemPrice;
                     $updatePurchaseItem = PurchaseItem::find($idPurchaseItem);
                     $updatePurchaseItem->update($value);
-                    if ($req->has('purchase_alocation')) {
-                        PurchaseItemAlocation::where('purchase_item_id', $idPurchaseItem)->delete();
-                        $alocations = $req->input('purchase_alocation')[$updatePurchaseItem->product_id] ?? [];
-                        foreach ($alocations as $k => $v) {
-                            PurchaseItemAlocation::create([
-                                'purchase_item_id' => $idPurchaseItem,
-                                'warehouse_id'     => $v['warehouse_id'],
-                                'alocation_qty'    => (int) str_replace('.', '', $v['alocation_qty']),
-                            ]);
-                        }
-                    }
                 }
 
                 $totalItem                               = $dataApproval['total_before_tax'] + $dataApproval['total_tax'] - $dataApproval['total_discount'];
