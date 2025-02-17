@@ -20,6 +20,7 @@
                                         <div class="table-responsive">
                                             <table class="table table-bordered w-100 no-wrap text-center">
                                                 <thead>
+                                                    <th>Gudang</th>
                                                     <th>Produk</th>
                                                     <th>Jenis Produk</th>
                                                     <th width="30">Jumlah</th>
@@ -31,7 +32,11 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($data->purchase_item as $key => $item)
+                                                    @php
+                                                        $warehouseNames = collect($item->purchase_item_alocation)->where('purchase_item_id', $item->purchase_item_id)->pluck('warehouse.name')->implode("<br>");;
+                                                    @endphp
                                                     <tr>
+                                                        <td><?=$warehouseNames?></td>
                                                         <td>{{ $item->product->name??'' }}</td>
                                                         <td>{{ $item->product->product_category->name??'' }}</td>
                                                         <td>
@@ -39,7 +44,7 @@
                                                         </td>
                                                         <td>{{ $item->product->uom->name??'' }}</td>
                                                         <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price??$item->product->product_price }}" required>
+                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price||$item->price===0?$item->product->product_price:0 }}" required>
                                                         </td>
                                                         <td class="text-right">
                                                             <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
@@ -56,43 +61,6 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 mt-2">
-                                    <div class="col-12">
-                                        <h4><li>Alokasi Produk</li></h4>
-                                        @foreach ($data->purchase_item as $key => $item)
-                                        <div class="table-responsive mt-2">
-                                            <input type="hidden" id="item-qty-{{$item->product_id}}" value="{{ $item->qty??0 }}">
-                                            <table class="table table-bordered w-100 no-wrap text-center tbl-alocation" id="purchase-alocation-repeater-{{ $item->product_id }}">
-                                                <thead>
-                                                    <th class="text-left w-50">{{ $item->product->name??'' }}</th>
-                                                    <th id="remain-qty-{{$item->product_id}}" class="remain-item">{{ $item->qty??'' }}</th>
-                                                    <th class="w-25">
-                                                        <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn-alocation" data-repeater-create title="Tambah Item">
-                                                            <i data-feather="plus"></i>
-                                                        </button>
-                                                    </th>
-                                                </thead>
-                                                <tbody>
-                                                    <tbody data-repeater-list="purchase_alocation[{{ $item->product_id }}]">
-                                                        <tr data-repeater-item>
-                                                            <td>
-                                                                <input type="hidden" class="alocation-product-id" value="{{ $item->product_id }}">
-                                                                <select name="warehouse_id" class="form-control warehouseid" required></select>
-                                                            </td>
-                                                            <td><input type="text" name="alocation_qty" class="alocation-qty-{{ $item->product_id }} alocation-input form-control numeral-mask text-right" placeholder="Jumlah Alokasi" required/></td>
-                                                            <td>
-                                                                <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
-                                                                    <i data-feather="x"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        @endforeach
                                     </div>
                                 </div>
                             </div>
