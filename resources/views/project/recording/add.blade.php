@@ -373,11 +373,10 @@
 
                             $('#project_id').on('select2:select', function (e) { 
                                 e.preventDefault();
-                                
                                 const selectedData = e.params.data.data;
-                                console.log(selectedData);
-                                
                                 setEmpty($(this).val());
+                                $('.product_id').val(null).trigger('change');
+                                $('.current-stock').val(0);
                                 $('#product_category_name').val(selectedData.product_category.name);
                                 $('#product_category_code').val(selectedData.product_category.category_code);
                                 $('#product_category_id').val(selectedData.product_category_id);

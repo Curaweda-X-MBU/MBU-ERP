@@ -232,9 +232,18 @@
                         e.preventDefault();
                         const selectedData = e.params.data.data;
                         $selector = $(this).closest('.col-md-3').next('.col-md-3').next('.col-md-3');
+
                         if ($(this).is('.nonstock_id')) {
                             $selector = $selector.next('.col-md-3').next('.col-md-3');
-                        } 
+                            $selector.next('.col-md-3').find('.price').val(0);
+                            $selector.next('.col-md-3').find('.price').trigger('keyup');
+                        } else {
+                            new Cleave($selector.next('.col-md-3').find('.price'), {
+                                numeral: true,
+                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                            }).setRawValue(selectedData.product_price);
+                            $selector.next('.col-md-3').find('.price').trigger('keyup');
+                        }
 
                         $selector.find('.uom_name').val(selectedData.uom.name); 
                     });
@@ -304,7 +313,7 @@
             $('#grand-total').html(grandTotalFormatted);
         }
 
-        $('#anggaran-repeater').on('change', '.price, .qty', function () {
+        $('#anggaran-repeater').on('keyup', '.price, .qty', function () {
             const set = $(this).closest('[data-repeater-item]');
             calculateAnggaran(set);
         });

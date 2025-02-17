@@ -48,17 +48,17 @@
                         });
                     })
                 }
-
+                
+                const warehouseId = $('#warehouse_id').val();
                 $this.find('.product_id').select2({
                     placeholder: "Pilih Persediaan",
                     ajax: {
-                        url: `{{ route("data-master.product.search") }}?product_category-category_code=RAW`, 
+                        url: `{{ route("inventory.product.search-product-warehouse") }}?warehouse_id=${warehouseId}`, 
                         dataType: 'json',
                         delay: 250, 
                         data: function(params) {
-                            
                             return {
-                                q: params.term 
+                                q: params.term
                             };
                         },
                         processResults: function(data) {
@@ -77,7 +77,10 @@
                                 if (selectedValues.includes(val.id)) {
                                     option.disabled = true;
                                 }
-                                result.push(option);
+
+                                if (val.data.product.product_category.category_code === 'RAW') {
+                                    result.push(option);
+                                }
                             });
                             
                             return {
@@ -93,8 +96,7 @@
                     e.preventDefault();
                     const productId = e.params.data.id;
                     const selectedData = e.params.data.data;
-                    $(this).closest('td').next().next().next().find('.uom').val(selectedData.uom.name);
-                    // $(this).closest('td').next().next().find('.decrease_stock').val(null);
+                    $(this).closest('td').next().next().next().find('.uom').val(selectedData.product.uom.name);
                     getCurrentStock(productId, $('#warehouse_id').val(), $this)
                 });
 
@@ -143,7 +145,7 @@
         }
 
         const $repeaterStock = $('#stock-repeater').repeater(optStock);
-        $('.add-stock').trigger('click');
+        // $('.add-stock').trigger('click');
         const dataRecording = @json($data);
         
         if (dataRecording && dataRecording.recording_stock) {
