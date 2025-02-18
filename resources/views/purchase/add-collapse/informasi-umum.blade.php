@@ -147,10 +147,7 @@
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
                             <th>Gudang</th>
-                            <th>Kategori<br>Produk</th>
                             <th>Produk</th>
-                            {{-- <th>Project Aktif</th> --}}
-                            {{-- <th>Gudang/Tempat<br>Pengiriman</th> --}}
                             <th style="width: 20%;">Jumlah</th>
                             <th>Satuan</th>
                             <th colspan="2">
@@ -162,10 +159,7 @@
                         <tbody data-repeater-list="purchase_item">
                             <tr data-repeater-item>
                                 <td><select name="warehouse_id" class="form-control warehouse_id" required> </select></td>
-                                <td><select name="product_category_id" class="product_category_id form-control" required></select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
-                                {{-- <td><select name="project_id" class="project_id form-control"></select></td> --}}
-                                {{-- <td><select name="warehouse_id" class="warehouse_id form-control" required></select></td> --}}
                                 <td><input type="text" name="qty" class="qty form-control numeral-mask" placeholder="Qty" required/></td>
                                 <td><input type="text" name="uom_id" class="form-control-plaintext satuan" readonly/></td>
                                 <td>
@@ -226,6 +220,25 @@
                 ...select2Opt
             }
         });
+
+        let productOption = [];
+        $('#supplier_id').on('select2:select', function (e) {
+            const vendorProducts = e.params.data.data.products;
+            productOption = [];
+            vendorProducts.forEach(val => {
+                productOption.push({
+                    id: val.product_id,
+                    text: `${ val.name } (DOC)`,
+                    data: val
+                })
+            }); 
+            $('.product_id').empty().select2({
+                placeholder: 'Pilih Produk',
+                allowClear: true,
+                data: productOption
+            }).val(null).trigger('change');      
+        });
+
 
         $('#company_id').select2({
             placeholder: "Pilih Unit Bisnis",
@@ -299,15 +312,6 @@
                     })
                 }
 
-                $this.find('.product_id').html(`<option selected disabled>Pilih Kategori Produk terlebih dahulu</option>`);
-                $this.find('.product_category_id').select2({
-                    placeholder: "Pilih Kategori Produk",
-                    ajax: {
-                        url: `{{ route("data-master.product-category.search") }}${qryProduct}`, 
-                        ...select2Opt
-                    }
-                });
-
                 $this.find('.warehouse_id').select2({
                     placeholder: "Pilih Gudang",
                     ajax: {
@@ -329,48 +333,22 @@
                     }
                 });
 
-                $this.find('.product_category_id').change(function (e) { 
-                    e.preventDefault();
-                    const prodCatId = $(this).val();
-                    $productId = $(this).closest('td').next().find('.product_id');
-                    $productId.val(null).trigger('change');
-
+                $productId = $this.find('.product_id');
+                if (productOption.length > 0) {
                     $productId.select2({
-                        placeholder: "Pilih Produk",
-                        ajax: {
-                            url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}&can_be_purchased=1`, 
-                            dataType: 'json',
-                            delay: 250, 
-                            data: function(params) {
-                                return {
-                                    q: params.term 
-                                };
-                            },
-                            processResults: function(data) {
-                                data.forEach(val => {
-                                    const searchSub = 'doc';
-                                    if (val.data.product_sub_category) {
-                                        const subCategory = val.data.product_sub_category.name.toLowerCase();
-                                        if (subCategory.includes(searchSub)) {
-                                            val.text = `${val.data.name} (DOC)`
-                                        }
-                                    }
-                                });
-                                return {
-                                    results: data
-                                };
-                            },
-                            cache: true
-                        }
-                    });
-
-                    $productId.on('select2:select', function (e) { 
-                        e.preventDefault();
-                        const selectedData = e.params.data.data;
-                        $(this).closest('td').next().next().find('.satuan').val(selectedData.uom.name)
-                    });
+                        placeholder: 'Pilih Produk',
+                        allowClear: true,
+                        data: productOption
+                    }).val(null).trigger('change'); 
+                } else {
+                    $productId.html('<option selected disabled>Pilih Vendor terlebih dahulu</option>')
+                }
+                
+                $productId.on('select2:select', function (e) { 
+                    e.preventDefault();
+                    const selectedData = e.params.data.data;
+                    $(this).closest('td').next().next().find('.satuan').val(selectedData.uom.name)
                 });
-
 
                 const dateOpt = { dateFormat: 'd-M-Y' }
                 $this.find('.flatpickr-basic').flatpickr(dateOpt);
