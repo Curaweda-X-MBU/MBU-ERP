@@ -180,7 +180,7 @@ class SupplierController extends Controller
     public function searchSupplier(Request $request)
     {
         $search    = $request->input('q');
-        $suppliers = Supplier::with(['products.uom'])->where('name', 'like', "%{$search}%")->get();
+        $suppliers = Supplier::with(['products.uom', 'products.product_category'])->where('name', 'like', "%{$search}%")->get();
 
         return response()->json($suppliers->map(function($supplier) {
             return ['id' => $supplier->supplier_id, 'text' => $supplier->name, 'data' => $supplier];

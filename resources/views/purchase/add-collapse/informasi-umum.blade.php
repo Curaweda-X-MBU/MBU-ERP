@@ -226,9 +226,13 @@
             const vendorProducts = e.params.data.data.products;
             productOption = [];
             vendorProducts.forEach(val => {
+                let strDoc = '';
+                if (val.product_category.category_code === 'BRO') {
+                    strDoc = '(DOC)';
+                }
                 productOption.push({
                     id: val.product_id,
-                    text: `${ val.name } (DOC)`,
+                    text: `${ val.name } ${strDoc}`,
                     data: val
                 })
             }); 
