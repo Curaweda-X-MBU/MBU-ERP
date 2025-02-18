@@ -25,21 +25,33 @@
                             <div class="col-md-4 col-12">
                                 <div class="form-group">
                                     <label for="travel_letter_number">No. Surat Jalan</label>
-                                    <input type="text" class="form-control" name="travel_letter_number" placeholder="No. Surat Jalan" required/>
+                                    <input type="text" class="form-control" name="travel_letter_number" placeholder="No. Surat Jalan" value="{{ $travel_number??'' }}" required/>
                                 </div>
                             </div>
                             <div class="col-md-4 col-12">
                                 <div class="form-group">
                                     <label for="travel_letter_number">Dokumen Surat Jalan (Max. 2 MB)</label>
-                                    <div class="file-div">
+                                    <div id="file-div">
+                                        @if ($travel_number_document)
+                                        <div class="float-right">
+                                            <a href="javascript:void(0)" id="remove-file" class="btn btn-outline-danger">
+                                                <i data-feather='trash'></i>
+                                            </a>
+                                        </div>
+                                        <a href="{{ route('file.show', ['filename' => $travel_number_document]) }}" class="btn btn-outline-primary" target="_blank">
+                                            <i data-feather='download' class="mr-50"></i>
+                                            <span>Download</span>
+                                        </a>
+                                        @else
                                         <input type="file" class="form-control" name="travel_letter_document" placeholder="Dokumen Surat Jalan" />
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4 col-12">
                                 <div class="form-group">
                                     <label for="chickin_date">Tanggal Chick In</label>
-                                    <input type="text" class="form-control flatpickr-basic" name="chickin_date" placeholder="Tanggal Chick In" required/>
+                                    <input type="text" class="form-control flatpickr-basic" name="chickin_date" placeholder="Tanggal Chick In" value="{{ $received_date??''}}" required/>
                                 </div>
                             </div>
                         </div>
@@ -48,6 +60,9 @@
                                 <div class="form-group">
                                     <label for="supplier_id">Supplier</label>
                                     <select name="supplier_id" class="form-control supplier_id" required>
+                                        @if ($supplier_id && $supplier_name)
+                                            <option value="{{$supplier_id}}" selected>{{ $supplier_name }}</option>
+                                        @endif
                                     </select>
                                 </div>
                             </div>
@@ -91,6 +106,11 @@
 
         const dateOpt = { dateFormat: 'd-M-Y' }
         $('.flatpickr-basic').flatpickr(dateOpt);
+
+        $('#remove-file').click(function (e) { 
+            e.preventDefault();
+            $('#file-div').html('<input type="file" class="form-control" name="travel_letter_document" placeholder="Dokumen Surat Jalan" />');
+        });
 
         validationFile();
         $('.supplier_id').select2({
@@ -144,7 +164,9 @@
                 $hatcherySelector.html(`<option disabled selected>Pilih Supplier terlebih dahulu</option>`);
             }
         });
-
+        
+        $('.supplier_id').trigger('change');
+        
         const optChick = {
             initEmpty: false,
             show: function (e) {
