@@ -52,18 +52,31 @@ class ChickinController extends Controller
                 return redirect()->back()->with('error', 'Project ini belum disetujui');
             }
 
-            $docInventoryQty = 0;
-            $warehouse       = Warehouse::where('kandang_id', $project->kandang_id)->first();
+            $docInventoryQty      = 0;
+            $travelNumber         = '';
+            $travelNumberDocument = '';
+            $receivedDate         = '';
+            $supplierId           = '';
+            $supplierName         = '';
+            $warehouse            = Warehouse::where('kandang_id', $project->kandang_id)->first();
             if ($warehouse) {
-                $productWarehouse = ProductWarehouse::whereHas(
+                $productWarehouse = ProductWarehouse::with('stock_availability.purchase_item_reception.supplier')->whereHas(
                     'product.product_category',
                     function($query) {
-                        $query->whereIn('category_code', ['BRO', 'LYR']);
+                        $query->whereIn('category_code', ['BRO', 'LYR', 'GPS', 'PRS', 'FRS']);
                     }
                 )
                     ->where('warehouse_id', $warehouse->warehouse_id)
                     ->first();
 
+                if ($productWarehouse->stock_availability && $productWarehouse->stock_availability[0]->purchase_item_reception) {
+                    $receivedItem         = $productWarehouse->stock_availability[0]->purchase_item_reception;
+                    $travelNumber         = $receivedItem->travel_number;
+                    $receivedDate         = $receivedItem->received_date;
+                    $supplierId           = $receivedItem->supplier_id;
+                    $supplierName         = $receivedItem->supplier->name;
+                    $travelNumberDocument = $receivedItem->travel_number_document ?? '';
+                }
                 if ($productWarehouse) {
                     $docInventoryQty += $productWarehouse->quantity;
                 }
@@ -74,9 +87,14 @@ class ChickinController extends Controller
             }
 
             $param = [
-                'title'       => 'Project > chick-in > Tambah',
-                'data'        => $project,
-                'chickin_qty' => $docInventoryQty,
+                'title'                  => 'Project > chick-in > Tambah',
+                'data'                   => $project,
+                'chickin_qty'            => $docInventoryQty,
+                'travel_number'          => $travelNumber,
+                'travel_number_document' => $travelNumberDocument,
+                'received_date'          => date('d-M-Y', strtotime($receivedDate)),
+                'supplier_id'            => $supplierId,
+                'supplier_name'          => $supplierName,
             ];
 
             if ($req->isMethod('post')) {
@@ -87,7 +105,7 @@ class ChickinController extends Controller
                         $dataInsert[$key]['project_id']    = $req->id;
                         $dataInsert[$key]['total_chickin'] = str_replace('.', '', $value['total_chickin']);
                         $dataInsert[$key]['chickin_date']  = date('Y-m-d', strtotime($value['chickin_date']));
-                        $document                          = '';
+                        $document                          = $travelNumberDocument;
                         if (isset($value['travel_letter_document'])) {
                             $docUrl = FileHelper::upload($value['travel_letter_document'], constants::CHICKIN_DOC_PATH);
                             if (! $docUrl['status']) {
@@ -177,22 +195,25 @@ class ChickinController extends Controller
     public function approve(Request $req)
     {
         try {
-            $project = Project::with('project_chick_in')->findOrFail($req->id);
-            if (count($project->project_chick_in) === 0) {
-                return redirect()->back()->with('error', 'Data chick in belum diisi');
+            if (! $req->has('project_ids')) {
+                return redirect()->back()->with('error', 'Pilih Project terlebih dahulu');
             }
-            if (! $req->first_day_old_chick) {
-                return redirect()->back()->with('error', 'Tanggal umur 1 hari ayam harus diisi');
+            $arrProjectId = $req->input('project_ids');
+            for ($i = 0; $i < count($arrProjectId); $i++) {
+                $project = Project::with('project_chick_in')->findOrFail($arrProjectId[$i]);
+                if (count($project->project_chick_in) === 0) {
+                    return redirect()->back()->with('error', 'Data chick in belum diisi');
+                }
+
+                $project->update([
+                    'chickin_status'        => array_search('Sudah', Constants::PROJECT_CHICKIN_STATUS),
+                    'chickin_approval_date' => date('Y-m-d H:i:s'),
+                ]);
             }
-            $project->update([
-                'chickin_status'        => array_search('Sudah', Constants::PROJECT_CHICKIN_STATUS),
-                'chickin_approval_date' => date('Y-m-d H:i:s'),
-                'first_day_old_chick'   => date('Y-m-d H:i:s', strtotime($req->first_day_old_chick)),
-            ]);
 
             $success = ['success' => 'Data berhasil disetujui'];
 
-            return redirect()->route('project.chick-in.detail', $req->id)->with($success);
+            return redirect()->route('project.chick-in.index')->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

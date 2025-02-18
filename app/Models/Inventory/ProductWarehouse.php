@@ -91,4 +91,14 @@ class ProductWarehouse extends Model
 
         return $data;
     }
+
+    /**
+     * Get all of the comments for the ProductWarehouse
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function stock_availability()
+    {
+        return $this->hasMany(StockAvailability::class, 'product_warehouse_id');
+    }
 }

@@ -77,7 +77,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="id" value="">
+                    <input type="hidden" name="project_ids[]" id="id" value="">
                     <input type="hidden" name="act" id="act" value="">
                     <p>Apakah kamu yakin ingin menyetujui project ini ?</p>
                 </div>
