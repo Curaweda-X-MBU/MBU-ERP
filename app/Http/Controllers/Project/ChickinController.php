@@ -60,7 +60,7 @@ class ChickinController extends Controller
             $supplierName         = '';
             $warehouse            = Warehouse::where('kandang_id', $project->kandang_id)->first();
             if ($warehouse) {
-                $productWarehouse = ProductWarehouse::with('stock_availability.purchase_item_reception.supplier')->whereHas(
+                $productWarehouse = ProductWarehouse::with('stock_availability.purchase_item_reception.purchase_item.purchase.supplier')->whereHas(
                     'product.product_category',
                     function($query) {
                         $query->whereIn('category_code', ['BRO', 'LYR', 'GPS', 'PRS', 'FRS']);
@@ -73,8 +73,8 @@ class ChickinController extends Controller
                     $receivedItem         = $productWarehouse->stock_availability[0]->purchase_item_reception;
                     $travelNumber         = $receivedItem->travel_number;
                     $receivedDate         = $receivedItem->received_date;
-                    $supplierId           = $receivedItem->supplier_id;
-                    $supplierName         = $receivedItem->supplier->name;
+                    $supplierId           = $receivedItem->purchase_item->purchase->supplier_id;
+                    $supplierName         = $receivedItem->purchase_item->purchase->supplier->name;
                     $travelNumberDocument = $receivedItem->travel_number_document ?? '';
                 }
                 if ($productWarehouse) {
