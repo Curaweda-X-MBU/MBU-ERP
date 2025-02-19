@@ -2,7 +2,7 @@
 
 namespace App\Models\DataMaster;
 
-use App\Models\Expense\ExpensePayment;
+use App\Models\Expense\ExpenseDisburse;
 use App\Models\Marketing\MarketingPayment;
 use App\Models\Marketing\MarketingReturnPayment;
 use App\Models\Purchase\PurchaseItem;
@@ -53,8 +53,8 @@ class Bank extends Model
         return $this->hasMany(MarketingReturnPayment::class, 'recipient_bank_id', 'bank_id');
     }
 
-    public function expense_payment()
+    public function expense_disburse()
     {
-        return $this->hasMany(ExpensePayment::class, 'bank_id');
+        return $this->hasMany(ExpenseDisburse::class, 'bank_id');
     }
 }

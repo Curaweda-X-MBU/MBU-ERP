@@ -6,7 +6,7 @@ use App\Models\DataMaster\Customer;
 use App\Models\DataMaster\Department;
 use App\Models\DataMaster\Kandang;
 use App\Models\Expense\Expense;
-use App\Models\Expense\ExpensePayment;
+use App\Models\Expense\ExpenseDisburse;
 use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingPayment;
@@ -136,9 +136,9 @@ class User extends Authenticatable implements CanResetPassword
         return $this->hasMany(Expense::class, 'approver_id', 'user_id');
     }
 
-    public function approve_expense_payments()
+    public function approve_expense_disburse()
     {
-        return $this->hasMany(ExpensePayment::class, 'approver_id', 'user_id');
+        return $this->hasMany(ExpenseDisburse::class, 'approver_id', 'user_id');
     }
 
     public function expense_created_by()

@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class ExpensePayment extends Model
+class ExpenseDisburse extends Model
 {
     use HasFactory;
 
-    protected $table = 'expense_payments';
+    protected $table = 'expense_disburses';
 
-    protected $primaryKey = 'expense_payment_id';
+    protected $primaryKey = 'expense_disburse_id';
 
     protected $fillable = [
         'expense_id',
@@ -28,16 +28,15 @@ class ExpensePayment extends Model
         'payment_reference',
         'transaction_number',
         'payment_at',
-        'document_path',
+        'disburse_docs',
         'notes',
-        'verify_status',
     ];
 
     protected static function boot()
     {
         parent::boot();
 
-        static::updated(function(ExpensePayment $payment) {
+        static::updated(function(ExpenseDisburse $payment) {
             if ($payment->isDirty(['is_approved', 'payment_nominal'])) {
                 DB::beginTransaction();
                 try {
@@ -55,7 +54,7 @@ class ExpensePayment extends Model
             }
         });
 
-        static::deleted(function(ExpensePayment $payment) {
+        static::deleted(function(ExpenseDisburse $payment) {
             DB::beginTransaction();
             try {
                 $expense = Expense::find($payment->expense_id);
