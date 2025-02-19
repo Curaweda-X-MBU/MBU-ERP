@@ -79,7 +79,7 @@ Route::middleware('auth')->group(function() {
             Route::any('/revision-submission/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionSubmission'])->name('project.recording.revision-submission')->middleware('permission:project.recording.revision-submission');
             Route::any('/revision-approval/{id}', [App\Http\Controllers\Project\RecordingController::class, 'revisionApproval'])->name('project.recording.revision-approval')->middleware('permission:project.recording.revision-approval');
             Route::any('/delete/{id}', [App\Http\Controllers\Project\RecordingController::class, 'delete'])->name('project.recording.delete'); // ->middleware('permission:project.recording.index');
-            // Route::any('/approve/{id}', [App\Http\Controllers\Project\RecordingController::class, 'approve'])->name('project.recording.approve');//->middleware('permission:project.recording.index');
+            Route::any('/approve', [App\Http\Controllers\Project\RecordingController::class, 'approve'])->name('project.recording.approve')->middleware('permission:project.recording.approve');
         });
     });
 
