@@ -1,6 +1,10 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+@php
+    use Carbon\Carbon;
+@endphp
+
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -17,25 +21,37 @@
                                 <div class="card-body">
                                     <div class="card-datatable">
                                         <div class="table-responsive mb-2">
-                                            <table id="datatable" class="table table-bordered table-striped w-100">
+                                            <table id="datatable" class="table table-bordered table-striped w-100" style="font-size: 10px">
                                                 <thead>
                                                         <th>No. PR</th>
                                                         <th>Vendor</th>
                                                         <th>Nama Pengaju</th>
                                                         <th>Departemen</th>
                                                         <th>Tgl. Dibutuhkan</th>
+                                                        <th>Umur Invoice</th>
+                                                        <th>Total Dibayar</th>
+                                                        <th>Belum Dibayar</th>
                                                         <th>Total (Rp.)</th>
                                                         <th>Status</th>
                                                         <th>Aksi</th>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($data as $item)
+                                                        @php
+                                                            $poDate = Carbon::parse($item->po_date);
+                                                            $today = Carbon::today();
+                                                            $invAge = $poDate->diffInDays($today);
+                                                        @endphp
                                                         <tr>
                                                             <td>{{ $item->pr_number }}</td>
                                                             <td>{{ $item->supplier->name??'' }}</td>
                                                             <td>{{ $item->createdBy->name??'' }}</td>
                                                             <td>{{ $item->createdBy->department->name??'' }} - {{ $item->createdBy->department->company->name??'' }}</td>
                                                             <td>{{ date('d-M-Y', strtotime($item->require_date)) }}</td>
+                                                            <td>{{$invAge}} hari</td>
+                                                            <td>{{ number_format($item->total_payment??0, 0, ',', '.'   ) }}</td>
+                                                            <td>{{ number_format($item->total_remaining_payment??0, 0, ',', '.'   ) }}</td>
+                                                            
                                                             <td class="text-right">{{ number_format($item->grand_total==0?$item->total_before_tax:$item->grand_total, 0, ',', '.'   ) }}</td>
                                                             <td>
                                                                 @if ($item->rejected)
