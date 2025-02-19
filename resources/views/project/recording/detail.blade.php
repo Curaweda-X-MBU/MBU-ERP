@@ -33,6 +33,19 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">{{$title}}</h4>
+                                        <div class="text-right">
+                                            <a href="{{ route('project.recording.index') }}" class="btn btn-outline-warning waves-effect">Kembali</a>
+                                            @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
+                                                @if ($data->status === 1)
+                                                <a class="btn btn-outline-success" href="javascript:void(0);" data-id="{{ $data->recording_id }}#approve" data-toggle="modal" data-target="#approve">
+                                                    Approve
+                                                </a>
+                                                <a class="btn btn-outline-danger" href="javascript:void(0);" data-id="{{ $data->recording_id }}#reject" data-toggle="modal" data-target="#approve">
+                                                    Reject
+                                                </a>
+                                                @endif
+                                            @endif
+                                        </div>
                                 </div>
                                 <div class="card-body">
                                     {{ csrf_field() }}
@@ -117,6 +130,20 @@
                                                     </div>
                                                     <div class="col-sm-9">
                                                         <input type="text" class="form-control" value="{{ $data->day }}" readonly>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-sm-3 ">
+                                                        <label for="day" class="float-right">Status Recording</label>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        @if ($data->status === 2)
+                                                        <div class="badge badge-glow badge-success">Disetujui</div>
+                                                        @elseif ($data->status === 1)
+                                                        <div class="badge badge-glow badge-warning">Menunggu Persetujuan</div>
+                                                        @elseif ($data->status === 3)
+                                                        <div class="badge badge-glow badge-danger">Ditolak</div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 @if ($data->document_revision)
@@ -349,11 +376,6 @@
                                             </div>
                                         </li>
                                     </div>
-                                    <div class="col-12 mt-4">
-                                        <div class="text-right">
-                                            <a href="{{ route('project.recording.index') }}" class="btn btn-outline-warning waves-effect">Kembali</a>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -398,8 +420,48 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                            <div class="modal-content">
+                                <form method="post" action="{{ route('project.recording.approve', 'test') }}">
+                                {{csrf_field()}}
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="myModalLabel1">Konfirmasi <span class="action"></span> Recording</h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="recording_ids[]" id="id" value="">
+                                        <input type="hidden" name="act" id="act" value="">
+                                        <p>Apakah kamu yakin ingin <span class="action"></span> data recording ini ?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-danger">Ya</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     <script>
                         $(document).ready(function() {
+                            $('#approve').on('show.bs.modal', function (event) {
+                                var button = $(event.relatedTarget)
+                                var strId = button.data('id');
+                                var id = strId.split('#')[0];
+                                var action = strId.split('#')[1];
+                                var modal = $(this)
+                                modal.find('#id').val(id);
+                                if (action === 'approve') {
+                                    modal.find('.action').html('Approve');
+                                } else  {
+                                modal.find('#act').val(action);
+                                    modal.find('.action').html('Reject');
+                                }
+                            });
+
                             $('#showFcr').on('show.bs.modal', function (event) {
                                 var button = $(event.relatedTarget)
                                 var id = button.data('id')

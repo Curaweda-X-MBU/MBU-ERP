@@ -136,7 +136,7 @@ class RecordingController extends Controller
                 $onTime                     = $createdAt->isSameDay($recordDate) ? true : false;
                 $recording->on_time         = $onTime;
                 $recording->created_by      = auth()->user()->user_id;
-                $recording->status          = array_search('Disetujui', Constants::RECORDING_STATUS);
+                $recording->status          = array_search('Pengajuan', Constants::RECORDING_STATUS);
                 $recording->save();
 
                 $arrStocks = $input['stock'];
@@ -413,6 +413,38 @@ class RecordingController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function approve(Request $req)
+    {
+        try {
+            $arrRecording = $req->input('recording_ids');
+            if (! $req->has('recording_ids')) {
+                return redirect()->back()->with('error', 'Silahkan pilih data recording terlebih dahulu');
+            }
+
+            $successMsg = 'disetujui';
+            for ($i = 0; $i < count($arrRecording); $i++) {
+                $recording    = Recording::findOrFail($arrRecording[$i]);
+                $recordStatus = array_search('Disetujui', Constants::RECORDING_STATUS);
+                if ($req->has('act') && $req->input('act') === 'reject') {
+                    $successMsg   = 'ditolak';
+                    $recordStatus = array_search('Ditolak', Constants::RECORDING_STATUS);
+                }
+                $recording->update([
+                    'status' => $recordStatus,
+                ]);
+            }
+
+            $success = ['success' => 'Data Berhasil '.$successMsg];
+
+            return redirect()->route('project.recording.index')->with($success);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 }

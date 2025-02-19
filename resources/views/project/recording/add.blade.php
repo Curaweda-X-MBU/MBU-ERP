@@ -294,9 +294,6 @@
                                 dateFormat: "Y-m-d",
                                 altInput: true,
                                 altFormat: "d-m-Y",
-                                // enableTime: true,
-                                // time_24hr: true,
-                                // defaultDate: new Date(new Date().setDate(new Date().getDate() - 1))
                             });
 
                             $('#company_id').select2({
@@ -407,9 +404,11 @@
                                     $('.chickin-date').val(chickinDate);
 
                                     const recordingData = selectedData.recording;
-                                    const latestRecord = recordingData.reduce((max, item) => 
-                                        new Date(item.record_datetime) > new Date(max.record_datetime) ? item : max
-                                    );
+                                    const latestRecord = recordingData
+                                        .filter(item => item.status === 2)
+                                        .reduce((max, item) => 
+                                            new Date(item.record_datetime) > new Date(max.record_datetime) ? item : max
+                                        );
 
                                     let lastDate = new Date(latestRecord.record_datetime)
                                     lastDate.setDate(lastDate.getDate() + 1);
@@ -417,8 +416,6 @@
                                         dateFormat: "Y-m-d",
                                         altInput: true,
                                         altFormat: "d-m-Y",
-                                        // enableTime: true,
-                                        // time_24hr: true,
                                         defaultDate: lastDate,
                                         minDate: lastDate
                                     });

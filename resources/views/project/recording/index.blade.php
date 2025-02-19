@@ -16,7 +16,7 @@
                             <h4 class="card-title">{{ $title }}</h4>
                             <div class="card">
                                 <div class="card-header">
-                                    <form method="post" action="{{ request()->fullUrl() }}" style="display: inline-flex; column-gap: 10px; width: 40%;">
+                                    <form method="post" action="{{ request()->fullUrl() }}" style="display: inline-flex; column-gap: 10px;">
                                         @csrf
                                         <select name="project_id" class="form-control project_id" required>
                                             @if(isset($param) && isset($param['project']))
@@ -32,18 +32,32 @@
                                             <button type="submit" class="btn btn-outline-primary waves-effect" type="button"><i data-feather='search'></i></button>
                                         </div>
                                     </form>
-                                    @if (Auth::user()->role->hasPermissionTo('project.recording.add'))
                                     <div class="float-right">
+                                        @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
+                                        <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect" data-id="1" data-toggle="modal" data-target="#bulk-approve">Approve</a>
+                                        @endif
+                                        
+                                        @if (Auth::user()->role->hasPermissionTo('project.recording.add'))
                                         <a href="{{ route('project.recording.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah Baru</a>
+                                        @endif
                                     </div>
-                                    @endif
                                 </div>
                                 <div class="card-body">
                                     <div class="card-datatable">
                                         <div class="table-responsive">
+                                            <form method="post" action="{{ route('project.recording.approve', 'test') }}" id="form-approve">
+                                            {{csrf_field()}}
                                             <table id="datatable" class="table table-bordered table-striped w-100" style="font-size: 10px;">
                                                 <thead>
                                                     <tr>
+                                                        @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
+                                                        <th rowspan="2">
+                                                            <div class="custom-control custom-checkbox">
+                                                                <input type="checkbox" class="custom-control-input" id="checkAll">
+                                                                <label class="custom-control-label" for="checkAll"></label>
+                                                            </div>
+                                                        </th>
+                                                        @endif
                                                         <th rowspan="2">ID</th>
                                                         <th rowspan="2">Nama Project</th>
                                                         <th rowspan="2">Periode</th>
@@ -51,6 +65,7 @@
                                                         <th rowspan="2">Waktu Recording</th>
                                                         <th colspan="2" class="text-center">FCR</th>
                                                         <th colspan="4" class="text-center">Deplesi</th>
+                                                        <th rowspan="2">Status Recording</th>
                                                         <th rowspan="2">Ketepatan Waktu</th>
                                                         <th rowspan="2">Status Perubahan</th>
                                                         <th rowspan="2">Tanggal Submit</th>
@@ -87,6 +102,14 @@
                                                             
                                                         @endphp
                                                         <tr>
+                                                            @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
+                                                            <td>
+                                                                <div class="custom-control custom-checkbox">
+                                                                    <input type="checkbox" class="custom-control-input {{ $item->status === 1 ? 'select-row':''  }}" name="recording_ids[]" id="project-id-{{ $item->recording_id }}" value="{{ $item->recording_id }}" {{ $item->status === 1 ? '':'disabled'  }}>
+                                                                    <label class="custom-control-label" for="project-id-{{ $item->recording_id }}"></label>
+                                                                </div>
+                                                            </td>
+                                                            @endif
                                                             <td>{{ $item->recording_id }}</td>
                                                             <td>{{ $item->project->kandang->name??'' }}</td>
                                                             <td>{{ $item->project->period??'' }}</td>
@@ -98,6 +121,15 @@
                                                             <td>{{ formatnumber($death) }}</td>
                                                             <td>{{ formatnumber($afkir) }}</td>
                                                             <td>{{ formatnumber($item->total_depletion) }}</td>
+                                                            <td>
+                                                                @if ($item->status === 2)
+                                                                <div class="badge badge-glow badge-success">Disetujui</div>
+                                                                @elseif ($item->status === 1)
+                                                                <div class="badge badge-glow badge-warning">Menunggu Persetujuan</div>
+                                                                @elseif ($item->status === 3)
+                                                                <div class="badge badge-glow badge-danger">Ditolak</div>
+                                                                @endif
+                                                            </td>
                                                             <td>
                                                                 @if ($item->on_time)
                                                                 <div class="badge badge-glow badge-success">Tepat Waktu</div>
@@ -158,6 +190,7 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -217,6 +250,26 @@
                         </div>
                     </div>
 
+                    <div class="modal fade text-left" id="bulk-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Recording</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Apakah kamu yakin ingin menyetujui recording ini ?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="btn-bulk-approve" class="btn btn-danger">Ya</button>
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
@@ -229,7 +282,25 @@
                                 drawCallback: function( settings ) {
                                     feather.replace();
                                 },
-                                order: [[0, 'desc']],
+                                order: [[1, 'desc']],
+                                columnDefs: [
+                                    { orderable: false, targets: [0] } 
+                                ]
+                            });
+
+                            $('#bulk-approve').on('show.bs.modal', function (event) {
+                                $('#btn-bulk-approve').click(function (e) { 
+                                    $('#form-approve').submit();
+                                });
+                            });
+
+                            $('#checkAll').change(function (e) { 
+                                e.preventDefault();
+                                if ($(this).is(':checked')) {
+                                    $('.select-row').prop('checked',true);
+                                } else {
+                                    $('.select-row').prop('checked',false);
+                                }
                             });
 
                             $('#revision-submission').on('show.bs.modal', function (event) {
