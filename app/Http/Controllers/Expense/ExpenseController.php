@@ -58,7 +58,7 @@ class ExpenseController extends Controller
 
             if (count($input) > 0) {
                 $query = Expense::with([
-                    'expense_main_prices',
+                    'expense_main_prices.nonstock',
                     'expense_addit_prices',
                     'expense_kandang.kandang',
                     'expense_payments',

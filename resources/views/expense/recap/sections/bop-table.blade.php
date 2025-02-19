@@ -4,8 +4,8 @@
         <p class="col-md-6 mb-0 text-right">Total: Rp <span id="total-biaya-bop">{{
             \App\Helpers\Parser::toLocale(
                 old('farms', $old['farms'] ?? null)
-                    ? ($bop->sum('price') ?? 0)
-                    : ($bop->sum('total_price') ?? 0)
+                    ? ($bop->sum('price_per_kandang') ?? 0)
+                    : ($bop->sum('price') ?? 0)
             )
         }}</span></p>
     </div>
@@ -34,10 +34,10 @@
                 <td>{{ $item->id_expense }}</td>
                 <td>{{ $item->location_name }}</td>
                 <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
-                <td>{{ $item->sub_category ?? $item->name }}</td>
+                <td>{{ $item->nonstock->name ?? $item->name }}</td>
                 <td>{{ $item->notes ?? '-' }}</td>
-                <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->total_qty : $item->qty) : '-' }}</td>
-                <td>{{ $item->uom ?? '-' }}</td>
+                <td>{{ $item->qty ? \App\Helpers\Parser::toLocale($kandang_length > 1 ? $item->qty : $item->qty_per_kandang) : '-' }}</td>
+                <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
                 <td>
                     @switch($item->status)
                         @case(1)
