@@ -27,7 +27,7 @@ class RecordingController extends Controller
     {
         try {
             $param = ['title' => 'Project > Recording'];
-            $data  = Recording::with('project');
+            $data  = Recording::with(['project.fcr.fcr_standard', 'recording_depletion.product_warehouse.product']);
             if ($req->isMethod('post')) {
                 $projectId                 = $req->project_id;
                 $period                    = $req->period;

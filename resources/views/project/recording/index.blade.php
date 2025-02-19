@@ -41,24 +41,51 @@
                                 <div class="card-body">
                                     <div class="card-datatable">
                                         <div class="table-responsive">
-                                            <table id="datatable" class="table table-bordered table-striped w-100">
+                                            <table id="datatable" class="table table-bordered table-striped w-100" style="font-size: 10px;">
                                                 <thead>
                                                     <tr>
-                                                        <th>ID</th>
-                                                        <th>Nama Project</th>
-                                                        <th>Periode</th>
-                                                        <th>Umur<br>(hari)</th>
-                                                        <th>Waktu Recording</th>
-                                                        <th>FCR</th>
-                                                        <th>Deplesi</th>
-                                                        <th>Ketepatan Waktu</th>
-                                                        <th>Status Perubahan</th>
-                                                        <th>Tanggal Submit</th>
-                                                        <th>Aksi</th>
+                                                        <th rowspan="2">ID</th>
+                                                        <th rowspan="2">Nama Project</th>
+                                                        <th rowspan="2">Periode</th>
+                                                        <th rowspan="2">Umur<br>(hari)</th>
+                                                        <th rowspan="2">Waktu Recording</th>
+                                                        <th colspan="2" class="text-center">FCR</th>
+                                                        <th colspan="4" class="text-center">Deplesi</th>
+                                                        <th rowspan="2">Ketepatan Waktu</th>
+                                                        <th rowspan="2">Status Perubahan</th>
+                                                        <th rowspan="2">Tanggal Submit</th>
+                                                        <th rowspan="2">Aksi</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Aktual</th>
+                                                        <th>Standar</th>
+                                                        <th>Culling</th>
+                                                        <th>Mati</th>
+                                                        <th>Afkir</th>
+                                                        <th>Total</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($data as $item)
+                                                        @php
+                                                            $fcrStd = collect($item->project->fcr->fcr_standard);
+                                                            $dailyFcrStd = $fcrStd->where('day', $item->day)->first();
+                                                            $depletions = $item->recording_depletion;
+                                                            $culling = 0;
+                                                            $death = 0;
+                                                            $afkir = 0;
+                                                            foreach ($depletions??[] as $key => $value) {
+                                                                $conditionName = $value->product_warehouse->product->name??'n/a';
+                                                                if (preg_match('/culling/i', $conditionName)) {
+                                                                    $culling += $value->total;
+                                                                } elseif (preg_match('/mati/i', $conditionName)) {
+                                                                    $death += $value->total;
+                                                                } elseif (preg_match('/afkir/i', $conditionName)) {
+                                                                    $afkir += $value->total;
+                                                                }
+                                                            }
+                                                            
+                                                        @endphp
                                                         <tr>
                                                             <td>{{ $item->recording_id }}</td>
                                                             <td>{{ $item->project->kandang->name??'' }}</td>
@@ -66,6 +93,10 @@
                                                             <td>{{ $item->day }}</td>
                                                             <td>{{ date('d-M-Y', strtotime($item->record_datetime)) }}</td>
                                                             <td>{{ formatnumber($item->fcr_value) }}</td>
+                                                            <td>{{ formatnumber($dailyFcrStd->fcr??'N/A') }}</td>
+                                                            <td>{{ formatnumber($culling) }}</td>
+                                                            <td>{{ formatnumber($death) }}</td>
+                                                            <td>{{ formatnumber($afkir) }}</td>
                                                             <td>{{ formatnumber($item->total_depletion) }}</td>
                                                             <td>
                                                                 @if ($item->on_time)
