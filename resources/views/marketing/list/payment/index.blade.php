@@ -122,10 +122,12 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
-                                                        <a class="dropdown-item" href="">
+                                                        @if ($item->document_path)
+                                                        <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->document_path }}">
                                                             <i data-feather="download" class="mr-50"></i>
                                                             <span>Unduh Dokumen</span>
                                                         </a>
+                                                        @endif
                                                         @if ($roleAccess->hasPermissionTo('marketing.list.payment.delete'))
                                                         <a class="dropdown-item item-delete-button text-danger" href="{{ route('marketing.list.payment.delete', $item->marketing_payment_id) }}">
                                                             <i data-feather='trash' class="mr-50"></i>

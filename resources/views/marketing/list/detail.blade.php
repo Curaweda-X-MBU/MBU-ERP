@@ -98,7 +98,7 @@
                                             <td>:</td>
                                             <td>
                                                 @if ($data->doc_reference)
-                                                    <a class="p-0" href="{{ route('file.show', ['filename' => $data->doc_reference]) }}" target="_blank">
+                                                    <a class="p-0" href="{{ route('file.show', ['filename' => $data->doc_reference, 'download' => 'true']) }}">
                                                         <i data-feather='download' class="mr-50"></i>
                                                         <span>Download</span>
                                                     </a>

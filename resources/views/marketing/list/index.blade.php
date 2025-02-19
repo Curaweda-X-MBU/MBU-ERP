@@ -155,6 +155,12 @@
                                                         <span>Retur</span>
                                                     </a>
                                                     @endif
+                                                    @if ($item->doc_reference)
+                                                    <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->doc_reference }}">
+                                                        <i data-feather="download" class="mr-50"></i>
+                                                        <span>Unduh Dokumen</span>
+                                                    </a>
+                                                    @endif
                                                     @if (auth()->user()->role->hasPermissionTo('marketing.list.delete'))
                                                     <a class="dropdown-item item-delete-button text-danger"
                                                         href="{{ route('marketing.list.delete', $item->marketing_id) }}">

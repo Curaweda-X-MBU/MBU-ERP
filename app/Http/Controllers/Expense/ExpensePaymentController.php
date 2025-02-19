@@ -321,7 +321,7 @@ class ExpensePaymentController extends Controller
             $data = $payment->load(['bank']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $payment) {
+                DB::transaction(function() use ($req, $payment, $data) {
                     $input = $req->all();
 
                     $existingDoc = $data->document_path ?? null;

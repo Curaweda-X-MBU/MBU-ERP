@@ -145,13 +145,11 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script>
-    $(document).ready(function() {
-        $('#transparentFileUpload').on('change', function() {
-            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
-        })
-    });
-
     (function() {
+        $(document).on('change', '#transparentFileUpload', function() {
+            $(this).siblings('#fileName').val($(this).val().split('\\').pop());
+        });
+
         initNumeralMask('.numeral-mask');
         initFlatpickrDate($('.flatpickr-basic'));
 

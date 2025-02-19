@@ -108,10 +108,10 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         @if ($roleAccess->hasPermissionTo('expense.list.payment.edit'))
-                                                            <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
-                                                                <i data-feather='edit-2' class="mr-50"></i>
-                                                                <span>Edit</span>
-                                                            </a>
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
+                                                            <i data-feather='edit-2' class="mr-50"></i>
+                                                            <span>Edit</span>
+                                                        </a>
                                                         @endif
                                                         @if ($roleAccess->hasPermissionTo('expense.list.payment.detail'))
                                                         <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->expense_payment_id }}">
@@ -119,15 +119,17 @@
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
-                                                        <a class="dropdown-item" href="">
+                                                        @if ($item->document_path)
+                                                        <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->document_path }}">
                                                             <i data-feather="download" class="mr-50"></i>
                                                             <span>Unduh Dokumen</span>
                                                         </a>
+                                                        @endif
                                                         @if ($roleAccess->hasPermissionTo('expense.list.payment.delete'))
-                                                            <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.payment.delete', $item->expense_payment_id) }}">
-                                                                <i data-feather='trash' class="mr-50"></i>
-                                                                <span>Hapus</span>
-                                                            </a>
+                                                        <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.payment.delete', $item->expense_payment_id) }}">
+                                                            <i data-feather='trash' class="mr-50"></i>
+                                                            <span>Hapus</span>
+                                                        </a>
                                                         @endif
                                                     </div>
                                                 </div>

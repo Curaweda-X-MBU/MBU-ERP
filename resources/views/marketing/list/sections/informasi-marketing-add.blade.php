@@ -72,45 +72,45 @@
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script>
-    $(document).ready(function() {
-        $('#transparentFileUpload').on('change', function() {
-            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
-        })
-    });
-
-    initFlatpickrDate($('.flatpickr-basic'));
-
-    // ? START :: SELECT2
-    const customerIdRoute = '{{ route("data-master.customer.search") }}';
-    initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
-    // ? END :: SELECT2
-
-    // ? START :: EDIT VALUES
-    if ('{{ $dataMarketing }}'.length && '{{ $dataCustomer }}'.length) {
-        const marketing = @json($dataMarketing);
-        const customer = @json($dataCustomer);
-        const MARKETING_STATUS = @json(App\Constants::MARKETING_STATUS);
-
-        // CUSTOMER
-        $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');
-
-        // DATES
-        $('#sold_at').val(marketing.sold_at);
-        if ('{{ @$is_return }}') {
-            $('#sold_at').val(parseDateToString(marketing.sold_at));
-        }
-        if (marketing.realized_at) {
-            $('#realized_at').val(marketing.realized_at);
-        }
-
-        if (marketing.marketing_return) {
-            $('#return_at').val(marketing.marketing_return.return_at);
-        }
-
-        // STATUS
-        $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
+    $(function() {
+        $(document).on('change', '#transparentFileUpload', function() {
+            $(this).siblings('#fileName').val($(this).val().split('\\').pop());
+        });
 
         initFlatpickrDate($('.flatpickr-basic'));
-    }
-    // ? END :: EDIT VALUES
+
+        // ? START :: SELECT2
+        const customerIdRoute = '{{ route("data-master.customer.search") }}';
+        initSelect2($('#customer_id'), 'Pilih Pelanggan', customerIdRoute);
+        // ? END :: SELECT2
+
+        // ? START :: EDIT VALUES
+        if ('{{ $dataMarketing }}'.length && '{{ $dataCustomer }}'.length) {
+            const marketing = @json($dataMarketing);
+            const customer = @json($dataCustomer);
+            const MARKETING_STATUS = @json(App\Constants::MARKETING_STATUS);
+
+            // CUSTOMER
+            $('#customer_id').append(`<option value="${customer.customer_id}" selected>${customer.name}</option>`).trigger('change');
+
+            // DATES
+            $('#sold_at').val(marketing.sold_at);
+            if ('{{ @$is_return }}') {
+                $('#sold_at').val(parseDateToString(marketing.sold_at));
+            }
+            if (marketing.realized_at) {
+                $('#realized_at').val(marketing.realized_at);
+            }
+
+            if (marketing.marketing_return) {
+                $('#return_at').val(marketing.marketing_return.return_at);
+            }
+
+            // STATUS
+            $('#marketing_status').val(MARKETING_STATUS[marketing.marketing_status]);
+
+            initFlatpickrDate($('.flatpickr-basic'));
+        }
+        // ? END :: EDIT VALUES
+    });
 </script>
