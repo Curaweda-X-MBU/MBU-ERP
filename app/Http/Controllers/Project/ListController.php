@@ -250,17 +250,23 @@ class ListController extends Controller
     public function approve(Request $req)
     {
         try {
-            $project = Project::findOrFail($req->id);
-            $kandang = Kandang::find($project->kandang_id);
-            $project->update([
-                'project_status' => array_search('Aktif', Constants::PROJECT_STATUS),
-                'approval_date'  => date('Y-m-d H:i:s'),
-            ]);
-
-            if ($kandang) {
-                $kandang->update([
-                    'project_status' => true,
+            if (! $req->has('project_ids')) {
+                return redirect()->back()->with('error', 'Pilih project terlebih dahulu');
+            }
+            $arrProjectId = $req->input('project_ids');
+            for ($i = 0; $i < count($arrProjectId); $i++) {
+                $project = Project::findOrFail($arrProjectId[$i]);
+                $kandang = Kandang::find($project->kandang_id);
+                $project->update([
+                    'project_status' => array_search('Aktif', Constants::PROJECT_STATUS),
+                    'approval_date'  => date('Y-m-d H:i:s'),
                 ]);
+
+                if ($kandang) {
+                    $kandang->update([
+                        'project_status' => true,
+                    ]);
+                }
             }
 
             $success = ['success' => 'Project berhasil disetujui'];

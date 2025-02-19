@@ -65,8 +65,8 @@
                         arrPeriod.push(val.data.latest_period);
                         let disabledCheck = '';
                         let classCheckbox = 'rowCheckbox';
+                        arrStatusName.push(val.data.project_status_name);
                         if (val.data.project_status_name !== 'Tersedia') {
-                            arrStatusName.push(val.data.project_status_name);
                             disabledCheck = 'disabled';
                             classCheckbox = 'rowCheckboxDisabled';
                         }
@@ -83,7 +83,8 @@
                                         <td>${val.data.user.name}</td>
                                     <tr>`;
                     });
-
+                    console.log('arrStatusName', arrStatusName);
+                    
                     const isSameStatus = arrStatusName.length === 0 || arrStatusName.every(value => value === arrStatusName[0]);
                     const sortedArray = arrPeriod.length > 0 ? arrPeriod.sort((a, b) => b - a) : [0];
                     const latestPeriod = isSameStatus?sortedArray[0]+1:sortedArray[0];

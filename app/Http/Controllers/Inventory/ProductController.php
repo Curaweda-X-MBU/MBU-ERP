@@ -76,7 +76,7 @@ class ProductController extends Controller
     public function searchProductWarehouse(Request $request)
     {
         $search     = $request->input('q');
-        $warehouses = ProductWarehouse::with('warehouse')
+        $warehouses = ProductWarehouse::with(['warehouse', 'product', 'product.uom', 'product.product_category'])
             ->with('product', function($query) use ($search) {
                 $query->with('uom')->where('name', 'like', "%{$search}%");
             });

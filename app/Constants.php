@@ -203,6 +203,7 @@ class Constants
     public const RECORDING_STATUS = [
         1 => 'Pengajuan',
         2 => 'Disetujui',
+        3 => 'Ditolak',
     ];
 
     public const RECORDING_DOC = 'DOC';
