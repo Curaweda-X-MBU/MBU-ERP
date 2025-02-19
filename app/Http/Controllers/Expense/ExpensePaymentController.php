@@ -8,7 +8,7 @@ use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Bank;
 use App\Models\Expense\Expense;
-use App\Models\Expense\ExpensePayment;
+use App\Models\Expense\ExpenseDisburse;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,7 +59,7 @@ class ExpensePaymentController extends Controller
                     $docPath = $docUrl['url'];
                 }
 
-                ExpensePayment::create([
+                ExpenseDisburse::create([
                     'expense_id'         => $expense->expense_id,
                     'payment_method'     => $input['payment_method'],
                     'bank_id'            => $input['bank_id'] ?? null,
@@ -291,7 +291,7 @@ class ExpensePaymentController extends Controller
                     $processedCount += 1;
                 }
 
-                ExpensePayment::insert($arrPayments);
+                ExpenseDisburse::insert($arrPayments);
 
                 return $processedCount;
             });
@@ -304,7 +304,7 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function detail(ExpensePayment $payment)
+    public function detail(ExpenseDisburse $payment)
     {
         try {
             $data = $payment->load(['bank']);
@@ -315,7 +315,7 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function edit(Request $req, ExpensePayment $payment)
+    public function edit(Request $req, ExpenseDisburse $payment)
     {
         try {
             $data = $payment->load(['bank']);
@@ -365,7 +365,7 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function delete(ExpensePayment $payment)
+    public function delete(ExpenseDisburse $payment)
     {
         try {
             DB::transaction(function() use ($payment) {
@@ -380,7 +380,7 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function approve(Request $req, ExpensePayment $payment)
+    public function approve(Request $req, ExpenseDisburse $payment)
     {
         DB::beginTransaction();
         try {

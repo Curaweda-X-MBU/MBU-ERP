@@ -19,6 +19,7 @@ class Expense extends Model
     protected $primaryKey = 'expense_id';
 
     protected $fillable = [
+        'parent_expense_id',
         'id_expense',
         'po_number',
         'transaction_date',
@@ -28,6 +29,8 @@ class Expense extends Model
         'approved_at',
         'location_id',
         'category',
+        'bill_docs',
+        'realization_docs',
         'payment_status',
         'expense_status',
         'created_by',
@@ -106,8 +109,18 @@ class Expense extends Model
         return $this->hasMany(ExpenseAdditPrice::class, 'expense_id', 'expense_id');
     }
 
-    public function expense_payments()
+    public function expense_disburse()
     {
-        return $this->hasMany(ExpensePayment::class, 'expense_id', 'expense_id');
+        return $this->hasMany(ExpenseDisburse::class, 'expense_id', 'expense_id');
+    }
+
+    public function parent_expense()
+    {
+        return $this->belongsTo(Expense::class, 'parent_expense_id', 'expense_id');
+    }
+
+    public function child_expense()
+    {
+        return $this->hasOne(Expense::class, 'parent_expense_id', 'expense_id');
     }
 }

@@ -188,11 +188,17 @@ class Constants
     public const EXPENSE_STATUS = [
         0 => 'Draft',
         1 => 'Pengajuan',
-        2 => 'Disetujui',
-        3 => 'Ditolak',
+        2 => 'Disetujui Mgr. Farm',
+        4 => 'Pencairan',
+        5 => 'Realisasi',
+        6 => 'Ditolak',
     ];
 
-    public const EXPENSE_PAYMENT_DOC_PATH = 'expense-payment-doc';
+    public const EXPENSE_BILL_DOC_PATH = 'expense-bill-doc';
+
+    public const EXPENSE_DISBURSE_DOC_PATH = 'expense-disburse-doc';
+
+    public const EXPENSE_REALIZATION_DOC_PATH = 'expense-realization-doc';
 
     public const RECORDING_STATUS = [
         1 => 'Pengajuan',
