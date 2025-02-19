@@ -293,10 +293,10 @@
                             $('.flatpickr-basic').flatpickr({
                                 dateFormat: "Y-m-d",
                                 altInput: true,
-                                altFormat: "d-m-Y H:i",
-                                enableTime: true,
-                                time_24hr: true,
-                                defaultDate: new Date(new Date().setDate(new Date().getDate() - 1))
+                                altFormat: "d-m-Y",
+                                // enableTime: true,
+                                // time_24hr: true,
+                                // defaultDate: new Date(new Date().setDate(new Date().getDate() - 1))
                             });
 
                             $('#company_id').select2({
@@ -405,7 +405,24 @@
                                     const chickinDate = selectedData.project_chick_in[0].chickin_date;
                                     const recordDate = $('.record-date').val();
                                     $('.chickin-date').val(chickinDate);
-                                    diffDayOldChick(recordDate, chickinDate);
+
+                                    const recordingData = selectedData.recording;
+                                    const latestRecord = recordingData.reduce((max, item) => 
+                                        new Date(item.record_datetime) > new Date(max.record_datetime) ? item : max
+                                    );
+
+                                    let lastDate = new Date(latestRecord.record_datetime)
+                                    lastDate.setDate(lastDate.getDate() + 1);
+                                    $('.flatpickr-basic').flatpickr({
+                                        dateFormat: "Y-m-d",
+                                        altInput: true,
+                                        altFormat: "d-m-Y",
+                                        // enableTime: true,
+                                        // time_24hr: true,
+                                        defaultDate: lastDate,
+                                        minDate: lastDate
+                                    });
+                                    diffDayOldChick(lastDate, chickinDate);
 
                                     const existRecord = selectedData.recording;
                                     let remainChick = 0;
