@@ -28,7 +28,7 @@
                                                 <tbody>
                                                     @foreach ($data as $item)
                                                     <tr>
-                                                        <td>{{ $item->movement_number }}</td>
+                                                        <td>{{ $item->movement_number??'PND-'.$item->origin->location->company->alias.'-'.str_pad($item->stock_movement_id, 5, '0', STR_PAD_LEFT) }}</td>
                                                         <td>{{ $item->origin->name??'' }}</td>
                                                         <td>{{ $item->destination->name??'' }}</td>
                                                         <td>{{ $item->product->name??'' }}</td>

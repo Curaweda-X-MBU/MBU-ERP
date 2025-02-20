@@ -41,7 +41,7 @@ class MovementController extends Controller
 
             $param = [
                 'title' => 'Persediaan > Transfer Stok',
-                'data'  => StockMovement::with(['origin', 'destination', 'product', 'stock_movement_vehicle'])->get(),
+                'data'  => StockMovement::with(['origin.location.company', 'destination', 'product', 'stock_movement_vehicle'])->get(),
             ];
 
             return view('inventory.movement.index', $param);
@@ -144,6 +144,7 @@ class MovementController extends Controller
                         'vehicle_number'         => $value['vehicle_number'],
                         'travel_document_number' => $value['travel_document_number'],
                         'travel_document'        => $document,
+                        'transport_amount_item'  => str_replace('.', '', str_replace(',', '.', $value['transport_amount_item'])),
                         'transport_amount'       => str_replace('.', '', str_replace(',', '.', $value['transport_amount'])),
                         'driver_name'            => $value['driver_name'],
                     ]);
@@ -225,7 +226,7 @@ class MovementController extends Controller
         try {
             $param = [
                 'title' => 'Persediaan > Transfer Stok > Detail',
-                'data'  => StockMovement::with(['product', 'origin', 'destination', 'stock_movement_vehicle'])->find($req->id),
+                'data'  => StockMovement::with(['product', 'origin.location.company', 'destination', 'stock_movement_vehicle'])->find($req->id),
             ];
 
             return view('inventory.movement.detail', $param);
