@@ -41,7 +41,7 @@ class MovementController extends Controller
 
             $param = [
                 'title' => 'Persediaan > Transfer Stok',
-                'data'  => StockMovement::with(['origin', 'destination', 'product'])->get(),
+                'data'  => StockMovement::with(['origin', 'destination', 'product', 'stock_movement_vehicle'])->get(),
             ];
 
             return view('inventory.movement.index', $param);
@@ -109,7 +109,7 @@ class MovementController extends Controller
                 $originId      = $input['origin_id'];
                 $destinationId = $input['destination_id'];
                 $productId     = $input['product_id'];
-                $stockMovement = StockMovement::create([
+                $stockMovement = StockMovement::with('origin.location.company')->create([
                     'origin_id'      => $originId,
                     'destination_id' => $destinationId,
                     'product_id'     => $productId,
@@ -117,6 +117,11 @@ class MovementController extends Controller
                     'notes'          => $input['notes'],
                     'created_by'     => auth()->user()->user_id,
                 ]);
+
+                $increment = str_pad($stockMovement->stock_movement_id, 5, '0', STR_PAD_LEFT);
+                $alias     = $stockMovement->origin->location->company->alias ?? 'UNK';
+                $mvNumber  = 'PND-'.$alias.'-'.$increment;
+                $stockMovement->update(['movement_number' => $mvNumber]);
 
                 $this->decreaseStock($productId, $originId, $destinationId, $transferQty, $input['notes']);
 
@@ -139,6 +144,7 @@ class MovementController extends Controller
                         'vehicle_number'         => $value['vehicle_number'],
                         'travel_document_number' => $value['travel_document_number'],
                         'travel_document'        => $document,
+                        'transport_amount'       => str_replace('.', '', str_replace(',', '.', $value['transport_amount'])),
                         'driver_name'            => $value['driver_name'],
                     ]);
                 }

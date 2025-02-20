@@ -22,6 +22,7 @@ class StockMovementVehicle extends Model
         'vehicle_number',
         'travel_document_number',
         'travel_document',
+        'transport_amount',
         'driver_name',
     ];
 

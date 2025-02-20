@@ -7,7 +7,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">{{$title}}</h4>
+                <h4 class="card-title">{{$title}} ( {{ $data->movement_number }} )</h4>
                 <div class="float-right">
                     <a href="{{ route('inventory.movement.index') }}" class="btn btn-outline-warning">Kembali</a>
                 </div>
@@ -110,6 +110,7 @@
                                     <th>Plat Nomor</th>
                                     <th>Nomor Surat Jalan</th>
                                     <th>Dokumen</th>
+                                    <th>Biaya Transport</th>
                                     <th>Nama Sopir</th>
                                 </thead>
                                 <tbody>
@@ -126,6 +127,7 @@
                                                 </a>
                                                 @endif
                                             </td>
+                                            <td>{{ number_format($item->transport_amount, 0, ',', '.') }}</td>
                                             <td>{{ $item->driver_name }}</td>
                                         </tr>
                                     @endforeach
