@@ -24,18 +24,18 @@ class ExpenseMainPrice extends Model
         'notes',
     ];
 
-    protected $appends = ['total_qty', 'total_price'];
+    protected $appends = ['qty_per_kandang', 'price_per_kandang'];
 
-    public function getTotalQtyAttribute()
+    public function getQtyPerKandangAttribute()
     {
-        $countKandang = count($this->expense->expense_kandang) ?: 1;
+        $countKandang = max(count($this->expense->expense_kandang), 1);
 
         return $this->qty / $countKandang;
     }
 
-    public function getTotalPriceAttribute()
+    public function getPricePerKandangAttribute()
     {
-        $countKandang = count($this->expense->expense_kandang) ?: 1;
+        $countKandang = max(count($this->expense->expense_kandang), 1);
 
         return $this->price / $countKandang;
     }

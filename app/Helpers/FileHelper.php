@@ -50,10 +50,18 @@ class FileHelper
         $extension   = pathinfo($filename, PATHINFO_EXTENSION);
         $contentType = self::getContentType($extension);
 
-        return Response::make($file, 200, [
-            'Content-Type'  => $contentType,
-            'Cache-Control' => 'public, max-age=3600',
-        ]);
+        if ($req->download) {
+            return Response::make($file, 200, [
+                'Content-Type'        => $contentType,
+                'Cache-Control'       => 'public, max-age=3600',
+                'Content-Disposition' => 'attachment; filename="'.basename($filename).'"',
+            ]);
+        } else {
+            return Response::make($file, 200, [
+                'Content-Type'  => $contentType,
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
+        }
     }
 
     public static function delete($filename)

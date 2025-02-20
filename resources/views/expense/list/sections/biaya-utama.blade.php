@@ -17,7 +17,7 @@
                 <th>UOM</th>
                 <th>Total Biaya (Rp)<i class="text-danger">*</i></th>
                 <th>Harga per Kandang (Rp)</th>
-                <th>Catatan</th>
+                <th>Catatan<i class="text-danger">*</i></th>
                 <th class="col-1">
                     <button class="btn btn-sm btn-icon btn-primary" type="button" data-repeater-create title="Tambah Produk">
                         <i data-feather="plus"></i>
@@ -48,7 +48,7 @@
                     <td><span class="uom" readonly></span></td>
                     <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price / $countKandang) }}" placeholder="0" required></td>
                     <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price) }}" placeholder="0" disabled></td>
-                    <td><input name="notes" type="text" class="form-control" value="{{ $mp->notes }}" placeholder="Masukkan catatan"></td>
+                    <td><input name="notes" type="text" class="form-control" value="{{ $mp->notes }}" placeholder="Masukkan catatan" required></td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                             <i data-feather="x"></i>

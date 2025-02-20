@@ -165,8 +165,8 @@ $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
                     <p class="col-6 col-md-2 numeral-mask font-weight-bolder text-right" style="font-size: 1.2em;"><span id="total-recap">{{
                         \App\Helpers\Parser::toLocale(
                             old('farms', $old['farms'] ?? null)
-                                ? ($bop->sum('price') ?? 0) + ($non_bop->sum('price') ?? 0)
-                                : ($bop->sum('total_price') ?? 0) + ($non_bop->sum('total_price') ?? 0)
+                                ? ($bop->sum('price_per_kandang') ?? 0) + ($non_bop->sum('price') ?? 0)
+                                : ($bop->sum('price') ?? 0) + ($non_bop->sum('price') ?? 0)
                         )
                     }}</span></p>
                 </div>

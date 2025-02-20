@@ -55,7 +55,7 @@ class Expense extends Model
 
     public function getTotalQtyAttribute()
     {
-        return $this->expense_main_prices->sum('total_qty');
+        return $this->expense_main_prices->sum('qty');
     }
 
     public function getNotPaidAttribute()

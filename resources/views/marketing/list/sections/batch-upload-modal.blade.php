@@ -145,8 +145,8 @@
             }
         }
 
-        $('#transparentFileUpload').on('change', function() {
-            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop()).trigger('change');
+        $(document).on('change', '#transparentFileUpload', function() {
+            $(this).siblings('#fileName').val($(this).val().split('\\').pop());
             toggleSubmitButton(this);
         });
 
