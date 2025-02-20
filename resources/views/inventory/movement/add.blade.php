@@ -223,6 +223,7 @@
                                                             <th>Plat Nomor</th>
                                                             <th>Nomor Surat Jalan</th>
                                                             <th style="width: 20%;">Dokumen (max. 2 MB)</th>
+                                                            <th>Biaya Ekspedisi (Rp.)</th>
                                                             <th>Nama Sopir</th>
                                                             <th colspan="2">
                                                                 <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
@@ -236,6 +237,7 @@
                                                                 <td><input type="text" class="form-control" name="vehicle_number" placeholder="D 1234 ABC" required></td>
                                                                 <td><input type="text" class="form-control" name="travel_document_number" placeholder="SJ-123" required></td>
                                                                 <td><input type="file" name="travel_document" class="form-control" /></td>
+                                                                <td><input type="text" name="transport_amount" class="form-control numeral-mask" placeholder="100.000" required/></td>
                                                                 <td><input type="text" name="driver_name" class="form-control" placeholder="Nama Sopir" required/></td>
                                                                 <td>
                                                                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
@@ -417,6 +419,16 @@
                                             ...optSelect2
                                         }
                                     });
+
+                                    var numeralMask = $this.find('.numeral-mask');
+                                    if (numeralMask.length) {
+                                        numeralMask.each(function() { 
+                                            new Cleave(this, {
+                                                numeral: true,
+                                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                                            });
+                                        })
+                                    }
 
                                     validationFile();
                                 },

@@ -19,6 +19,7 @@ class StockMovement extends Model
     protected $primaryKey = 'stock_movement_id';
 
     protected $fillable = [
+        'movement_number',
         'origin_id',
         'destination_id',
         'product_id',
