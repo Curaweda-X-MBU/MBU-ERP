@@ -4,6 +4,7 @@ namespace App\Models\Expense;
 
 use App\Constants;
 use App\Models\DataMaster\Location;
+use App\Models\DataMaster\Supplier;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ class Expense extends Model
         'approval_notes',
         'approved_at',
         'location_id',
+        'supplier_id',
         'category',
         'bill_docs',
         'realization_docs',
@@ -122,5 +124,10 @@ class Expense extends Model
     public function child_expense()
     {
         return $this->hasOne(Expense::class, 'parent_expense_id', 'expense_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }

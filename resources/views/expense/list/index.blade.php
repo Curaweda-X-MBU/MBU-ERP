@@ -1,6 +1,10 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
+@php
+dump($data->last());
+@endphp
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -35,7 +39,8 @@
                                 <th>Kategori</th>
                                 <th>Tanggal</th>
                                 <th>Nama Pengaju</th>
-                                <th>Biaya (Rp)</th>
+                                <th>Vendor</th>
+                                <th>Nominal (Rp)</th>
                                 <th>Sudah Bayar (Rp)</th>
                                 <th>Sisa Bayar (Rp)</th>
                                 <th>Status Pencairan</th>
@@ -63,6 +68,7 @@
                                         </td>
                                         <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
                                         <td>{{ $item->created_user->name }}</td>
+                                        <td>{{ $item->supplier->name ?? '-' }}</td>
                                         <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
                                         <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
                                         <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->not_paid) }}</td>
@@ -231,13 +237,16 @@
             drawCallback: function(settings) {
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
+                let notPaidSum = 0;
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[7]);
-                    const isPaid = parseLocaleToNum(data[8]);
+                    const grandTotal = parseLocaleToNum(data[8]);
+                    const isPaid = parseLocaleToNum(data[9]);
+                    const notPaid = parseLocaleToNum(data[10]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
+                    notPaidSum += notPaid;
                 });
 
                 const $grandTotal = $("#grand_total");
@@ -246,7 +255,7 @@
 
                 $grandTotal.text(parseNumToLocale(grandTotalSum));
                 $isPaid.text(parseNumToLocale(isPaidSum));
-                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+                $notPaid.text(parseNumToLocale(notPaidSum));
 
                 feather.replace();
             },
