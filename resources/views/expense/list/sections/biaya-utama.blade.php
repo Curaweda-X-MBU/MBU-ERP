@@ -10,7 +10,6 @@
      <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
-                <th>Supplier</th>
                 <th>Non Stock<i class="text-danger">*</i></th>
                 <th>Total Qty<i class="text-danger">*</i></th>
                 <th>QTY per Kandang</th>
@@ -29,11 +28,6 @@
             @if (!empty($data->expense_main_prices) && $data->expense_main_prices->count() > 0)
                 @foreach ($data->expense_main_prices as $mp)
                 <tr data-repeater-item>
-                    <td>
-                        <select name="supplier_id" class="form-control supplier-select">
-                            <option value="{{ $mp->supplier_id ?? null }}" selected>{{ $mp->supplier->name ?? null }}</option>
-                        </select>
-                    </td>
                     <td>
                         <select name="nonstock_id" class="form-control nonstock-select" required>
                             <option value="{{ $mp->nonstock_id }}" selected>{{ $mp->nonstock->name }}</option>
@@ -54,7 +48,6 @@
                 @endforeach
             @else
             <tr data-repeater-item>
-                <td><select name="supplier_id" class="form-control supplier-select"></select></td>
                 <td><select name="nonstock_id" class="form-control nonstock-select" required></select></td>
                 <td><input name="qty"type="text" class="unit-qty form-control numeral-mask" value="0" placeholder="0" required></td>
                 <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="0" placeholder="0" disabled></td>
@@ -110,23 +103,16 @@
 
         const nonstockIdRoute = '{{ route("data-master.nonstock.search") }}';
 
-        $(document).on('change', '.supplier-select', function() {
-            $(this).closest('tr').find('.nonstock-select').val('');
-            $(this).closest('tr').find('.uom').text('');
-            $(this).closest('tr').find('.nonstock-select').select2('destroy');
-            if ($(this).val() && $(this).val() !== '') {
-                initSelect2($(this).closest('tr').find('.nonstock-select'), 'Pilih Non Stock', nonstockIdRoute + '?supplier_id=' + $(this).val());
-            } else {
-                initSelect2($(this).closest('tr').find('.nonstock-select'), 'Pilih Non Stock', nonstockIdRoute);
-            }
-        });
-
         function initializeRows($row) {
-            const $supplierSelect = $row.find('.supplier-select');
+            const $supplier = $('#supplier_id');
             const $nonstockSelect = $row.find('.nonstock-select');
-            const supplierIdRoute = '{{ route("data-master.supplier.search") }}';
-            initSelect2($supplierSelect, 'Pilih Supplier', supplierIdRoute, '', { allowClear: true });
-            initSelect2($nonstockSelect, 'Pilih Non Stock', nonstockIdRoute);
+
+            if ($supplier.val() && $supplier.val() !== '') {
+                initSelect2($nonstockSelect, 'Pilih Non Stock', nonstockIdRoute + '?supplier_id=' + $supplier.val());
+            } else {
+                initSelect2($nonstockSelect, 'Pilih Non Stock', nonstockIdRoute);
+            }
+
             $nonstockSelect.on('select2:select', function(){
                 const data = $(this).select2('data')[0];
                 $row.find('.uom').text(data.uom_name);

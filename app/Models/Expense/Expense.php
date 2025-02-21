@@ -50,8 +50,7 @@ class Expense extends Model
 
     public function getIsPaidAttribute()
     {
-        // return $this->expense_disburses->where('verify_status', 2)->sum('payment_nominal');
-        return 0;
+        return $this->expense_disburses->sum('payment_nominal');
     }
 
     public function getTotalQtyAttribute()
