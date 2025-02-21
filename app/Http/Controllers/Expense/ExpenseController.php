@@ -238,6 +238,7 @@ class ExpenseController extends Controller
                         // Save as Draft
                         $createdExpense = Expense::create([
                             'location_id'      => $input['location_id'],
+                            'supplier_id'      => $input['supplier_id'] ?? null,
                             'category'         => $category,
                             'bill_docs'        => $billPath ?? null,
                             'realization_docs' => null,
@@ -251,6 +252,7 @@ class ExpenseController extends Controller
                     } else {
                         $createdExpense = Expense::create([
                             'location_id'      => $input['location_id'],
+                            'supplier_id'      => $input['supplier_id'] ?? null,
                             'category'         => $category,
                             'bill_docs'        => $billPath ?? null,
                             'realization_docs' => null,
@@ -293,7 +295,7 @@ class ExpenseController extends Controller
 
                             $arrMainPrices[$key]['expense_id']  = $expenseID;
                             $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
-                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'] ?? null;
+                            $arrMainPrices[$key]['supplier_id'] = $input['supplier_id'] ?? null;
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
                             $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
@@ -469,7 +471,7 @@ class ExpenseController extends Controller
 
                             $arrMainPrices[$key]['expense_id']  = $expense->expense_id;
                             $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
-                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'] ?? null;
+                            $arrMainPrices[$key]['supplier_id'] = $input['supplier_id'] ?? null;
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
                             $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
