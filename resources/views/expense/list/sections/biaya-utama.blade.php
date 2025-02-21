@@ -7,7 +7,7 @@
         <p class="col-md-6 mb-0 text-right">Rp. <span id="total-biaya-utama">0,00</span></p>
         @endif
     </div>
-    <table id="expense-repeater-1" class="table table-bordered">
+     <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
                 <th>Supplier</th>
@@ -25,29 +25,25 @@
                 </th>
             </tr>
         </thead>
-        <tbody data-repeater-list="expense_main_prices">
-            @if (@$data->expense_main_prices && @$data->expense_main_prices->count() > 0)
+         <tbody data-repeater-list="expense_main_prices">
+            @if (!empty($data->expense_main_prices) && $data->expense_main_prices->count() > 0)
                 @foreach ($data->expense_main_prices as $mp)
-                @php
-                $uom = \App\Models\DataMaster\Nonstock::where('name', $mp->sub_category)->first()->uom;
-                $countKandang = count($data->expense_kandang) ?: 1;
-                @endphp
                 <tr data-repeater-item>
                     <td>
                         <select name="supplier_id" class="form-control supplier-select">
-                            <option value="{{ $mp->supplier_id }}" selected>{{ $mp->supplier_id }}</option>
+                            <option value="{{ $mp->supplier_id ?? null }}" selected>{{ $mp->supplier->name ?? null }}</option>
                         </select>
                     </td>
                     <td>
                         <select name="nonstock_id" class="form-control nonstock-select" required>
-                            <option value="{{ $mp->nonstock_id }}" selected>{{ $mp->nonstock_id }}</option>
+                            <option value="{{ $mp->nonstock_id }}" selected>{{ $mp->nonstock->name }}</option>
                         </select>
                     </td>
                     <td><input name="qty" type="text" class="unit-qty form-control numeral-mask" value="{{ \App\Helpers\Parser::toLocale($mp->qty) }}" placeholder="0" required></td>
-                    <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="{{ \App\Helpers\Parser::toLocale($mp->total_qty) }}" placeholder="0" disabled></td>
-                    <td><span class="uom" readonly></span></td>
-                    <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price / $countKandang) }}" placeholder="0" required></td>
-                    <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price) }}" placeholder="0" disabled></td>
+                    <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="{{ \App\Helpers\Parser::toLocale($mp->qty_per_kandang) }}" placeholder="0" disabled></td>
+                    <td><span class="uom" readonly>{{ $mp->nonstock->uom->name }}</span></td>
+                    <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price) }}" placeholder="0" required></td>
+                    <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="{{ \App\Helpers\Parser::toLocale($mp->price_per_kandang) }}" placeholder="0" disabled></td>
                     <td><input name="notes" type="text" class="form-control" value="{{ $mp->notes }}" placeholder="Masukkan catatan" required></td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
@@ -64,7 +60,7 @@
                 <td><input type="text" class="total-qty-all-farms form-control numeral-mask" value="0" placeholder="0" disabled></td>
                 <td><span class="uom" readonly></span></td>
                 <td><input name="price" type="text" class="unit-price form-control numeral-mask text-right" value="0" placeholder="0" required></td>
-                <td><input type="text" class=" total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0" disabled></td>
+                <td><input type="text" class="total-amount-all-farms form-control numeral-mask text-right" value="0" placeholder="0" disabled></td>
                 <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">

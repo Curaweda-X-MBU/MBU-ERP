@@ -189,9 +189,11 @@ class Constants
         0 => 'Draft',
         1 => 'Pengajuan',
         2 => 'Disetujui Mgr. Farm',
+        3 => 'Disetujui Mgr. Finance',
         4 => 'Pencairan',
         5 => 'Realisasi',
         6 => 'Ditolak',
+        7 => 'Selesai',
     ];
 
     public const EXPENSE_BILL_DOC_PATH = 'expense-bill-doc';

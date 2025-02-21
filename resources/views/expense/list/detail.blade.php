@@ -3,7 +3,7 @@
 @section('content')
 @php
     $nominalBiaya = $data->grand_total;
-    $nominalSisaBayar = $data->expense_payments->sum('payment_nominal');
+    $nominalSisaBayar = $data->expense_disburses->sum('payment_nominal');
     $roleAccess = Auth::user()->role;
 @endphp
 
@@ -41,16 +41,16 @@
                         Kembali
                     </a>
                     @if ($data->expense_status != 2)
-                        <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
-                            <i data-feather="edit-2" class="mr-50"></i>
-                            Edit
-                        </a>
+                    <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
+                        <i data-feather="edit-2" class="mr-50"></i>
+                        Edit
+                    </a>
                     @endif
                     @if ($data->expense_status != 2 && $data->expense_status != 0)
-                        <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
-                            <i data-feather="check" class="mr-50"></i>
-                            Approve
-                        </a>
+                    <a class="btn btn-success" href="#" data-toggle="modal" data-target="#approve">
+                        <i data-feather="check" class="mr-50"></i>
+                        Approve
+                    </a>
                     @endif
                 </div>
             </div>
@@ -227,10 +227,10 @@
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->supplier->name ?? '-' }}</td>
                                                                 <td>{{ $item->nonstock->name ?? '-' }}</td>
-                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->total_qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->qty_per_kandang) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::trimLocale($item->qty) }}</td>
                                                                 <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price_per_kandang) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                                 <td>{{ $item->notes }}</td>
                                                             </tr>
@@ -305,7 +305,7 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form id="approveForm" method="post" action="{{ route('expense.list.approve', $data->expense_id) }}">
+            <form id="approveForm" method="post" action="#">
             {{csrf_field()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Biaya </h4>
@@ -338,15 +338,15 @@
 
     // MODAL CATATAN
     $(document).ready(function() {
-    $('#notesModal').on('show.bs.modal', function(event) {
-        var button = $(event.relatedTarget);
-        var notes = button.data('notes');
-        var title = button.data('title');
-        var modal = $(this);
-        modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
-        modal.find('#notesModalLabel').text(title || 'Catatan');
+        $('#notesModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var notes = button.data('notes');
+            var title = button.data('title');
+            var modal = $(this);
+            modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
+            modal.find('#notesModalLabel').text(title || 'Catatan');
+        });
     });
-});
 
 </script>
 
