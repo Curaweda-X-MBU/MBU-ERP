@@ -188,11 +188,11 @@ class Constants
     public const EXPENSE_STATUS = [
         0 => 'Draft',
         1 => 'Pengajuan',
-        2 => 'Disetujui Mgr. Farm',
-        3 => 'Disetujui Mgr. Finance',
-        4 => 'Pencairan',
-        5 => 'Realisasi',
-        6 => 'Ditolak',
+        2 => 'Ditolak',
+        3 => 'Approval Manager',
+        4 => 'Approval Finance',
+        5 => 'Pencairan',
+        6 => 'Realisasi',
         7 => 'Selesai',
     ];
 

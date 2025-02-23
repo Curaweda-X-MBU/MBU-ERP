@@ -102,19 +102,19 @@ dump($data->last());
                                                     <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(3)
-                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(4)
-                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(5)
-                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(6)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @default
                                                     <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>

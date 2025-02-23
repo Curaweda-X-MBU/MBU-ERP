@@ -373,8 +373,9 @@ class ExpenseController extends Controller
             ]);
 
             $param = [
-                'title' => 'Biaya > Detail',
-                'data'  => $data,
+                'title'          => 'Biaya > Detail',
+                'data'           => $data,
+                'expense_status' => Constants::EXPENSE_STATUS,
             ];
 
             // if ($req->has('po_number')) {
@@ -584,10 +585,26 @@ class ExpenseController extends Controller
             $approvedAt    = null;
             $expenseStatus = array_search('Ditolak', Constants::EXPENSE_STATUS);
 
+            $routeName = $req->route()->getName();
+
             if ($input['is_approved'] == 1) {
-                $success       = ['success' => 'Biaya berhasil disetujui'];
-                $approvedAt    = date('Y-m-d H:i:s');
-                $expenseStatus = array_search('Disetujui', Constants::EXPENSE_STATUS);
+                // Approval Manager Farm
+                if (str_contains($routeName, 'farm')) {
+                    $expenseStatus = array_search('Approval Manager', Constants::EXPENSE_STATUS);
+                }
+
+                // Approval Manager Finance
+                if (str_contains($routeName, 'finance')) {
+                    // error if not the right step
+                    if ($expense->expense_status !== array_search('Approval Manager', Constants::EXPENSE_STATUS)) {
+                        throw new \Exception('Belum disetujui oleh Manager Farm');
+                    }
+
+                    $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+                }
+
+                $success    = ['success' => 'Biaya berhasil disetujui'];
+                $approvedAt = date('Y-m-d H:i:s');
             }
 
             $increment = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);

@@ -21,7 +21,7 @@ class ExpenseDisburseController extends Controller
     public function index(Expense $expense)
     {
         try {
-            if (Constants::EXPENSE_STATUS[$expense->expense_status] !== 'Disetujui Mgr. Finance') {
+            if ($expense->expense_status < array_search('Pencairan', Constants::EXPENSE_STATUS)) {
                 throw new \Exception('Status Biaya belum disetujui');
             }
 
