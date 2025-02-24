@@ -300,15 +300,7 @@
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->name }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                                <td>
-                                                                    @if ($item->notes)
-                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Lainnya">
-                                                                            Lihat Catatan
-                                                                        </button>
-                                                                    @else
-                                                                        <span>-</span>
-                                                                    @endif
-                                                                </td>
+                                                                <td>{{ $item->notes }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @else
@@ -367,19 +359,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // MODAL CATATAN
-    $(document).ready(function() {
-        $('#notesModal').on('show.bs.modal', function(event) {
-            var button = $(event.relatedTarget);
-            var notes = button.data('notes');
-            var title = button.data('title');
-            var modal = $(this);
-            modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
-            modal.find('#notesModalLabel').text(title || 'Catatan');
-        });
-    });
-</script>
-
 @endsection

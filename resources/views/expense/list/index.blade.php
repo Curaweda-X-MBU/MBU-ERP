@@ -128,7 +128,7 @@
                                                         <span>Lihat Detail</span>
                                                     </a>
                                                     @if (@$item->expense_status >= array_search('Pencairan', \App\Constants::EXPENSE_STATUS))
-                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', $item->expense_id) }}">
+                                                    <a class="dropdown-item" href="{{ route('expense.list.disburse.index', $item->expense_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Pencairan</span>
                                                     </a>
