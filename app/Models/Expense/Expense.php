@@ -43,6 +43,8 @@ class Expense extends Model
         'is_paid',
         'total_qty',
         'not_paid',
+        'is_realized',
+        'not_realized',
     ];
 
     public function getGrandTotalAttribute()
@@ -63,6 +65,16 @@ class Expense extends Model
     public function getNotPaidAttribute()
     {
         return $this->grand_total - $this->is_paid;
+    }
+
+    public function getIsRealizedAttribute()
+    {
+        return $this->expense_realizations->sum('price');
+    }
+
+    public function getNotRealizedAttribute()
+    {
+        return $this->grand_total - $this->is_realized;
     }
 
     public function calculatePaymentStatus()
@@ -114,6 +126,11 @@ class Expense extends Model
     public function expense_disburses()
     {
         return $this->hasMany(ExpenseDisburse::class, 'expense_id', 'expense_id');
+    }
+
+    public function expense_realizations()
+    {
+        return $this->hasMany(ExpenseRealization::class, 'expense_id', 'expense_id');
     }
 
     public function parent_expense()
