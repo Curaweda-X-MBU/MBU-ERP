@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::table('expenses', function(Blueprint $table) {
                 $table->string('bill_docs')->after('category')->nullable();
                 $table->foreignId('parent_expense_id')->nullable()->after('expense_id')->constrained('expenses', 'expense_id')->nullOnDelete();
-                $table->string('realization_docs')->after('bill_docs');
+                $table->string('realization_docs')->after('bill_docs')->nullable();
             });
 
             if (Schema::hasTable('expense_payments')) {

@@ -136,7 +136,7 @@ class User extends Authenticatable implements CanResetPassword
         return $this->hasMany(Expense::class, 'approver_id', 'user_id');
     }
 
-    public function approve_expense_disburse()
+    public function approve_expense_disburses()
     {
         return $this->hasMany(ExpenseDisburse::class, 'approver_id', 'user_id');
     }

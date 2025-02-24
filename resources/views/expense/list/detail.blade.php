@@ -3,8 +3,16 @@
 @section('content')
 @php
     $nominalBiaya = $data->grand_total;
-    $nominalSisaBayar = $data->expense_payments->sum('payment_nominal');
+    $nominalSisaBayar = $data->expense_disburses->sum('payment_nominal');
+
     $roleAccess = Auth::user()->role;
+    $expenseStatus = \App\Constants::EXPENSE_STATUS;
+
+    $to_approve_by_farm = array_search('Pengajuan', $expenseStatus);
+    $to_approve_by_finance = array_search('Approval Manager', $expenseStatus);
+
+    $can_approve_by_farm = $roleAccess->hasPermissionTo('expense.list.approve.farm');
+    $can_approve_by_finance = $roleAccess->hasPermissionTo('expense.list.approve.finance');
 @endphp
 
 <style>
@@ -41,20 +49,32 @@
                         Kembali
                     </a>
                     @if ($data->expense_status != 2)
-                        <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
-                            <i data-feather="edit-2" class="mr-50"></i>
-                            Edit
-                        </a>
+                    <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
+                        <i data-feather="edit-2" class="mr-50"></i>
+                        Edit
+                    </a>
                     @endif
-                    @if ($data->expense_status != 2 && $data->expense_status != 0)
-                        <a class="btn btn-success" href="{{ route('expense.list.approve', $data->expense_id) }}" data-toggle="modal" data-target="#approve">
-                            <i data-feather="check" class="mr-50"></i>
-                            Approve
-                        </a>
+
+                    @php
+                        $button_text = ($can_approve_by_farm && $data->expense_status === $to_approve_by_farm)
+                            ? 'Approve Manager Farm'
+                            : (
+                                ($can_approve_by_finance && $data->expense_status === $to_approve_by_finance)
+                                    ? 'Approve Finance'
+                                    : false
+                            );
+                        $show_button = ($data->expense_status === $to_approve_by_farm || $data->expense_status === $to_approve_by_finance) ?? false;
+                    @endphp
+                    @if ($show_button && $button_text)
+                    <a class="btn btn-success" href="#" data-toggle="modal" data-target="#approve">
+                        <i data-feather="check" class="mr-50"></i>
+                        {{ $button_text }}
+                    </a>
                     @endif
                 </div>
             </div>
             <div class="card-body">
+                @include('expense.stepper')
                 <div class="card-datatable">
                     <div class="table-responsive mb-2">
                         <div class="col-12">
@@ -106,7 +126,7 @@
                                         <tr>
                                             <td style="width: 25%"><b>Kandang yang dipilih</b></td>
                                             <td style="width: 5%">:</td>
-                                            <td>{{ $data->expense_kandang?->map(fn($kandang) => $kandang->kandang->name ?? '')->join(', ') ?: '-' }}</td>
+                                            <td>{{ $data->expense_kandang?->sortBy('kandang_id')->map(fn($kandang) => $kandang->kandang->name ?? '')->join(', ') ?: '-' }}</td>
                                         </tr>
                                         <tr>
                                             <td style="width: 25%"><b>Tanggal Transaksi</b></td>
@@ -164,21 +184,30 @@
                                             <td style="width: 25%"><b>Status Biaya</b></td>
                                             <td style="width: 5%">:</td>
                                             <td>
-                                                @php
-                                                    $statusExpense = App\Constants::EXPENSE_STATUS;
-                                                @endphp
                                                 @switch($data->expense_status)
                                                     @case(0)
-                                                        <div class="badge badge-pill badge-secondary">{{ $statusExpense[$data->expense_status] }}</div>
+                                                        <div class="badge badge-pill badge-secondary">{{ $expenseStatus[$data->expense_status] }}</div>
                                                         @break
                                                     @case(1)
-                                                        <div class="badge badge-pill badge-warning">{{ $statusExpense[$data->expense_status] }}</div>
+                                                        <div class="badge badge-pill badge-warning">{{ $expenseStatus[$data->expense_status] }}</div>
                                                         @break
                                                     @case(2)
-                                                        <div class="badge badge-pill badge-primary">{{ $statusExpense[$data->expense_status] }}</div>
+                                                        <div class="badge badge-pill badge-danger">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                        @break
+                                                    @case(3)
+                                                        <div class="badge badge-pill" style="background-color: #b8654e">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                        @break
+                                                    @case(4)
+                                                        <div class="badge badge-pill" style="background-color: #c0b408">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                        @break
+                                                    @case(5)
+                                                        <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                        @break
+                                                    @case(6)
+                                                        <div class="badge badge-pill badge-success">{{ $expenseStatus[$data->expense_status] }}</div>
                                                         @break
                                                     @default
-                                                        <div class="badge badge-pill badge-danger">{{ $statusExpense[$data->expense_status] }}</div>
+                                                        <div class="badge badge-pill badge-primary">{{ $expenseStatus[$data->expense_status] }}</div>
                                                 @endswitch
                                             </td>
                                         </tr>
@@ -227,10 +256,10 @@
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->supplier->name ?? '-' }}</td>
                                                                 <td>{{ $item->nonstock->name ?? '-' }}</td>
-                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->total_qty) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::trimLocale($item->qty_per_kandang) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::trimLocale($item->qty) }}</td>
                                                                 <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
-                                                                <td>{{ \App\Helpers\Parser::toLocale($item->total_price) }}</td>
+                                                                <td>{{ \App\Helpers\Parser::toLocale($item->price_per_kandang) }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
                                                                 <td>{{ $item->notes }}</td>
                                                             </tr>
@@ -305,7 +334,16 @@
 <div class="modal fade text-left" id="approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content">
-            <form id="approveForm" method="post" action="{{ route('expense.list.approve', $data->expense_id) }}">
+            @php
+                $approve_route = $data->expense_status === $to_approve_by_farm
+                    ? route('expense.list.approve.farm', ['expense' => $data->expense_id ])
+                    : (
+                        $data->expense_status === $to_approve_by_finance
+                            ? route('expense.list.approve.finance', ['expense' => $data->expense_id ])
+                            : '#'
+                    );
+            @endphp
+            <form id="approveForm" method="post" action="{{ $approve_route }}">
             {{csrf_field()}}
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Biaya </h4>
@@ -330,24 +368,18 @@
     </div>
 </div>
 
-<script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 <script>
-    $(function() {
-        initSelect2($('#marketing_status'), 'Pilih Status');
-    });
-
     // MODAL CATATAN
     $(document).ready(function() {
-    $('#notesModal').on('show.bs.modal', function(event) {
-        var button = $(event.relatedTarget);
-        var notes = button.data('notes');
-        var title = button.data('title');
-        var modal = $(this);
-        modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
-        modal.find('#notesModalLabel').text(title || 'Catatan');
+        $('#notesModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var notes = button.data('notes');
+            var title = button.data('title');
+            var modal = $(this);
+            modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
+            modal.find('#notesModalLabel').text(title || 'Catatan');
+        });
     });
-});
-
 </script>
 
 @endsection

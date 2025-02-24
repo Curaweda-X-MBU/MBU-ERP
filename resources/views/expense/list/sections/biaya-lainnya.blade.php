@@ -36,9 +36,9 @@
                 @endforeach
             @else
             <tr data-repeater-item>
-                <td><input name="name" type="text" class="form-control" placeholder="Masukkan nama biaya"></td>
-                <td><input name="price" type="text" class="form-control numeral-mask text-right total-amount-all-farms-2" value="0" placeholder="0"></td>
-                <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan"></td>
+                <td><input name="name" type="text" class="form-control" placeholder="Masukkan nama biaya" required></td>
+                <td><input name="price" type="text" class="form-control numeral-mask text-right total-amount-all-farms-2" value="0" placeholder="0" required></td>
+                <td><input name="notes" type="text" class="form-control" placeholder="Masukkan catatan" required></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Produk">
                         <i data-feather="x"></i>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Expense;
 
 use App\Constants;
+use App\Helpers\FileHelper;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Kandang;
@@ -23,7 +24,7 @@ class ExpenseController extends Controller
         try {
             $currentUserId = auth()->id();
 
-            $data = Expense::with(['location', 'expense_payments', 'created_user'])
+            $data = Expense::with(['location', 'expense_disburses', 'created_user'])
                 ->where(function($query) use ($currentUserId) {
                     $query->where('expense_status', '!=', 0)
                         ->orWhere(function($subQuery) use ($currentUserId) {
@@ -61,7 +62,7 @@ class ExpenseController extends Controller
                     'expense_main_prices.nonstock',
                     'expense_addit_prices',
                     'expense_kandang.kandang',
-                    'expense_payments',
+                    'expense_disburses',
                 ])
                     ->whereBetween('created_at', [
                         $input['date_start'], $input['date_end'] ?? now(),
@@ -219,17 +220,28 @@ class ExpenseController extends Controller
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
-                $success = DB::transaction(function() use ($req) {
-                    $input         = $req->all();
+                $success = DB::transaction(function() use ($req, $input) {
                     $category      = $input['category'];
                     $expenseStatus = $input['expense_status'];
                     $expenseID     = 0;
+                    $billPath      = '';
+
+                    if (isset($input['bill_docs'])) {
+                        $docUrl = FileHelper::upload($input['bill_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        if (! $docUrl['status']) {
+                            throw new \Exception($docUrl['message']);
+                        }
+                        $billPath = $docUrl['url'];
+                    }
 
                     if ($expenseStatus == 0) {
                         // Save as Draft
                         $createdExpense = Expense::create([
                             'location_id'      => $input['location_id'],
+                            'supplier_id'      => $input['supplier_id'] ?? null,
                             'category'         => $category,
+                            'bill_docs'        => $billPath ?? null,
+                            'realization_docs' => null,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 0,
                             'expense_status'   => 0,
@@ -240,7 +252,10 @@ class ExpenseController extends Controller
                     } else {
                         $createdExpense = Expense::create([
                             'location_id'      => $input['location_id'],
+                            'supplier_id'      => $input['supplier_id'] ?? null,
                             'category'         => $category,
+                            'bill_docs'        => $billPath ?? null,
+                            'realization_docs' => null,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 1,
                             'expense_status'   => 1,
@@ -280,10 +295,10 @@ class ExpenseController extends Controller
 
                             $arrMainPrices[$key]['expense_id']  = $expenseID;
                             $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
-                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'] ?? null;
+                            $arrMainPrices[$key]['supplier_id'] = $input['supplier_id'] ?? null;
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
-                            $arrMainPrices[$key]['notes']       = $value['notes'];
+                            $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
@@ -354,19 +369,20 @@ class ExpenseController extends Controller
                 'expense_kandang.kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
-                'expense_payments',
+                'expense_disburses',
             ]);
 
             $param = [
-                'title' => 'Biaya > Detail',
-                'data'  => $data,
+                'title'          => 'Biaya > Detail',
+                'data'           => $data,
+                'expense_status' => Constants::EXPENSE_STATUS,
             ];
 
-            if ($req->has('po_number')) {
-                if ($req->query('po_number') == $expense->po_number) {
-                    return view('expense.list.po', $param);
-                }
-            }
+            // if ($req->has('po_number')) {
+            //     if ($req->query('po_number') == $expense->po_number) {
+            //         return view('expense.list.po', $param);
+            //     }
+            // }
 
             return view('expense.list.detail', $param);
         } catch (\Exception $e) {
@@ -400,12 +416,24 @@ class ExpenseController extends Controller
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
-                $success = DB::transaction(function() use ($req, $expense) {
-                    $input = $req->all();
+                $success = DB::transaction(function() use ($req, $input, $expense, $data) {
+                    $existingBillPath = $data->bill_docs ?? null;
+                    $billPath         = '';
 
-                    if ($expense->expense_status == 1) {
+                    if (isset($input['bill_docs'])) {
+                        $docUrl = FileHelper::upload($input['bill_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        if (! $docUrl['status']) {
+                            throw new \Exception($docUrl['message']);
+                        }
+                        $billPath = $docUrl['url'];
+                    } else {
+                        $billPath = $existingBillPath;
+                    }
+
+                    if ($expense->expense_status == 0) {
                         $expense->update([
                             'location_id'      => $input['location_id'],
+                            'bill_path'        => $billPath,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 1,
                             'expense_status'   => 1,
@@ -413,7 +441,7 @@ class ExpenseController extends Controller
                     }
 
                     $expense->expense_kandang()->delete();
-                    $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
+                    $selectedKandangs = json_decode($input['selected_kandangs'], true);
                     $arrKandang       = [];
                     if (count($selectedKandangs) > 0) {
                         $create = false;
@@ -444,10 +472,10 @@ class ExpenseController extends Controller
 
                             $arrMainPrices[$key]['expense_id']  = $expense->expense_id;
                             $arrMainPrices[$key]['nonstock_id'] = $value['nonstock_id'];
-                            $arrMainPrices[$key]['supplier_id'] = $value['supplier_id'];
+                            $arrMainPrices[$key]['supplier_id'] = $input['supplier_id'] ?? null;
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
-                            $arrMainPrices[$key]['notes']       = $value['notes'];
+                            $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
                         }
 
                         ExpenseMainPrice::insert($arrMainPrices);
@@ -507,6 +535,31 @@ class ExpenseController extends Controller
         }
     }
 
+    public function realization(Request $req, Expense $expense)
+    {
+        try {
+            $data = $expense->load([
+                'created_user',
+                'location',
+                'expense_kandang',
+                'expense_main_prices',
+                'expense_addit_prices',
+            ]);
+
+            $param = [
+                'title' => 'Biaya > Realisasi',
+                'data'  => $data,
+            ];
+
+            return view('expense.list.realization', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
     public function delete(Expense $expense)
     {
         try {
@@ -532,10 +585,26 @@ class ExpenseController extends Controller
             $approvedAt    = null;
             $expenseStatus = array_search('Ditolak', Constants::EXPENSE_STATUS);
 
+            $routeName = $req->route()->getName();
+
             if ($input['is_approved'] == 1) {
-                $success       = ['success' => 'Biaya berhasil disetujui'];
-                $approvedAt    = date('Y-m-d H:i:s');
-                $expenseStatus = array_search('Disetujui', Constants::EXPENSE_STATUS);
+                // Approval Manager Farm
+                if (str_contains($routeName, 'farm')) {
+                    $expenseStatus = array_search('Approval Manager', Constants::EXPENSE_STATUS);
+                }
+
+                // Approval Manager Finance
+                if (str_contains($routeName, 'finance')) {
+                    // error if not the right step
+                    if ($expense->expense_status !== array_search('Approval Manager', Constants::EXPENSE_STATUS)) {
+                        throw new \Exception('Belum disetujui oleh Manager Farm');
+                    }
+
+                    $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+                }
+
+                $success    = ['success' => 'Biaya berhasil disetujui'];
+                $approvedAt = date('Y-m-d H:i:s');
             }
 
             $increment = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
@@ -563,7 +632,7 @@ class ExpenseController extends Controller
     public function searchExpense(Request $req)
     {
         $search = $req->input('q');
-        $query  = Expense::with(['location', 'created_user', 'expense_payments'])
+        $query  = Expense::with(['location', 'created_user', 'expense_disburses'])
             ->where('id_expense', 'like', "%{$search}%");
         $queryParams = $req->query();
         $queryParams = Arr::except($queryParams, ['q']);

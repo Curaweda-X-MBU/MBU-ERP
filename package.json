@@ -7,7 +7,7 @@
         "prepare": "husky",
         "lint": "yarn pint",
         "pint": "./vendor/bin/pint",
-        "db:dev": "php artisan migrate:fresh && php artisan db:seed --class=DevelopmentSeeder"
+        "seed:permission": "php artisan db:seed --class=RolesAndPermissionsSeeder"
     },
     "devDependencies": {
         "axios": "^1.6.4",

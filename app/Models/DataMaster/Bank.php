@@ -53,7 +53,7 @@ class Bank extends Model
         return $this->hasMany(MarketingReturnPayment::class, 'recipient_bank_id', 'bank_id');
     }
 
-    public function expense_disburse()
+    public function expense_disburses()
     {
         return $this->hasMany(ExpenseDisburse::class, 'bank_id');
     }

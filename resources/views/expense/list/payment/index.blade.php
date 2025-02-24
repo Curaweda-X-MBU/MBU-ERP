@@ -80,8 +80,8 @@
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
-                                @if (count($data->expense_payments) > 0)
-                                    @foreach ($data->expense_payments as $index => $item)
+                                @if (count($data->expense_disburses) > 0)
+                                    @foreach ($data->expense_disburses as $index => $item)
                                         <tr class="text-center">
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ date('d-M-Y', strtotime($item->payment_at)) }}</td>
@@ -186,7 +186,7 @@
                                     <td class="text-danger">Sisa Belum Dibayar:</td>
                                     <td class="text-danger font-weight-bolder" style="font-size: 1.2em">Rp. {{
                                         \App\Helpers\Parser::toLocale(
-                                            $data->grand_total - $data->is_paid
+                                            $data->not_paid
                                         ) }}
                                     </td>
                                 </tr>

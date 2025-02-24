@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Expense\Expense;
 use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Ph\PhComplaint;
 use App\Models\Ph\PhPerformance;
@@ -70,6 +71,11 @@ class Supplier extends Model
     {
         return $this->belongsToMany(Nonstock::class, 'nonstock_supplier', 'supplier_id', 'nonstock_id')
             ->withTimestamps();
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'supplier_id');
     }
 
     public function expense_main_prices()

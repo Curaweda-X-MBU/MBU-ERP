@@ -4,6 +4,7 @@ namespace App\Models\Expense;
 
 use App\Constants;
 use App\Models\DataMaster\Location;
+use App\Models\DataMaster\Supplier;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ class Expense extends Model
         'approval_notes',
         'approved_at',
         'location_id',
+        'supplier_id',
         'category',
         'bill_docs',
         'realization_docs',
@@ -50,7 +52,7 @@ class Expense extends Model
 
     public function getIsPaidAttribute()
     {
-        return $this->expense_payments->where('verify_status', 2)->sum('payment_nominal');
+        return $this->expense_disburses->sum('payment_nominal');
     }
 
     public function getTotalQtyAttribute()
@@ -109,7 +111,7 @@ class Expense extends Model
         return $this->hasMany(ExpenseAdditPrice::class, 'expense_id', 'expense_id');
     }
 
-    public function expense_disburse()
+    public function expense_disburses()
     {
         return $this->hasMany(ExpenseDisburse::class, 'expense_id', 'expense_id');
     }
@@ -122,5 +124,10 @@ class Expense extends Model
     public function child_expense()
     {
         return $this->hasOne(Expense::class, 'parent_expense_id', 'expense_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }
