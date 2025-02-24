@@ -573,37 +573,10 @@ class ExpenseController extends Controller
                         $realizationPath = $existingRealizationPath;
                     }
 
-                    if ($expense->expense_status == 0) {
-                        $expense->update([
-                            'location_id'      => $input['location_id'],
-                            'realization_docs' => $realizationPath,
-                            'transaction_date' => $input['transaction_date'],
-                            'payment_status'   => 1,
-                            'expense_status'   => 1,
-                        ]);
-                    }
-
-                    $expense->expense_kandang()->delete();
-                    $selectedKandangs = json_decode($input['selected_kandangs'], true);
-                    $arrKandang       = [];
-                    if (count($selectedKandangs) > 0) {
-                        $create = false;
-
-                        foreach ($selectedKandangs as $key => $value) {
-                            if ($expense->category == 1) {
-                                $create                         = true;
-                                $arrKandang[$key]['expense_id'] = $expense->expense_id;
-                                $arrKandang[$key]['kandang_id'] = $value;
-
-                                // assign project_id
-                                $project = Kandang::find($value)->project->where('project_status', '!=', 4)->first() ?? null;
-                                if ($project) {
-                                    $arrKandang[$key]['project_id'] = $project->project_id;
-                                }
-                            }
-                        }
-                        ExpenseKandang::insert($arrKandang);
-                    }
+                    $expense->update([
+                        'realization_docs' => $realizationPath,
+                        'expense_status'   => 7,
+                    ]);
 
                     if ($req->has('expense_realization')) {
                         $arrRealization = $req->input('expense_realization');
