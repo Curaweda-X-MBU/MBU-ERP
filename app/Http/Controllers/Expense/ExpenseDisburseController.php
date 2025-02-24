@@ -30,7 +30,7 @@ class ExpenseDisburseController extends Controller
                 'location',
                 'expense_main_prices',
                 'expense_addit_prices',
-                'expense_disburse',
+                'expense_disburses',
             ]);
 
             $param = [

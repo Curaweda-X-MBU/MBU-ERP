@@ -2,9 +2,6 @@
 @section('title', $title)
 @section('content')
 
-@php
-dump($data->last());
-@endphp
 <div class="row">
     <div class="col-12">
         <div class="card">
