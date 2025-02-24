@@ -4,7 +4,6 @@
 
 @php
     $category = $category = App\Constants::EXPENSE_CATEGORY;
-    $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
     $roleAccess = Auth::user()->role;
 @endphp
 
@@ -30,28 +29,28 @@
                 <div class="row row-cols-2 row-cols-md-5 align-items-baseline">
                     <div class="col-md-2 mt-1">
                         <label for="id_expense" class="form-label">ID</label>
-                        <input name="id_expense" id="id_expense" value="{{ $data->id_expense }}" type="text" class="form-control" disabled required>
+                        <input name="id_expense" id="id_expense" value="{{ $data->id_expense }}" type="text" class="form-control" disabled>
                     </div>
                     <div class="col-md-2 mt-1">
                         <label for="location" class="form-label">Lokasi</label>
-                        <input name="location" id="location" value="{{ $data->location->name }}" type="text" class="form-control" disabled required>
+                        <input name="location" id="location" value="{{ $data->location->name }}" type="text" class="form-control" disabled>
                     </div>
                     <div class="col-md-2 mt-1">
                         <label for="category" class="form-label">Kategori</label>
-                        <input name="category" id="category" value="{{ $category[$data->category] }}" type="text" class="form-control" disabled required>
+                        <input name="category" id="category" value="{{ $category[$data->category] }}" type="text" class="form-control" disabled>
                     </div>
                     <div class="col-md-2 mt-1">
                         <label for="nama_pengaju" class="form-label">Nama Pengaju</label>
-                        <input name="nama_pengaju" id="nama_pengaju" value="{{ $data->created_user->name }}" type="text" class="form-control" disabled required>
+                        <input name="nama_pengaju" id="nama_pengaju" value="{{ $data->created_user->name }}" type="text" class="form-control" disabled>
                     </div>
                     <div class="col-md-2 mt-1">
-                        <label for="tanggal" class="form-label">Tanggal</label>
-                        <input name="tanggal" id="tanggal" value="{{ date('d-M-Y', strtotime($data->created_at)) }}" type="text" class="form-control" disabled required>
+                        <label for="tanggal" class="form-label">Tanggal Transaksi</label>
+                        <input name="tanggal" id="tanggal" value="{{ date('d-M-Y', strtotime($data->transaction_date)) }}" type="text" class="form-control" disabled>
                     </div>
                 </div>
                 <div class="row row-cols-3 row-cols-md-4 justify-content-end">
                     <!-- Button Tambah Pembayaran -->
-                    @if (auth()->user()->role->hasPermissionTo('expense.list.payment.add'))
+                    @if (auth()->user()->role->hasPermissionTo('expense.list.disburse.add'))
                     <div class="col-md-2 mt-2">
                         <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#expensePaymentAdd">
                             <i data-feather="plus"></i> Tambah Pembayaran
@@ -61,9 +60,9 @@
                 </div>
 
                 <!-- Modal -->
-                @include('expense.list.payment.add')
-                @include('expense.list.payment.detail')
-                @include('expense.list.payment.edit')
+                @include('expense.list.disburse.add')
+                @include('expense.list.disburse.detail')
+                @include('expense.list.disburse.edit')
 
                 {{-- START :: table --}}
                 <div class="card-datatable">
@@ -76,7 +75,6 @@
                                 <th>Akun Bank</th>
                                 <th>Nominal Pembayaran (Rp)</th>
                                 <th>No Referensi</th>
-                                <th>Verifikasi Pembayaran</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
@@ -90,30 +88,18 @@
                                             <td>{{ \App\Helpers\Parser::toLocale($item->payment_nominal) }}</td>
                                             <td>{{ $item->payment_reference ?? '-' }}</td>
                                             <td>
-                                                @switch($item->verify_status)
-                                                    @case(0)
-                                                        <div class="badge badge-pill badge-danger">{{ $statusPayment[$item->verify_status] }}</div>
-                                                        @break
-                                                    @case(1)
-                                                        <div class="badge badge-pill badge-warning">{{ $statusPayment[$item->verify_status] }}</div>
-                                                        @break
-                                                    @default
-                                                        <div class="badge badge-pill badge-primary">{{ $statusPayment[$item->verify_status] }}</div>
-                                                @endswitch
-                                            </td>
-                                            <td>
                                                 <div class="dropdown dropleft" style="position: static;">
                                                     <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
                                                         <i data-feather="more-vertical"></i>
                                                     </button>
                                                     <div class="dropdown-menu">
-                                                        @if ($roleAccess->hasPermissionTo('expense.list.payment.edit'))
+                                                        @if ($roleAccess->hasPermissionTo('expense.list.disburse.edit'))
                                                         <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
                                                             <i data-feather='edit-2' class="mr-50"></i>
                                                             <span>Edit</span>
                                                         </a>
                                                         @endif
-                                                        @if ($roleAccess->hasPermissionTo('expense.list.payment.detail'))
+                                                        @if ($roleAccess->hasPermissionTo('expense.list.disburse.detail'))
                                                         <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->expense_payment_id }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
@@ -125,8 +111,8 @@
                                                             <span>Unduh Dokumen</span>
                                                         </a>
                                                         @endif
-                                                        @if ($roleAccess->hasPermissionTo('expense.list.payment.delete'))
-                                                        <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.payment.delete', $item->expense_payment_id) }}">
+                                                        @if ($roleAccess->hasPermissionTo('expense.list.disburse.delete'))
+                                                        <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.disburse.delete', $item->expense_payment_id) }}">
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>

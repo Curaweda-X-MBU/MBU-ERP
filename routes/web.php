@@ -143,17 +143,16 @@ Route::middleware('auth')->group(function() {
             });
             Route::get('/search', [App\Http\Controllers\Expense\ExpenseController::class, 'searchExpense'])->name('expense.list.search');
 
-            Route::group(['prefix' => 'payment'], function() {
-                Route::get('/{expense}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'index'])->name('expense.list.payment.index')->middleware('permission:expense.list.payment.index');
-                Route::any('/add/{expense}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'add'])->name('expense.list.payment.add')->middleware('permission:expense.list.payment.add');
-                Route::any('/edit/{payment}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'edit'])->name('expense.list.payment.edit')->middleware('permission:expense.list.payment.edit');
-                Route::get('/detail/{payment}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'detail'])->name('expense.list.payment.detail')->middleware('permission:expense.list.payment.detail');
-                Route::get('/delete/{payment}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'delete'])->name('expense.list.payment.delete')->middleware('permission:expense.list.payment.delete');
-                Route::post('/approve/{payment}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'approve'])->name('expense.list.payment.approve')->middleware('permission:expense.list.payment.approve');
+            Route::group(['prefix' => 'disburse'], function() {
+                Route::get('/{expense}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'index'])->name('expense.list.disburse.index')->middleware('permission:expense.list.disburse.index');
+                Route::any('/add/{expense}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'add'])->name('expense.list.disburse.add')->middleware('permission:expense.list.disburse.add');
+                Route::any('/edit/{disburse}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'edit'])->name('expense.list.disburse.edit')->middleware('permission:expense.list.disburse.edit');
+                Route::get('/detail/{disburse}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'detail'])->name('expense.list.disburse.detail')->middleware('permission:expense.list.disburse.detail');
+                Route::get('/delete/{disburse}', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'delete'])->name('expense.list.disburse.delete')->middleware('permission:expense.list.disburse.delete');
 
                 Route::group(['prefix' => 'batch'], function() {
-                    Route::post('/', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'batch'])->name('expense.list.payment.batch')->middleware('permission:expense.list.payment.approve')->middleware('permission:expense.list.payment.add');
-                    Route::post('/add', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'batchAdd'])->name('expense.list.payment.batch.add')->middleware('permission:expense.list.payment.approve')->middleware('permission:expense.list.payment.add');
+                    Route::post('/', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'batch'])->name('expense.list.disburse.batch')->middleware('permission:expense.list.disburse.approve')->middleware('permission:expense.list.disburse.add');
+                    Route::post('/add', [App\Http\Controllers\Expense\ExpenseDisburseController::class, 'batchAdd'])->name('expense.list.disburse.batch.add')->middleware('permission:expense.list.disburse.approve')->middleware('permission:expense.list.disburse.add');
                 });
             });
         });

@@ -1,3 +1,7 @@
+@php
+$is_detail = true;
+@endphp
+
 <style>
     .custom-modal-layout {
         gap: 1em;
@@ -9,9 +13,9 @@
     }
 </style>
 
-<form class="form-horizontal" method="post" action="{{ route('expense.list.payment.add', $data->expense_id) }}" enctype="multipart/form-data">
+<form id="approveForm" class="form-horizontal" method="post" action="" enctype="multipart/form-data">
     {{ csrf_field() }}
-    <div class="modal fade" id="expensePaymentAdd" tabindex="-1" role="dialog" aria-labelledby="paymentDetailLabel" aria-hidden="true">
+    <div class="modal fade" id="paymentDetail" tabindex="-1" role="dialog" aria-labelledby="paymentDetailLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -21,10 +25,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    @include('expense.list.sections.payment-detail')
-                </div>
-                <div class="modal-footer">
-                    <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>
+                    @include('expense.list.sections.disburse-detail')
                 </div>
             </div>
         </div>

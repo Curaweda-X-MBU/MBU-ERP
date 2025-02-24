@@ -12,6 +12,7 @@ use App\Models\Expense\Expense;
 use App\Models\Expense\ExpenseAdditPrice;
 use App\Models\Expense\ExpenseKandang;
 use App\Models\Expense\ExpenseMainPrice;
+use App\Models\Expense\ExpenseRealization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -433,7 +434,7 @@ class ExpenseController extends Controller
                     if ($expense->expense_status == 0) {
                         $expense->update([
                             'location_id'      => $input['location_id'],
-                            'bill_path'        => $billPath,
+                            'bill_docs'        => $billPath,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 1,
                             'expense_status'   => array_search('Approval Manager', Constants::EXPENSE_STATUS),
@@ -550,6 +551,75 @@ class ExpenseController extends Controller
                 'title' => 'Biaya > Realisasi',
                 'data'  => $data,
             ];
+
+            if ($req->isMethod('post')) {
+                $input = $req->all();
+
+                if (! $req->has('expense_main_prices')) {
+                    return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
+                }
+
+                $success = DB::transaction(function() use ($req, $input, $expense, $data) {
+                    $existingRealizationPath = $data->realization_docs ?? null;
+                    $realizationPath         = '';
+
+                    if (isset($input['realization_docs'])) {
+                        $docUrl = FileHelper::upload($input['realization_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        if (! $docUrl['status']) {
+                            throw new \Exception($docUrl['message']);
+                        }
+                        $realizationPath = $docUrl['url'];
+                    } else {
+                        $realizationPath = $existingRealizationPath;
+                    }
+
+                    $expense->update([
+                        'realization_docs' => $realizationPath,
+                        'expense_status'   => 7,
+                    ]);
+
+                    if ($req->has('expense_realization')) {
+                        $arrRealization = $req->input('expense_realization');
+
+                        foreach ($arrRealization as $key => $value) {
+                            $qty        = Parser::parseLocale($value['qty']);
+                            $totalPrice = Parser::parseLocale($value['price']);
+
+                            // Main Prices
+                            foreach ($expense->expense_main_prices as $mp) {
+                                $arrRealizationItem                           = $value;
+                                $arrRealizationItem['expense_id']             = $expense->expense_id;
+                                $arrRealizationItem['expense_item_id']        = $mp->expense_item_id;
+                                $arrRealizationItem['expense_addit_price_id'] = null;
+
+                                $arrRealizationItem['qty']   = $qty;
+                                $arrRealizationItem['price'] = $totalPrice;
+
+                                ExpenseRealization::create($arrRealizationItem);
+                            }
+
+                            // Addit Prices
+                            foreach ($expense->expense_addit_prices as $ap) {
+                                $arrRealizationItem                           = $value;
+                                $arrRealizationItem['expense_id']             = $expense->expense_id;
+                                $arrRealizationItem['expense_item_id']        = null;
+                                $arrRealizationItem['expense_addit_price_id'] = $ap->expense_addit_price_id;
+
+                                $arrRealizationItem['qty']   = $qty;
+                                $arrRealizationItem['price'] = $totalPrice;
+
+                                ExpenseRealization::create($arrRealizationItem);
+                            }
+                        }
+                    }
+
+                    return ['success' => 'Biaya Berhasil Direalisasikan'];
+                });
+
+                return redirect()
+                    ->route('expense.list.detail'.'?page=realization')
+                    ->with($success);
+            }
 
             return view('expense.list.realization', $param);
         } catch (\Exception $e) {
