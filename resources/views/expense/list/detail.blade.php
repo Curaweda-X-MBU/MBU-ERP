@@ -8,8 +8,8 @@
     $roleAccess = Auth::user()->role;
     $expenseStatus = \App\Constants::EXPENSE_STATUS;
 
-    $to_approve_by_farm = array_search('Pengajuan', $expenseStatus);
-    $to_approve_by_finance = array_search('Approval Manager', $expenseStatus);
+    $to_approve_by_farm = array_search('Approval Manager', $expenseStatus);
+    $to_approve_by_finance = array_search('Approval Finance', $expenseStatus);
 
     $can_approve_by_farm = $roleAccess->hasPermissionTo('expense.list.approve.farm');
     $can_approve_by_finance = $roleAccess->hasPermissionTo('expense.list.approve.finance');
@@ -48,7 +48,7 @@
                         <i data-feather="arrow-left" class="mr-50"></i>
                         Kembali
                     </a>
-                    @if ($data->expense_status != 2)
+                    @if ($data->expense_status < 2)
                     <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit

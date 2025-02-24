@@ -258,7 +258,7 @@ class ExpenseController extends Controller
                             'realization_docs' => null,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 1,
-                            'expense_status'   => 1,
+                            'expense_status'   => array_search('Approval Manager', Constants::EXPENSE_STATUS),
                             'created_by'       => Auth::id(),
                         ]);
 
@@ -436,7 +436,7 @@ class ExpenseController extends Controller
                             'bill_path'        => $billPath,
                             'transaction_date' => $input['transaction_date'],
                             'payment_status'   => 1,
-                            'expense_status'   => 1,
+                            'expense_status'   => array_search('Approval Manager', Constants::EXPENSE_STATUS),
                         ]);
                     }
 
@@ -590,17 +590,19 @@ class ExpenseController extends Controller
             if ($input['is_approved'] == 1) {
                 // Approval Manager Farm
                 if (str_contains($routeName, 'farm')) {
-                    $expenseStatus = array_search('Approval Manager', Constants::EXPENSE_STATUS);
+                    // Ganti status jadi menunggu Approval Finance
+                    $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
                 }
 
                 // Approval Manager Finance
                 if (str_contains($routeName, 'finance')) {
                     // error if not the right step
-                    if ($expense->expense_status !== array_search('Approval Manager', Constants::EXPENSE_STATUS)) {
+                    if ($expense->expense_status !== array_search('Approval Finance', Constants::EXPENSE_STATUS)) {
                         throw new \Exception('Belum disetujui oleh Manager Farm');
                     }
 
-                    $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+                    // Ganti status jadi menunggu Pencairan
+                    $expenseStatus = array_search('Pencairan', Constants::EXPENSE_STATUS);
                 }
 
                 $success    = ['success' => 'Biaya berhasil disetujui'];
