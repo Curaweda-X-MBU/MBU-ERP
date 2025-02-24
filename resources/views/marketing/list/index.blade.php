@@ -155,6 +155,12 @@
                                                         <span>Retur</span>
                                                     </a>
                                                     @endif
+                                                    @if (@$item->approval_notes && @$item->is_approved === 0)
+                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
+                                                            <i data-feather="message-square" class="mr-50"></i>
+                                                            <span>Catatan Penolakan</span>
+                                                        </a>
+                                                    @endif
                                                     @if ($item->doc_reference)
                                                     <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->doc_reference }}">
                                                         <i data-feather="download" class="mr-50"></i>
@@ -215,6 +221,23 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Catatan -->
+<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Catatan Persetujuan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="notesContent">-</p>
             </div>
         </div>
     </div>
@@ -378,6 +401,15 @@
                 confirmClass: 'btn-danger',
             }, function() {
                 window.location.href = e.target.href;
+            });
+        });
+
+        $(document).ready(function() {
+            $('#notesModal').on('show.bs.modal', function(event) {
+                var button = $(event.relatedTarget);
+                var notes = button.data('notes') || '-';
+                var modal = $(this);
+                modal.find('#notesContent').text(notes);
             });
         });
     });

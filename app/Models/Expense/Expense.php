@@ -116,6 +116,11 @@ class Expense extends Model
         return $this->hasMany(ExpenseDisburse::class, 'expense_id', 'expense_id');
     }
 
+    public function expense_realizations()
+    {
+        return $this->hasMany(ExpenseRealization::class, 'expense_id', 'expense_id');
+    }
+
     public function parent_expense()
     {
         return $this->belongsTo(Expense::class, 'parent_expense_id', 'expense_id');

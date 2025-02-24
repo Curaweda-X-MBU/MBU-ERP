@@ -8,8 +8,8 @@
     $roleAccess = Auth::user()->role;
     $expenseStatus = \App\Constants::EXPENSE_STATUS;
 
-    $to_approve_by_farm = array_search('Pengajuan', $expenseStatus);
-    $to_approve_by_finance = array_search('Approval Manager', $expenseStatus);
+    $to_approve_by_farm = array_search('Approval Manager', $expenseStatus);
+    $to_approve_by_finance = array_search('Approval Finance', $expenseStatus);
 
     $can_approve_by_farm = $roleAccess->hasPermissionTo('expense.list.approve.farm');
     $can_approve_by_finance = $roleAccess->hasPermissionTo('expense.list.approve.finance');
@@ -48,7 +48,7 @@
                         <i data-feather="arrow-left" class="mr-50"></i>
                         Kembali
                     </a>
-                    @if ($data->expense_status != 2)
+                    @if ($data->expense_status < 2)
                     <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
@@ -300,15 +300,7 @@
                                                                 <td>{{  $index + 1 }}</td>
                                                                 <td>{{ $item->name }}</td>
                                                                 <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                                <td>
-                                                                    @if ($item->notes)
-                                                                        <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Lainnya">
-                                                                            Lihat Catatan
-                                                                        </button>
-                                                                    @else
-                                                                        <span>-</span>
-                                                                    @endif
-                                                                </td>
+                                                                <td>{{ $item->notes }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @else
@@ -367,19 +359,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // MODAL CATATAN
-    $(document).ready(function() {
-        $('#notesModal').on('show.bs.modal', function(event) {
-            var button = $(event.relatedTarget);
-            var notes = button.data('notes');
-            var title = button.data('title');
-            var modal = $(this);
-            modal.find('#notesContent').text(notes || 'Catatan tidak tersedia.');
-            modal.find('#notesModalLabel').text(title || 'Catatan');
-        });
-    });
-</script>
-
 @endsection

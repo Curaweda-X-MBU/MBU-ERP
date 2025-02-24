@@ -127,10 +127,12 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', $item->expense_id) }}">
+                                                    @if (@$item->expense_status >= array_search('Pencairan', \App\Constants::EXPENSE_STATUS))
+                                                    <a class="dropdown-item" href="{{ route('expense.list.disburse.index', $item->expense_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
                                                         <span>Pencairan</span>
                                                     </a>
+                                                    @endif
                                                     <a class="dropdown-item" href="{{ route('expense.list.realization', $item->expense_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
                                                             <span>Realisasi</span>
@@ -138,7 +140,7 @@
                                                     @if (@$item->approval_notes && @$item->is_approved === 0)
                                                         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
                                                             <i data-feather="message-square" class="mr-50"></i>
-                                                            <span>Catatan Persetujuan</span>
+                                                            <span>Catatan Penolakan</span>
                                                         </a>
                                                     @endif
                                                     <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.delete', $item->expense_id) }}">

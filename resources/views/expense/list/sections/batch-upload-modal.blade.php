@@ -110,7 +110,7 @@
                             <span><i data-feather="chevron-right"></i></span>
                             <span>199000000</span>
                         </div>
-                        <form id="formPaymentCsv" class="col-12 mb-2" action="{{ route('expense.list.payment.batch') }}" method="post" enctype="multipart/form-data">
+                        <form id="formPaymentCsv" class="col-12 mb-2" action="{{ route('expense.list.disburse.batch') }}" method="post" enctype="multipart/form-data">
                             {{ csrf_field() }}
                             <div class="col-12 d-flex flex-column flex-lg-row mb-1" style="gap: 1em;">
                                 <a role="button" class="btn btn-success w-100" href="{{ asset('assets/files/expense_payment_batch_upload_template.csv') }}"><i data-feather="download"></i>&nbsp;Download Template</a>
