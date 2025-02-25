@@ -116,7 +116,7 @@
                         <tbody>
                             @foreach ($data->purchase_item as $item)
                             <tr>
-                                <td>{{ $item->product->name??'' }}</td>
+                                <td>{{ $item->product->name??'' }} {{ $item->product->product_sub_category->name==="DOC"?" (DOC)":'' }}</td>
                                 <td>{{ $item->product->product_category->name??'' }}</td>
                                 {{-- <td>{{ $item->project->kandang->name??'' }}</td> --}}
                                 {{-- <td>{{ $item->warehouse->name }}</td> --}}
