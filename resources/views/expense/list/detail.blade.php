@@ -82,7 +82,6 @@
 @if($data->expense_status === $can_be_realized)
     @include('expense.list.sections.biaya-realisasi-card')
 @endif
-
 <script>
     $(function() {
         $('#nav-tab').on('click', 'button', function() {

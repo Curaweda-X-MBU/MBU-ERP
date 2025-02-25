@@ -20,6 +20,7 @@
                                                     <th>Gudang Tujuan</th>
                                                     <th>Nama Produk</th>
                                                     <th>Jumlah Transfer</th>
+                                                    <th>Biaya Ekspedisi</th>
                                                     <th>Catatan</th>
                                                     <th>Oleh</th>
                                                     <th>Aksi</th>
@@ -27,11 +28,12 @@
                                                 <tbody>
                                                     @foreach ($data as $item)
                                                     <tr>
-                                                        <td>{{ $item->stock_movement_id }}</td>
+                                                        <td>{{ $item->movement_number??'PND-'.$item->origin->location->company->alias.'-'.str_pad($item->stock_movement_id, 5, '0', STR_PAD_LEFT) }}</td>
                                                         <td>{{ $item->origin->name??'' }}</td>
                                                         <td>{{ $item->destination->name??'' }}</td>
                                                         <td>{{ $item->product->name??'' }}</td>
-                                                        <td>{{ number_format($item->transfer_qty, 0, '.', ',') }}</td>
+                                                        <td>{{ number_format($item->transfer_qty, 0, ',', '.') }}</td>
+                                                        <td>{{ number_format(collect($item->stock_movement_vehicle??[['transport_amount' => 0]])->sum('transport_amount'), 0, ',', '.') }}</td>
                                                         <td>{{ $item->notes }}</td>
                                                         <td>{{ $item->createdBy->name??'' }}</td>
                                                         <td>

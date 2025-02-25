@@ -223,8 +223,10 @@
                                                             <th>Plat Nomor</th>
                                                             <th>Nomor Surat Jalan</th>
                                                             <th style="width: 20%;">Dokumen (max. 2 MB)</th>
+                                                            <th>Biaya Ekspedisi /Item (Rp.)</th>
+                                                            <th>Biaya Ekspedisi (Rp.)</th>
                                                             <th>Nama Sopir</th>
-                                                            <th colspan="2">
+                                                            <th colspan="2" class="hidden">
                                                                 <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
                                                                     <i data-feather="plus"></i>
                                                                 </button>
@@ -236,12 +238,14 @@
                                                                 <td><input type="text" class="form-control" name="vehicle_number" placeholder="D 1234 ABC" required></td>
                                                                 <td><input type="text" class="form-control" name="travel_document_number" placeholder="SJ-123" required></td>
                                                                 <td><input type="file" name="travel_document" class="form-control" /></td>
+                                                                <td><input type="text" name="transport_amount_item" class="form-control numeral-mask transport_amount_item" placeholder="100" required/></td>
+                                                                <td><input type="text" name="transport_amount" class="form-control numeral-mask transport_amount" placeholder="100.000" required/></td>
                                                                 <td><input type="text" name="driver_name" class="form-control" placeholder="Nama Sopir" required/></td>
-                                                                <td>
+                                                                {{-- <td>
                                                                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
                                                                         <i data-feather="x"></i>
                                                                     </button>
-                                                                </td>
+                                                                </td> --}}
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -417,6 +421,28 @@
                                             ...optSelect2
                                         }
                                     });
+
+                                    $this.find('.transport_amount_item').keyup(function (e) { 
+                                        e.preventDefault();
+                                        const movementQty = $('#transfer_qty_input').val()??0; 
+                                        const perItem = parseInt($(this).val().replace(/\./g, '').replace(/,/g, '.')) || 0;
+                                        const transTotal = perItem*movementQty;
+                                        $transTotalInput = $(this).closest('td').next().find('.transport_amount');
+                                        new Cleave($transTotalInput, {
+                                            numeral: true,
+                                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                                        }).setRawValue(transTotal);
+                                    });
+
+                                    var numeralMask = $this.find('.numeral-mask');
+                                    if (numeralMask.length) {
+                                        numeralMask.each(function() { 
+                                            new Cleave(this, {
+                                                numeral: true,
+                                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                                            });
+                                        })
+                                    }
 
                                     validationFile();
                                 },

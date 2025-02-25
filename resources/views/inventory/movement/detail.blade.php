@@ -7,7 +7,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">{{$title}}</h4>
+                <h4 class="card-title">{{$title}} ( {{ $data->movement_number??'PND-'.$data->origin->location->company->alias.'-'.str_pad($data->stock_movement_id, 5, '0', STR_PAD_LEFT) }} )</h4>
                 <div class="float-right">
                     <a href="{{ route('inventory.movement.index') }}" class="btn btn-outline-warning">Kembali</a>
                 </div>
@@ -110,6 +110,8 @@
                                     <th>Plat Nomor</th>
                                     <th>Nomor Surat Jalan</th>
                                     <th>Dokumen</th>
+                                    <th>Biaya Transport /Item</th>
+                                    <th>Biaya Transport</th>
                                     <th>Nama Sopir</th>
                                 </thead>
                                 <tbody>
@@ -126,6 +128,8 @@
                                                 </a>
                                                 @endif
                                             </td>
+                                            <td>{{ number_format($item->transport_amount_item>0?$item->transport_amount_item:$item->transport_amount/$data->transfer_qty, 0, ',', '.') }}</td>
+                                            <td>{{ number_format($item->transport_amount, 0, ',', '.') }}</td>
                                             <td>{{ $item->driver_name }}</td>
                                         </tr>
                                     @endforeach
