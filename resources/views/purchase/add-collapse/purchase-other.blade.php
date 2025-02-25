@@ -16,51 +16,60 @@
                         <div id="input-price" role="tabpanel" aria-labelledby="inputPrice" class="collapse show" aria-expanded="true">
                             <div class="card-body p-2">
                                 <div class="col-12">
-                                    <div class="col-12">
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered w-100 no-wrap text-center">
-                                                <thead>
-                                                    <th>Gudang</th>
-                                                    <th>Produk</th>
-                                                    <th>Jenis Produk</th>
-                                                    <th width="30">Jumlah</th>
-                                                    <th>Satuan</th>
-                                                    <th>Harga Satuan</th>
-                                                    <th width="30">Pajak (%)</th>
-                                                    <th width="30">Discount (%)</th>
-                                                    <th>Total (Rp.)</th>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($data->purchase_item as $key => $item)
-                                                    @php
-                                                        $warehouseNames = collect($item->purchase_item_alocation)->where('purchase_item_id', $item->purchase_item_id)->pluck('warehouse.name')->implode("<br>");;
-                                                    @endphp
-                                                    <tr>
-                                                        <td><?=$warehouseNames?></td>
-                                                        <td>{{ $item->product->name??'' }}</td>
-                                                        <td>{{ $item->product->product_category->name??'' }}</td>
-                                                        <td>
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][qty]" class="form-control-plaintext text-right numeral-mask" id="qty-{{$key}}" value="{{ $item->qty }}">
-                                                        </td>
-                                                        <td>{{ $item->product->uom->name??'' }}</td>
-                                                        <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price||$item->price===0?$item->product->product_price:0 }}" required>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <input type="text" class="form-control-plaintext text-right numeral-mask" id="total-{{$key}}" value="{{$item->total}}" readonly>
-                                                            <input type="hidden" name="purchase_item[{{$item->purchase_item_id}}][total]" id="total-input-{{ $key }}" value="{{$item->total}}">
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered w-100 no-wrap text-center"> 
+                                            <thead>
+                                                <th>Gudang</th>
+                                                <th>Produk</th>
+                                                <th>Jenis Produk</th>
+                                                <th>Jumlah</th>
+                                                <th>Satuan</th>
+                                                <th>Harga Satuan</th>
+                                                <th>Pajak (%)</th>
+                                                <th>Discount (%)</th>
+                                                <th>Total (Rp.)</th>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($data->purchase_item as $key => $item)
+                                                @php
+                                                    $warehouseNames = collect($item->purchase_item_alocation)->where('purchase_item_id', $item->purchase_item_id);
+                                                    $productPurchase = $item->product;
+                                                    $docProduct = '';
+                                                    if ($productPurchase->product_sub_category && $productPurchase->product_sub_category->name === 'DOC') {
+                                                        $docProduct = "(DOC)";
+                                                    }
+                                                @endphp
+                                                <tr>
+                                                    <td class="text-left">
+                                                        <ul class="pl-1">
+                                                        @foreach ($warehouseNames as $val)
+                                                            <li>{{ $val->warehouse->name??'' }}</li>
+                                                        @endforeach
+                                                        </ul>
+                                                    </td>
+                                                    <td>{{ $item->product->name??'' }} {{ $docProduct }}</td>
+                                                    <td>{{ $item->product->product_category->name??'' }}</td>
+                                                    <td>
+                                                        <input type="text" name="purchase_item[{{$item->purchase_item_id}}][qty]" class="form-control-plaintext text-right numeral-mask price-text" id="qty-{{$key}}" value="{{ $item->qty }}" readonly required>
+                                                    </td>
+                                                    <td>{{ $item->product->uom->name??'' }}</td>
+                                                    <td class="text-right">
+                                                        <input type="text" name="purchase_item[{{$item->purchase_item_id}}][price]" id="price-{{$key}}" class="form-control price-text text-right numeral-mask" placeholder="Harga Satuan" value="{{ $item->price||$item->price===0?$item->product->product_price:0 }}" required>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <input type="text" name="purchase_item[{{$item->purchase_item_id}}][tax]" id="tax-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Pajak" required value="{{ $item->tax }}">
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <input type="text" name="purchase_item[{{$item->purchase_item_id}}][discount]" id="discount-{{$key}}" max="100" class="form-control price-text text-right numeral-mask" placeholder="Discount" required value="{{ $item->discount }}">
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <input type="text" class="form-control-plaintext text-right numeral-mask" id="total-{{$key}}" value="{{$item->total}}" readonly>
+                                                        <input type="hidden" name="purchase_item[{{$item->purchase_item_id}}][total]" id="total-input-{{ $key }}" value="{{$item->total}}">
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -119,7 +128,7 @@
                 const idTotal = `#total-${i}`;
                 const idTotalInput = `#total-input-${i}`;
 
-                $(`${idPrice}, ${idTax}, ${idDiscount}`).change(function (e) { 
+                $(`${idPrice}, ${idTax}, ${idDiscount}, ${idQty}`).keyup(function (e) { 
                     let price =$(idPrice).val();
                     let qty =$(idQty).val();
                     let tax = parseFloat($(idTax).val());
@@ -148,7 +157,7 @@
             }
         }
 
-        $('.price-text').trigger('change');
+        $('.price-text').trigger('keyup');
     });
 </script>
 

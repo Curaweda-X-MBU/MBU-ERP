@@ -226,7 +226,7 @@
                                                             <th>Biaya Ekspedisi /Item (Rp.)</th>
                                                             <th>Biaya Ekspedisi (Rp.)</th>
                                                             <th>Nama Sopir</th>
-                                                            <th colspan="2">
+                                                            <th colspan="2" class="hidden">
                                                                 <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
                                                                     <i data-feather="plus"></i>
                                                                 </button>
@@ -241,11 +241,11 @@
                                                                 <td><input type="text" name="transport_amount_item" class="form-control numeral-mask transport_amount_item" placeholder="100" required/></td>
                                                                 <td><input type="text" name="transport_amount" class="form-control numeral-mask transport_amount" placeholder="100.000" required/></td>
                                                                 <td><input type="text" name="driver_name" class="form-control" placeholder="Nama Sopir" required/></td>
-                                                                <td>
+                                                                {{-- <td>
                                                                     <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
                                                                         <i data-feather="x"></i>
                                                                     </button>
-                                                                </td>
+                                                                </td> --}}
                                                             </tr>
                                                         </tbody>
                                                     </table>
