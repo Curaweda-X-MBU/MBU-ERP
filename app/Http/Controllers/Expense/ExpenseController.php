@@ -422,7 +422,7 @@ class ExpenseController extends Controller
                     $billPath         = '';
 
                     if (isset($input['bill_docs'])) {
-                        $docUrl = FileHelper::upload($input['bill_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        $docUrl = FileHelper::upload($input['bill_docs'], Constants::EXPENSE_BILL_DOC_PATH);
                         if (! $docUrl['status']) {
                             throw new \Exception($docUrl['message']);
                         }
@@ -504,13 +504,15 @@ class ExpenseController extends Controller
                         }
                     }
 
-                    $prefix      = $expense->category == 1 ? 'BOP' : 'NBOP';
-                    $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
-                    $idExpense   = "{$prefix}.{$incrementId}";
+                    if (! empty($expense->id_expense)) {
+                        $prefix      = $expense->category == 1 ? 'BOP' : 'NBOP';
+                        $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
+                        $idExpense   = "{$prefix}.{$incrementId}";
 
-                    $expense->update([
-                        'id_expense' => $idExpense,
-                    ]);
+                        $expense->update([
+                            'id_expense' => $idExpense,
+                        ]);
+                    }
 
                     if (! empty($arrKandang)) {
                         $projectIds       = array_column($arrKandang, 'project_id');
@@ -545,6 +547,7 @@ class ExpenseController extends Controller
                 'expense_kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
+                'expense_disburses',
             ]);
 
             $param = [
@@ -564,7 +567,7 @@ class ExpenseController extends Controller
                     $realizationPath         = '';
 
                     if (isset($input['realization_docs'])) {
-                        $docUrl = FileHelper::upload($input['realization_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        $docUrl = FileHelper::upload($input['realization_docs'], constants::EXPENSE_REALIZATION_DOC_PATH);
                         if (! $docUrl['status']) {
                             throw new \Exception($docUrl['message']);
                         }
@@ -575,7 +578,6 @@ class ExpenseController extends Controller
 
                     $expense->update([
                         'realization_docs' => $realizationPath,
-                        'expense_status'   => 7,
                     ]);
 
                     if ($req->has('expense_realization')) {

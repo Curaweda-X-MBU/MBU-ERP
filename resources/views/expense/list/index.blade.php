@@ -133,10 +133,12 @@
                                                         <span>Pencairan</span>
                                                     </a>
                                                     @endif
+                                                    @if(@$item->expense_status === array_search('Realisasi', \App\Constants::EXPENSE_STATUS))
                                                     <a class="dropdown-item" href="{{ route('expense.list.realization', $item->expense_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
-                                                            <span>Realisasi</span>
-                                                        </a>
+                                                        <span>Realisasi</span>
+                                                    </a>
+                                                    @endif
                                                     @if (@$item->approval_notes && @$item->is_approved === 0)
                                                         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
                                                             <i data-feather="message-square" class="mr-50"></i>

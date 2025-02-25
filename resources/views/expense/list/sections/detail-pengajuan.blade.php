@@ -182,6 +182,20 @@
                                         @endswitch
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td style="width: 25%"><b>Dokumen Tagihan</b></td>
+                                    <td style="width: 5%">:</td>
+                                    <td>
+                                        @if ($data->bill_docs)
+                                            <a class="p-0" href="{{ route('file.show', ['filename' => $data->bill_docs]) }}">
+                                                <i data-feather='download' class="mr-50"></i>
+                                                <span>Lihat Dokumen Tagihan</span>
+                                            </a>
+                                        @else
+                                            <span>-</span>
+                                        @endif
+                                    </td>
+                                </tr>
                             </table>
                         </div>
                     </div>

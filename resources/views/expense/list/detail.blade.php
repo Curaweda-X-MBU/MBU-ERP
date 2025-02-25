@@ -4,6 +4,8 @@
 @php
     $nominalBiaya = $data->grand_total;
     $nominalSisaBayar = $data->expense_disburses->sum('payment_nominal');
+
+    $can_be_realized = array_search('Realisasi', \App\Constants::EXPENSE_STATUS);
 @endphp
 
 <style>
@@ -58,22 +60,28 @@
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                 <button class="nav-link rounded active" id="nav-detail-pengajuan-tab" data-toggle="tab" data-target="#nav-detail-pengajuan" type="button" role="tab" aria-controls="nav-detail-pengajuan" aria-selected="true">Pengajuan</button>
+                @if($data->expense_status === $can_be_realized)
                 <button class="nav-link rounded" id="nav-detail-realisasi-tab" data-toggle="tab" data-target="#nav-detail-realisasi" type="button" role="tab" aria-controls="nav-detail-realisasi">Realisasi</button>
+                @endif
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-detail-pengajuan" role="tabpanel" aria-labelledby="nav-detail-pengajuan-tab">
-            @include('expense.list.sections.detail-pengajuan')
+                @include('expense.list.sections.detail-pengajuan')
             </div>
+            @if($data->expense_status === $can_be_realized)
             <div class="tab-pane fade show" id="nav-detail-realisasi" role="tabpanel" aria-labelledby="nav-detail-realisasi-tab">
-            @include('expense.list.sections.detail-realisasi')
+                @include('expense.list.sections.detail-realisasi')
             </div>
+            @endif
         </div>
     </div>
 </div>
 
 @include('expense.list.sections.biaya-pengajuan-card')
-@include('expense.list.sections.biaya-realisasi-card')
+@if($data->expense_status === $can_be_realized)
+    @include('expense.list.sections.biaya-realisasi-card')
+@endif
 
 <script>
     $(function() {

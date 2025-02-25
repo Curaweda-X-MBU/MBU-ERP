@@ -36,8 +36,8 @@ class ExpenseAdditPrice extends Model
         return $this->belongsTo(Expense::class, 'expense_id', 'expense_id');
     }
 
-    public function expense_realizations()
+    public function expense_realization()
     {
-        return $this->hasMany(ExpenseRealization::class, 'expense_addit_price_id', 'expense_addit_price_id');
+        return $this->hasOne(ExpenseRealization::class, 'expense_addit_price_id', 'expense_addit_price_id');
     }
 }

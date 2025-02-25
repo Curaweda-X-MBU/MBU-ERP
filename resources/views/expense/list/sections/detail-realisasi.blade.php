@@ -24,28 +24,34 @@
 
 <div class="card">
     <div class="card-header pb-0">
-        <h4 class="card-title">{{ $title }} | Realisasi</h4>
-    </div>
-    <div class="card-header">
-        <div style="width: 100%; display: flex; align-items: center; justify-content: end; gap: 0.5rem;">
-            @if ($data->parent_expense || $data->child_epense)
-            <a href="#" class="btn btn-primary">
-                Pengajuan Lain
-            </a>
-            @endif
-            <div class="dropdown dropleft" style="position: static;">
-                <button type="button" class="btn btn-sm dropdown-toggle hide-arrow btn-outline-secondary" data-toggle="dropdown">
-                    <i data-feather="more-vertical"></i>
-                </button>
-                <div class="dropdown-menu">
-                    <a href="#" class="dropdown-item">
-                        <i data-feather='edit-2' class="mr-50"></i>
-                        Edit Realisasi
-                    </a>
-                    <a href="#" class="dropdown-item">
-                        <i data-feather='refresh-ccw' class="mr-50"></i>
-                        Pengajuan Ulang
-                    </a>
+        <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+            <h4 class="card-title">{{ $title }} | Realisasi</h4>
+            <div class="row">
+                @if ($data->parent_expense || $data->child_epense)
+                <a href="#" class="btn btn-primary mr-1">
+                    Pengajuan Lain
+                </a>
+                @endif
+                <div class="dropdown dropleft mr-1" style="position: static;">
+                    <button type="button" class="btn dropdown-toggle hide-arrow btn-outline-secondary" data-toggle="dropdown">
+                        <i data-feather="more-vertical"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{{ route('expense.list.realization', $data->expense_id) }}" class="dropdown-item">
+                            <i data-feather='edit-2' class="mr-50"></i>
+                            Edit Realisasi
+                        </a>
+                        <a href="#" class="dropdown-item text-warning">
+                            <i data-feather='refresh-ccw' class="mr-50"></i>
+                            Pengajuan Ulang
+                        </a>
+                        @if ($data->grand_total === $data->is_realized)
+                        <a href="#" class="dropdown-item text-success">
+                            <i data-feather='check-circle' class="mr-50"></i>
+                            Selesaikan
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

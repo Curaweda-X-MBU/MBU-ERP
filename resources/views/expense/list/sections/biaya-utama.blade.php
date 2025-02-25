@@ -7,11 +7,11 @@
         <p class="col-md-6 mb-0 text-right">Rp. <span id="total-biaya-utama">0,00</span></p>
         @endif
     </div>
-     <table id="expense-repeater-1" class="table table-bordered">
+    <table id="expense-repeater-1" class="table table-bordered">
         <thead>
             <tr class="bg-light text-center">
                 <th>Non Stock<i class="text-danger">*</i></th>
-                <th>Total Qty<i class="text-danger">*</i></th>
+                <th>Total QTY<i class="text-danger">*</i></th>
                 <th>QTY per Kandang</th>
                 <th>UOM</th>
                 <th>Total Biaya (Rp)<i class="text-danger">*</i></th>
@@ -116,6 +116,7 @@
             $nonstockSelect.on('select2:select', function(){
                 const data = $(this).select2('data')[0];
                 $row.find('.uom').text(data.uom_name);
+                console.log(data);
             })
 
             const $numeralInput = $row.find('.numeral-mask');
