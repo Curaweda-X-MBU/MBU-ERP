@@ -235,10 +235,9 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
-                    if (result.verify_status == 2) {
-                        credit += result.payment_nominal;
-                        $paymentNominal.attr('max', credit);
-                    }
+                    credit += result.payment_nominal;
+                    $paymentNominal.attr('max', credit);
+
                     $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`).trigger('change');
                     $refNumber.val(result.payment_reference ?? '-');

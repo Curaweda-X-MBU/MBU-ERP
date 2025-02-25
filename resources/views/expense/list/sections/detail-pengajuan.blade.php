@@ -130,7 +130,7 @@
                                     <td class="text-danger">Rp. {{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="width: 25%"><b>Status Pembayaran</b></td>
+                                    <td style="width: 25%"><b>Status Pencairan</b></td>
                                     <td style="width: 5%">:</td>
                                     <td>
                                         @php

@@ -26,14 +26,15 @@
     <div class="card-header pb-0">
         <h4 class="card-title">{{ $title }} | Realisasi</h4>
     </div>
-    {{--@if ($data->parent_expense || $data->child_epense)--}}
     <div class="card-header">
         <div style="width: 100%; display: flex; align-items: center; justify-content: end; gap: 0.5rem;">
+            @if ($data->parent_expense || $data->child_epense)
             <a href="#" class="btn btn-primary">
                 Pengajuan Lain
             </a>
+            @endif
             <div class="dropdown dropleft" style="position: static;">
-                <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
+                <button type="button" class="btn btn-sm dropdown-toggle hide-arrow btn-outline-secondary" data-toggle="dropdown">
                     <i data-feather="more-vertical"></i>
                 </button>
                 <div class="dropdown-menu">
@@ -49,7 +50,6 @@
             </div>
         </div>
     </div>
-    {{--@endif--}}
     <div class="card-body row">
         {{-- Nominal Pengajuan --}}
         <div class="col-md-6 mt-1">
