@@ -3,7 +3,7 @@
 @section('content')
 
 @php
-    $category = $category = App\Constants::EXPENSE_CATEGORY;
+    $category = App\Constants::EXPENSE_CATEGORY;
     $roleAccess = Auth::user()->role;
 @endphp
 

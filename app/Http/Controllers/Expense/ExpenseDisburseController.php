@@ -49,6 +49,7 @@ class ExpenseDisburseController extends Controller
             DB::transaction(function() use ($req, $expense) {
                 $input = $req->all();
 
+                dd($input);
                 $docPath = '';
                 if ($req->hasFile('document_path')) {
                     $docUrl = FileHelper::upload($input['document_path'], Constants::EXPENSE_DISBURSE_DOC_PATH);

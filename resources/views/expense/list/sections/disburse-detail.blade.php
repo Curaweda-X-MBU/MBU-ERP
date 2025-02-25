@@ -195,7 +195,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $fileName = $this.find('#fileName');
                 const $notes = $this.find('.notes');
                 const $approvalNotes = $('#approveForm').find('.approval_notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
@@ -229,7 +229,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentAt = $this.find('.payment_at');
                 const $fileName = $this.find('#fileName');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
