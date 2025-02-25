@@ -221,14 +221,14 @@ class ExpenseController extends Controller
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
-                $success = DB::transaction(function() use ($req, $input) {
+                $expenseID = 0;
+                $success   = DB::transaction(function() use ($req, $input, &$expenseID) {
                     $category      = $input['category'];
                     $expenseStatus = $input['expense_status'];
-                    $expenseID     = 0;
                     $billPath      = '';
 
                     if (isset($input['bill_docs'])) {
-                        $docUrl = FileHelper::upload($input['bill_docs'], constants::EXPENSE_BILL_DOC_PATH);
+                        $docUrl = FileHelper::upload($input['bill_docs'], Constants::EXPENSE_BILL_DOC_PATH);
                         if (! $docUrl['status']) {
                             throw new \Exception($docUrl['message']);
                         }
@@ -346,6 +346,9 @@ class ExpenseController extends Controller
                         return ['success' => 'Biaya Berhasil Disimpan | Tidak Terhubung Pada Project'];
                     }
                 });
+
+                // Create realization records
+                $this->createRealization($expenseID);
 
                 return redirect()
                     ->route('expense.list.index')
@@ -544,15 +547,17 @@ class ExpenseController extends Controller
             $data = $expense->load([
                 'created_user',
                 'location',
-                'expense_kandang',
                 'expense_main_prices',
                 'expense_addit_prices',
-                'expense_disburses',
+                'expense_realizations.expense_main_price.nonstock.uom',
+                'expense_realizations.expense_addit_price',
             ]);
 
             $param = [
                 'title' => 'Biaya > Realisasi',
                 'data'  => $data,
+                'main'  => $data->expense_realizations()->whereNotNull('expense_item_id')->with('expense_main_price.nonstock.uom')->get(),
+                'addit' => $data->expense_realizations()->whereNotNull('expense_addit_price_id')->with('expense_addit_price')->get(),
             ];
 
             if ($req->isMethod('post')) {
@@ -723,5 +728,33 @@ class ExpenseController extends Controller
                 'data' => $expense,
             ];
         }));
+    }
+
+    private function createRealization(int $expense_id)
+    {
+        $mainPrices = ExpenseMainPrice::where('expense_id', $expense_id)->select('expense_id', 'expense_item_id')->get();
+
+        if (isset($mainPrices)) {
+            foreach ($mainPrices as $mp) {
+                ExpenseRealization::create([
+                    'expense_id'      => $mp->expense_id,
+                    'expense_item_id' => $mp->expense_item_id,
+                    'qty'             => 0,
+                    'price'           => 0,
+                ]);
+            }
+        }
+
+        $additPrices = ExpenseAdditPrice::where('expense_id', $expense_id)->select('expense_id', 'expense_addit_price_id')->get();
+
+        if (isset($additPrices)) {
+            foreach ($additPrices as $ap) {
+                ExpenseRealization::create([
+                    'expense_id'             => $ap->expense_id,
+                    'expense_addit_price_id' => $ap->expense_addit_price_id,
+                    'price'                  => 0,
+                ]);
+            }
+        }
     }
 }

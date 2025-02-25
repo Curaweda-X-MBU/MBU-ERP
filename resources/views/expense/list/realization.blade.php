@@ -85,6 +85,17 @@
                                     <th class="text-center">Total Harga (Rp)</th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                @foreach ($main as $index => $mp)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $mp->expense_main_price->nonstock->name }}</td>
+                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ $mp->expense_main_price->qty }}"></td>
+                                    <td>{{ $mp->expense_main_price->nonstock->uom->name }}</td>
+                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ $mp->expense_main_price->price }}"></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                     {{-- Main Section | Expense Addit Prices --}}
@@ -101,6 +112,21 @@
                                     <th class="text-center">Total Harga (Rp)</th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                @if (! empty($addit))
+                                    @foreach ($addit as $index => $ap)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $ap->expense_addit_price->name }}</td>
+                                        <td><input type="text" class="form-control numeral-mask" placeholder="{{ $ap->expense_addit_price->price }}"></td>
+                                    </tr>
+                                    @endforeach
+                                @else
+                                <tr>
+                                    <td colspan="3">Tidak ada data</td>
+                                </tr>
+                                @endif
+                            </tbody>
                         </table>
                     </div>
                 </form>

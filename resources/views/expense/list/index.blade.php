@@ -145,7 +145,7 @@
                                                             <span>Catatan Penolakan</span>
                                                         </a>
                                                     @endif
-                                                    <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.delete', $item->expense_id) }}">
+                                                    <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.delete', ['expense' => $item->expense_id]) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>

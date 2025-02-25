@@ -9,6 +9,8 @@ class ExpenseRealization extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'expense_realizations';
 
     protected $primaryKey = 'expense_realization_id';
