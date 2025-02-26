@@ -57,7 +57,7 @@
                                                                         <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
                                                                         <td>{{ \App\Helpers\Parser::toLocale($item->price_per_kandang) }}</td>
                                                                         <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                                        <td>{{ $item->notes }}</td>
+                                                                        <td><?=$item->notes?></td>
                                                                     </tr>
                                                                 @endforeach
                                                             @else
