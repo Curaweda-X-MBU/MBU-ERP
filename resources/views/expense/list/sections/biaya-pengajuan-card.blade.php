@@ -96,15 +96,7 @@
                                                                         <td>{{  $index + 1 }}</td>
                                                                         <td>{{ $item->name }}</td>
                                                                         <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                                        <td>
-                                                                            @if ($item->notes)
-                                                                                <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Lainnya">
-                                                                                    Lihat Catatan
-                                                                                </button>
-                                                                            @else
-                                                                                <span>-</span>
-                                                                            @endif
-                                                                        </td>
+                                                                        <td>{{ $item->notes }}</td>
                                                                     </tr>
                                                                 @endforeach
                                                             @else

@@ -19,7 +19,7 @@
                 <i data-feather="arrow-left" class="mr-50"></i>
                 Kembali
             </a>
-            @if ($data->expense_status < 2)
+            @if ($data->expense_status < 4 && $data->expense_status !== 2)
             <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
                 <i data-feather="edit-2" class="mr-50"></i>
                 Edit
@@ -187,7 +187,7 @@
                                     <td style="width: 5%">:</td>
                                     <td>
                                         @if ($data->bill_docs)
-                                            <a class="p-0" href="{{ route('file.show', ['filename' => $data->bill_docs]) }}">
+                                            <a class="p-0" href="{{ route('file.show', ['filename' => $data->bill_docs]) }}" target="_blank">
                                                 <i data-feather='download' class="mr-50"></i>
                                                 <span>Lihat Dokumen Tagihan</span>
                                             </a>

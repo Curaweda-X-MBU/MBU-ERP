@@ -23,6 +23,22 @@ class ExpenseRealization extends Model
         'price',
     ];
 
+    protected $appends = ['qty_per_kandang', 'price_per_kandang'];
+
+    public function getQtyPerKandangAttribute()
+    {
+        $countKandang = max(count($this->expense->expense_kandang), 1);
+
+        return ($this->qty ?? 0) / $countKandang;
+    }
+
+    public function getPricePerKandangAttribute()
+    {
+        $countKandang = max(count($this->expense->expense_kandang), 1);
+
+        return ($this->price ?? 0) / $countKandang;
+    }
+
     public function expense()
     {
         return $this->belongsTo(Expense::class, 'expense_id');

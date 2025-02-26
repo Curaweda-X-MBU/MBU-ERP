@@ -300,9 +300,11 @@ class ExpenseController extends Controller
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
                             $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
+
+                            ExpenseMainPrice::create($arrMainPrices[$key]);
                         }
 
-                        ExpenseMainPrice::insert($arrMainPrices);
+                        // ExpenseMainPrice::insert($arrMainPrices);
                     }
 
                     if ($req->has('expense_addit_prices')) {
@@ -320,10 +322,12 @@ class ExpenseController extends Controller
                                 $arrAdditPrices[$key]['price']      = $price;
                                 $arrAdditPrices[$key]['notes']      = $value['notes'] ?? null;
                             }
+
+                            ExpenseAdditPrice::create($arrAdditPrices[$key]);
                         }
-                        if ($create) {
-                            ExpenseAdditPrice::insert($arrAdditPrices);
-                        }
+                        // if ($create) {
+                        //     ExpenseAdditPrice::insert($arrAdditPrices);
+                        // }
                     }
 
                     if ($expenseStatus == 1) {
@@ -348,7 +352,7 @@ class ExpenseController extends Controller
                 });
 
                 // Create realization records
-                $this->createRealization($expenseID);
+                // $this->createRealization($expenseID);
 
                 return redirect()
                     ->route('expense.list.index')
@@ -480,9 +484,11 @@ class ExpenseController extends Controller
                             $arrMainPrices[$key]['qty']         = $qty;
                             $arrMainPrices[$key]['price']       = $totalPrice;
                             $arrMainPrices[$key]['notes']       = $value['notes'] ?? null;
+
+                            ExpenseMainPrice::create($arrMainPrices[$key]);
                         }
 
-                        ExpenseMainPrice::insert($arrMainPrices);
+                        // ExpenseMainPrice::insert($arrMainPrices);
                     }
 
                     $expense->expense_addit_prices()->delete();
@@ -501,10 +507,12 @@ class ExpenseController extends Controller
                                 $arrAdditPrices[$key]['price']      = $price;
                                 $arrAdditPrices[$key]['notes']      = $value['notes'] ?? null;
                             }
+
+                            ExpenseAdditPrice::create($arrAdditPrices[$key]);
                         }
-                        if ($create) {
-                            ExpenseAdditPrice::insert($arrAdditPrices);
-                        }
+                        // if ($create) {
+                        //     ExpenseAdditPrice::insert($arrAdditPrices);
+                        // }
                     }
 
                     if (! empty($expense->id_expense)) {

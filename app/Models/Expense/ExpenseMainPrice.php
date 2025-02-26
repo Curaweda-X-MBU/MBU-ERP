@@ -11,6 +11,8 @@ class ExpenseMainPrice extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'expense_main_prices';
 
     protected $primaryKey = 'expense_item_id';
@@ -38,6 +40,20 @@ class ExpenseMainPrice extends Model
         $countKandang = max(count($this->expense->expense_kandang), 1);
 
         return $this->price / $countKandang;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function(ExpenseMainPrice $expenseMainPrice) {
+            $expenseMainPrice->expense_realization()
+                ->create([
+                    'expense_id' => $expenseMainPrice->expense_id,
+                    'qty'        => 0,
+                    'price'      => 0,
+                ]);
+        });
     }
 
     public function expense()

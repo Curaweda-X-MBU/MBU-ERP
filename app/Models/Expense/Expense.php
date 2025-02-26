@@ -8,10 +8,10 @@ use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\Location;
 use App\Models\DataMaster\Supplier;
 use App\Models\UserManagement\User;
-use DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Expense extends Model
 {

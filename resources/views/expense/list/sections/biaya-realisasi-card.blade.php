@@ -62,11 +62,11 @@
                                                                         <td>{{  $index + 1 }}</td>
                                                                         <td>{{ $item->supplier->name ?? '-' }}</td>
                                                                         <td>{{ $item->nonstock->name ?? '-' }}</td>
-                                                                        <td>{{ \App\Helpers\Parser::trimLocale($item->qty_per_kandang) }}</td>
-                                                                        <td>{{ \App\Helpers\Parser::trimLocale($item->qty) }}</td>
+                                                                        <td>{{ \App\Helpers\Parser::trimLocale($item->expense_realization->qty_per_kandang) }}</td>
+                                                                        <td>{{ \App\Helpers\Parser::trimLocale($item->expense_realization->qty) }}</td>
                                                                         <td>{{ $item->nonstock->uom->name ?? '-' }}</td>
-                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->price_per_kandang) }}</td>
-                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
+                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->expense_realization->price_per_kandang) }}</td>
+                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->expense_realization->price) }}</td>
                                                                         <td>{{ $item->notes }}</td>
                                                                     </tr>
                                                                 @endforeach
@@ -105,16 +105,8 @@
                                                                     <tr>
                                                                         <td>{{  $index + 1 }}</td>
                                                                         <td>{{ $item->name }}</td>
-                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->price) }}</td>
-                                                                        <td>
-                                                                            @if ($item->notes)
-                                                                                <button type="button" class="btn btn-link p-0 m-0" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->notes }}" data-title="Catatan Biaya Lainnya">
-                                                                                    Lihat Catatan
-                                                                                </button>
-                                                                            @else
-                                                                                <span>-</span>
-                                                                            @endif
-                                                                        </td>
+                                                                        <td>{{ \App\Helpers\Parser::toLocale($item->expense_realization->price) }}</td>
+                                                                        <td>{{ $item->notes }}</td>
                                                                     </tr>
                                                                 @endforeach
                                                             @else

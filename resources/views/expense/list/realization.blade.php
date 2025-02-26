@@ -90,12 +90,18 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $mp->expense_main_price->nonstock->name }}</td>
-                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ $mp->expense_main_price->qty }}"></td>
+                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ \App\Helpers\Parser::trimLocale($mp->expense_main_price->qty) }}" value="{{ $mp->qty ?: '' }}"></td>
                                     <td>{{ $mp->expense_main_price->nonstock->uom->name }}</td>
-                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ $mp->expense_main_price->price }}"></td>
+                                    <td><input type="text" class="form-control numeral-mask" placeholder="{{ \App\Helpers\Parser::toLocale($mp->expense_main_price->price) }}" value="{{ $mp->price ?: '' }}"></td>
                                 </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot>
+                                <tr class="font-weight-bolder">
+                                    <td>Total</td>
+                                    <td class="text-right" colspan="4">0,00</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     {{-- Main Section | Expense Addit Prices --}}
@@ -118,7 +124,7 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $ap->expense_addit_price->name }}</td>
-                                        <td><input type="text" class="form-control numeral-mask" placeholder="{{ $ap->expense_addit_price->price }}"></td>
+                                        <td><input type="text" class="form-control numeral-mask" placeholder="{{ \App\Helpers\Parser::toLocale($ap->expense_addit_price->price) }}" value="{{ $ap->price ?: '' }}"></td>
                                     </tr>
                                     @endforeach
                                 @else
@@ -127,7 +133,17 @@
                                 </tr>
                                 @endif
                             </tbody>
+                            <tfoot>
+                                <tr class="font-weight-bolder">
+                                    <td>Total</td>
+                                    <td class="text-right" colspan="2">0,00</td>
+                                </tr>
+                            </tfoot>
                         </table>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <a href="{{ route('expense.list.detail', ['expense' => $data->expense_id, 'page' => 'realization']) }}" class="btn btn-outline-warning waves-effect">Batal</a>
+                        <button id="submitForm" type="submit" class="btn btn-primary waves-effect waves-float waves-light">Submit</button>
                     </div>
                 </form>
             </div>

@@ -9,6 +9,8 @@ class ExpenseAdditPrice extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'expense_addit_prices';
 
     protected $primaryKey = 'expense_addit_price_id';
@@ -29,6 +31,19 @@ class ExpenseAdditPrice extends Model
         // return $this->price * $countKandang;
 
         return $this->price;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function(ExpenseAdditPrice $expenseAdditPrice) {
+            $expenseAdditPrice->expense_realization()
+                ->create([
+                    'expense_id' => $expenseAdditPrice->expense_id,
+                    'price'      => 0,
+                ]);
+        });
     }
 
     public function expense()
