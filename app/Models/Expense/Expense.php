@@ -46,6 +46,7 @@ class Expense extends Model
         'is_paid',
         'total_qty',
         'not_paid',
+        'is_returned',
         'is_realized',
         'not_realized',
     ];
@@ -70,9 +71,15 @@ class Expense extends Model
         return $this->grand_total - $this->is_paid;
     }
 
+    public function getIsReturnedAttribute()
+    {
+        return ($this->expense_return->payment_nominal ?? 0)
+            + ($this->expense_return->bank_admin_fees ?? 0); // dianggap total pengembalian sudah termasuk admin bank
+    }
+
     public function getIsRealizedAttribute()
     {
-        return $this->expense_realizations->sum('price');
+        return $this->expense_realizations->sum('price') + $this->is_returned;
     }
 
     public function getNotRealizedAttribute()
@@ -233,5 +240,10 @@ class Expense extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+    }
+
+    public function expense_return()
+    {
+        return $this->hasOne(ExpenseReturnPayment::class, 'expense_id', 'expense_id');
     }
 }

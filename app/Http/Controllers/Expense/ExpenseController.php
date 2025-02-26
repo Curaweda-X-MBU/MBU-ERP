@@ -13,6 +13,7 @@ use App\Models\Expense\ExpenseAdditPrice;
 use App\Models\Expense\ExpenseKandang;
 use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Expense\ExpenseRealization;
+use App\Models\Expense\ExpenseReturnPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -354,9 +355,6 @@ class ExpenseController extends Controller
                     }
                 });
 
-                // Create realization records
-                // $this->createRealization($expenseID);
-
                 return redirect()
                     ->route('expense.list.index')
                     ->with($success);
@@ -381,6 +379,7 @@ class ExpenseController extends Controller
                 'expense_main_prices',
                 'expense_addit_prices',
                 'expense_disburses',
+                'expense_return.bank',
             ]);
 
             $param = [
@@ -653,6 +652,54 @@ class ExpenseController extends Controller
             $success = ['success' => 'Biaya berhasil diselesaikan'];
 
             return redirect()->route('expense.list.detail', ['expense' => $expense->expense_id])->with($success);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function returnPayment(Request $req, Expense $expense)
+    {
+        try {
+            DB::transaction(function() use ($req, $expense) {
+                $input = $req->all();
+
+                $docPath = '';
+                if ($req->hasFile('return_docs')) {
+                    $docUrl = FileHelper::upload($input['return_docs'], Constants::EXPENSE_DISBURSE_DOC_PATH);
+                    if (! $docUrl['status']) {
+                        return redirect()->back()->with('error', $docUrl['message'].' '.$input['return_docs'])->withInput();
+                    }
+                    $docPath = $docUrl['url'];
+                }
+
+                ExpenseReturnPayment::updateOrCreate(
+                    [
+                        'expense_id' => $expense->expense_id,
+                    ],
+                    [
+                        'expense_id'         => $expense->expense_id,
+                        'payment_method'     => $input['payment_method'],
+                        'bank_id'            => $input['bank_id']           ?? null,
+                        'bank_recipient_id'  => $input['bank_recipient_id'] ?? null,
+                        'payment_reference'  => $input['payment_reference'],
+                        'transaction_number' => $input['transaction_number'],
+                        'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
+                        'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
+                        'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
+                        'return_docs'        => $docPath,
+                        'notes'              => $input['notes'],
+                    ]
+                );
+            });
+
+            $success = ['success' => 'Data Berhasil disimpan'];
+
+            return redirect()
+                ->back()
+                ->with($success);
         } catch (\Exception $e) {
             return redirect()
                 ->back()

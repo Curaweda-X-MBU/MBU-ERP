@@ -1,3 +1,6 @@
+@php
+    $roleAccess = Auth::user()->role;
+@endphp
 <style>
     .budget-card {
       cursor: pointer;
@@ -40,15 +43,23 @@
                         <i data-feather="more-vertical"></i>
                     </button>
                     <div class="dropdown-menu">
+                        @if ($data->expense_status < array_search('Selesai', \App\Constants::EXPENSE_STATUS) || $roleAccess->hasPermissionTo('expense.list.approve.finance'))
                         <a href="{{ route('expense.list.realization', $data->expense_id) }}" class="dropdown-item">
                             <i data-feather='edit-2' class="mr-50"></i>
                             Edit Realisasi
                         </a>
+                        @endif
                         @if (!$data->parent_expense_id && empty($data->child_expense))
                         <a href="{{ route('expense.list.add', ['parent_expense_id' => $data->expense_id]) }}" class="dropdown-item text-warning">
                             <i data-feather='refresh-ccw' class="mr-50"></i>
                             Pengajuan Ulang
                         </a>
+                        @endif
+                        @if ($data->grand_total > $data->is_realized && auth()->user()->role->hasPermissionTo('expense.list.return-payment'))
+                        <button type="button" class="dropdown-item text-primary" data-toggle="modal" data-target="#expenseReturn">
+                            <i data-feather='corner-up-left' class="mr-50"></i>
+                            Pengembalian
+                        </button>
                         @endif
                         @if ($data->grand_total === $data->is_realized && $data->expense_status < array_search('Selesai', \App\Constants::EXPENSE_STATUS))
                         <a href="{{ route('expense.list.finish', ['expense' => $data->expense_id]) }}" class="dropdown-item text-success">
@@ -81,8 +92,35 @@
             <div class="budget-card success mt-1" tabindex="0" data-container="body" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true">
                 <h5 class="font-weight-bolder text-white">Nominal Realisasi</h5>
                 <p id="budget" class="mt-1 font-weight-bolder fs-larger mt-2" data-visible="false" style="font-size: 1.7rem;">Rp.&nbsp;<span>{{ \App\Helpers\Parser::toLocale($data->is_realized) }}</span></p>
-                <h6 class="font-weight-bolder text-white mb-0">Selisih {{ \App\Helpers\Parser::toLocale($data->grand_total - $data->is_realized) }}</h6>
+                <div class="d-flex" style="justify-content: space-between;">
+                    <h6 class="font-weight-bolder text-white mb-0">Selisih {{ \App\Helpers\Parser::toLocale($data->grand_total - $data->is_realized) }}</h6>
+                    @if ($data->expense_return)
+                    <h6 class="font-weight-bolder text-white mb-0">Dikembailkan {{ \App\Helpers\Parser::toLocale($data->is_returned) }}</h6>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<form class="form-horizontal" method="post" action="{{ route('expense.list.return-payment', ['expense' => $data->expense_id]) }}" enctype="multipart/form-data">
+    {{ csrf_field() }}
+    <div class="modal fade" id="expenseReturn" tabindex="-1" role="dialog" aria-labelledby="returnPaymentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-primary" id="returnPaymentLabel">Form Pengembalian</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: 16px; right: 30px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @include('expense.list.sections.return-payment');
+                </div>
+                <div class="modal-footer">
+                    <button id="submitForm" type="submit" class="btn btn-primary mr-1 waves-effect waves-float waves-light">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
