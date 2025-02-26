@@ -115,6 +115,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'expense.list.approve.farm',
             'expense.list.approve.finance',
             'expense.list.realization',
+            'expense.list.return-payment',
             'expense.list.disburse.index',
             'expense.list.disburse.add',
             'expense.list.disburse.edit',
