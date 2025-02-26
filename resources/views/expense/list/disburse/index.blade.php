@@ -3,7 +3,7 @@
 @section('content')
 
 @php
-    $category = $category = App\Constants::EXPENSE_CATEGORY;
+    $category = App\Constants::EXPENSE_CATEGORY;
     $roleAccess = Auth::user()->role;
 @endphp
 
@@ -94,25 +94,25 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         @if ($roleAccess->hasPermissionTo('expense.list.disburse.edit'))
-                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_payment_id }}">
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentEdit" data-payment-id="{{ $item->expense_disburse_id }}">
                                                             <i data-feather='edit-2' class="mr-50"></i>
                                                             <span>Edit</span>
                                                         </a>
                                                         @endif
                                                         @if ($roleAccess->hasPermissionTo('expense.list.disburse.detail'))
-                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->expense_payment_id }}">
+                                                        <a class="dropdown-item" role="button" onclick="return setDetail(this)"  data-toggle="modal" data-target="#paymentDetail" data-payment-id="{{ $item->expense_disburse_id }}">
                                                             <i data-feather='eye' class="mr-50"></i>
                                                             <span>Lihat Detail</span>
                                                         </a>
                                                         @endif
-                                                        @if ($item->document_path)
-                                                        <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->document_path }}">
+                                                        @if ($item->disburse_docs)
+                                                        <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->disburse_docs }}">
                                                             <i data-feather="download" class="mr-50"></i>
                                                             <span>Unduh Dokumen</span>
                                                         </a>
                                                         @endif
                                                         @if ($roleAccess->hasPermissionTo('expense.list.disburse.delete'))
-                                                        <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.disburse.delete', $item->expense_payment_id) }}">
+                                                        <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.disburse.delete', $item->expense_disburse_id) }}">
                                                             <i data-feather='trash' class="mr-50"></i>
                                                             <span>Hapus</span>
                                                         </a>
@@ -145,11 +145,11 @@
                             <tbody class="text-right">
                                 <tr>
                                     <td>Nominal Biaya Utama:</td>
-                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('total_price')) }}</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('price')) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Nominal Biaya Lainnya:</td>
-                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_addit_prices->sum('total_price')) }}</td>
+                                    <td class="font-weight-bolder" style="font-size: 1.2em">Rp. {{ \App\Helpers\Parser::toLocale($data->expense_addit_prices->sum('price')) }}</td>
                                 </tr>
 
                                 <!-- Garis Horizontal -->

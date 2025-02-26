@@ -14,7 +14,7 @@
                             <table class="table table-bordered table-striped w-100">
                                 <thead>
                                     <tr>
-                                        <th colspan="10" class="text-left">{{ $item->product->name }}</th>
+                                        <th colspan="10" class="text-left">{{ $item->product->name }} {{ $item->product->product_sub_category->name==="DOC"?" (DOC)":"" }}</th>
                                     </tr>
                                     <tr>
                                         <th>Tanggal Penerimaan</th>

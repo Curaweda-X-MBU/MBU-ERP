@@ -9,6 +9,8 @@ class ExpenseRealization extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'expense_realizations';
 
     protected $primaryKey = 'expense_realization_id';
@@ -20,6 +22,22 @@ class ExpenseRealization extends Model
         'qty',
         'price',
     ];
+
+    protected $appends = ['qty_per_kandang', 'price_per_kandang'];
+
+    public function getQtyPerKandangAttribute()
+    {
+        $countKandang = max(count($this->expense->expense_kandang), 1);
+
+        return ($this->qty ?? 0) / $countKandang;
+    }
+
+    public function getPricePerKandangAttribute()
+    {
+        $countKandang = max(count($this->expense->expense_kandang), 1);
+
+        return ($this->price ?? 0) / $countKandang;
+    }
 
     public function expense()
     {

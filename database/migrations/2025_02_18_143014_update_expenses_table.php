@@ -28,7 +28,7 @@ return new class extends Migration
             Schema::dropIfExists('expense_payments');
 
             Schema::create('expense_disburses', function(Blueprint $table) {
-                $table->unsignedBigInteger('expense_disburse_id');
+                $table->id('expense_disburse_id');
                 $table->foreignId('expense_id')->constrained('expenses', 'expense_id')->cascadeOnDelete();
                 $table->tinyInteger('is_approved')->nullable();
                 $table->integer('approver_id')->nullable();
@@ -49,10 +49,10 @@ return new class extends Migration
             });
 
             Schema::create('expense_realizations', function(Blueprint $table) {
-                $table->unsignedBigInteger('expense_realization_id');
+                $table->id('expense_realization_id');
                 $table->foreignId('expense_id')->constrained('expenses', 'expense_id')->cascadeOnDelete();
-                $table->foreignId('expense_item_id')->nullable()->constrained('expense_main_prices', 'expense_item_id')->nullOnDelete();
-                $table->foreignId('expense_addit_price_id')->nullable()->constrained('expense_addit_prices', 'expense_addit_price_id')->nullOnDelete();
+                $table->foreignId('expense_item_id')->nullable()->constrained('expense_main_prices', 'expense_item_id')->cascadeOnDelete();
+                $table->foreignId('expense_addit_price_id')->nullable()->constrained('expense_addit_prices', 'expense_addit_price_id')->cascadeOnDelete();
                 $table->double('qty')->nullable();
                 $table->bigInteger('price');
             });

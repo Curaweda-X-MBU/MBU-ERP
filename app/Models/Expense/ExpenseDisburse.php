@@ -2,6 +2,7 @@
 
 namespace App\Models\Expense;
 
+use App\Constants;
 use App\Models\DataMaster\Bank;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,13 +32,32 @@ class ExpenseDisburse extends Model
     {
         parent::boot();
 
+        static::created(function(ExpenseDisburse $disburse) {
+            DB::beginTransaction();
+            try {
+                $expense = Expense::find($disburse->expense_id);
+                $expense->update([
+                    'payment_status' => $expense->calculatePaymentStatus(),
+                    'expense_status' => array_search('Realisasi', Constants::EXPENSE_STATUS),
+                ]);
+
+                $expense->save();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+        });
+
         static::updated(function(ExpenseDisburse $disburse) {
-            if ($disburse->isDirty(['is_approved', 'payment_nominal'])) {
+            if ($disburse->isDirty(['payment_nominal'])) {
                 DB::beginTransaction();
                 try {
                     $expense = Expense::find($disburse->expense_id);
                     $expense->update([
                         'payment_status' => $expense->calculatePaymentStatus(),
+                        'expense_status' => array_search('Realisasi', Constants::EXPENSE_STATUS),
                     ]);
                     $expense->save();
 

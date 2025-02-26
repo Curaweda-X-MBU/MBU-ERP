@@ -195,7 +195,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $fileName = $this.find('#fileName');
                 const $notes = $this.find('.notes');
                 const $approvalNotes = $('#approveForm').find('.approval_notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
@@ -229,16 +229,15 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentAt = $this.find('.payment_at');
                 const $fileName = $this.find('#fileName');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
-                    if (result.verify_status == 2) {
-                        credit += result.payment_nominal;
-                        $paymentNominal.attr('max', credit);
-                    }
+                    credit += result.payment_nominal;
+                    $paymentNominal.attr('max', credit);
+
                     $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`).trigger('change');
                     $refNumber.val(result.payment_reference ?? '-');

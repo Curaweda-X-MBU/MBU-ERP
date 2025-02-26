@@ -81,7 +81,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
 <!-- Vendor -->
 <div class="row col-md-6">
     <label for="supplier_id" class="form-label">Nama Vendor</label>
-    <select name="supplier_id" id="supplier_id" class="form-control" {{ @$data->expense_status == 1 ? 'disabled' : '' }}>
+    <select name="supplier_id" id="supplier_id" class="form-control" {{ @$data->expense_status >= 1 ? 'disabled' : '' }}>
         @if (@$data->supplier_id)
         <option value="{{ @$data->supplier_id }}" selected>{{ @$data->supplier->name }}</option>
         @endif
@@ -114,7 +114,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
     $(function() {
         $(document).on('change', '#transparentFileUpload', function() {
             $(this).siblings('#fileName').val($(this).val().split('\\').pop())
-        })
+        });
 
         // Initialize Select2
         const locationIdRoute = '{{ route("data-master.location.search") }}';

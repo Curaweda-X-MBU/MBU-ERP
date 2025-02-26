@@ -177,7 +177,7 @@
                 <div class="modal-footer">
                     @if ($data->status===3||$data->status===6)
                     <button type="submit" class="save_approve btn btn-danger">Simpan & Setujui</button>
-                    <input type="submit" class="btn btn-warning" name="save_only" value="Simpan">
+                    <input type="submit" class="btn btn-warning" name="save_only" value="Simpan Draft">
                     <button type="button" class="btn btn-primary" data-dismiss="modal">Batal</button>
                     @else 
                     <button type="submit" class="btn btn-danger">Ya</button>
