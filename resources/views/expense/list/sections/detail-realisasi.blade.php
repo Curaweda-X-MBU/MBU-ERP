@@ -25,11 +25,14 @@
 <div class="card">
     <div class="card-header pb-0">
         <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-            <h4 class="card-title">{{ $title }} | Realisasi</h4>
+            <h4 class="card-title">{{ $title }} | Realisasi {{ $data->parent_expense ? 'Ulang' : ($data->child_expense ? 'Utama' : '') }}</h4>
             <div class="row">
-                @if ($data->parent_expense || $data->child_epense)
-                <a href="#" class="btn btn-primary mr-1">
-                    Pengajuan Lain
+                @php
+                    $other_expense = $data->parent_expense ?: $data->child_expense;
+                @endphp
+                @if ($other_expense)
+                <a href="{{ route('expense.list.detail', ['expense' => $other_expense->expense_id]) }}" class="btn btn-primary mr-1">
+                    Lihat Pengajuan {{ $data->parent_expense ? 'Utama' : ($data->child_expense ? 'Ulang' : '') }}
                 </a>
                 @endif
                 <div class="dropdown dropleft mr-1" style="position: static;">

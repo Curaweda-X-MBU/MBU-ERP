@@ -248,31 +248,25 @@ class ExpenseController extends Controller
                             'payment_status'    => 0,
                             'expense_status'    => 0,
                             'created_by'        => Auth::id(),
+                            'parent_expense_id' => $req->parent_expense_id ? intval($req->parent_expense_id) : null,
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
-
-                        $createdExpense->update([
-                            'parent_expense_id' => $req->parent_expense_id ?: null,
-                        ]);
                     } else {
                         $createdExpense = Expense::create([
-                            'location_id'      => $input['location_id'],
-                            'supplier_id'      => $input['supplier_id'] ?? null,
-                            'category'         => $category,
-                            'bill_docs'        => $billPath ?? null,
-                            'realization_docs' => null,
-                            'transaction_date' => $input['transaction_date'],
-                            'payment_status'   => 1,
-                            'expense_status'   => array_search('Approval Manager', Constants::EXPENSE_STATUS),
-                            'created_by'       => Auth::id(),
+                            'location_id'       => $input['location_id'],
+                            'supplier_id'       => $input['supplier_id'] ?? null,
+                            'category'          => $category,
+                            'bill_docs'         => $billPath ?? null,
+                            'realization_docs'  => null,
+                            'transaction_date'  => $input['transaction_date'],
+                            'payment_status'    => 1,
+                            'expense_status'    => array_search('Approval Manager', Constants::EXPENSE_STATUS),
+                            'created_by'        => Auth::id(),
+                            'parent_expense_id' => $req->parent_expense_id ? intval($req->parent_expense_id) : null,
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
-
-                        $createdExpense->update([
-                            'parent_expense_id' => $req->parent_expense_id ?: null,
-                        ]);
                     }
 
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
