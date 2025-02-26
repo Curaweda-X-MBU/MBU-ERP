@@ -239,7 +239,6 @@ class ExpenseController extends Controller
                     if ($expenseStatus == 0) {
                         // Save as Draft
                         $createdExpense = Expense::create([
-                            'parent_expense_id' => $req->expense_id ? $input[''] : null,
                             'location_id'       => $input['location_id'],
                             'supplier_id'       => $input['supplier_id'] ?? null,
                             'category'          => $category,
@@ -249,7 +248,7 @@ class ExpenseController extends Controller
                             'payment_status'    => 0,
                             'expense_status'    => 0,
                             'created_by'        => Auth::id(),
-                            'parent_expense_id' => $req->parent_expense_id ? intval($req->parent_expense_id) : null,
+                            'parent_expense_id' => $req->query('parent_expense_id') ? intval($req->query('parent_expense_id')) : null,
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
@@ -264,7 +263,7 @@ class ExpenseController extends Controller
                             'payment_status'    => 1,
                             'expense_status'    => array_search('Approval Manager', Constants::EXPENSE_STATUS),
                             'created_by'        => Auth::id(),
-                            'parent_expense_id' => $req->parent_expense_id ? intval($req->parent_expense_id) : null,
+                            'parent_expense_id' => $req->query('parent_expense_id') ? intval($req->query('parent_expense_id')) : null,
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
@@ -711,6 +710,9 @@ class ExpenseController extends Controller
     public function delete(Expense $expense)
     {
         try {
+            if (empty($expense)) {
+                throw new \Exception('Biaya tidak ditemukan');
+            }
             $expense->delete();
             $success = ['success' => 'Data Berhasil dihapus'];
 
