@@ -60,7 +60,7 @@
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                 <button class="nav-link rounded {{ request('page') == 'realization' ? '' : 'active' }}" id="nav-detail-pengajuan-tab" data-toggle="tab" data-target="#nav-detail-pengajuan" type="button" role="tab" aria-controls="nav-detail-pengajuan" aria-selected="true">Pengajuan</button>
-                @if($data->expense_status === $can_be_realized)
+                @if($data->expense_status >= $can_be_realized)
                 <button class="nav-link rounded {{ request('page') == 'realization' ? 'active' : '' }}" id="nav-detail-realisasi-tab" data-toggle="tab" data-target="#nav-detail-realisasi" type="button" role="tab" aria-controls="nav-detail-realisasi">Realisasi</button>
                 @endif
             </div>
@@ -69,7 +69,7 @@
             <div class="tab-pane fade show {{ request('page') == 'realization' ? '' : 'active' }}" id="nav-detail-pengajuan" role="tabpanel" aria-labelledby="nav-detail-pengajuan-tab">
                 @include('expense.list.sections.detail-pengajuan')
             </div>
-            @if($data->expense_status === $can_be_realized)
+            @if($data->expense_status >= $can_be_realized)
             <div class="tab-pane fade show {{ request('page') == 'realization' ? 'active' : '' }}" id="nav-detail-realisasi" role="tabpanel" aria-labelledby="nav-detail-realisasi-tab">
                 @include('expense.list.sections.detail-realisasi')
             </div>
@@ -79,7 +79,7 @@
 </div>
 
 @include('expense.list.sections.biaya-pengajuan-card')
-@if($data->expense_status === $can_be_realized)
+@if($data->expense_status >= $can_be_realized)
     @include('expense.list.sections.biaya-realisasi-card')
 @endif
 <script>

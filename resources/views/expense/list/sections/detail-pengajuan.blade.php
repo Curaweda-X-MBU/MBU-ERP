@@ -11,10 +11,10 @@
 
 <div class="card">
     <div class="card-header pb-0">
-        <h4 class="card-title">{{ $title }} | Pengajuan</h4>
+        <h4 class="card-title">{{ $title }} | Pengajuan {{ $data->parent_expense ? 'Ulang' : ($data->child_expense ? 'Utama' : '') }}</h4>
     </div>
     <div class="card-header">
-        <div>
+        <div class="w-100">
             <a href="{{ route('expense.list.index') }}" class="btn btn-outline-secondary">
                 <i data-feather="arrow-left" class="mr-50"></i>
                 Kembali
@@ -40,6 +40,15 @@
             <a class="btn btn-success" href="#" data-toggle="modal" data-target="#approve">
                 <i data-feather="check" class="mr-50"></i>
                 {{ $button_text }}
+            </a>
+            @endif
+
+            @php
+                $other_expense = $data->parent_expense ?: $data->child_expense;
+            @endphp
+            @if ($other_expense)
+            <a href="{{ route('expense.list.detail', ['expense' => $other_expense->expense_id]) }}" class="btn btn-primary mr-1 float-right">
+                Lihat Pengajuan {{ $data->parent_expense ? 'Utama' : ($data->child_expense ? 'Ulang' : '') }}
             </a>
             @endif
         </div>

@@ -8,7 +8,7 @@
     }
 </style>
 
-<div class="card" id="biaya-realisasi-card">
+<div class="card {{ request('page') == 'realization' ? 'show' : '' }}" id="biaya-realisasi-card">
     <div class="card-header">
         <div style="display: flex; width: 100%; align-items: center; justify-content: space-between;">
             <div class="card-title">Rincian Realisasi</div>

@@ -141,6 +141,7 @@ Route::middleware('auth')->group(function() {
                 Route::post('/farm/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.list.approve.farm')->middleware('permission:expense.list.approve.farm');
                 Route::post('/finance/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.list.approve.finance')->middleware('permission:expense.list.approve.finance');
             });
+            Route::get('/finish/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'finish'])->name('expense.list.finish');
             Route::get('/search', [App\Http\Controllers\Expense\ExpenseController::class, 'searchExpense'])->name('expense.list.search');
 
             Route::group(['prefix' => 'disburse'], function() {
