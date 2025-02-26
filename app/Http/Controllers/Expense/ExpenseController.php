@@ -571,7 +571,7 @@ class ExpenseController extends Controller
             if ($req->isMethod('post')) {
                 $input = $req->all();
 
-                if (! $req->has('expense_main_prices')) {
+                if (! $req->has('realization_main_prices')) {
                     return redirect()->back()->with('error', 'Biaya Utama tidak boleh kosong')->withInput($input);
                 }
 
@@ -593,50 +593,63 @@ class ExpenseController extends Controller
                         'realization_docs' => $realizationPath,
                     ]);
 
-                    if ($req->has('expense_realization')) {
-                        $arrRealization = $req->input('expense_realization');
+                    if ($req->has('realization_main_prices')) {
+                        $arrRealizationMainPrices = $req->input('realization_main_prices');
 
-                        foreach ($arrRealization as $key => $value) {
-                            $qty        = Parser::parseLocale($value['qty']);
-                            $totalPrice = Parser::parseLocale($value['price']);
+                        foreach ($arrRealizationMainPrices as $key => $value) {
+                            $qty   = Parser::parseLocale($value['qty']);
+                            $price = Parser::parseLocale($value['price']);
 
-                            // Main Prices
-                            foreach ($expense->expense_main_prices as $mp) {
-                                $arrRealizationItem                           = $value;
-                                $arrRealizationItem['expense_id']             = $expense->expense_id;
-                                $arrRealizationItem['expense_item_id']        = $mp->expense_item_id;
-                                $arrRealizationItem['expense_addit_price_id'] = null;
-
-                                $arrRealizationItem['qty']   = $qty;
-                                $arrRealizationItem['price'] = $totalPrice;
-
-                                ExpenseRealization::create($arrRealizationItem);
-                            }
-
-                            // Addit Prices
-                            foreach ($expense->expense_addit_prices as $ap) {
-                                $arrRealizationItem                           = $value;
-                                $arrRealizationItem['expense_id']             = $expense->expense_id;
-                                $arrRealizationItem['expense_item_id']        = null;
-                                $arrRealizationItem['expense_addit_price_id'] = $ap->expense_addit_price_id;
-
-                                $arrRealizationItem['qty']   = $qty;
-                                $arrRealizationItem['price'] = $totalPrice;
-
-                                ExpenseRealization::create($arrRealizationItem);
-                            }
+                            ExpenseRealization::find($key)->update([
+                                'qty'   => $qty,
+                                'price' => $price,
+                            ]);
                         }
                     }
 
-                    return ['success' => 'Biaya Berhasil Direalisasikan'];
+                    if ($req->has('realization_addit_prices')) {
+                        $arrRealizationAdditPrices = $req->input('realization_addit_prices');
+
+                        foreach ($arrRealizationAdditPrices as $key => $value) {
+                            $price = Parser::parseLocale($value['price']);
+
+                            ExpenseRealization::find($key)->update([
+                                'price' => $price,
+                            ]);
+                        }
+                    }
+
+                    return ['success' => 'Realisasi Biaya Berhasil Disimpan'];
                 });
 
                 return redirect()
-                    ->route('expense.list.detail'.'?page=realization')
+                    ->route('expense.list.detail', ['expense' => $expense->expense_id, 'page' => 'realization'])
                     ->with($success);
             }
 
             return view('expense.list.realization', $param);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function finish(Expense $expense)
+    {
+        try {
+            if ($expense->grand_total !== $expense->is_realized && $expense->is_paid === $expense->is_realized) {
+                throw new \Exception('Belum bisa diselesaikan. Nominal Pencairan dan Realisasi belum sesuai!');
+            }
+
+            $expense->update([
+                'expense_status' => array_search('Selesai', Constants::EXPENSE_STATUS),
+            ]);
+
+            $success = ['success' => 'Biaya berhasil diselesaikan'];
+
+            return redirect()->route('expense.list.detail', ['expense' => $expense->expense_id])->with($success);
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -736,33 +749,5 @@ class ExpenseController extends Controller
                 'data' => $expense,
             ];
         }));
-    }
-
-    private function createRealization(int $expense_id)
-    {
-        $mainPrices = ExpenseMainPrice::where('expense_id', $expense_id)->select('expense_id', 'expense_item_id')->get();
-
-        if (isset($mainPrices)) {
-            foreach ($mainPrices as $mp) {
-                ExpenseRealization::create([
-                    'expense_id'      => $mp->expense_id,
-                    'expense_item_id' => $mp->expense_item_id,
-                    'qty'             => 0,
-                    'price'           => 0,
-                ]);
-            }
-        }
-
-        $additPrices = ExpenseAdditPrice::where('expense_id', $expense_id)->select('expense_id', 'expense_addit_price_id')->get();
-
-        if (isset($additPrices)) {
-            foreach ($additPrices as $ap) {
-                ExpenseRealization::create([
-                    'expense_id'             => $ap->expense_id,
-                    'expense_addit_price_id' => $ap->expense_addit_price_id,
-                    'price'                  => 0,
-                ]);
-            }
-        }
     }
 }

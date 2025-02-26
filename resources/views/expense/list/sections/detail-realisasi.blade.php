@@ -41,12 +41,14 @@
                             <i data-feather='edit-2' class="mr-50"></i>
                             Edit Realisasi
                         </a>
-                        <a href="#" class="dropdown-item text-warning">
+                        @if (!$data->parent_expense_id && empty($data->child_expense))
+                        <a href="{{ route('expense.list.add', ['parent_expense_id' => $data->expense_id]) }}" class="dropdown-item text-warning">
                             <i data-feather='refresh-ccw' class="mr-50"></i>
                             Pengajuan Ulang
                         </a>
-                        @if ($data->grand_total === $data->is_realized)
-                        <a href="#" class="dropdown-item text-success">
+                        @endif
+                        @if ($data->grand_total === $data->is_realized && $data->expense_status < array_search('Selesai', \App\Constants::EXPENSE_STATUS))
+                        <a href="{{ route('expense.list.finish', ['expense' => $data->expense_id]) }}" class="dropdown-item text-success">
                             <i data-feather='check-circle' class="mr-50"></i>
                             Selesaikan
                         </a>
@@ -64,7 +66,8 @@
             </div>
             <div class="budget-card primary mt-1" tabindex="0" data-container="body" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true">
                 <h5 class="font-weight-bolder text-white">Nominal Pengajuan</h5>
-                <p id="budget" class="mt-1 font-weight-bolder fs-larger" data-visible="false" style="font-size: 1.7rem;">Rp.&nbsp;<span>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</span></p>
+                <p id="budget" class="mt-1 font-weight-bolder fs-larger mt-2" data-visible="false" style="font-size: 1.7rem;">Rp.&nbsp;<span>{{ \App\Helpers\Parser::toLocale($data->grand_total) }}</span></p>
+                <h6 class="font-weight-bolder text-white mb-0" style="visibility: hidden;">Placeholder</h6>
             </div>
         </div>
         {{-- Nominal Realisasi --}}
@@ -74,7 +77,8 @@
             </div>
             <div class="budget-card success mt-1" tabindex="0" data-container="body" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true">
                 <h5 class="font-weight-bolder text-white">Nominal Realisasi</h5>
-                <p id="budget" class="mt-1 font-weight-bolder fs-larger" data-visible="false" style="font-size: 1.7rem;">Rp.&nbsp;<span>{{ \App\Helpers\Parser::toLocale($data->is_realized) }}</span></p>
+                <p id="budget" class="mt-1 font-weight-bolder fs-larger mt-2" data-visible="false" style="font-size: 1.7rem;">Rp.&nbsp;<span>{{ \App\Helpers\Parser::toLocale($data->is_realized) }}</span></p>
+                <h6 class="font-weight-bolder text-white mb-0">Selisih {{ \App\Helpers\Parser::toLocale($data->grand_total - $data->is_realized) }}</h6>
             </div>
         </div>
     </div>
