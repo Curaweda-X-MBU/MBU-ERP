@@ -379,6 +379,7 @@ class ExpenseController extends Controller
                 'expense_main_prices',
                 'expense_addit_prices',
                 'expense_disburses',
+                'expense_return.bank',
             ]);
 
             $param = [
@@ -674,19 +675,24 @@ class ExpenseController extends Controller
                     $docPath = $docUrl['url'];
                 }
 
-                ExpenseReturnPayment::create([
-                    'expense_id'         => $expense->expense_id,
-                    'payment_method'     => $input['payment_method'],
-                    'bank_id'            => $input['bank_id']           ?? null,
-                    'bank_recipient_id'  => $input['bank_recipient_id'] ?? null,
-                    'payment_reference'  => $input['payment_reference'],
-                    'transaction_number' => $input['transaction_number'],
-                    'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
-                    'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
-                    'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                    'return_docs'        => $docPath,
-                    'notes'              => $input['notes'],
-                ]);
+                ExpenseReturnPayment::updateOrCreate(
+                    [
+                        'expense_id' => $expense->expense_id,
+                    ],
+                    [
+                        'expense_id'         => $expense->expense_id,
+                        'payment_method'     => $input['payment_method'],
+                        'bank_id'            => $input['bank_id']           ?? null,
+                        'bank_recipient_id'  => $input['bank_recipient_id'] ?? null,
+                        'payment_reference'  => $input['payment_reference'],
+                        'transaction_number' => $input['transaction_number'],
+                        'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
+                        'bank_admin_fees'    => Parser::parseLocale($input['bank_admin_fees']),
+                        'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
+                        'return_docs'        => $docPath,
+                        'notes'              => $input['notes'],
+                    ]
+                );
             });
 
             $success = ['success' => 'Data Berhasil disimpan'];

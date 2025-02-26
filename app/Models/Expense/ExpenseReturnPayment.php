@@ -47,6 +47,6 @@ class ExpenseReturnPayment extends Model
 
     public function recipient_bank()
     {
-        return $this->belongsTo(Bank::class, 'recipient_bank_id', 'bank_id');
+        return $this->belongsTo(Bank::class, 'bank_recipient_id', 'bank_id');
     }
 }
