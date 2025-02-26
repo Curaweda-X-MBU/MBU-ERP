@@ -43,7 +43,57 @@ class ListController extends Controller
     public function index(Request $req)
     {
         try {
-            $data  = Project::with(['kandang', 'product_category'])->get();
+            $data      = Project::with(['kandang.location', 'product_category']);
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['kandang']['company_id'])) {
+                $arrAppend['kandang[company_id]'] = $request['kandang']['company_id'];
+            }
+
+            if (isset($request['kandang']['location']['area_id'])) {
+                $arrAppend['kandang[location][area_id]'] = $request['kandang']['location']['area_id'];
+            }
+
+            if (isset($request['kandang']['location_id'])) {
+                $arrAppend['kandang[location_id]'] = $request['kandang']['location_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value > 0) {
+                    if (! in_array($key, ['rows', 'page'])) {
+                        if (is_array($request[$key])) {
+                            $data = $data->whereHas($key, function($query) use ($value) {
+                                foreach ($value as $relationKey => $relationValue) {
+                                    if (is_array($value[$relationKey])) {
+                                        // Handle nested relationships (e.g., kandang.location.area_id)
+                                        $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                                            foreach ($relationValue as $subKey => $subValue) {
+                                                $subQuery->where($subKey, $subValue);
+                                            }
+                                        });
+                                    } else {
+                                        // Direct relationship column filtering
+                                        $query->where($relationKey, $relationValue);
+                                    }
+                                }
+                            });
+                        } else {
+                            $data            = $data->where($key, $value);
+                            $arrAppend[$key] = $value;
+                        }
+                    }
+                }
+            }
+            $data = $data
+                ->orderBy('project_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
+
             $param = [
                 'title'          => 'Project > List',
                 'data'           => $data,
@@ -267,6 +317,8 @@ class ListController extends Controller
                         'project_status' => true,
                     ]);
                 }
+
+                \Log::info('project_status '.$project->project_status);
             }
 
             $success = ['success' => 'Project berhasil disetujui'];

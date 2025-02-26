@@ -278,7 +278,7 @@
                     <script>
                         $(function () {
                             $('#datatable').DataTable({
-                                // scrollX: true,
+                                scrollX: true,
                                 drawCallback: function( settings ) {
                                     feather.replace();
                                 },
