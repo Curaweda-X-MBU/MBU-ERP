@@ -1,3 +1,6 @@
+@php
+    $roleAccess = Auth::user()->role;
+@endphp
 <style>
     .budget-card {
       cursor: pointer;
@@ -40,14 +43,22 @@
                         <i data-feather="more-vertical"></i>
                     </button>
                     <div class="dropdown-menu">
+                        @if ($data->expense_status < array_search('Selesai', \App\Constants::EXPENSE_STATUS) || $roleAccess->hasPermissionTo('expense.list.approve.finance'))
                         <a href="{{ route('expense.list.realization', $data->expense_id) }}" class="dropdown-item">
                             <i data-feather='edit-2' class="mr-50"></i>
                             Edit Realisasi
                         </a>
+                        @endif
                         @if (!$data->parent_expense_id && empty($data->child_expense))
                         <a href="{{ route('expense.list.add', ['parent_expense_id' => $data->expense_id]) }}" class="dropdown-item text-warning">
                             <i data-feather='refresh-ccw' class="mr-50"></i>
                             Pengajuan Ulang
+                        </a>
+                        @endif
+                        @if ($data->grand_total > $data->is_realized)
+                        <a href="{{ route('expense.list.add', ['parent_expense_id' => $data->expense_id]) }}" class="dropdown-item text-primary">
+                            <i data-feather='corner-up-left' class="mr-50"></i>
+                            Pengembalian
                         </a>
                         @endif
                         @if ($data->grand_total === $data->is_realized && $data->expense_status < array_search('Selesai', \App\Constants::EXPENSE_STATUS))

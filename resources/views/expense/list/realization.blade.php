@@ -24,7 +24,12 @@
                         <div class="col-md-3 mt-1">
                             <label for="realization_docs">Dokumen Pembelian<i class="text-danger">*</i></label>
                             <div class="input-group">
-                                    <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1" value="{{ explode('/', @$data->realization_docs)[1] }}" {{ @$data->expense_status == array_key_last(\App\Constants::EXPENSE_STATUS) ? 'disabled' : (@$data->realization_docs && @$data->realization_docs !== '' ? '' : 'required') }}>
+                                    @php
+                                        $path = $data->realization_docs ?? '';
+                                        $parts = explode('/', $path);
+                                        $filename = end($parts);
+                                    @endphp
+                                    <input type="text" id="fileName" placeholder="Upload" class="form-control" tabindex="-1" value="{{ @$data->realization_docs ? $filename : '' }}" {{ @$data->expense_status == array_key_last(\App\Constants::EXPENSE_STATUS) ? 'disabled' : (@$data->realization_docs && @$data->realization_docs !== '' ? '' : 'required') }}>
                                     <input type="file" id="transparentFileUpload" name="realization_docs" {{ @$data->expense_status == array_key_last(\App\Constants::EXPENSE_STATUS) ? 'disabled' : (@$data->realization_docs && @$data->realization_docs !== '' ? '' : 'required') }}>
                                 <div class="input-group-append">
                                     <span class="input-group-text"> <i data-feather="upload"></i></span>

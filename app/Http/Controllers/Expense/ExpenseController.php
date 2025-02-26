@@ -354,9 +354,6 @@ class ExpenseController extends Controller
                     }
                 });
 
-                // Create realization records
-                // $this->createRealization($expenseID);
-
                 return redirect()
                     ->route('expense.list.index')
                     ->with($success);
