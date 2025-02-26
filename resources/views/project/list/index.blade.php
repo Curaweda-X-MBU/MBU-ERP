@@ -18,7 +18,7 @@
                                     </div>
                                 </div>
                                 @php
-                                    $arrRows = [3, 10,20,50,100];
+                                    $arrRows = [10,20,50,100];
                                     $statusChickIn = App\Constants::PROJECT_CHICKIN_STATUS;
                                     $statusProject = App\Constants::PROJECT_STATUS;
                                 @endphp
