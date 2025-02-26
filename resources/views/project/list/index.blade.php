@@ -114,9 +114,9 @@
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-2 col-12">
+                                                        <div class="col-md-1 col-12">
                                                             <div class="form-group">
-                                                                <label for="stock_type">Jumlah Baris</label>
+                                                                <label for="stock_type">Baris</label>
                                                                 <select name="rows" class="form-control" >
                                                                     @for ($i = 0; $i < count($arrRows); $i++)
                                                                     <option value="{{ $arrRows[$i] }}" {{ request()->has('rows')&&request()->get('rows')==$arrRows[$i]?'selected':'' }}>{{ $arrRows[$i] }}</option>
@@ -124,10 +124,12 @@
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-1 col-12">
-                                                            <div class="form-group">
+                                                        <div class="col-md-2 col-12">
+                                                            <div class="form-group float-right">
                                                                 <label for="stock_type"></label>
                                                                 <button type="submit" class="btn btn-primary">Cari</button>
+                                                                <label for="stock_type"></label>
+                                                                <a href="{{ route('project.list.index') }}"  class="btn btn-warning">Reset</a>
                                                             </div>
                                                         </div>
                                                     </div>
