@@ -238,18 +238,23 @@ class ExpenseController extends Controller
                     if ($expenseStatus == 0) {
                         // Save as Draft
                         $createdExpense = Expense::create([
-                            'location_id'      => $input['location_id'],
-                            'supplier_id'      => $input['supplier_id'] ?? null,
-                            'category'         => $category,
-                            'bill_docs'        => $billPath ?? null,
-                            'realization_docs' => null,
-                            'transaction_date' => $input['transaction_date'],
-                            'payment_status'   => 0,
-                            'expense_status'   => 0,
-                            'created_by'       => Auth::id(),
+                            'parent_expense_id' => $req->expense_id ? $input[''] : null,
+                            'location_id'       => $input['location_id'],
+                            'supplier_id'       => $input['supplier_id'] ?? null,
+                            'category'          => $category,
+                            'bill_docs'         => $billPath ?? null,
+                            'realization_docs'  => null,
+                            'transaction_date'  => $input['transaction_date'],
+                            'payment_status'    => 0,
+                            'expense_status'    => 0,
+                            'created_by'        => Auth::id(),
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
+
+                        $createdExpense->update([
+                            'parent_expense_id' => $req->parent_expense_id ?: null,
+                        ]);
                     } else {
                         $createdExpense = Expense::create([
                             'location_id'      => $input['location_id'],
@@ -264,6 +269,10 @@ class ExpenseController extends Controller
                         ]);
 
                         $expenseID = $createdExpense->expense_id;
+
+                        $createdExpense->update([
+                            'parent_expense_id' => $req->parent_expense_id ?: null,
+                        ]);
                     }
 
                     $selectedKandangs = json_decode($req->input('selected_kandangs'), true);
