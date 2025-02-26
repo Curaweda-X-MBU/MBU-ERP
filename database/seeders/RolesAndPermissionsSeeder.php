@@ -112,13 +112,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'expense.list.edit',
             'expense.list.detail',
             'expense.list.delete',
-            'expense.list.approve',
-            'expense.list.payment.index',
-            'expense.list.payment.add',
-            'expense.list.payment.edit',
-            'expense.list.payment.detail',
-            'expense.list.payment.delete',
-            'expense.list.payment.approve',
+            'expense.list.approve.farm',
+            'expense.list.approve.finance',
+            'expense.list.realization',
+            'expense.list.disburse.index',
+            'expense.list.disburse.add',
+            'expense.list.disburse.edit',
+            'expense.list.disburse.detail',
+            'expense.list.disburse.delete',
             'expense.recap.index',
             'finance.index',
             'report.mbu.index',
@@ -226,85 +227,9 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $adminMarketingPermissions = [
-            'marketing.list.index',
-            'marketing.list.add',
-            'marketing.list.edit',
-            'marketing.list.detail',
-            'marketing.list.delete',
-            'marketing.list.realization',
-            'marketing.return.index',
-            'marketing.return.add',
-            'marketing.return.edit',
-            'marketing.return.detail',
-            'marketing.return.delete',
-        ];
-
-        $adminFinancePermissions = [
-            'marketing.list.index',
-            'marketing.list.detail',
-            'marketing.list.payment.index',
-            'marketing.list.payment.add',
-            'marketing.list.payment.detail',
-            'marketing.return.index',
-            'marketing.return.detail',
-            'marketing.return.payment.index',
-            'marketing.return.payment.add',
-            'marketing.return.payment.detail',
-        ];
-
-        $managerMarketingPermissions = [
-            'marketing.list.index',
-            'marketing.list.edit',
-            'marketing.list.detail',
-            'marketing.list.approve',
-            'marketing.list.payment.index',
-            'marketing.list.payment.edit',
-            'marketing.list.payment.detail',
-            'marketing.list.payment.approve',
-            'marketing.return.index',
-            'marketing.return.edit',
-            'marketing.return.detail',
-            'marketing.return.payment.index',
-            'marketing.return.payment.edit',
-            'marketing.return.payment.detail',
-            'marketing.return.payment.approve',
-        ];
-
-        $managerFinancePermissions = [
-            'marketing.list.index',
-            'marketing.list.add',
-            'marketing.list.payment.index',
-            'marketing.list.payment.add',
-            'marketing.list.payment.detail',
-            'marketing.list.payment.approve',
-            'marketing.return.index',
-            'marketing.return.add',
-            'marketing.return.detail',
-            'marketing.return.payment.index',
-            'marketing.return.payment.add',
-            'marketing.return.payment.detail',
-            'marketing.return.payment.approve',
-        ];
-
         // Assign permissions to roles
         Role::find(1)->givePermissionTo($permissions);
-        // Role::find(2)->givePermissionTo($adminMarketingPermissions);
-        // Role::find(3)->givePermissionTo($adminFinancePermissions);
-        // Role::find(4)->givePermissionTo($managerMarketingPermissions);
-        // Role::find(5)->givePermissionTo($managerFinancePermissions);
         $user1 = User::find(1);
         $user1->assignRole('Super Admin');
-        // $user2 = User::find(2);
-        // $user2->assignRole('Admin Marketing');
-        // $user3 = User::find(3);
-        // $user3->assignRole('Admin Finance');
-        // $user4 = User::find(4);
-        // $user4->assignRole('Manager Marketing');
-        // $user5 = User::find(5);
-        // $user5->assignRole('Manager Finance');
-        // $adminFarm->givePermissionTo($permissions);
-        // $managerArea->givePermissionTo(['project.list', 'pembelian.submit']);
-        // $staffAudit->givePermissionTo(['audit.access', 'pembelian.submit']);
     }
 }

@@ -11,6 +11,8 @@ class ExpenseMainPrice extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = 'expense_main_prices';
 
     protected $primaryKey = 'expense_item_id';
@@ -24,25 +26,44 @@ class ExpenseMainPrice extends Model
         'notes',
     ];
 
-    protected $appends = ['total_qty', 'total_price'];
+    protected $appends = ['qty_per_kandang', 'price_per_kandang'];
 
-    public function getTotalQtyAttribute()
+    public function getQtyPerKandangAttribute()
     {
-        $countKandang = count($this->expense->expense_kandang) ?: 1;
+        $countKandang = max(count($this->expense->expense_kandang), 1);
 
         return $this->qty / $countKandang;
     }
 
-    public function getTotalPriceAttribute()
+    public function getPricePerKandangAttribute()
     {
-        $countKandang = count($this->expense->expense_kandang) ?: 1;
+        $countKandang = max(count($this->expense->expense_kandang), 1);
 
         return $this->price / $countKandang;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function(ExpenseMainPrice $expenseMainPrice) {
+            $expenseMainPrice->expense_realization()
+                ->create([
+                    'expense_id' => $expenseMainPrice->expense_id,
+                    'qty'        => 0,
+                    'price'      => 0,
+                ]);
+        });
     }
 
     public function expense()
     {
         return $this->belongsTo(Expense::class, 'expense_id', 'expense_id');
+    }
+
+    public function expense_realization()
+    {
+        return $this->hasOne(ExpenseRealization::class, 'expense_item_id', 'expense_item_id');
     }
 
     public function nonstock()

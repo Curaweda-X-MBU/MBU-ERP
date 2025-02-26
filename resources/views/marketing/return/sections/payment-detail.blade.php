@@ -164,13 +164,11 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script>
-    $(document).ready(function() {
-        $('#transparentFileUpload').on('change', function() {
-            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
-        })
-    });
+    $(function() {
+        $(document).on('change', '#transparentFileUpload', function() {
+            $(this).siblings('#fileName').val($(this).val().split('\\').pop());
+        });
 
-    (function() {
         initNumeralMask('.numeral-mask');
 
         initFlatpickrDate($('.flatpickr-basic'));
@@ -296,5 +294,5 @@ $paymentLeft = $data->marketing_return->total_return - $data->is_returned;
                 });
             })
         }
-    })();
+    });
 </script>

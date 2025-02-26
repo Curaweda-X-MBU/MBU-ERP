@@ -1,12 +1,26 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
-                <div class="float-right">
+                <div class="pull-right">
+                    @php
+                        $role = Auth::user()->role;
+                    @endphp
+                    @if ($role->hasPermissionTo('expense.list.approve.farm'))
+                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect">
+                        Approve Mgr. Farm
+                    </a>
+                    @endif
+                    @if ($role->hasPermissionTo('expense.list.approve.finance'))
+                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect">
+                        Approve Mgr. Finance
+                    </a>
+                    @endif
                     <a href="{{ route('expense.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
             </div>
@@ -22,19 +36,16 @@
                                 <th>Kategori</th>
                                 <th>Tanggal</th>
                                 <th>Nama Pengaju</th>
-                                <th>Nominal Biaya (Rp)</th>
-                                <th>Nominal Sudah Bayar (Rp)</th>
-                                <th>Nominal Sisa Bayar (Rp)</th>
-                                <th>Status Pembayaran</th>
+                                <th>Vendor</th>
+                                <th>Nominal (Rp)</th>
+                                <th>Sudah Bayar (Rp)</th>
+                                <th>Sisa Bayar (Rp)</th>
+                                <th>Status Pencairan</th>
                                 <th>Status Biaya</th>
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
                                 @foreach ($data as $item)
-                                @php
-                                    $nominalBiaya = $item->grand_total;
-                                    $nominalSisaBayar = $item->is_paid;
-                                @endphp
                                     <tr>
                                         <td>{{ $item->expense_id }}</td>
                                         <td>{{ $item->expense_status == 0 ? 0 : 1 }}</td>
@@ -54,9 +65,10 @@
                                         </td>
                                         <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
                                         <td>{{ $item->created_user->name }}</td>
-                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($nominalBiaya) }}</td>
-                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($nominalSisaBayar) }}</td>
-                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($nominalBiaya - $nominalSisaBayar) }}</td>
+                                        <td>{{ $item->supplier->name ?? '-' }}</td>
+                                        <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
+                                        <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
+                                        <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->not_paid) }}</td>
                                         <td>
                                             @php
                                                 $statusPayment = App\Constants::EXPENSE_PAYMENT_STATUS;
@@ -87,10 +99,22 @@
                                                     <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    @break
+                                                @case(3)
+                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    @break
+                                                @case(4)
+                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    @break
+                                                @case(5)
+                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    @break
+                                                @case(6)
+                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$item->expense_status] }}</div>
                                                     @break
                                                 @default
-                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>
@@ -103,17 +127,25 @@
                                                         <i data-feather='eye' class="mr-50"></i>
                                                         <span>Lihat Detail</span>
                                                     </a>
-                                                    <a class="dropdown-item" href="{{ route('expense.list.payment.index', $item->expense_id) }}">
+                                                    @if (@$item->expense_status >= array_search('Pencairan', \App\Constants::EXPENSE_STATUS))
+                                                    <a class="dropdown-item" href="{{ route('expense.list.disburse.index', $item->expense_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
-                                                        <span>Tambah Pembayaran</span>
+                                                        <span>Pencairan</span>
                                                     </a>
+                                                    @endif
+                                                    @if(@$item->expense_status === array_search('Realisasi', \App\Constants::EXPENSE_STATUS))
+                                                    <a class="dropdown-item" href="{{ route('expense.list.realization', $item->expense_id) }}">
+                                                        <i data-feather='package' class="mr-50"></i>
+                                                        <span>Realisasi</span>
+                                                    </a>
+                                                    @endif
                                                     @if (@$item->approval_notes && @$item->is_approved === 0)
                                                         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
                                                             <i data-feather="message-square" class="mr-50"></i>
-                                                            <span>Catatan Persetujuan</span>
+                                                            <span>Catatan Penolakan</span>
                                                         </a>
                                                     @endif
-                                                    <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.delete', $item->expense_id) }}">
+                                                    <a class="dropdown-item item-delete-button text-danger" href="{{ route('expense.list.delete', ['expense' => $item->expense_id]) }}">
                                                         <i data-feather='trash' class="mr-50"></i>
                                                         <span>Hapus</span>
                                                     </a>
@@ -206,13 +238,16 @@
             drawCallback: function(settings) {
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
+                let notPaidSum = 0;
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[7]);
-                    const isPaid = parseLocaleToNum(data[8]);
+                    const grandTotal = parseLocaleToNum(data[8]);
+                    const isPaid = parseLocaleToNum(data[9]);
+                    const notPaid = parseLocaleToNum(data[10]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
+                    notPaidSum += notPaid;
                 });
 
                 const $grandTotal = $("#grand_total");
@@ -221,7 +256,7 @@
 
                 $grandTotal.text(parseNumToLocale(grandTotalSum));
                 $isPaid.text(parseNumToLocale(isPaidSum));
-                $notPaid.text(parseNumToLocale(grandTotalSum - isPaidSum));
+                $notPaid.text(parseNumToLocale(notPaidSum));
 
                 feather.replace();
             },

@@ -153,13 +153,11 @@ $paymentLeft = $data->grand_total - $data->is_paid;
 <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script>
-    $(document).ready(function() {
-        $('#transparentFileUpload').on('change', function() {
-            $('#fileName').val($('#transparentFileUpload').val().split('\\').pop())
-        })
-    });
+    $(function() {
+        $(document).on('change', '#transparentFileUpload', function() {
+            $(this).siblings('#fileName').val($(this).val().split('\\').pop());
+        });
 
-    (function() {
         initNumeralMask('.numeral-mask');
         initFlatpickrDate($('.flatpickr-basic'));
 
@@ -194,9 +192,10 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentNominalMask = $this.find('.payment_nominal_mask');
                 const $paymentNominal = $this.find('.payment_nominal');
                 const $paymentAt = $this.find('.payment_at');
+                const $fileName = $this.find('#fileName');
                 const $notes = $this.find('.notes');
                 const $approvalNotes = $('#approveForm').find('.approval_notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
@@ -208,6 +207,7 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     $paymentNominalMask.val(parseNumToLocale(result.payment_nominal)).trigger('input');
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $paymentAt.val(parseDateToString(result.payment_at));
+                    $fileName.val(result.document_path.split('/').pop());
                     $notes.text(result.notes ?? '-');
                     $approvalNotes.text(result.approval_notes ?? '');
                 });
@@ -227,17 +227,17 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                 const $paymentNominalMask = $this.find('.payment_nominal_mask');
                 const $paymentNominal = $this.find('.payment_nominal');
                 const $paymentAt = $this.find('.payment_at');
+                const $fileName = $this.find('#fileName');
                 const $notes = $this.find('#notes');
-                const route = '{{ route('expense.list.payment.detail', ':id') }}'
+                const route = '{{ route('expense.list.disburse.detail', ':id') }}'
                 $.ajax({
                     method: 'get',
                     url: route.replace(':id', paymentId),
                 }).then(function(result) {
                     credit = (@js($paymentLeft) >= 0) ? @js($paymentLeft) : result.payment_nominal - Math.abs(@js($paymentLeft));
-                    if (result.verify_status == 2) {
-                        credit += result.payment_nominal;
-                        $paymentNominal.attr('max', credit);
-                    }
+                    credit += result.payment_nominal;
+                    $paymentNominal.attr('max', credit);
+
                     $paymentMethod.val(result.payment_method).trigger('change');
                     $ownBank.append(`<option value="${result.bank ? result.bank_id : ''}" selected>${result.bank ? result.bank.name : '-'}</option>`).trigger('change');
                     $refNumber.val(result.payment_reference ?? '-');
@@ -246,11 +246,12 @@ $paymentLeft = $data->grand_total - $data->is_paid;
                     $paymentNominalMask.val(parseNumToLocale(result.payment_nominal)).trigger('input');
                     $paymentNominal.val(result.payment_nominal).trigger('input');
                     $paymentAt.val(result.payment_at);
+                    $fileName.val(result.document_path.split('/').pop());
                     $notes.text(result.notes ?? '-');
 
                     initFlatpickrDate($('.flatpickr-basic'));
                 });
             })
         }
-    })();
+    });
 </script>

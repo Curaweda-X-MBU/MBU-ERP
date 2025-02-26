@@ -22,7 +22,7 @@ $is_edit = true;
             }
 
         setTimeout(function() {
-            const route = @js(route('expense.list.payment.edit', ':id'));
+            const route = @js(route('expense.list.disburse.edit', ':id'));
             const id = $('input[name="expense_payment_id"]').val();
             $form.attr('action', route.replace(':id', id)).trigger('submit');
 
@@ -42,7 +42,7 @@ $is_edit = true;
                     </button>
                 </div>
                 <div class="modal-body">
-                    @include('expense.list.sections.payment-detail')
+                    @include('expense.list.sections.disburse-detail')
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="handleEdit()" class="btn btn-success mr-1 waves-effect waves-float waves-light">Edit</button>

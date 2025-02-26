@@ -6,11 +6,12 @@ use App\Constants;
 use App\Helpers\Parser;
 use App\Models\DataMaster\Kandang;
 use App\Models\DataMaster\Location;
+use App\Models\DataMaster\Supplier;
 use App\Models\UserManagement\User;
-use DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Expense extends Model
 {
@@ -22,6 +23,7 @@ class Expense extends Model
     protected $primaryKey = 'expense_id';
 
     protected $fillable = [
+        'parent_expense_id',
         'id_expense',
         'po_number',
         'transaction_date',
@@ -30,7 +32,10 @@ class Expense extends Model
         'approval_notes',
         'approved_at',
         'location_id',
+        'supplier_id',
         'category',
+        'bill_docs',
+        'realization_docs',
         'payment_status',
         'expense_status',
         'created_by',
@@ -41,6 +46,8 @@ class Expense extends Model
         'is_paid',
         'total_qty',
         'not_paid',
+        'is_realized',
+        'not_realized',
     ];
 
     public function getGrandTotalAttribute()
@@ -50,17 +57,27 @@ class Expense extends Model
 
     public function getIsPaidAttribute()
     {
-        return $this->expense_payments->where('verify_status', 2)->sum('payment_nominal');
+        return $this->expense_disburses->sum('payment_nominal');
     }
 
     public function getTotalQtyAttribute()
     {
-        return $this->expense_main_prices->sum('total_qty');
+        return $this->expense_main_prices->sum('qty');
     }
 
     public function getNotPaidAttribute()
     {
         return $this->grand_total - $this->is_paid;
+    }
+
+    public function getIsRealizedAttribute()
+    {
+        return $this->expense_realizations->sum('price');
+    }
+
+    public function getNotRealizedAttribute()
+    {
+        return $this->grand_total - $this->is_realized;
     }
 
     public function calculatePaymentStatus()
@@ -193,8 +210,28 @@ class Expense extends Model
         return $this->hasMany(ExpenseAdditPrice::class, 'expense_id', 'expense_id');
     }
 
-    public function expense_payments()
+    public function expense_disburses()
     {
-        return $this->hasMany(ExpensePayment::class, 'expense_id', 'expense_id');
+        return $this->hasMany(ExpenseDisburse::class, 'expense_id', 'expense_id');
+    }
+
+    public function expense_realizations()
+    {
+        return $this->hasMany(ExpenseRealization::class, 'expense_id', 'expense_id');
+    }
+
+    public function parent_expense()
+    {
+        return $this->belongsTo(Expense::class, 'parent_expense_id', 'expense_id');
+    }
+
+    public function child_expense()
+    {
+        return $this->hasOne(Expense::class, 'parent_expense_id', 'expense_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }

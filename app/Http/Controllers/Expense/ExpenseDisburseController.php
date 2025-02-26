@@ -8,21 +8,20 @@ use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Bank;
 use App\Models\Expense\Expense;
-use App\Models\Expense\ExpensePayment;
+use App\Models\Expense\ExpenseDisburse;
 use DateTime;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\SimpleExcel\SimpleExcelReader;
 
-class ExpensePaymentController extends Controller
+class ExpenseDisburseController extends Controller
 {
     public function index(Expense $expense)
     {
         try {
-            if (Constants::EXPENSE_STATUS[$expense->expense_status] !== 'Disetujui') {
-                throw new \Exception('Status Biaya belum disetujui');
+            if ($expense->expense_status < array_search('Pencairan', Constants::EXPENSE_STATUS)) {
+                throw new \Exception('Status Biaya belum disetujui oleh Finance');
             }
 
             $data = $expense->load([
@@ -30,15 +29,15 @@ class ExpensePaymentController extends Controller
                 'location',
                 'expense_main_prices',
                 'expense_addit_prices',
-                'expense_payments',
+                'expense_disburses',
             ]);
 
             $param = [
-                'title' => 'Biaya > Payment',
+                'title' => 'Biaya > Pencairan',
                 'data'  => $data,
             ];
 
-            return view('expense.list.payment.index', $param);
+            return view('expense.list.disburse.index', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
@@ -52,14 +51,14 @@ class ExpensePaymentController extends Controller
 
                 $docPath = '';
                 if ($req->hasFile('document_path')) {
-                    $docUrl = FileHelper::upload($input['document_path'], Constants::EXPENSE_PAYMENT_DOC_PATH);
+                    $docUrl = FileHelper::upload($input['document_path'], Constants::EXPENSE_DISBURSE_DOC_PATH);
                     if (! $docUrl['status']) {
                         return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                     }
                     $docPath = $docUrl['url'];
                 }
 
-                ExpensePayment::create([
+                ExpenseDisburse::create([
                     'expense_id'         => $expense->expense_id,
                     'payment_method'     => $input['payment_method'],
                     'bank_id'            => $input['bank_id'] ?? null,
@@ -67,9 +66,8 @@ class ExpensePaymentController extends Controller
                     'transaction_number' => $input['transaction_number'],
                     'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
                     'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                    'document_path'      => $docPath,
+                    'disburse_docs'      => $docPath,
                     'notes'              => $input['notes'],
-                    'verify_status'      => 1, // Diajukan
                 ]);
             });
 
@@ -100,7 +98,7 @@ class ExpensePaymentController extends Controller
                 $idExpense = array_map('strtoupper', array_column($rows, 'id_expense'));
 
                 $expenses = Expense::with([
-                    'expense_payments',
+                    'expense_disburses',
                     'expense_main_prices:expense_id,price',
                     'expense_addit_prices:expense_id,price',
                 ])
@@ -211,7 +209,7 @@ class ExpensePaymentController extends Controller
 
                 Storage::disk('local')->delete($tempPath);
 
-                return view('expense.list.payment.batch', array_merge(['title' => 'Biaya > Payment > Batch Upload'], $param));
+                return view('expense.list.disburse.batch', array_merge(['title' => 'Biaya > Pencairan > Batch Upload'], $param));
             }
 
             throw new \Exception('Tidak ada data. Tolong upload ulang file csv.');
@@ -243,7 +241,7 @@ class ExpensePaymentController extends Controller
 
                     $docPath = '';
                     if (isset($value['document_path'])) {
-                        $docUrl = FileHelper::upload($value['document_path'], Constants::EXPENSE_PAYMENT_DOC_PATH);
+                        $docUrl = FileHelper::upload($value['document_path'], Constants::EXPENSE_DISBURSE_DOC_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$value['document_path'])->withInput();
                         }
@@ -252,19 +250,14 @@ class ExpensePaymentController extends Controller
 
                     $arrPayments[] = [
                         'expense_id'         => $value['expense_id'],
-                        'document_path'      => $docPath,
+                        'disburse_docs'      => $docPath,
                         'transaction_number' => $value['transaction_number'],
                         'payment_reference'  => $value['payment_reference'],
                         'payment_method'     => $value['payment_method'],
                         'bank_id'            => $value['bank_id'] ?? null,
                         'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
                         'payment_nominal'    => $paymentNominal,
-                        'is_approved'        => 1,
                         'approved_at'        => now()->format('Y-m-d'),
-                        'verify_status'      => array_search(
-                            'Terverifikasi',
-                            Constants::MARKETING_VERIFY_PAYMENT_STATUS
-                        ),
                     ];
 
                     $expense       = Expense::find($value['expense_id']);
@@ -291,7 +284,7 @@ class ExpensePaymentController extends Controller
                     $processedCount += 1;
                 }
 
-                ExpensePayment::insert($arrPayments);
+                ExpenseDisburse::insert($arrPayments);
 
                 return $processedCount;
             });
@@ -304,10 +297,10 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function detail(ExpensePayment $payment)
+    public function detail(ExpenseDisburse $disburse)
     {
         try {
-            $data = $payment->load(['bank']);
+            $data = $disburse->load(['bank']);
 
             return $data;
         } catch (\Exception $e) {
@@ -315,23 +308,23 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function edit(Request $req, ExpensePayment $payment)
+    public function edit(Request $req, ExpenseDisburse $disburse)
     {
         try {
-            $data = $payment->load(['bank']);
+            $data = $disburse->load(['bank']);
 
             if ($req->isMethod('post')) {
-                DB::transaction(function() use ($req, $payment) {
+                DB::transaction(function() use ($req, $disburse, $data) {
                     $input = $req->all();
 
-                    $existingDoc = $data->document_path ?? null;
+                    $existingDoc = $data->disburse_docs ?? null;
                     $docPath     = '';
                     if ($req->hasFile('document_path')) {
                         if ($existingDoc) {
                             FileHelper::delete($existingDoc);
                         }
 
-                        $docUrl = FileHelper::upload($input['document_path'], constants::EXPENSE_PAYMENT_DOC_PATH);
+                        $docUrl = FileHelper::upload($input['document_path'], constants::EXPENSE_DISBURSE_DOC_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$input['document_path'])->withInput();
                         }
@@ -340,14 +333,14 @@ class ExpensePaymentController extends Controller
                         $docPath = $existingDoc;
                     }
 
-                    $payment->update([
+                    $disburse->update([
                         'payment_method'     => $input['payment_method'],
                         'bank_id'            => $input['bank_id'],
                         'payment_reference'  => $input['payment_reference'],
                         'transaction_number' => $input['transaction_number'],
                         'payment_nominal'    => Parser::parseLocale($input['payment_nominal']),
                         'payment_at'         => date('Y-m-d', strtotime($input['payment_at'])),
-                        'document_path'      => $docPath,
+                        'disburse_docs'      => $docPath,
                         'notes'              => $input['notes'],
                     ]);
                 });
@@ -365,11 +358,11 @@ class ExpensePaymentController extends Controller
         }
     }
 
-    public function delete(ExpensePayment $payment)
+    public function delete(ExpenseDisburse $disburse)
     {
         try {
-            DB::transaction(function() use ($payment) {
-                $payment->delete();
+            DB::transaction(function() use ($disburse) {
+                $disburse->delete();
             });
             $success = ['success' => 'Data Berhasil dihapus'];
 
@@ -377,42 +370,6 @@ class ExpensePaymentController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
 
-        }
-    }
-
-    public function approve(Request $req, ExpensePayment $payment)
-    {
-        DB::beginTransaction();
-        try {
-            $input = $req->all();
-
-            $success       = [];
-            $verify_status = '';
-            $approved_at   = null;
-
-            if ($input['is_approved'] == 1) {
-                $success       = ['success' => 'Pembayaran berhasil disetujui'];
-                $verify_status = array_search('Terverifikasi', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
-                $approved_at   = now()->format('Y-m-d H:i:s');
-            } else {
-                $success       = ['success' => 'Pembayaran berhasil ditolak'];
-                $verify_status = array_search('Ditolak', Constants::MARKETING_VERIFY_PAYMENT_STATUS);
-            }
-            $payment->update([
-                'is_approved'    => $input['is_approved'],
-                'approver_id'    => Auth::id(),
-                'approval_notes' => $input['approval_notes'],
-                'approved_at'    => $approved_at,
-                'verify_status'  => $verify_status,
-            ]);
-
-            DB::commit(); // Commit transaksi jika semua berhasil
-
-            return redirect()->back()->with($success);
-        } catch (\Exception $e) {
-            DB::rollBack(); // Rollback transaksi jika terjadi kesalahan
-
-            return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
 }
