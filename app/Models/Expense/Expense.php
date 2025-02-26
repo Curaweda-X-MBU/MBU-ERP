@@ -234,4 +234,9 @@ class Expense extends Model
     {
         return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
+
+    public function expense_return()
+    {
+        return $this->hasOne(ExpenseReturnPayment::class, 'expense_id', 'expense_id');
+    }
 }
