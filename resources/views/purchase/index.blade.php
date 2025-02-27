@@ -178,6 +178,26 @@
                                             {{ $data->links('vendor.pagination.bootstrap-4') }}
                                         </div>
                                     </div>
+                                    <div class="col-md-4">
+                                        <div class="row">
+                                            <table class="table table-bordered mt-2 w-100">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Total Sudah Dibayar</td>
+                                                        <td width="170">Rp. <span class="float-right">{{ number_format($total_payment, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Belum Dibayar</td>
+                                                        <td>Rp. <span class="float-right">{{ number_format($total_remaining_payment, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Pembelian</td>
+                                                        <td>Rp. <span class="float-right">{{ number_format($grand_total, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
