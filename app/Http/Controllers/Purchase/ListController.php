@@ -30,7 +30,23 @@ class ListController extends Controller
     public function index(Request $req)
     {
         try {
-            $data  = Purchase::with(['supplier', 'createdBy'])->get();
+            $data      = Purchase::with(['supplier', 'createdBy']);
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+            foreach ($request as $key => $value) {
+                if (intval($value) >= 0 && ! in_array($key, ['rows', 'page'])) {
+                    $data            = $data->where($key, $value);
+                    $arrAppend[$key] = $value;
+                }
+            }
+            $data = $data
+                ->orderBy('purchase_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
             $param = [
                 'title'  => 'Pembelian',
                 'data'   => $data,
