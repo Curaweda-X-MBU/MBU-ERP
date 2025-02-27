@@ -43,14 +43,23 @@ class ListController extends Controller
                     $arrAppend[$key] = $value;
                 }
             }
+
+            $totalPayment          = $data->sum('total_payment');
+            $totalRemainingPayment = $data->sum('total_remaining_payment');
+            $grandTotal            = $data->sum('grand_total');
+
             $data = $data
                 ->orderBy('purchase_id', 'DESC')
                 ->paginate($rows);
             $data->appends($arrAppend);
+
             $param = [
-                'title'  => 'Pembelian',
-                'data'   => $data,
-                'status' => Constants::PURCHASE_STATUS,
+                'title'                   => 'Pembelian',
+                'data'                    => $data,
+                'status'                  => Constants::PURCHASE_STATUS,
+                'total_payment'           => $totalPayment,
+                'total_remaining_payment' => $totalRemainingPayment,
+                'grand_total'             => $grandTotal,
             ];
 
             return view('purchase.index', $param);
