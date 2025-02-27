@@ -11,7 +11,7 @@ if (request('parent_expense_id')) {
     }
 }
 // -----------------------
-$using_data = $parent_expense ?: $data;
+$using_data = $parent_expense ?: @$data;
 
 $selected_kandang_id = [];
 if (isset($using_data->expense_kandang) && !$using_data->expense_kandang->isEmpty()) {

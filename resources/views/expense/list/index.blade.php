@@ -134,31 +134,33 @@
                                         <td class="text-center">
                                             @php
                                                     $statusExpense = App\Constants::EXPENSE_STATUS;
+
+                                                    $show_status = $item->is_rejected ? 2 : $item->expense_status;
                                             @endphp
-                                            @switch($item->expense_status)
+                                            @switch($show_status)
                                                 @case(0)
-                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(1)
-                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(3)
-                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(4)
-                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(5)
-                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(6)
-                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @default
-                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$show_status] }}</div>
                                             @endswitch
                                         </td>
                                         <td>{{ $item->location_id }}</td>

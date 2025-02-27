@@ -35,6 +35,8 @@
                             : false
                     );
                 $show_button = ($data->expense_status === $to_approve_by_farm || $data->expense_status === $to_approve_by_finance) ?? false;
+
+                $show_button = $data->is_rejected ? false : $show_button;
             @endphp
             @if ($show_button && $button_text)
             <a class="btn btn-success" href="#" data-toggle="modal" data-target="#approve">
@@ -164,30 +166,35 @@
                                     <td style="width: 25%"><b>Status Biaya</b></td>
                                     <td style="width: 5%">:</td>
                                     <td>
-                                        @switch($data->expense_status)
+                                        @php
+                                                $statusExpense = App\Constants::EXPENSE_STATUS;
+
+                                                $show_status = $data->is_rejected ? 2 : $data->expense_status;
+                                        @endphp
+                                        @switch($show_status)
                                             @case(0)
-                                                <div class="badge badge-pill badge-secondary">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill badge-secondary">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(1)
-                                                <div class="badge badge-pill badge-warning">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill badge-warning">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(2)
-                                                <div class="badge badge-pill badge-danger">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill badge-danger">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(3)
-                                                <div class="badge badge-pill" style="background-color: #b8654e">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(4)
-                                                <div class="badge badge-pill" style="background-color: #c0b408">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(5)
-                                                <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @case(6)
-                                                <div class="badge badge-pill badge-success">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill badge-success">{{ $statusExpense[$show_status] }}</div>
                                                 @break
                                             @default
-                                                <div class="badge badge-pill badge-primary">{{ $expenseStatus[$data->expense_status] }}</div>
+                                                <div class="badge badge-pill badge-primary">{{ $statusExpense[$show_status] }}</div>
                                         @endswitch
                                     </td>
                                 </tr>
