@@ -172,15 +172,19 @@
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="mt-1">
-                                        <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
-                                        <div class="float-right">
-                                            {{ $data->links('vendor.pagination.bootstrap-4') }}
+                                    <div class="row mt-1">
+                                        <div class="col-sm-6">
+                                            <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="float-right">
+                                                {{ $data->links('vendor.pagination.bootstrap-4') }}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="row">
-                                            <table class="table table-bordered mt-2 w-100">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <table class="table table-bordered w-100">
                                                 <tbody>
                                                     <tr>
                                                         <td>Total Sudah Dibayar</td>
