@@ -90,7 +90,7 @@ class RecordingController extends Controller
             $data = $data
                 ->orderBy('recording_id', 'DESC')
                 ->paginate($rows);
-            $data->append($arrAppend);
+            $data->appends($arrAppend);
 
             $param = [
                 'title' => 'Project > Recording',
