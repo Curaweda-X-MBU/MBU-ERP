@@ -16,22 +16,7 @@
                             <h4 class="card-title">{{ $title }}</h4>
                             <div class="card">
                                 <div class="card-header">
-                                    <form method="post" action="{{ request()->fullUrl() }}" style="display: inline-flex; column-gap: 10px;">
-                                        @csrf
-                                        <select name="project_id" class="form-control project_id" required>
-                                            @if(isset($param) && isset($param['project']))
-                                                <option value="{{ $param['project_id'] }}" selected>{{ $param['project_id']==0?"Semua Project":($param['project']->kandang->name??'') }}</option>
-                                            @endif
-                                        </select>
-                                        <select name="period" class="form-control period" required>
-                                            @if(isset($param) && isset($param['period']))
-                                                <option value="{{ $param['period'] }}" selected>{{ $param['period']==0?"Semua Periode":$param['period'] }}</option>
-                                            @endif
-                                        </select>
-                                        <div class="input-group-append" id="button-addon2">
-                                            <button type="submit" class="btn btn-outline-primary waves-effect" type="button"><i data-feather='search'></i></button>
-                                        </div>
-                                    </form>
+                                    <div></div>
                                     <div class="float-right">
                                         @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
                                         <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect" data-id="1" data-toggle="modal" data-target="#bulk-approve">Approve</a>
@@ -42,12 +27,128 @@
                                         @endif
                                     </div>
                                 </div>
+                                @php
+                                    $arrRows = [10,20,50,100];
+                                    $statusRecording = App\Constants::RECORDING_STATUS;
+                                @endphp
+                                {{-- @dd($data->toArray()) --}}
                                 <div class="card-body">
                                     <div class="card-datatable">
+                                        <div class="row mb-1">
+                                            <div class="col-12">
+                                                <form action="{{ route('project.recording.index') }}">
+                                                    <div class="row d-flex align-items-end">
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Unit Bisnis</label>
+                                                                <select name="project[kandang][company_id]" id="company_id" class="form-control" >
+                                                                    @if (request()->has('project') && isset(request()->get('project')['kandang']['company_id']))
+                                                                    @php
+                                                                        $companyId = request()->get('project')['kandang']['company_id'];
+                                                                    @endphp
+                                                                    <option value="{{ $companyId }}" selected> {{ \App\Models\DataMaster\Company::find($companyId)->name }}</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Area</label>
+                                                                <select name="project[kandang][location][area_id]" id="area_id" class="form-control" >
+                                                                    @if (request()->has('project') && isset(request()->get('project')['kandang']['location']['area_id']))
+                                                                    @php
+                                                                        $areaId = request()->get('project')['kandang']['location']['area_id']
+                                                                    @endphp
+                                                                    <option value="{{ $areaId }}" selected> {{ \App\Models\DataMaster\Area::find($areaId)->name }}</option>
+                                                                    @else
+                                                                    <option selected disabled>Pilih unit bisnis terlebih dahulu</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Lokasi</label>
+                                                                <select name="project[kandang][location_id]" id="location_id" class="form-control" >
+                                                                    @if (request()->has('project') && isset(request()->get('project')['kandang']['location_id']))
+                                                                    @php
+                                                                        $locationiId = request()->get('project')['kandang']['location_id']
+                                                                    @endphp
+                                                                    <option value="{{ $locationiId }}" selected> {{ \App\Models\DataMaster\Location::find($locationiId)->name }}</option>
+                                                                    @else
+                                                                    <option selected disabled>Pilih area terlebih dahulu</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Project</label>
+                                                                <select name="project_id" id="project_id" class="form-control" >
+                                                                    @if (request()->get('project_id'))
+                                                                    @php
+                                                                        $projectId = request()->get('project_id')
+                                                                    @endphp
+                                                                    <option value="{{ $projectId }}" selected> {{ \App\Models\Project\Project::with('kandang')->find($projectId)->kandang->name }}</option>
+                                                                    @else
+                                                                    <option selected disabled>Pilih lokasi terlebih dahulu</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Periode</label>
+                                                                <input type="number" name="project[period]" class="form-control" placeholder="Periode" value="{{ isset(request()->get('project')['period'])?request()->get('project')['period']:'' }}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Status Recording</label>
+                                                                <select name="status" class="form-control" >
+                                                                    <option value="0" {{ !request()->has('status')||request()->get('status')==0?'selected':'' }}>Semua</option>
+                                                                    @foreach ($statusRecording as $key => $item)
+                                                                        <option value="{{$key}}" {{ request()->has('status')&&request()->get('status')==$key?'selected':'' }}>{{ $item }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Ketepatan Waktu</label>
+                                                                <select name="on_time" class="form-control" >
+                                                                    <option value="-1" {{ !request()->has('on_time')||request()->get('on_time')==99?'selected':'' }}>Semua</option>
+                                                                    <option value="1" {{ request()->has('on_time')&&request()->get('on_time')==1?'selected':'' }}>Tepat Waktu</option>
+                                                                    <option value="0" {{ request()->has('on_time')&&request()->get('on_time')==0?'selected':'' }}>Terlambat</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-1 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Baris</label>
+                                                                <select name="rows" class="form-control" >
+                                                                    @for ($i = 0; $i < count($arrRows); $i++)
+                                                                    <option value="{{ $arrRows[$i] }}" {{ request()->has('rows')&&request()->get('rows')==$arrRows[$i]?'selected':'' }}>{{ $arrRows[$i] }}</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-2 col-12">
+                                                            <div class="form-group float-right">
+                                                                <label for="stock_type"></label>
+                                                                <button type="submit" class="btn btn-primary">Cari</button>
+                                                                <label for="stock_type"></label>
+                                                                <a href="{{ route('project.recording.index') }}"  class="btn btn-warning">Reset</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
                                         <div class="table-responsive">
                                             <form method="post" action="{{ route('project.recording.approve', 'test') }}" id="form-approve">
                                             {{csrf_field()}}
-                                            <table id="datatable" class="table table-bordered table-striped w-100" style="font-size: 10px;">
+                                            <table class="table table-bordered table-striped w-100" style="font-size: 10px;">
                                                 <thead>
                                                     <tr>
                                                         @if (Auth::user()->role->hasPermissionTo('project.recording.approve'))
@@ -193,6 +294,12 @@
                                             </form>
                                         </div>
                                     </div>
+                                    <div class="mt-1">
+                                        <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
+                                        <div class="float-right">
+                                            {{ $data->links('vendor.pagination.bootstrap-4') }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -270,24 +377,10 @@
                         </div>
                     </div>
 
-                    <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
-                    <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
-
 
                     <script>
                         $(function () {
-                            $('#datatable').DataTable({
-                                scrollX: true,
-                                drawCallback: function( settings ) {
-                                    feather.replace();
-                                },
-                                order: [[1, 'desc']],
-                                columnDefs: [
-                                    { orderable: false, targets: [0] } 
-                                ]
-                            });
-
                             $('#bulk-approve').on('show.bs.modal', function (event) {
                                 $('#btn-bulk-approve').click(function (e) { 
                                     $('#form-approve').submit();
@@ -343,10 +436,11 @@
                                 modal.find('.modal-body #approval-message').html(msg);
                             });
 
-                            $('.project_id').select2({
-                                placeholder: "Pilih Project",
+                            $('#company_id').select2({
+                                placeholder: "Pilih Unit Bisnis",
+                                allowClear: true,
                                 ajax: {
-                                    url: '{{ route("project.list.search") }}?project_status_not=1&project_status_not=3&chickin_status=3', 
+                                    url: '{{ route("data-master.company.search") }}', 
                                     dataType: 'json',
                                     delay: 250, 
                                     data: function(params) {
@@ -355,10 +449,6 @@
                                         };
                                     },
                                     processResults: function(data) {
-                                        data.unshift({
-                                            id: 0,
-                                            text: "Semua Project"
-                                        })                    
                                         return {
                                             results: data
                                         };
@@ -367,29 +457,92 @@
                                 }
                             });
 
-                            $('.period').select2({
-                                placeholder: "Pilih Periode",
-                                ajax: {
-                                    url: '{{ route("project.list.search-period") }}?project_status_not=1&project_status_not=3&chickin_status=3', 
-                                    dataType: 'json',
-                                    delay: 250, 
-                                    data: function(params) {
-                                        return {
-                                            q: params.term 
-                                        };
-                                    },
-                                    processResults: function(data) {
-                                        data.unshift({
-                                            id: 0,
-                                            text: "Semua Periode"
-                                        })                    
-                                        return {
-                                            results: data
-                                        };
-                                    },
-                                    cache: true
+                            $('#company_id').change(function (e) { 
+                                if ($('#area_id').val()) {
+                                    $('#area_id').trigger('change');
+                                } else {
+                                    $('#area_id').val(null).trigger('change');
                                 }
+                                const companyId = $(this).val();
+                                $('#area_id').select2({
+                                    placeholder: "Pilih Area",
+                                    allowClear: true,
+                                    ajax: {
+                                        url: `{{ route("data-master.area.search") }}`, 
+                                        dataType: 'json',
+                                        delay: 250, 
+                                        data: function(params) {
+                                            return {
+                                                q: params.term 
+                                            };
+                                        },
+                                        processResults: function(data) {
+                                            return {
+                                                results: data
+                                            };
+                                        },
+                                        cache: true
+                                    }
+                                });
+                                $('#area_id').change(function (e) { 
+                                    if ($('#location_id').val()) {
+                                        $('#location_id').trigger('change');
+                                    } else {
+                                        $('#location_id').val(null).trigger('change');
+                                    }
+                                    const areaId = $(this).val();
+                                    $('#location_id').select2({
+                                        placeholder: "Pilih Lokasi",
+                                        allowClear: true,
+                                        ajax: {
+                                            url: `{{ route("data-master.location.search") }}?area_id=${areaId}`, 
+                                            dataType: 'json',
+                                            delay: 250, 
+                                            data: function(params) {
+                                                return {
+                                                    q: params.term 
+                                                };
+                                            },
+                                            processResults: function(data) {
+                                                return {
+                                                    results: data
+                                                };
+                                            },
+                                            cache: true
+                                        }
+                                    });
+                                    $('#location_id').change(function (e) { 
+                                        if ($('#project_id').val()) {
+                                            $('#project_id').trigger('change');
+                                        } else {
+                                            $('#project_id').val(null).trigger('change');
+                                        }
+                                        const locationId = `&location_id=${$(this).val()}`;
+                                        $('#project_id').select2({
+                                            allowClear: true,
+                                            placeholder: "Pilih Project",
+                                            ajax: {
+                                                url: `{{ route("project.list.search") }}?project_status_not=1&project_status_not=3&chickin_status=3${locationId}`, 
+                                                dataType: 'json',
+                                                delay: 250, 
+                                                data: function(params) {
+                                                    return {
+                                                        q: params.term 
+                                                    };
+                                                },
+                                                processResults: function(data) {
+                                                    return {
+                                                        results: data
+                                                    };
+                                                },
+                                                cache: true
+                                            }
+                                        });
+                                    });
+                                });
                             });
+
+                            $('select').trigger('change');
                         });
                     </script>
 
