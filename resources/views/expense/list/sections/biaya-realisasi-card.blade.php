@@ -38,6 +38,7 @@
                                 <div class="card mb-1">
                                     <div id="heading-collapse-realization-biaya-utama" class="card-header color-header success collapsed" data-toggle="collapse" role="button" data-target="#collapse-realization-biaya-utama" aria-expanded="true" aria-controls="collapse-realization-biaya-utama">
                                         <span class="lead collapse-title">Biaya Utama</span>
+                                        <span class="text-dark">Total: Rp {{ count($data->expense_main_prices) ? \App\Helpers\Parser::toLocale($data->expense_main_prices->pluck('expense_realization.price')->sum()) : '0,00' }}</span>
                                     </div>
                                     <div id="collapse-realization-biaya-utama" role="tabpanel" aria-labelledby="heading-collapse-realization-biaya-utama" class="collapse show" aria-expanded="true">
                                         <div class="card-body p-2">
@@ -87,6 +88,7 @@
                                 <div class="card mb-1">
                                     <div id="heading-coallpse-realization-biaya-lainnya" class="card-header color-header success collapsed" data-toggle="collapse" role="button" data-target="#collapse-realizaiton-biaya-lainnya" aria-expanded="true" aria-controls="collapse-realization-biaya-lainnya">
                                         <span class="lead collapse-title">Biaya Lainnya</span>
+                                        <span class="text-dark">Total: Rp {{ count($data->expense_addit_prices) ? \App\Helpers\Parser::toLocale($data->expense_addit_prices->pluck('expense_realization.price')->sum()) : '0,00' }}</span>
                                     </div>
                                     <div id="collapse-realization-biaya-lainnya" role="tabpanel" aria-labelledby="heading-collapse-realization-biaya-lainnya" class="collapse show" aria-expanded="true">
                                         <div class="card-body p-2">

@@ -2,12 +2,51 @@
 @section('title', $title)
 @section('content')
 
+<style>
+#filter_wrapper label, #filter_wrapper input {
+    margin: 0;
+}
+</style>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="pull-right">
+                    {{-- TABLE FILTER::START --}}
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-outline-secondary btn-icon waves-effect" type="button" data-toggle="dropdown">
+                            <i data-feather="filter"></i>
+                        </button>
+                        <ul class="dropdown-menu" id="filterDropdown" aria-labelledby="filterDropdown">
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Kategori</a>
+                                <ul class="dropdown-menu" id="filterCategory">
+                                    @foreach (\App\Constants::EXPENSE_CATEGORY as $category)
+                                    <a class="dropdown-item">{{ $category }}</a>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status Pencairan</a>
+                                <ul class="dropdown-menu" id="filterPaymentStatus">
+                                    <a class="dropdown-item">Tempo</a>
+                                    <a class="dropdown-item">Dibayar Sebagian</a>
+                                    <a class="dropdown-item">Dibayar Penuh</a>
+                                </ul>
+                            </div>
+                            <div class="dropdown-item dropleft autoclose">
+                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status</a>
+                                <ul class="dropdown-menu" id="filterExpenseStatus">
+                                    @foreach (\App\Constants::EXPENSE_STATUS as $status)
+                                    <a class="dropdown-item">{{ $status }}</a>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </ul>
+                    </div>
+                    {{-- TABLE FILTER::END --}}
                     @php
                         $role = Auth::user()->role;
                     @endphp
@@ -42,6 +81,11 @@
                                 <th>Sisa Bayar (Rp)</th>
                                 <th>Status Pencairan</th>
                                 <th>Status Biaya</th>
+                                {{-- FILTER PURPOSES FIELDS::START --}}
+                                <th>location_id</th>
+                                <th>created_by</th>
+                                <th>supplier_id</th>
+                                {{-- FILTER PURPOSES FIELDS::END --}}
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
@@ -90,33 +134,38 @@
                                         <td class="text-center">
                                             @php
                                                     $statusExpense = App\Constants::EXPENSE_STATUS;
+
+                                                    $show_status = $item->is_rejected ? 2 : $item->expense_status;
                                             @endphp
-                                            @switch($item->expense_status)
+                                            @switch($show_status)
                                                 @case(0)
-                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-secondary">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(1)
-                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-warning">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(2)
-                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-danger">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(3)
-                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #b8654e">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(4)
-                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #c0b408">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(5)
-                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill" style="background-color: #0bd3a8">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @case(6)
-                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-success">{{ $statusExpense[$show_status] }}</div>
                                                     @break
                                                 @default
-                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$item->expense_status] }}</div>
+                                                    <div class="badge badge-pill badge-primary">{{ $statusExpense[$show_status] }}</div>
                                             @endswitch
                                         </td>
+                                        <td>{{ $item->location_id }}</td>
+                                        <td>{{ $item->created_by }}</td>
+                                        <td>{{ $item->supplier_id ?? null }}</td>
                                         <td>
                                             <div class="dropdown dropleft" style="position: static;">
                                                 <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
@@ -230,12 +279,124 @@
 
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
+<script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
 
 <script>
     $(function () {
         const $table = $('#datatable').DataTable({
-            dom: '<"d-flex justify-content-between"lf>r<"custom-table-wrapper"t>ip',
+            dom: '<"#filter_wrapper"<"#filter_left"l>f>r<"custom-table-wrapper"t>ip',
             drawCallback: function(settings) {
+                // NOTE: TABLE SELECT FILTER::START
+                // ?: Location
+                if (!$('#location_slice').length) {
+                    $('#filter_wrapper')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem');
+                    $('#filter_left')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem')
+                        .prepend(
+                            `
+                                <div class="input-group">
+                                    <div>
+                                        <select id="location_slice" class="form-control" style="width: auto;"></select>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button id="location_slice_clear" class="btn btn-icon btn-outline-secondary">
+                                            <i data-feather="x"></i>
+                                        </buton>
+                                    </div>
+                                </div>
+                            `
+                        );
+                    var locationIdRoute = '{{ route("data-master.location.search") }}';
+                    initSelect2($('#location_slice'), 'Filter Lokasi', locationIdRoute);
+
+                    $('#location_slice_clear').on('click', function() {
+                        $('#location_slice').val(null).trigger('change');
+                    });
+
+                    $('#location_slice').on('select2:select change', function() {
+                        $table.columns(13).search('').draw();
+                        $table.columns(13).search($(this).val() ?? '').draw();
+                    });
+                }
+
+                // ?: Created By
+                if (!$('#created_by_slice').length) {
+                    $('#filter_wrapper')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem');
+                    $('#filter_left')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem')
+                        .append(
+                            `
+                                <div class="input-group">
+                                    <div>
+                                        <select id="created_by_slice" class="form-control" style="width: auto;"></select>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button id="created_by_slice_clear" class="btn btn-icon btn-outline-secondary">
+                                            <i data-feather="x"></i>
+                                        </buton>
+                                    </div>
+                                </div>
+                            `
+                        );
+                    var createdByIdRoute = '{{ route("user-management.user.search") }}';
+                    initSelect2($('#created_by_slice'), 'Filter Pengaju', createdByIdRoute);
+
+                    $('#created_by_slice_clear').on('click', function() {
+                        $('#created_by_slice').val(null).trigger('change');
+                    });
+
+                    $('#created_by_slice').on('select2:select change', function() {
+                        $table.columns(14).search('').draw();
+                        $table.columns(14).search($(this).val() ?? '').draw();
+                    });
+                }
+
+                // ?: Suppier
+                if (!$('#supplier_slice').length) {
+                    $('#filter_wrapper')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem');
+                    $('#filter_left')
+                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
+                        .css('gap', '1rem')
+                        .append(
+                            `
+                                <div class="input-group">
+                                    <div>
+                                        <select id="supplier_slice" class="form-control" style="width: auto;"></select>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button id="supplier_slice_clear" class="btn btn-icon btn-outline-secondary">
+                                            <i data-feather="x"></i>
+                                        </buton>
+                                    </div>
+                                </div>
+                            `
+                        );
+                    var supplierIdRoute = '{{ route("data-master.supplier.search") }}';
+                    initSelect2($('#supplier_slice'), 'Filter Vendor', supplierIdRoute);
+
+                    $('#supplier_slice_clear').on('click', function() {
+                        $('#supplier_slice').val(null).trigger('change');
+                    });
+
+                    $('#supplier_slice').on('select2:select change', function() {
+                        $table.columns(15).search('').draw();
+                        $table.columns(15).search($(this).val() ?? '').draw();
+                    });
+                }
+
+                // ?: css wrap for length filter
+                $("#filter_left > div").css('flex', '1 0 40%').css('width', '100%');
+                $("#filter_left > div > *:first-child").css('flex', '1 0 40%');
+                // NOTE: TABLE SELECT FILTER::END
+
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
                 let notPaidSum = 0;
@@ -263,7 +424,7 @@
             order: [[1, 'asc'], [0, 'desc']],
         });
 
-        $table.columns([0, 1]).visible(false);
+        $table.columns([0, 1, 13, 14, 15]).visible(false);
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();
@@ -287,6 +448,36 @@
                 modal.find('#notesContent').text(notes);
             });
         });
+
+        // NOTE: TABLE FILTER::START
+        function setupDropdownFilter(selector, column, $table) {
+            const resetClass = 'reset';
+            const reset = `<a class="dropdown-item ${resetClass} active">Semua</a>`;
+            $(selector).prepend(reset);
+            $(selector).on('click', '.dropdown-item', function(e) {
+                e.stopPropagation();
+                $(this).siblings('.dropdown-item').removeClass('active');
+                $(this).addClass('active')
+                $table.columns(column).search('').draw();
+                if (!$(this).hasClass(resetClass)) {
+                    $table.columns(column).search($(this).text()).draw();
+                }
+            });
+
+            $(selector).siblings('a').on('mouseover', function() {
+                $(this).dropdown('show');
+                $(this).parent('.autoclose').siblings('.autoclose').each(function() {
+                    $(this).find('.dropdown-menu').dropdown('hide');
+                });
+            });
+            $(selector).on('mouseleave', function() {
+                $(this).dropdown('hide');
+            });
+        }
+        setupDropdownFilter('#filterCategory', 4, $table);
+        setupDropdownFilter('#filterPaymentStatus', 11, $table);
+        setupDropdownFilter('#filterExpenseStatus', 12, $table);
+        // NOTE: TABLE FILTER::END
     });
 </script>
 
