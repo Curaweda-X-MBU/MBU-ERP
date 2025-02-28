@@ -371,8 +371,8 @@
                     });
 
                     $('#location_slice').on('select2:select change', function() {
-                        $table.columns(13).search('').draw();
-                        $table.columns(13).search($(this).val() ?? '').draw();
+                        $table.columns(14).search('').draw();
+                        $table.columns(14).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -406,8 +406,8 @@
                     });
 
                     $('#created_by_slice').on('select2:select change', function() {
-                        $table.columns(14).search('').draw();
-                        $table.columns(14).search($(this).val() ?? '').draw();
+                        $table.columns(15).search('').draw();
+                        $table.columns(15).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -441,8 +441,8 @@
                     });
 
                     $('#supplier_slice').on('select2:select change', function() {
-                        $table.columns(15).search('').draw();
-                        $table.columns(15).search($(this).val() ?? '').draw();
+                        $table.columns(16).search('').draw();
+                        $table.columns(16).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -551,8 +551,8 @@
             });
         }
         setupDropdownFilter('#filterCategory', 4, $table);
-        setupDropdownFilter('#filterPaymentStatus', 11, $table);
-        setupDropdownFilter('#filterExpenseStatus', 12, $table);
+        setupDropdownFilter('#filterPaymentStatus', 12, $table);
+        setupDropdownFilter('#filterExpenseStatus', 13, $table);
         // NOTE: TABLE FILTER::END
     });
 </script>
