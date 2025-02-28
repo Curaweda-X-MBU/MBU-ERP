@@ -731,13 +731,15 @@ class ExpenseController extends Controller
         try {
             $input = $req->all();
 
-            $success       = ['success' => 'Biaya berhasil ditolak'];
-            $approvedAt    = null;
-            $expenseStatus = array_search('Ditolak', Constants::EXPENSE_STATUS);
+            $success             = ['success' => 'Biaya berhasil ditolak'];
+            $approvedAt          = null;
+            $expenseStatus       = $expense->expense_status;
+            $currentApprovalLine = json_decode($expense->approval_line ?? '[]');
 
             $routeName = $req->route()->getName();
 
             if ($input['is_approved'] == 1) {
+
                 // Approval Manager Farm
                 if (str_contains($routeName, 'farm')) {
                     // Ganti status jadi menunggu Approval Finance
@@ -755,20 +757,26 @@ class ExpenseController extends Controller
                     $expenseStatus = array_search('Pencairan', Constants::EXPENSE_STATUS);
                 }
 
-                $success    = ['success' => 'Biaya berhasil disetujui'];
-                $approvedAt = date('Y-m-d H:i:s');
+                $success = ['success' => 'Biaya berhasil disetujui'];
             }
 
-            $increment = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
-            $category  = $expense->category == 1 ? 'BOP' : 'NBOP';
+            $increment  = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
+            $category   = $expense->category == 1 ? 'BOP' : 'NBOP';
+            $approvedAt = date('Y-m-d H:i:s');
+
+            array_push($currentApprovalLine, [
+                'status'      => $expenseStatus - ($input['is_approved'] == 1 ? 1 : 0),
+                'is_approved' => $input['is_approved'] == 1 ? 1 : 0,
+                'notes'       => $input['approval_notes'],
+                'action_by'   => Auth::user()->name,
+                'date'        => $approvedAt,
+            ]);
 
             $expense->update([
-                'is_approved'    => $input['is_approved'],
-                'po_number'      => "PO-{$expense->created_user->role->company->alias}-{$category}-{$increment}",
-                'approver_id'    => Auth::id(),
-                'approval_notes' => $input['approval_notes'],
-                'approved_at'    => $approvedAt,
+                'is_approved'    => $input['is_approved'] == 1 ? 1 : 0,
+                'po_number'      => $expense->po_number ?: "PO-{$expense->created_user->role->company->alias}-{$category}-{$increment}",
                 'expense_status' => $expenseStatus,
+                'approval_line'  => $currentApprovalLine,
             ]);
 
             DB::commit();

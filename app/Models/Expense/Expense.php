@@ -28,9 +28,7 @@ class Expense extends Model
         'po_number',
         'transaction_date',
         'is_approved',
-        'approver_id',
-        'approval_notes',
-        'approved_at',
+        'approval_line',
         'location_id',
         'supplier_id',
         'category',
@@ -49,6 +47,7 @@ class Expense extends Model
         'is_returned',
         'is_realized',
         'not_realized',
+        'is_rejected',
     ];
 
     public function getGrandTotalAttribute()
@@ -85,6 +84,13 @@ class Expense extends Model
     public function getNotRealizedAttribute()
     {
         return $this->grand_total - $this->is_realized;
+    }
+
+    public function getIsRejectedAttribute()
+    {
+        return isset($this->is_approved) && $this->is_approved !== null && $this->is_approved == 0
+            ? 1
+            : 0;
     }
 
     public function calculatePaymentStatus()
@@ -190,11 +196,6 @@ class Expense extends Model
     public function created_user()
     {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
-    }
-
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approver_id', 'user_id');
     }
 
     public function location()
