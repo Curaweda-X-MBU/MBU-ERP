@@ -242,8 +242,11 @@
                                                         <span>Realisasi</span>
                                                     </a>
                                                     @endif
-                                                    @if (@$item->approval_notes && @$item->is_approved === 0)
-                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
+                                                    @php
+                                                    $approvalNotes = optional(collect(json_decode($item->approval_line))->where('is_approved', 0)->last())->notes ?? null;
+                                                    @endphp
+                                                    @if ($approvalNotes && @$item->is_approved === 0)
+                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $approvalNotes }}">
                                                             <i data-feather="message-square" class="mr-50"></i>
                                                             <span>Catatan Penolakan</span>
                                                         </a>
