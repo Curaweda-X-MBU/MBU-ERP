@@ -37,6 +37,7 @@
                                 <th>Tanggal</th>
                                 <th>Nama Pengaju</th>
                                 <th>Vendor</th>
+                                <th>Biaya Utama</th>
                                 <th>Nominal (Rp)</th>
                                 <th>Sudah Bayar (Rp)</th>
                                 <th>Sisa Bayar (Rp)</th>
@@ -66,6 +67,19 @@
                                         <td>{{ date('d-M-Y', strtotime($item->created_at)) }}</td>
                                         <td>{{ $item->created_user->name }}</td>
                                         <td>{{ $item->supplier->name ?? '-' }}</td>
+                                        @if (count($item->expense_main_prices) > 1)
+                                            <td>
+                                                <a href="#"
+                                                    data-toggle="modal"
+                                                    data-target="#itemModal"
+                                                    data-item="{{ $item->expense_main_prices }}" >
+                                                    Lihat {{ count($item->expense_main_prices) }} biaya
+                                                </a>
+
+                                            </td>
+                                        @else
+                                            <td>{{ $item->expense_main_prices->first()->nonstock->name ?? '-' }}</td>
+                                        @endif
                                         <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
                                         <td class="text-right text-success">{{ \App\Helpers\Parser::toLocale($item->is_paid) }}</td>
                                         <td class="text-right text-danger">{{ \App\Helpers\Parser::toLocale($item->not_paid) }}</td>
@@ -218,6 +232,40 @@
     </div>
 </div>
 
+<!-- Modal Main Prices -->
+<div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemModalLabel">List Biaya Utama</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered w-100">
+                                <thead>
+                                    <th>No</th>
+                                    <th>Non Stock</th>
+                                </thead>
+                                <tbody id="itemContent">
+                                    <tr>
+                                        <td colspan="2" class="text-center"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
 
@@ -241,9 +289,9 @@
                 let notPaidSum = 0;
                 $table.rows({ filter: 'applied' }).every(function() {
                     const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[8]);
-                    const isPaid = parseLocaleToNum(data[9]);
-                    const notPaid = parseLocaleToNum(data[10]);
+                    const grandTotal = parseLocaleToNum(data[9]);
+                    const isPaid = parseLocaleToNum(data[10]);
+                    const notPaid = parseLocaleToNum(data[11]);
 
                     grandTotalSum += grandTotal;
                     isPaidSum += isPaid;
@@ -285,6 +333,28 @@
                 var notes = button.data('notes') || '-';
                 var modal = $(this);
                 modal.find('#notesContent').text(notes);
+            });
+        });
+
+        $(document).ready(function() {
+            $('#itemModal').on('show.bs.modal', function(event) {
+                var button = $(event.relatedTarget);
+                var mainPrice = button.data('item');
+
+                var modal = $(this);
+
+                // Cek apakah data ada
+                var detailHtml = '';
+                $.each(mainPrice, function(index, item) {
+                    detailHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.nonstock?.name ?? '-'}</td>
+                        </tr>
+                    `;
+                });
+                // Update konten modal
+                modal.find('#itemContent').html(detailHtml);
             });
         });
     });

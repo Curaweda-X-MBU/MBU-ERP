@@ -26,7 +26,7 @@ class ExpenseController extends Controller
         try {
             $currentUserId = auth()->id();
 
-            $data = Expense::with(['location', 'expense_disburses', 'created_user'])
+            $data = Expense::with(['location', 'expense_disburses', 'created_user', 'expense_main_prices'])
                 ->where(function($query) use ($currentUserId) {
                     $query->where('expense_status', '!=', 0)
                         ->orWhere(function($subQuery) use ($currentUserId) {
