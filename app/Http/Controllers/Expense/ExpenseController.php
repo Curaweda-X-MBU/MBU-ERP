@@ -725,6 +725,95 @@ class ExpenseController extends Controller
         }
     }
 
+    public function approveBulk(Request $req)
+    {
+        DB::beginTransaction();
+        try {
+            if (! $req->has('farm_expense_ids') && ! $req->has('finance_expense_ids')) {
+                return redirect()->back()->with('error', 'Pilih Biaya terlebih dahulu');
+            }
+
+            $approvedExpenseIds = [];
+
+            // Manager Farm
+            if ($req->has('farm_expense_ids')) {
+                $arrExpenseIds = $req->input('farm_expense_ids');
+                foreach ($arrExpenseIds as $expenseId) {
+                    $expense       = Expense::findOrFail($expenseId);
+                    $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+                    if ($expense->expense_status !== $expenseStatus - 1) {
+                        return redirect()->back()->with('error', "Biaya $expense->id_expense belum bisa disetujui oleh Manager Farm");
+                    }
+
+                    $increment           = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
+                    $category            = $expense->category == 1 ? 'BOP' : 'NBOP';
+                    $currentApprovalLine = json_decode($expense->approval_line ?? '[]');
+                    $approvedAt          = date('Y-m-d H:i:s');
+
+                    array_push($currentApprovalLine, [
+                        'status'      => $expenseStatus - 1,
+                        'is_approved' => 1,
+                        'notes'       => 'System Generated - Bulk Approved',
+                        'action_by'   => Auth::user()->name,
+                        'date'        => $approvedAt,
+                    ]);
+
+                    $expense->update([
+                        'is_approved'    => 1,
+                        'po_number'      => $expense->po_number ?: "PO-{$expense->created_user->role->company->alias}-{$category}-{$increment}",
+                        'expense_status' => $expenseStatus,
+                        'approval_line'  => $currentApprovalLine,
+                    ]);
+
+                    array_push($approvedExpenseIds, $expense->id_expense);
+                }
+            }
+
+            // Manager Finance
+            if ($req->has('finance_expense_ids')) {
+                $arrExpenseIds = $req->input('finance_expense_ids');
+                foreach ($arrExpenseIds as $expenseId) {
+                    $expense       = Expense::findOrFail($expenseId);
+                    $expenseStatus = array_search('Pencairan', Constants::EXPENSE_STATUS);
+                    if ($expense->expense_status !== $expenseStatus - 1) {
+                        return redirect()->back()->with('error', "Biaya $expense->id_expense belum bisa disetujui oleh Manager Finance");
+                    }
+
+                    $increment           = str_pad($expense->expense_id + 1, 5, '0', STR_PAD_LEFT);
+                    $category            = $expense->category == 1 ? 'BOP' : 'NBOP';
+                    $currentApprovalLine = json_decode($expense->approval_line ?? '[]');
+                    $approvedAt          = date('Y-m-d H:i:s');
+
+                    array_push($currentApprovalLine, [
+                        'status'      => $expenseStatus - 1,
+                        'is_approved' => 1,
+                        'notes'       => 'System Generated - Bulk Approved',
+                        'action_by'   => Auth::user()->name,
+                        'date'        => $approvedAt,
+                    ]);
+
+                    $expense->update([
+                        'is_approved'    => 1,
+                        'po_number'      => $expense->po_number ?: "PO-{$expense->created_user->role->company->alias}-{$category}-{$increment}",
+                        'expense_status' => $expenseStatus,
+                        'approval_line'  => $currentApprovalLine,
+                    ]);
+
+                    array_push($approvedExpenseIds, $expense->id_expense);
+                }
+            }
+
+            DB::commit();
+
+            $stringApprovedExpenseIds = implode(', ', $approvedExpenseIds);
+            $success                  = ['success' => "Biaya $stringApprovedExpenseIds berhasil disetujui"];
+
+            return redirect()->route('expense.list.index')->with($success);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
     public function approve(Request $req, Expense $expense)
     {
         DB::beginTransaction();

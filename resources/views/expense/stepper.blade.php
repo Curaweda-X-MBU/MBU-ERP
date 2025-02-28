@@ -54,8 +54,6 @@
                 : 'Menunggu Persetujuan';
 
             $stepStatus = isset($currentApproval) ? ($currentApproval->is_approved ? 'complete' : 'rejected') : $stepStatus;
-
-            echo '<script>console.log("'.json_encode($currentApproval).'");</script>';
         }
 
         // Set all to complete if status is selesai

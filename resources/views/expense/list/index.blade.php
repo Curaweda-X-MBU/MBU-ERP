@@ -58,12 +58,12 @@
                         $role = Auth::user()->role;
                     @endphp
                     @if ($role->hasPermissionTo('expense.list.approve.farm'))
-                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect">
+                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect" data-toggle="modal" data-target="#bulk-approve" data-role="Manager Farm">
                         Approve Mgr. Farm
                     </a>
                     @endif
                     @if ($role->hasPermissionTo('expense.list.approve.finance'))
-                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect">
+                    <a href="javascript:void(0)" type="button" class="btn btn-outline-success waves-effect" data-toggle="modal" data-target="#bulk-approve" data-role="Manager Finance">
                         Approve Mgr. Finance
                     </a>
                     @endif
@@ -73,8 +73,26 @@
             <div class="card-body">
                 <div class="card-datatable">
                     <div class="table-responsive mb-2">
+                        <form method="post" action="{{ route('expense.list.approve.bulk') }}" id="form-approve">
+                        {{csrf_field()}}
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead class="text-center">
+                                <th>
+                                    @if (Auth::user()->role->hasPermissionTo('expense.list.approve.farm'))
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="checkAllFarm">
+                                        <label class="custom-control-label" for="checkAllFarm"></label>
+                                    </div>
+                                    @endif
+                                </th>
+                                <th>
+                                    @if (Auth::user()->role->hasPermissionTo('expense.list.approve.finance'))
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="checkAllFinance">
+                                        <label class="custom-control-label" for="checkAllFinance"></label>
+                                    </div>
+                                    @endif
+                                </th>
                                 <th>expense_id</th>
                                 <th>expense_status</th>
                                 <th>ID</th>
@@ -99,6 +117,22 @@
                             <tbody>
                                 @foreach ($data as $item)
                                     <tr>
+                                        <td>
+                                            @if (Auth::user()->role->hasPermissionTo('expense.list.approve.farm'))
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input {{ $item->expense_status === array_search('Approval Manager', \App\Constants::EXPENSE_STATUS) && $item->is_approved !== 0 ? 'select-row-farm' : ''  }}" name="farm_expense_ids[]" id="farm-expense-id-{{ $item->expense_id }}" value="{{ $item->expense_id }}" {{ $item->expense_status === array_search('Approval Manager', \App\Constants::EXPENSE_STATUS) && $item->is_approved !== 0 ? '' : 'disabled' }}>
+                                                <label class="custom-control-label" for="farm-expense-id-{{ $item->expense_id }}"></label>
+                                            </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if (Auth::user()->role->hasPermissionTo('expense.list.approve.finance'))
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input {{ $item->expense_status === array_search('Approval Finance', \App\Constants::EXPENSE_STATUS) && $item->is_approved !== 0 ? 'select-row-finance' : ''  }}" name="finance_expense_ids[]" id="finance-expense-id-{{ $item->expense_id }}" value="{{ $item->expense_id }}" {{ $item->expense_status === array_search('Approval Finance', \App\Constants::EXPENSE_STATUS) && $item->is_approved !== 0 ? '' : 'disabled' }}>
+                                                <label class="custom-control-label" for="finance-expense-id-{{ $item->expense_id }}"></label>
+                                            </div>
+                                            @endif
+                                        </td>
                                         <td>{{ $item->expense_id }}</td>
                                         <td>{{ $item->expense_status == 0 ? 0 : 1 }}</td>
                                         <td>{{ $item->id_expense }}</td>
@@ -320,6 +354,28 @@
     </div>
 </div>
 
+<!-- Modal Bulk Approval -->
+<div class="modal fade text-left" id="bulk-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Biaya (<span class="bulk-approve-role"></span>)</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <br><p>Apakah kamu yakin ingin menyetujui data biaya ini sebagai <span class="bulk-approve-role"></span> ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="btn-bulk-approve">Ya</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
@@ -371,8 +427,8 @@
                     });
 
                     $('#location_slice').on('select2:select change', function() {
-                        $table.columns(14).search('').draw();
-                        $table.columns(14).search($(this).val() ?? '').draw();
+                        $table.columns(16).search('').draw();
+                        $table.columns(16).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -406,8 +462,8 @@
                     });
 
                     $('#created_by_slice').on('select2:select change', function() {
-                        $table.columns(15).search('').draw();
-                        $table.columns(15).search($(this).val() ?? '').draw();
+                        $table.columns(17).search('').draw();
+                        $table.columns(17).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -441,8 +497,8 @@
                     });
 
                     $('#supplier_slice').on('select2:select change', function() {
-                        $table.columns(16).search('').draw();
-                        $table.columns(16).search($(this).val() ?? '').draw();
+                        $table.columns(18).search('').draw();
+                        $table.columns(18).search($(this).val() ?? '').draw();
                     });
                 }
 
@@ -454,16 +510,16 @@
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
                 let notPaidSum = 0;
-                $table.rows({ filter: 'applied' }).every(function() {
-                    const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[9]);
-                    const isPaid = parseLocaleToNum(data[10]);
-                    const notPaid = parseLocaleToNum(data[11]);
+                // $table.rows({ filter: 'applied' }).every(function() {
+                //     const data = this.data();
+                //     const grandTotal = parseLocaleToNum(data[11]);
+                //     const isPaid = parseLocaleToNum(data[12]);
+                //     const notPaid = parseLocaleToNum(data[13]);
 
-                    grandTotalSum += grandTotal;
-                    isPaidSum += isPaid;
-                    notPaidSum += notPaid;
-                });
+                //     grandTotalSum += grandTotal;
+                //     isPaidSum += isPaid;
+                //     notPaidSum += notPaid;
+                // });
 
                 const $grandTotal = $("#grand_total");
                 const $isPaid = $('#is_paid');
@@ -475,10 +531,16 @@
 
                 feather.replace();
             },
-            order: [[1, 'asc'], [0, 'desc']],
+            order: [[3, 'asc'], [2, 'desc']],
         });
 
-        $table.columns([0, 1, 14, 15, 16]).visible(false);
+        $table.columns([2, 3, 16, 17, 18]).visible(false);
+        @if (! Auth::user()->role->hasPermissionTo('expense.list.approve.farm'))
+        $table.columns(0).visible(false);
+        @endif
+        @if (! Auth::user()->role->hasPermissionTo('expense.list.approve.finance'))
+        $table.columns(1).visible(false);
+        @endif
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();
@@ -501,9 +563,7 @@
                 var modal = $(this);
                 modal.find('#notesContent').text(notes);
             });
-        });
 
-        $(document).ready(function() {
             $('#itemModal').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget);
                 var mainPrice = button.data('item');
@@ -522,6 +582,33 @@
                 });
                 // Update konten modal
                 modal.find('#itemContent').html(detailHtml);
+            });
+
+            $('#bulk-approve').on('show.bs.modal', function (event) {
+                const role = $(event.relatedTarget).data('role');
+
+                $(this).find('.bulk-approve-role').text(role);
+                $('#btn-bulk-approve').click(function (e) {
+                    $('#form-approve').submit();
+                });
+            });
+
+            $('#checkAllFarm').change(function (e) {
+                e.preventDefault();
+                if ($(this).is(':checked')) {
+                    $('.select-row-farm').prop('checked', true);
+                } else {
+                    $('.select-row-farm').prop('checked', false);
+                }
+            });
+
+            $('#checkAllFinance').change(function (e) {
+                e.preventDefault();
+                if ($(this).is(':checked')) {
+                    $('.select-row-finance').prop('checked', true);
+                } else {
+                    $('.select-row-finance').prop('checked', false);
+                }
             });
         });
 
@@ -550,9 +637,9 @@
                 $(this).dropdown('hide');
             });
         }
-        setupDropdownFilter('#filterCategory', 4, $table);
-        setupDropdownFilter('#filterPaymentStatus', 12, $table);
-        setupDropdownFilter('#filterExpenseStatus', 13, $table);
+        setupDropdownFilter('#filterCategory', 6, $table);
+        setupDropdownFilter('#filterPaymentStatus', 14, $table);
+        setupDropdownFilter('#filterExpenseStatus', 15, $table);
         // NOTE: TABLE FILTER::END
     });
 </script>
