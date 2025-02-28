@@ -1,6 +1,13 @@
-`@extends('templates.main')
+@extends('templates.main')
 @section('title', $title)
 @section('content')
+
+@php
+    function jsonMainPrices($arr) {
+        $parsed = $arr->map(fn($mp) => $mp->nonstock->name ?? '-')->toArray();
+        return json_encode($parsed);
+    }
+@endphp
 
 <style>
 #filter_wrapper label, #filter_wrapper input {
@@ -113,13 +120,12 @@
                                         <td>{{ $item->supplier->name ?? '-' }}</td>
                                         @if (count($item->expense_main_prices) > 1)
                                             <td>
-                                                <a href="#"
+                                                <a href="javascript:void(0)"
                                                     data-toggle="modal"
                                                     data-target="#itemModal"
-                                                    data-item="{{ $item->expense_main_prices }}" >
-                                                    Lihat {{ count($item->expense_main_prices) }} biaya
+                                                    data-item="{{ jsonMainPrices($item->expense_main_prices) }}" >
+                                                    Lihat {{ count($item->expense_main_prices) }} Biaya
                                                 </a>
-
                                             </td>
                                         @else
                                             <td>{{ $item->expense_main_prices->first()->nonstock->name ?? '-' }}</td>
@@ -472,7 +478,7 @@
             order: [[1, 'asc'], [0, 'desc']],
         });
 
-        $table.columns([0, 1, 13, 14, 15]).visible(false);
+        $table.columns([0, 1, 14, 15, 16]).visible(false);
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();
@@ -510,7 +516,7 @@
                     detailHtml += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td>${item.nonstock?.name ?? '-'}</td>
+                            <td>${item ?? '-'}</td>
                         </tr>
                     `;
                 });
