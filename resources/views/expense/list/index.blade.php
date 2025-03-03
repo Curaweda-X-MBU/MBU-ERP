@@ -513,16 +513,16 @@
                 let grandTotalSum = 0;
                 let isPaidSum = 0;
                 let notPaidSum = 0;
-                // $table.rows({ filter: 'applied' }).every(function() {
-                //     const data = this.data();
-                //     const grandTotal = parseLocaleToNum(data[11]);
-                //     const isPaid = parseLocaleToNum(data[12]);
-                //     const notPaid = parseLocaleToNum(data[13]);
+                $table.rows({ filter: 'applied' }).every(function() {
+                    const data = this.data();
+                    const grandTotal = parseLocaleToNum(data[11]);
+                    const isPaid = parseLocaleToNum(data[12]);
+                    const notPaid = parseLocaleToNum(data[13]);
 
-                //     grandTotalSum += grandTotal;
-                //     isPaidSum += isPaid;
-                //     notPaidSum += notPaid;
-                // });
+                    grandTotalSum += grandTotal;
+                    isPaidSum += isPaid;
+                    notPaidSum += notPaid;
+                });
 
                 const $grandTotal = $("#grand_total");
                 const $isPaid = $('#is_paid');
