@@ -1,12 +1,24 @@
 @php
 $category = \App\Constants::EXPENSE_CATEGORY;
 $kandangs = '';
+
+// --- Pengajuan ulang ---
+$parent_expense = null;
+if (request('parent_expense_id')) {
+    $fetched_expense = \App\Models\Expense\Expense::find(intval(request('parent_expense_id')));
+    if (isset($fetched_expense)) {
+        $parent_expense = $fetched_expense;
+    }
+}
+// -----------------------
+$using_data = $parent_expense ?: @$data;
+
 $selected_kandang_id = [];
-if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
-    $kandangs = \App\Models\DataMaster\Kandang::where('location_id', $data->location_id)
+if (isset($using_data->expense_kandang) && !$using_data->expense_kandang->isEmpty()) {
+    $kandangs = \App\Models\DataMaster\Kandang::where('location_id', $using_data->location_id)
         ->get()
         ->sortByDesc('project_status');
-    $selected_kandang_id = $data->expense_kandang->map(fn($k) => $k->kandang_id)->toArray();
+    $selected_kandang_id = $using_data->expense_kandang->map(fn($k) => $k->kandang_id)->toArray();
 }
 @endphp
 
@@ -35,19 +47,25 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
     <!-- Lokasi -->
     <div class="col-md-2 mt-1">
         <label for="location_id" class="form-label">Lokasi<i class="text-danger">*</i></label>
-        <select name="location_id" id="location_id" class="form-control" {{ @$data->expense_status == 1 ? 'disabled' : 'required' }}>
-            @if (@$data->location_id)
-            <option value="{{ @$data->location_id }}" selected>{{ @$data->location->name }}</option>
+        @if (isset($parent_expense))
+        <input type="hidden" name="location_id" value="{{ $using_data->location_id }}">
+        @endif
+        <select name="location_id" id="location_id" class="form-control" {{ @$data->expense_status == 1 ? 'disabled' : 'required' }} {{ isset($parent_expense) ? 'disabled': '' }}>
+            @if (@$using_data->location_id)
+            <option value="{{ @$using_data->location_id }}" selected>{{ @$using_data->location->name }}</option>
             @endif
         </select>
     </div>
     <!-- Kategori -->
     <div class="col-md-2 mt-1">
         <label for="category_id" class="form-label">Kategori<i class="text-danger">*</i></label>
-        <select name="category" id="category_id" class="form-control" required {{ @$data->expense_status == 1 ? 'disabled' : '' }}>
+        @if (isset($parent_expense))
+        <input type="hidden" name="category" value="{{ $using_data->category }}">
+        @endif
+        <select name="category" id="category_id" class="form-control" required {{ @$data->expense_status == 1 ? 'disabled' : '' }} {{ isset($parent_expense) ? 'disabled': '' }}>
             <option value="">Pilih Kategori</option>
-            <option value="1" {{ @$data->category == array_search('Biaya Operasional', $category) ? 'selected' : '' }}>Biaya Operasional</option>
-            <option value="2" {{ @$data->category == array_search('Bukan BOP', $category) ? 'selected' : '' }}>Bukan BOP</option>
+            <option value="1" {{ @$using_data->category == array_search('Biaya Operasional', $category) ? 'selected' : '' }}>Biaya Operasional</option>
+            <option value="2" {{ @$using_data->category == array_search('Bukan BOP', $category) ? 'selected' : '' }}>Bukan BOP</option>
         </select>
     </div>
     <div class="col-md-2 mt-1">
@@ -75,7 +93,7 @@ if (isset($data->expense_kandang) && !$data->expense_kandang->isEmpty()) {
         </div>
     </div>
     <!-- Kandang hidden array -->
-    <input type="hidden" name="selected_kandangs" value="{{ @$data->expense_kandang ? $data->expense_kandang->map(fn($k) => $k->kandang_id) : '[]' }}">
+    <input type="hidden" name="selected_kandangs" value="{{ @$using_data->expense_kandang ? $using_data->expense_kandang->map(fn($k) => $k->kandang_id) : '[]' }}">
 </div>
 
 <!-- Vendor -->
