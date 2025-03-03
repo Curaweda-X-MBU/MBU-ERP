@@ -257,7 +257,7 @@
                 confirmText: 'Hapus',
                 confirmClass: 'btn-danger',
             }, function() {
-                window.location.href = e.target.href;
+                window.location.href = e.currentTarget.href;
             });
         });
     });

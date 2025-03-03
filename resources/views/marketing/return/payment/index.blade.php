@@ -213,7 +213,7 @@ $statusPayment = App\Constants::MARKETING_VERIFY_PAYMENT_STATUS;
             confirmText: 'Hapus',
             confirmClass: 'btn-danger',
         }, function() {
-            window.location.href = e.target.href;
+            window.location.href = e.currentTarget.href;
         });
     });
 </script>

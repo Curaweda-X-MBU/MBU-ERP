@@ -28,9 +28,7 @@ class Expense extends Model
         'po_number',
         'transaction_date',
         'is_approved',
-        'approver_id',
-        'approval_notes',
-        'approved_at',
+        'approval_line',
         'location_id',
         'supplier_id',
         'category',
@@ -46,8 +44,10 @@ class Expense extends Model
         'is_paid',
         'total_qty',
         'not_paid',
+        'is_returned',
         'is_realized',
         'not_realized',
+        'is_rejected',
     ];
 
     public function getGrandTotalAttribute()
@@ -70,14 +70,27 @@ class Expense extends Model
         return $this->grand_total - $this->is_paid;
     }
 
+    public function getIsReturnedAttribute()
+    {
+        return ($this->expense_return->payment_nominal ?? 0)
+            + ($this->expense_return->bank_admin_fees ?? 0); // dianggap total pengembalian sudah termasuk admin bank
+    }
+
     public function getIsRealizedAttribute()
     {
-        return $this->expense_realizations->sum('price');
+        return $this->expense_realizations->sum('price') + $this->is_returned;
     }
 
     public function getNotRealizedAttribute()
     {
         return $this->grand_total - $this->is_realized;
+    }
+
+    public function getIsRejectedAttribute()
+    {
+        return isset($this->is_approved) && $this->is_approved !== null && $this->is_approved == 0
+            ? 1
+            : 0;
     }
 
     public function calculatePaymentStatus()
@@ -187,11 +200,6 @@ class Expense extends Model
         return $this->belongsTo(User::class, 'created_by', 'user_id');
     }
 
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approver_id', 'user_id');
-    }
-
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id', 'location_id');
@@ -235,5 +243,10 @@ class Expense extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+    }
+
+    public function expense_return()
+    {
+        return $this->hasOne(ExpenseReturnPayment::class, 'expense_id', 'expense_id');
     }
 }

@@ -137,10 +137,13 @@ Route::middleware('auth')->group(function() {
             Route::get('/detail/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'detail'])->name('expense.list.detail')->middleware('permission:expense.list.detail');
             Route::get('/delete/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'delete'])->name('expense.list.delete')->middleware('permission:expense.list.delete');
             Route::any('/realization/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'realization'])->name('expense.list.realization')->middleware('permission:expense.list.realization');
+            Route::post('/return-payment/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'returnPayment'])->name('expense.list.return-payment')->middleware('permission:expense.list.return-payment');
             Route::group(['prefix' => 'approve'], function() {
+                Route::post('/bulk', [App\Http\Controllers\Expense\ExpenseController::class, 'approveBulk'])->name('expense.list.approve.bulk')->middleware('permission:expense.list.approve.farm|expense.list.approve.finance');
                 Route::post('/farm/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.list.approve.farm')->middleware('permission:expense.list.approve.farm');
                 Route::post('/finance/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'approve'])->name('expense.list.approve.finance')->middleware('permission:expense.list.approve.finance');
             });
+            Route::get('/finish/{expense}', [App\Http\Controllers\Expense\ExpenseController::class, 'finish'])->name('expense.list.finish');
             Route::get('/search', [App\Http\Controllers\Expense\ExpenseController::class, 'searchExpense'])->name('expense.list.search');
 
             Route::group(['prefix' => 'disburse'], function() {

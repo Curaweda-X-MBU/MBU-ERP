@@ -28,6 +28,7 @@
                                 <div class="card mb-1">
                                     <div id="headingCollapse1" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
                                         <span class="lead collapse-title">Biaya Utama</span>
+                                        <span class="text-dark">Total: Rp {{ count($data->expense_main_prices) ? \App\Helpers\Parser::toLocale($data->expense_main_prices->sum('price')) : '0,00' }}</span>
                                     </div>
                                     <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse show" aria-expanded="true">
                                         <div class="card-body p-2">
@@ -77,6 +78,7 @@
                                 <div class="card mb-1">
                                     <div id="headingCollapse2" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
                                         <span class="lead collapse-title">Biaya Lainnya</span>
+                                        <span class="text-dark">Total: Rp {{ count($data->expense_addit_prices) ? \App\Helpers\Parser::toLocale($data->expense_addit_prices->sum('price')) : '0,00' }}</span>
                                     </div>
                                     <div id="collapse2" role="tabpanel" aria-labelledby="headingCollapse2" class="collapse show" aria-expanded="true">
                                         <div class="card-body p-2">

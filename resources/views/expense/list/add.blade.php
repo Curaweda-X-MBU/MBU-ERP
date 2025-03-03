@@ -9,7 +9,11 @@
                 <h4 class="card-title">{{$title}}</h4>
             </div>
             <div class="card-body">
-                <form id="expense-form" class="form-horizontal" method="post" action="{{ route('expense.list.add') }}" enctype="multipart/form-data">
+                    @if (request('parent_expense_id'))
+                    <form id="expense-form" class="form-horizontal" method="post" action="{{ route('expense.list.add', ['parent_expense_id' => request('parent_expense_id')]) }}" enctype="multipart/form-data">
+                    @else
+                        <form id="expense-form" class="form-horizontal" method="post" action="{{ route('expense.list.add') }}" enctype="multipart/form-data">
+                    @endif
                     {{ csrf_field() }}
                     <input type="hidden" name="expense_status" value="1">
                     @include('expense.list.sections.filter-lokasi-kategori')
