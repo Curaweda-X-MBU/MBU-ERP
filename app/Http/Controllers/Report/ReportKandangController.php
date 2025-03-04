@@ -860,7 +860,7 @@ class ReportKandangController extends Controller
                     ]);
                 });
             })
-            ->where('expense_status', 2)
+            ->where('expense_status', '>=', array_search('Pencairan', Constants::EXPENSE_STATUS))
             ->get()
             ->flatMap(function($e) {
                 return $e->expense_main_prices->map(function($mp) {
