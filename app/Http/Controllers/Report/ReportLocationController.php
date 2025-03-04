@@ -443,7 +443,7 @@ class ReportLocationController extends Controller
                 },
             ])
                 ->where('location_id', $location->location_id)
-                ->where('expense_status', 2)
+                ->where('expense_status', '>=', array_search('Pencairan', Constants::EXPENSE_STATUS))
                 ->whereIn('category', [1, 2])
                 ->where(function($q) use ($period) {
                     $q->where('category', 2)
