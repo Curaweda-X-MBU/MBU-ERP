@@ -142,8 +142,14 @@
                                                     @if ($item->marketing_status != 4 && auth()->user()->role->hasPermissionTo('marketing.list.realization'))
                                                     <a class="dropdown-item" href="{{ route('marketing.list.realization', $item->marketing_id) }}">
                                                         <i data-feather='package' class="mr-50"></i>
-                                                            <span>Realisasi</span>
-                                                        </a>
+                                                        <span>Realisasi</span>
+                                                    </a>
+                                                    @endif
+                                                    @if ($item->marketing_status == 4 && auth()->user()->role->hasPermissionTo('marketing.list.edit'))
+                                                    <a class="dropdown-item" href="javascript:void(0)" data-toggle="modal" data-target="#discountModal" data-id="{{ $item->marketing_id }}" data-do-number="{{ $item->id_marketing }}" data-current-discount="{{ $item->discount ?? null }}" data-current-discount-notes="{{ $item->discount_notes ?? null }}">
+                                                        <i data-feather="percent" class="mr-50"></i>
+                                                        <span>Tambah Diskon</span>
+                                                    </a>
                                                     @endif
                                                     <a class="dropdown-item" href="{{ route('marketing.list.payment.index', $item->marketing_id) }}">
                                                         <i data-feather="credit-card" class="mr-50"></i>
@@ -156,10 +162,10 @@
                                                     </a>
                                                     @endif
                                                     @if (@$item->approval_notes && @$item->is_approved === 0)
-                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
-                                                            <i data-feather="message-square" class="mr-50"></i>
-                                                            <span>Catatan Penolakan</span>
-                                                        </a>
+                                                    <a class="dropdown-item" href="javascript:void(0)" data-toggle="modal" data-target="#notesModal" data-notes="{{ $item->approval_notes }}">
+                                                        <i data-feather="message-square" class="mr-50"></i>
+                                                        <span>Catatan Penolakan</span>
+                                                    </a>
                                                     @endif
                                                     @if ($item->doc_reference)
                                                     <a class="dropdown-item" href="{{ route('file.show') . '?download=true&filename=' . $item->doc_reference }}">
@@ -243,6 +249,43 @@
     </div>
 </div>
 
+<!-- Modal Diskon -->
+<div class="modal fade" id="discountModal" tabindex="-1" role="dialog" aria-labelledby="discountModalLabel" aria-hidden="true">
+    <form action="#" method="post">
+    {{ csrf_field() }}
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="discountModalLabel">Tambah Diskon Pada: <span id="discountDoNumber"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-md-4 col-form-label">Total Diskon: </label>
+                        <div class="col-md-8">
+                            <input type="text" name="discount" class="form-control numeral-mask" placeholder="00,0">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-md-4 col-form-label">Catatan Diskon: </label>
+                        <div class="col-md-8">
+                            <textarea name="discount_notes" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary waves-effect waves-float waves-light" data-dismiss="modal" aria-label="Close">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary waves-effect waves-float waves-light">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') }}"></script>
 
@@ -256,6 +299,8 @@
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+
+<script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 
 <script>
     $(function () {
@@ -406,12 +451,32 @@
 
         $(document).ready(function() {
             $('#notesModal').on('show.bs.modal', function(event) {
-                var button = $(event.relatedTarget);
-                var notes = button.data('notes') || '-';
-                var modal = $(this);
-                modal.find('#notesContent').text(notes);
+                var $button = $(event.relatedTarget);
+                var notes = $button.data('notes') || '-';
+                var $modal = $(this);
+                $modal.find('#notesContent').text(notes);
+            });
+
+            $('#discountModal').on('show.bs.modal', function(event) {
+                var $button = $(event.relatedTarget);
+                var id = $button.data('id') || null;
+                var doNumber = $button.data('do-number') || '-';
+                var currentDiscount = $button.data('current-discount');
+                var currentDiscountNotes = $button.data('current-discount-notes');
+                var $modal = $(this);
+                const discountRoute = @js(route('marketing.list.edit', ['marketing' => ':id', 'discount' => 'true']));
+                $modal.find('#discountDoNumber').text(doNumber);
+                $modal.find('form').attr('action', discountRoute.replace(':id', id));
+
+                if (!!currentDiscount) {
+                    $modal.find('input[name="discount"]').val(parseNumToLocale(currentDiscount));
+                }
+                if (!!currentDiscountNotes) {
+                    $modal.find('textarea[name="discount_notes"]').text(currentDiscountNotes);
+                }
             });
         });
+        initNumeralMask('.numeral-mask');
     });
 </script>
 

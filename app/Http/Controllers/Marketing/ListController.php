@@ -84,7 +84,6 @@ class ListController extends Controller
                         'notes'          => $input['notes'],
                         'sales_id'       => $input['sales_id'] ?? null,
                         'tax'            => $input['tax'],
-                        'discount'       => Parser::parseLocale($input['discount']),
                         'payment_status' => array_search(
                             'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -154,7 +153,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100));
 
                     $createdMarketing->update([
                         'sub_total'   => $subTotal,
@@ -233,6 +232,23 @@ class ListController extends Controller
                 'data'  => $data,
             ];
 
+            if ($req->has('discount')) {
+                $input    = $req->all();
+                $discount = $input['discount'];
+
+                $success = DB::transaction(function() use ($input, $marketing, $discount) {
+                    $marketing->update([
+                        'discount'       => Parser::parseLocale($input['discount']),
+                        'discount_notes' => $input['discount_notes'],
+                        'grand_total'    => $marketing->grand_total + ($marketing->discount ?? 0) - Parser::parseLocale($input['discount']),
+                    ]);
+
+                    return ['success' => "Diskon berhasil diubah menjadi $discount"];
+                });
+
+                return redirect()->route('marketing.list.index')->with($success);
+            }
+
             if ($req->isMethod('post')) {
                 $input = $req->all();
 
@@ -267,7 +283,6 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     $arrProduct = [];
@@ -330,7 +345,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100));
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
@@ -439,7 +454,6 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     if ($input['realized_at']) {
@@ -542,7 +556,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100));
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
