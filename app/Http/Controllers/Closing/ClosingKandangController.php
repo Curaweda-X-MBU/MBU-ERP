@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Report;
+namespace App\Http\Controllers\Closing;
 
 use App\Constants;
 use App\Helpers\Parser;
@@ -23,28 +23,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ReportKandangController extends Controller
+class ClosingKandangController extends Controller
 {
     private function checkAccess($company, $param, $view, $permission = null)
     {
         try {
             if (empty($permission)) {
-                $permission = 'report.'.strtolower($company->alias).'.'.$view;
+                $permission = 'closing.'.strtolower($company->alias).'.'.$view;
             }
 
             $roleAccess = Auth::user()->role;
             switch ($company->alias) {
                 case 'MBU':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.mbu.{$view}", $param);
+                        return view("closing.mbu.{$view}", $param);
                     }
                 case 'LTI':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.lti.{$view}", $param);
+                        return view("closing.lti.{$view}", $param);
                     }
                 case 'MAN':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.man.{$view}", $param);
+                        return view("closing.man.{$view}", $param);
                     }
                 default:
                     throw new \Exception('Invalid company');
@@ -82,7 +82,7 @@ class ReportKandangController extends Controller
             ];
 
             $param = [
-                'title'  => 'Laporan > MBU',
+                'title'  => 'Closing > MBU',
                 'detail' => $detail,
             ];
 
@@ -438,9 +438,7 @@ class ReportKandangController extends Controller
     public function hppEkspedisi(Request $req, Location $location, Project $project)
     {
         try {
-            $period = intval($req->query('period') ?? $project->period);
-
-            $deliveryVehicles = $this->getHppExpedisi($project->project_id);
+            $deliveryVehicles = $this->getHppEkspedisi($project->project_id);
 
             return response()->json($deliveryVehicles);
         } catch (\Exception $e) {
@@ -999,7 +997,7 @@ class ReportKandangController extends Controller
 
         $bobot_sum = $this->getBobotSum($project_id);
 
-        $hpp_ekspedisi = $this->getHppExpedisi($project_id)->sum('total_delivery_fee');
+        $hpp_ekspedisi = $this->getHppEkspedisi($project_id)->sum('total_delivery_fee');
 
         return [
             $this->getHppOverhead($project_id),
@@ -1041,17 +1039,19 @@ class ReportKandangController extends Controller
         ];
     }
 
-    private function getHppExpedisi(int $project_id)
+    private function getHppEkspedisi(int $project_id)
     {
-        return PurchaseItemReception::selectRaw('
-                suppliers.name AS supplier_name,
-                COALESCE(SUM(purchase_item_receptions.transport_total), 0) AS total_delivery_fee
-            ')
-            ->join('suppliers', 'suppliers.supplier_id', '=', 'purchase_item_receptions.supplier_id')
-            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
-            ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
-            ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
+        return Expense::selectRaw('
+            suppliers.name AS supplier_name,
+            COALESCE(SUM(expense_main_prices.price), 0) AS total_delivery_fee
+        ')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'expenses.supplier_id')
+            ->join('expense_main_prices', 'expense_main_prices.expense_id', '=', 'expenses.expense_id')
+            ->join('nonstocks', 'nonstocks.nonstock_id', '=', 'expense_main_prices.nonstock_id')
+            ->join('expense_kandang', 'expense_kandang.expense_id', '=', 'expenses.expense_id')
+            ->join('projects', 'expense_kandang.project_id', '=', 'projects.project_id')
             ->where('projects.project_id', $project_id)
+            ->whereRaw('LOWER(nonstocks.name) LIKE ?', ['%ekspedisi%'])
             ->groupBy('suppliers.name')
             ->get();
     }
