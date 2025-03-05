@@ -2,11 +2,6 @@
 @section('title', $title)
 @section('content')
 
-@php
-    $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
-    $statusMarketing = App\Constants::MARKETING_STATUS;
-@endphp
-
 <link rel="stylesheet" type="text/css" href="{{ asset('app-assets/vendors/css/extensions/sweetalert2.min.css') }}" />
 
 <style>
@@ -21,51 +16,122 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="float-right">
-                    <div class="dropdown d-inline">
-                        <button class="btn btn-outline-secondary btn-icon waves-effect" type="button" data-toggle="dropdown">
-                            <i data-feather="filter"></i>
-                        </button>
-                        <ul class="dropdown-menu" id="filterDropdown" aria-labelledby="filterDropdown">
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Unit Bisnis</a>
-                                <ul class="dropdown-menu" id="filterCompany">
-                                </ul>
-                            </div>
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status Pembayaran</a>
-                                <ul class="dropdown-menu" id="filterPaymentStatus">
-                                    <a class="dropdown-item">Tempo</a>
-                                    <a class="dropdown-item">Dibayar Sebagian</a>
-                                    <a class="dropdown-item">Dibayar Penuh</a>
-                                </ul>
-                            </div>
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status</a>
-                                <ul class="dropdown-menu" id="filterMarketingStatus">
-                                    <a class="dropdown-item">Diajukan</a>
-                                    <a class="dropdown-item">Penawaran</a>
-                                    <a class="dropdown-item">Final</a>
-                                    <a class="dropdown-item">Realisasi</a>
-                                </ul>
-                            </div>
-                        </ul>
-                    </div>
-                    <div class="dropdown d-inline">
-                        <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Export
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                            <button id="exportExcel" class="dropdown-item w-100">Excel</button>
-                            <button id="exportPdf" class="dropdown-item w-100">PDF</button>
-                        </ul>
-                    </div>
                     @if (auth()->user()->role->hasPermissionTo('marketing.list.add'))
                     <a href="{{ route('marketing.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                     @endif
                 </div>
             </div>
+            @php
+                $arrRows = [10,20,50,100];
+                $statusPayment = App\Constants::MARKETING_PAYMENT_STATUS;
+                $statusMarketing = App\Constants::MARKETING_STATUS;
+            @endphp
             <div class="card-body">
                 <div class="card-datatable">
+                    <div class="row mb-1">
+                        <div class="col-12">
+                            <form action="{{ route('marketing.list.index') }}">
+                                <div class="row d-flex align-items-end">
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Unit Bisnis</label>
+                                            <select name="company_id" id="company_id" class="form-control" >
+                                                @if (request()->has('company_id') && request()->get('company_id'))
+                                                @php
+                                                    $companyId = request()->get('company_id');
+                                                @endphp
+                                                <option value="{{ $companyId }}" selected> {{ \App\Models\DataMaster\Company::find($companyId)->name }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Area</label>
+                                            <select name="marketing_products[warehouse][location][area_id]" id="area_id" class="form-control" >
+                                                @if (request()->has('marketing_products') && isset(request()->get('marketing_products')['warehouse']['location']['area_id']))
+                                                @php
+                                                    $areaId = request()->get('marketing_products')['warehouse']['location']['area_id'];
+                                                @endphp
+                                                <option value="{{ $areaId }}" selected> {{ \App\Models\DataMaster\Area::find($areaId)->name }}</option>
+                                                @else
+                                                <option selected disabled>Pilih unit bisnis terlebih dahulu</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Lokasi</label>
+                                            <select name="marketing_products[warehouse][location_id]" id="location_id" class="form-control" >
+                                                @if (request()->has('marketing_products') && isset(request()->get('marketing_products')['warehouse']['location_id']))
+                                                @php
+                                                    $locationiId = request()->get('marketing_products')['warehouse']['location_id'];
+                                                @endphp
+                                                <option value="{{ $locationiId }}" selected> {{ \App\Models\DataMaster\Location::find($locationiId)->name }}</option>
+                                                @else
+                                                <option selected disabled>Pilih area terlebih dahulu</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Pelanggan</label>
+                                            <select name="customer_id" id="customer_id" class="form-control">
+                                                @if (request()->has('customer_id') && @request()->get('customer_id'))
+                                                @php
+                                                    $customerId = request()->get('customer_id')
+                                                @endphp
+                                                <option value="{{ $customerId }}" selected> {{ \App\Models\DataMaster\Customer::find($customerId)->name }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="payment_status">Status Pembayaran</label>
+                                            <select name="payment_status" id="payment_status" class="form-control">
+                                                <option value="-all" {{ ! request()->has('payment_status') || request()->get('payment_status') == 0 ? 'selected' : '' }}>Semua</option>
+                                                @foreach ($statusPayment as $key => $item)
+                                                    <option value="{{$key}}" {{ request()->has('payment_status') && request()->get('payment_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="marketing_status">Status Penjualan</label>
+                                            <select name="marketing_status" id="marketing_status" class="form-control">
+                                                <option value="-all" {{ ! request()->has('marketing_status') || request()->get('marketing_status') == 0 ? 'selected' : '' }}>Semua</option>
+                                                @foreach ($statusMarketing as $key => $item)
+                                                    <option value="{{$key}}" {{ request()->has('marketing_status') && request()->get('marketing_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                    </div>
+                                    <div class="col-md-1 col-12">
+                                        <div class="form-group">
+                                            <label for="rows">Baris</label>
+                                            <select name="rows" class="form-control" >
+                                                @for ($i = 0; $i < count($arrRows); $i++)
+                                                <option value="{{ $arrRows[$i] }}" {{ request()->has('rows') && request()->get('rows') == $arrRows[$i] ? 'selected' : '' }}>{{ $arrRows[$i] }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-12">
+                                        <div class="form-group float-right">
+                                            <button type="submit" class="btn btn-primary">Cari</button>
+                                            <a href="{{ route('marketing.list.index') }}"  class="btn btn-warning">Reset</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <div class="table-responsive mb-2">
                         <table id="datatable" class="table table-bordered table-striped w-100">
                             <thead>
@@ -73,7 +139,6 @@
                                 <th>Tanggal Penjualan</th>
                                 <th>Tanggal Realisasi</th>
                                 <th>Aging</th>
-                                <th>customer_id</th>
                                 <th>Pelanggan</th>
                                 <th>Unit Bisnis</th>
                                 <th>Nominal Penjualan (Rp)</th>
@@ -90,7 +155,6 @@
                                         <td>{{ date('d-M-Y', strtotime($item->sold_at)) }}</td>
                                         <td>{{ isset($item->realized_at) ? date('d-M-Y', strtotime($item->realized_at)) : '-' }}</td>
                                         <td>{{ isset($item->realized_at) ? \Carbon\Carbon::parse($item->realized_at)->diffInDays(now()) . ' hari' : '-' }}</td>
-                                        <td>{{ $item->customer_id }}</td>
                                         <td>{{ $item->customer->name }}</td>
                                         <td>{{ $item->company->alias }}</td>
                                         <td class="text-right text-primary">{{ \App\Helpers\Parser::toLocale($item->grand_total) }}</td>
@@ -188,6 +252,12 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="mt-1">
+                        <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
+                        <div class="float-right">
+                            {{ $data->links('vendor.pagination.bootstrap-4') }}
+                        </div>
+                    </div>
                     <hr>
                     <div class="row">
                         <div class="col-12 col-md-6 my-1">
@@ -203,7 +273,7 @@
                                             Total Penjualan:
                                         </td>
                                         <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
-                                            Rp. <span id="grand_total">0,00</span>
+                                            Rp. <span id="grand_total">{{ \App\Helpers\Parser::toLocale($data->sum('grand_total')) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -211,7 +281,7 @@
                                             Total Sudah Dibayar:
                                         </td>
                                         <td class="font-weight-bolder text-success" style="font-size: 1.2em">
-                                            Rp. <span id="is_paid">0,00</span>
+                                            Rp. <span id="is_paid">{{ \App\Helpers\Parser::toLocale($data->sum('is_paid')) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -219,7 +289,7 @@
                                             Total Belum Dibayar:
                                         </td>
                                         <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
-                                            Rp. <span id="not_paid">0,00</span>
+                                            Rp. <span id="not_paid">{{ \App\Helpers\Parser::toLocale($data->sum('not_paid')) }}</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -286,16 +356,6 @@
     </form>
 </div>
 
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') }}"></script>
-
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/datatables.buttons.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/buttons.html5.min.js') }}"></script>
-
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/jszip.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/pdfmake.min.js') }}"></script>
-<script src="{{ asset('app-assets/vendors/js/tables/datatable/vfs_fonts.js') }}"></script>
-
 <script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
 
 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
@@ -304,136 +364,41 @@
 
 <script>
     $(function () {
-        var $table = $('#datatable').DataTable({
-            // scrollX: true,
-            dom: 'B<"#filter_wrapper"<"#filter_left"l>f>r<"custom-table-wrapper"t>ip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    className: 'd-none datatable-hidden-excel-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-                {
-                    extend: 'pdfHtml5',
-                    className: 'd-none datatable-hidden-pdf-button',
-                    exportOptions: {
-                        columns: ':not(:last-child)',
-                    },
-                },
-            ],
-            drawCallback: function(settings) {
-                if (!$('#customer_slice').length) {
-                    $('#filter_wrapper')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem');
-                    $('#filter_left')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem')
-                        .append(
-                            `
-                                <div class="input-group" style="width: auto;">
-                                    <div>
-                                        <select id="customer_slice" class="form-control" style="width: auto;"></select>
-                                    </div>
-                                    <div class="input-group-append">
-                                        <button id="customer_slice_clear" class="btn btn-icon btn-outline-secondary">
-                                            <i data-feather="x"></i>
-                                        </buton>
-                                    </div>
-                                </div>
-                            `
-                        );
+        const companyIdRoute = '{{ route("data-master.company.search") }}';
+        const areaIdRoute = '{{ route("data-master.area.search") }}';
+        const locationIdRoute = '{{ route("data-master.location.search") }}';
+        const customerIdRoute = '{{ route("data-master.customer.search") }}';
+        initSelect2($('select#customer_id'), 'Pilih Pelanggan', customerIdRoute, '', { allowClear: true });
+        initSelect2($('select#payment_status'), 'Pilih Status Pembayaran');
+        initSelect2($('select#marketing_status'), 'Pilih Status Penjualan');
 
-                    var customerIdRoute = '{{ route("data-master.customer.search") }}';
-                    initSelect2($('#customer_slice'), 'Filter Pelanggan', customerIdRoute);
+        initSelect2($('select#company_id'), 'Pilih Unit Bisnis', companyIdRoute, '', { allowClear: true });
 
-                    $('#customer_slice_clear').on('click', function() {
-                        $('#customer_slice').val(null).trigger('change');
-                    });
+        $('select#company_id').on('change', function () {
+            if ($('select#area_id').val()) {
+                $('select#area_id').trigger('change');
+            } else {
+                $('select#area_id').val(null).trigger('change');
+            }
 
-                    $('#customer_slice').on('select2:select change', function() {
-                        $table.columns(3).search('').draw();
-                        $table.columns(3).search($(this).val() ?? '').draw();
-                    });
+            const companyId = $(this).val();
+
+            initSelect2($('select#area_id'), 'Pilih Area', areaIdRoute, '', { allowClear: true });
+
+            $('select#area_id').on('change', function() {
+                if ($('select#location_id').val()) {
+                    $('select#location_id').trigger('change');
+                } else {
+                    $('#location_id').val(null).trigger('change');
                 }
 
+                const areaId = $(this).val();
 
-                let grandTotalSum = 0;
-                let isPaidSum = 0;
-                let notPaidSum = 0;
-
-                $table.rows({ filter: 'applied' }).every(function() {
-                    const data = this.data();
-                    const grandTotal = parseLocaleToNum(data[7]);
-                    const isPaid = parseLocaleToNum(data[8]);
-                    const notPaid = parseLocaleToNum(data[9]);
-
-                    grandTotalSum += grandTotal;
-                    isPaidSum += isPaid;
-                    notPaidSum += notPaid;
-                });
-
-                const $grandTotal = $("#grand_total");
-                const $isPaid = $('#is_paid');
-                const $notPaid = $('#not_paid');
-
-                $grandTotal.text(parseNumToLocale(grandTotalSum));
-                $isPaid.text(parseNumToLocale(isPaidSum));
-                $notPaid.text(parseNumToLocale(notPaidSum));
-
-                feather.replace();
-            },
-            order: [[0, 'desc']],
+                initSelect2($('select#location_id'), 'Pilih Lokasi', locationIdRoute + `?area_id=${areaId}`, '', { allowClear: true });
+            });
         });
 
-        function setupDropdownFilter(selector, column, $table) {
-            const resetClass = 'reset';
-            const reset = `<a class="dropdown-item ${resetClass} active">Semua</a>`;
-            $(selector).prepend(reset);
-            $(selector).on('click', '.dropdown-item', function(e) {
-                e.stopPropagation();
-                $(this).siblings('.dropdown-item').removeClass('active');
-                $(this).addClass('active')
-                $table.columns(column).search('').draw();
-                if (!$(this).hasClass(resetClass)) {
-                    $table.columns(column).search($(this).text()).draw();
-                }
-            });
-
-            $(selector).siblings('a').on('mouseover', function() {
-                $(this).dropdown('show');
-                $(this).parent('.autoclose').siblings('.autoclose').each(function() {
-                    $(this).find('.dropdown-menu').dropdown('hide');
-                });
-            });
-            $(selector).on('mouseleave', function() {
-                $(this).dropdown('hide');
-            });
-        }
-
-        $table.columns(4).visible(false);
-
-        $.ajax({
-            method: 'get',
-            url: '{{ route("data-master.company.search") }}',
-        }).done(function(result) {
-            result.forEach(function(company) {
-                $('#filterCompany').append(`<a class="dropdown-item">${company.alias}</a>`);
-            });
-            setupDropdownFilter('#filterCompany', 5, $table);
-        });
-        setupDropdownFilter('#filterPaymentStatus', 9, $table);
-        setupDropdownFilter('#filterMarketingStatus', 10, $table);
-
-        $('#exportExcel').on('click', function() {
-            $('.datatable-hidden-excel-button').trigger('click');
-        });
-
-        $('#exportPdf').on('click', function() {
-            $('.datatable-hidden-pdf-button').trigger('click');
-        });
+        $('select').trigger('change');
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();

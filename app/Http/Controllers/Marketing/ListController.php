@@ -23,12 +23,47 @@ class ListController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $req)
     {
         try {
-            $data = Marketing::with(['customer', 'company', 'marketing_payments'])
-                ->whereNull('marketing_return_id')
-                ->get();
+            $data = Marketing::with([
+                'customer',
+                'company',
+                'marketing_payments',
+                'marketing_products.warehouse.location.area',
+            ])->whereNull('marketing_return_id');
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['marketing_products']['warehouse']['location_id'])) {
+                $arrAppend['marketing_produts[warehouse][location_id]'] = $request['marketing_products']['warehouse']['location_id'];
+            }
+
+            if (isset($request['marketing_products']['warehouse']['location']['area_id'])) {
+                $arrAppend['marketing_produts[warehouse][location][area_id]'] = $request['marketing_products']['warehouse']['location']['area_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value !== '-all' && ! in_array($key, ['rows', 'page'])) {
+                    if (is_array($value)) {
+                        $data->whereHas($key, function($query) use ($value) {
+                            $this->applyNestedWhere($query, $value, $arrAppend);
+                        });
+                    } else {
+                        $data->where($key, $value);
+                        $arrAppend[$key] = $value;
+                    }
+                }
+            }
+
+            $data = $data
+                ->orderBy('marketing_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
 
             $param = [
                 'title' => 'Penjualan > List',
@@ -41,6 +76,20 @@ class ListController extends Controller
                 ->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    private function applyNestedWhere($query, $values, &$arrAppend)
+    {
+        foreach ($values as $relationKey => $relationValue) {
+            if (is_array($relationValue)) {
+                $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                    $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
+                });
+            } else {
+                $query->where($relationKey, $relationValue);
+                $arrAppend[$relationKey] = $relationValue;
+            }
         }
     }
 
