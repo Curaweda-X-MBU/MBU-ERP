@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Report;
+namespace App\Http\Controllers\Closing;
 
 use App\Constants;
 use App\Helpers\Parser;
@@ -23,28 +23,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ReportKandangController extends Controller
+class ClosingKandangController extends Controller
 {
     private function checkAccess($company, $param, $view, $permission = null)
     {
         try {
             if (empty($permission)) {
-                $permission = 'report.'.strtolower($company->alias).'.'.$view;
+                $permission = 'closing.'.strtolower($company->alias).'.'.$view;
             }
 
             $roleAccess = Auth::user()->role;
             switch ($company->alias) {
                 case 'MBU':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.mbu.{$view}", $param);
+                        return view("closing.mbu.{$view}", $param);
                     }
                 case 'LTI':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.lti.{$view}", $param);
+                        return view("closing.lti.{$view}", $param);
                     }
                 case 'MAN':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.man.{$view}", $param);
+                        return view("closing.man.{$view}", $param);
                     }
                 default:
                     throw new \Exception('Invalid company');
@@ -82,7 +82,7 @@ class ReportKandangController extends Controller
             ];
 
             $param = [
-                'title'  => 'Laporan > MBU',
+                'title'  => 'Closing > MBU',
                 'detail' => $detail,
             ];
 
