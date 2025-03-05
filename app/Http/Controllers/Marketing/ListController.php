@@ -40,11 +40,11 @@ class ListController extends Controller
             ];
 
             if (isset($request['marketing_products']['warehouse']['location_id'])) {
-                $arrAppend['marketing_produts[warehouse][location_id]'] = $request['marketing_products']['warehouse']['location_id'];
+                $arrAppend['marketing_products[warehouse][location_id]'] = $request['marketing_products']['warehouse']['location_id'];
             }
 
             if (isset($request['marketing_products']['warehouse']['location']['area_id'])) {
-                $arrAppend['marketing_produts[warehouse][location][area_id]'] = $request['marketing_products']['warehouse']['location']['area_id'];
+                $arrAppend['marketing_products[warehouse][location][area_id]'] = $request['marketing_products']['warehouse']['location']['area_id'];
             }
 
             foreach ($request as $key => $value) {

@@ -92,7 +92,7 @@
                                         <div class="form-group">
                                             <label for="payment_status">Status Pembayaran</label>
                                             <select name="payment_status" id="payment_status" class="form-control">
-                                                <option value="-all" {{ ! request()->has('payment_status') || request()->get('payment_status') == 0 ? 'selected' : '' }}>Semua</option>
+                                                <option value="-all" {{ ! request()->has('payment_status') || request()->get('payment_status') == '-all' ? 'selected' : '' }}>Semua</option>
                                                 @foreach ($statusPayment as $key => $item)
                                                     <option value="{{$key}}" {{ request()->has('payment_status') && request()->get('payment_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
                                                 @endforeach
@@ -103,7 +103,7 @@
                                         <div class="form-group">
                                             <label for="marketing_status">Status Penjualan</label>
                                             <select name="marketing_status" id="marketing_status" class="form-control">
-                                                <option value="-all" {{ ! request()->has('marketing_status') || request()->get('marketing_status') == 0 ? 'selected' : '' }}>Semua</option>
+                                                <option value="-all" {{ ! request()->has('marketing_status') || request()->get('marketing_status') == '-all' ? 'selected' : '' }}>Semua</option>
                                                 @foreach ($statusMarketing as $key => $item)
                                                     <option value="{{$key}}" {{ request()->has('marketing_status') && request()->get('marketing_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
                                                 @endforeach
