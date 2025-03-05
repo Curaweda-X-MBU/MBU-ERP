@@ -10,18 +10,73 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">{{ $title }}</h4>
-                                    {{-- @if (in_array(session('users')->role, [1,7])) --}}
                                     @if (Auth::user()->role->hasPermissionTo('purchase.add'))
                                     <div class="float-right">
                                         <a href="{{ route('purchase.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah Baru</a>
                                     </div>
                                     @endif
-                                    {{-- @endif --}}
+
                                 </div>
+                                @php
+                                    $arrRows = [10,20,50,100];
+                                    $statusPurchase = App\Constants::PURCHASE_STATUS;
+                                @endphp
                                 <div class="card-body">
                                     <div class="card-datatable">
-                                        <div class="table-responsive mb-2">
-                                            <table id="datatable" class="table table-bordered table-striped w-100" style="font-size: 10px">
+                                        <div class="row mb-1">
+                                            <div class="col-12">
+                                                <form action="{{ route('purchase.index') }}">
+                                                    <div class="row d-flex align-items-end">
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Vendor</label>
+                                                                <select name="supplier_id" id="supplier_id" class="form-control" >
+                                                                    @if (request()->has('supplier_id') && request()->get('supplier_id'))
+                                                                    @php
+                                                                        $supplierId = request()->get('supplier_id');
+                                                                    @endphp
+                                                                    <option value="{{ $supplierId }}" selected> {{ \App\Models\DataMaster\Supplier::find($supplierId)->name }}</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Status Pembelian</label>
+                                                                <select name="status" class="form-control" >
+                                                                    <option value="-1" {{ !request()->has('status')||request()->get('status')=="-1"?'selected':'' }}>Semua</option>
+                                                                    @foreach ($statusPurchase as $key => $item)
+                                                                        @if ($key > 0)
+                                                                        <option value="{{$key}}" {{ request()->has('status')&&request()->get('status')==$key?'selected':'' }}>{{ $item }}</option>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-1 col-12">
+                                                            <div class="form-group">
+                                                                <label for="stock_type">Baris</label>
+                                                                <select name="rows" class="form-control" >
+                                                                    @for ($i = 0; $i < count($arrRows); $i++)
+                                                                    <option value="{{ $arrRows[$i] }}" {{ request()->has('rows')&&request()->get('rows')==$arrRows[$i]?'selected':'' }}>{{ $arrRows[$i] }}</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-2 col-12">
+                                                            <div class="form-group float-right">
+                                                                <label for="stock_type"></label>
+                                                                <button type="submit" class="btn btn-primary">Cari</button>
+                                                                <label for="stock_type"></label>
+                                                                <a href="{{ route('purchase.index') }}"  class="btn btn-warning">Reset</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped w-100" style="font-size: 10px">
                                                 <thead>
                                                         <th>No. PR</th>
                                                         <th>Vendor</th>
@@ -117,10 +172,41 @@
                                             </table>
                                         </div>
                                     </div>
+                                    <div class="row mt-1">
+                                        <div class="col-sm-6">
+                                            <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="float-right">
+                                                {{ $data->links('vendor.pagination.bootstrap-4') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <table class="table table-bordered w-100">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Total Sudah Dibayar</td>
+                                                        <td width="170">Rp. <span class="float-right">{{ number_format($total_payment, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Belum Dibayar</td>
+                                                        <td>Rp. <span class="float-right">{{ number_format($total_remaining_payment, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Pembelian</td>
+                                                        <td>Rp. <span class="float-right">{{ number_format($grand_total, 0, ',', '.') }}</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 
                     <div class="modal fade text-left" id="delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-scrollable" role="document">
@@ -147,18 +233,29 @@
                         </div>
                     </div>
 
-                    <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
-                    <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
-
                     <script>
                         $(function () {
-                            $('#datatable').DataTable({
-                                // scrollX: true,
-                                drawCallback: function( settings ) {
-                                    feather.replace();
-                                },
-                                order: [[0, 'desc']],
+                            $('#supplier_id').select2({
+                                placeholder: "Pilih Vendor",
+                                allowClear: true,
+                                ajax: {
+                                    url: '{{ route("data-master.supplier.search") }}', 
+                                    dataType: 'json',
+                                    delay: 250, 
+                                    data: function(params) {
+                                        return {
+                                            q: params.term 
+                                        };
+                                    },
+                                    processResults: function(data) {
+                                        return {
+                                            results: data
+                                        };
+                                    },
+                                    cache: true
+                                }
                             });
+
                             $('#delete').on('show.bs.modal', function (event) {
                                 var button = $(event.relatedTarget) 
                                 var id = button.data('id')
