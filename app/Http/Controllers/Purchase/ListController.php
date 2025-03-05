@@ -30,11 +30,36 @@ class ListController extends Controller
     public function index(Request $req)
     {
         try {
-            $data  = Purchase::with(['supplier', 'createdBy'])->get();
+            $data      = Purchase::with(['supplier', 'createdBy']);
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+            foreach ($request as $key => $value) {
+                if (intval($value) >= 0 && ! in_array($key, ['rows', 'page'])) {
+                    $data            = $data->where($key, $value);
+                    $arrAppend[$key] = $value;
+                }
+            }
+
+            $totalPayment          = $data->sum('total_payment');
+            $totalRemainingPayment = $data->sum('total_remaining_payment');
+            $grandTotal            = $data->sum('grand_total');
+
+            $data = $data
+                ->orderBy('purchase_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
+
             $param = [
-                'title'  => 'Pembelian',
-                'data'   => $data,
-                'status' => Constants::PURCHASE_STATUS,
+                'title'                   => 'Pembelian',
+                'data'                    => $data,
+                'status'                  => Constants::PURCHASE_STATUS,
+                'total_payment'           => $totalPayment,
+                'total_remaining_payment' => $totalRemainingPayment,
+                'grand_total'             => $grandTotal,
             ];
 
             return view('purchase.index', $param);
@@ -417,7 +442,7 @@ class ListController extends Controller
                             $saveReceivedItem->vehicle_number         = $arrItemReception[$k]['vehicle_number'];
                             $saveReceivedItem->total_received         = $received;
                             $saveReceivedItem->total_retur            = $retur;
-                            $saveReceivedItem->supplier_id            = $arrItemReception[$k]['supplier_id'];
+                            $saveReceivedItem->supplier_id            = $arrItemReception[0]['supplier_id'];
                             $saveReceivedItem->transport_per_item     = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['transport_per_item']));
                             $saveReceivedItem->transport_total        = str_replace('.', '', str_replace(',', '.', $arrItemReception[$k]['transport_total']));
                             $saveReceivedItem->save();
@@ -427,8 +452,9 @@ class ListController extends Controller
                                 $arrKandang[] = [
                                     'location_id'         => $warehouseReception->location_id,
                                     'kandang_id'          => ($warehouseReception && $warehouseReception->type === 2) ? $warehouseReception->kandang_id : null,
+                                    'supplier_id'         => $arrItemReception[0]['supplier_id'],
                                     'expense_main_prices' => [
-                                        'supplier_id' => $arrItemReception[$k]['supplier_id'],
+                                        'supplier_id' => $arrItemReception[0]['supplier_id'],
                                         'nonstock_id' => $nonstock->nonstock_id,
                                         'qty'         => $arrItemReception[$k]['total_received'],
                                         'price'       => $arrItemReception[$k]['transport_total'],
@@ -490,6 +516,7 @@ class ListController extends Controller
                         ->map(function($items) {
                             return [
                                 'location_id'         => $items->first()['location_id'],
+                                'supplier_id'         => $items->first()['supplier_id'],
                                 'kandang_id'          => $items->pluck('kandang_id')->filter()->unique()->values()->all(),
                                 'expense_main_prices' => $items->pluck('expense_main_prices')->values()->all(),
                             ];
@@ -501,6 +528,7 @@ class ListController extends Controller
                         $expenseEvent = Expense::expenseEvent([
                             'purchase_id'         => $purchase->purchase_id,
                             'location_id'         => $value['location_id'],
+                            'supplier_id'         => $value['supplier_id'],
                             'kandangs'            => $value['kandang_id'],
                             'trx_date'            => $purchase->po_date,
                             'expense_main_prices' => $value['expense_main_prices'],
