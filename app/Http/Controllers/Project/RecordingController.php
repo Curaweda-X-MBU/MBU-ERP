@@ -26,36 +26,76 @@ class RecordingController extends Controller
     public function index(Request $req)
     {
         try {
-            $param = ['title' => 'Project > Recording'];
-            $data  = Recording::with(['project.fcr.fcr_standard', 'recording_depletion.product_warehouse.product']);
-            if ($req->isMethod('post')) {
-                $projectId                 = $req->project_id;
-                $period                    = $req->period;
-                $whereClause               = [];
-                $whereClause['project_id'] = $projectId;
-                $whereClause['project']    = Project::with('kandang')->find($projectId);
-                $whereClause['period']     = $period;
-                $param['param']            = $whereClause;
+            $data      = Recording::with(['project.fcr.fcr_standard', 'project.kandang.location', 'recording_depletion.product_warehouse.product']);
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
 
-                $filteredWhereClause = array_filter($whereClause, function($value, $key) {
-                    if ($key === 'project') {
-                        return false;
-                    }
-                    if ($key === 'period' && $value == 0) {
-                        return false;
-                    }
-                    if ($key === 'project_id' && $value == 0) {
-                        return false;
-                    }
-
-                    return true;
-                }, ARRAY_FILTER_USE_BOTH);
-
-                $data->whereHas('project', function($query) use ($filteredWhereClause) {
-                    $query->where($filteredWhereClause);
-                });
+            if (isset($request['project']['kandang']['company_id'])) {
+                $arrAppend['project[kandang][company_id]'] = $request['project']['kandang']['company_id'];
             }
-            $param['data'] = $data->get();
+
+            if (isset($request['project']['kandang']['location']['area_id'])) {
+                $arrAppend['project[kandang][location][area_id]'] = $request['project']['kandang']['location']['area_id'];
+            }
+
+            if (isset($request['project']['kandang']['location_id'])) {
+                $arrAppend['project[kandang][location_id]'] = $request['project']['kandang']['location_id'];
+            }
+
+            if (isset($request['project']['period'])) {
+                $arrAppend['project[period]'] = $request['project']['period'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value && intval($value) > 0 && ! in_array($key, ['rows', 'page'])) {
+                    if (is_array($request[$key])) {
+                        $data = $data->whereHas($key, function($query) use ($value) {
+                            foreach ($value as $relationKey => $relationValue) {
+                                if (is_array($value[$relationKey])) {
+                                    // Handle nested relationships (e.g., kandang.location.area_id)
+                                    $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                                        foreach ($relationValue as $subKey => $subValue) {
+                                            if (is_array($relationValue[$subKey])) {
+                                                // Handle nested relationships (e.g., project.kandang.location.area_id)
+                                                $subQuery->whereHas($subKey, function($subSubQuery) use ($subValue) {
+                                                    foreach ($subValue as $k => $v) {
+                                                        $subSubQuery->where($k, $v);
+                                                    }
+                                                });
+                                            } elseif ($subValue) {
+                                                $subQuery->where($subKey, $subValue);
+                                            }
+                                        }
+                                    });
+                                } elseif ($relationValue) {
+                                    // Direct relationship column filtering
+                                    $query->where($relationKey, $relationValue);
+                                }
+                            }
+                        });
+                    } else {
+                        $data            = $data->where($key, $value);
+                        $arrAppend[$key] = $value;
+                    }
+                } elseif ($key == 'on_time' && intval($value) == 0) {
+                    $data            = $data->where($key, $value);
+                    $arrAppend[$key] = $value;
+                }
+            }
+
+            $data = $data
+                ->orderBy('recording_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
+
+            $param = [
+                'title' => 'Project > Recording',
+                'data'  => $data,
+            ];
 
             return view('project.recording.index', $param);
         } catch (\Exception $e) {

@@ -164,6 +164,7 @@ class MovementController extends Controller
                 $expenseEvent = Expense::expenseEvent([
                     'stock_movement_id'   => $stockMovement->stock_movement_id,
                     'location_id'         => $stockMovement->destination->location_id,
+                    'supplier_id'         => $expenseMainPrices[0]['supplier_id'],
                     'kandangs'            => $stockMovement->destination->type === 2 ? [$stockMovement->destination->kandang_id] : [],
                     'trx_date'            => date('Y-m-d H:i'),
                     'expense_main_prices' => $expenseMainPrices,
