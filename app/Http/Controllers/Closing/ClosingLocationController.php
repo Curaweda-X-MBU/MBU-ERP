@@ -513,7 +513,7 @@ class ClosingLocationController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
-            $deliveryVehicles = $this->getHppExpedisi($period, $location->location_id);
+            $deliveryVehicles = $this->getHppEkspedisi($period, $location->location_id);
 
             return response()->json($deliveryVehicles);
         } catch (\Exception $e) {
@@ -1157,7 +1157,7 @@ class ClosingLocationController extends Controller
 
         $bobot_sum = $this->getBobotSum($period, $location_id);
 
-        $hpp_ekspedisi = $this->getHppExpedisi($period, $location_id)->sum('total_delivery_fee');
+        $hpp_ekspedisi = $this->getHppEkspedisi($period, $location_id)->sum('total_delivery_fee');
 
         return [
             $this->getHppOverhead($period, $location_id),
@@ -1201,20 +1201,23 @@ class ClosingLocationController extends Controller
         ];
     }
 
-    private function getHppExpedisi(int $period, int $location_id)
+    private function getHppEkspedisi(int $period, int $location_id)
     {
-        return PurchaseItemReception::selectRaw('
+        return Expense::selectRaw('
                 suppliers.name AS supplier_name,
-                COALESCE(SUM(purchase_item_receptions.transport_total), 0) AS total_delivery_fee
+                COALESCE(SUM(expense_main_prices.price), 0) AS total_delivery_fee
             ')
-            ->join('suppliers', 'suppliers.supplier_id', '=', 'purchase_item_receptions.supplier_id')
-            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
-            ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
-            ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'expenses.supplier_id')
+            ->join('expense_main_prices', 'expense_main_prices.expense_id', '=', 'expenses.expense_id')
+            ->join('nonstocks', 'nonstocks.nonstock_id', '=', 'expense_main_prices.nonstock_id')
+            ->join('expense_kandang', 'expense_kandang.expense_id', '=', 'expenses.expense_id')
+            ->join('kandang', 'expense_kandang.kandang_id', '=', 'kandang.kandang_id')
+            ->join('projects', 'expense_kandang.project_id', '=', 'projects.project_id')
             ->where([
                 ['kandang.location_id', $location_id],
                 ['projects.period', $period],
             ])
+            ->whereRaw('LOWER(nonstocks.name) LIKE ?', ['%ekspedisi%'])
             ->groupBy('suppliers.name')
             ->get();
     }

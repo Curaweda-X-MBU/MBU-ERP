@@ -64,7 +64,7 @@ $(function() {
                                 data: 'total_delivery_fee',
                                 className: 'delivery_fee text-right',
                                 render: function(data, type) {
-                                    return parseNumToLocale(data);
+                                    return `Rp&nbsp;${parseNumToLocale(data)}`;
                                 }
                             },
                         ],
