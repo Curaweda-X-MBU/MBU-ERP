@@ -3,6 +3,7 @@
 namespace App\Models\UserManagement;
 
 use App\Models\DataMaster\Company;
+use App\Models\Notification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,5 +37,10 @@ class Role extends SpatieRole
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(config('auth.providers.users.model'));
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'role_id');
     }
 }
