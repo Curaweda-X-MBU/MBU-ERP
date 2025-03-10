@@ -19,6 +19,8 @@ class Notification extends Model
         'role_id',
         'message',
         'url',
+        'module',
+        'foreign_id',
         'is_done',
         'location_id',
     ];
@@ -31,7 +33,7 @@ class Notification extends Model
     /**
      * notify
      *
-     * @param mixed{role_id: int, from: string, description: string, url: string, location_id: int} $input
+     * @param mixed{role_id: int, from: string, description: string, url: string, module: string, foreign_id: int location_id: int} $input
      * @return array{success: bool, message: string}
      */
     public static function notify($input)
@@ -45,6 +47,8 @@ class Notification extends Model
                 'role_id'     => $input['role_id'],
                 'message'     => 'Persetujuan '.$input['from'].' oleh '.$roleName.$input['description'] ?? '',
                 'url'         => $input['url'],
+                'module'      => $input['module'],
+                'foreign_id'  => $input['foreign_id'],
                 'location_id' => $input['location_id'],
             ]);
 
