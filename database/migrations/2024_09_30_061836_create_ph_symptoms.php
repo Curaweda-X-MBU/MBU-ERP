@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ph_symptoms', function (Blueprint $table) {
+        Schema::create('ph_symptoms', function(Blueprint $table) {
             $table->integer('ph_symptom_id', true);
             $table->string('name', 50);
             $table->timestamp('created_at')->nullable()->useCurrent();
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::table('ph_symptoms', function (Blueprint $table) {
+        Schema::table('ph_symptoms', function(Blueprint $table) {
             $table->foreign(['created_by'], 'ph_symptoms_ibfk_1')->references(['user_id'])->on('users')->onUpdate('no action')->onDelete('no action');
         });
     }
@@ -30,7 +30,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ph_symptoms', function (Blueprint $table) {
+        Schema::table('ph_symptoms', function(Blueprint $table) {
             $table->dropForeign('ph_symptoms_ibfk_1');
         });
 

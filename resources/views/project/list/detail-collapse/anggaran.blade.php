@@ -1,6 +1,6 @@
 <div class="card mb-1">
     <div id="headingCollapse4" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse4" aria-expanded="true" aria-controls="collapse4">
-        <span class="lead collapse-title"> Anggaran </span>
+        <span class="lead collapse-title"> Estimasi Anggaran </span>
     </div>
     <div id="collapse4" role="tabpanel" aria-labelledby="headingCollapse4" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
@@ -8,7 +8,7 @@
                 <div class="table-responsive">
                     <table class="table table-bordered w-100">
                         <thead>
-                            <th>Item</th>
+                            <th>Nama Produk</th>
                             <th class="text-right">QTY</th>
                             <th class="text-right">Harga Satuan (Rp)</th>
                             <th class="text-right">Total Anggaran (Rp)</th>
@@ -17,7 +17,7 @@
                             @if ($data->project_budget)
                                 @foreach ($data->project_budget as $item)
                                     <tr>
-                                        <td>{{ $item->item }}</td>
+                                        <td>{{ $item->product->name??$item->nonstock->name??'' }}</td>
                                         <td class="text-right">{{ number_format($item->qty, '0', ',', '.') }}</td>
                                         <td class="text-right">{{ number_format($item->price, '0', ',', '.') }}</td>
                                         <td class="text-right">{{ number_format($item->qty*$item->price, '0', ',', '.') }}</td>
@@ -44,6 +44,6 @@
 
 <script>
     $(function () {
-        
+
     });
 </script>

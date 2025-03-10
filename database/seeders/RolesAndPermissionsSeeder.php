@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\UserManagement\Permission;
 use App\Models\UserManagement\Role;
 use App\Models\UserManagement\User;
-/* use Illuminate\Database\Console\Seeds\WithoutModelEvents; */
 use Illuminate\Database\Seeder;
 
 class RolesAndPermissionsSeeder extends Seeder
@@ -16,8 +15,19 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $superAdmin = Role::query()->update(['guard_name' => 'web']);
-        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
+        $roles = [
+            ['name' => 'Super Admin', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Admin Marketing', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Admin Finance', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Manager Marketing', 'company_id' => 1, 'guard_name' => 'web'],
+            ['name' => 'Manager Finance', 'company_id' => 1, 'guard_name' => 'web'],
+        ];
+        Role::query()->update(['guard_name' => 'web']);
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role['name']], ['company_id' => $role['company_id']], ['guard_name' => $role['guard_name']]);
+        }
+
         // $adminFarm = Role::create(['name' => 'Admin Farm']);
         // $managerArea = Role::create(['name' => 'Manager Area']);
         // $staffAudit = Role::create(['name' => 'Staff Audit']);
@@ -37,19 +47,24 @@ class RolesAndPermissionsSeeder extends Seeder
             'project.list.index',
             'project.list.add',
             'project.list.edit',
+            'project.list.detail',
+            'project.list.copy',
+            'project.list.approve',
             'project.list.delete',
+            'project.list.closing',
             'project.chick-in.index',
             'project.chick-in.add',
             'project.chick-in.edit',
+            'project.chick-in.detail',
+            'project.chick-in.approve',
             'project.chick-in.delete',
             'project.recording.index',
             'project.recording.add',
             'project.recording.edit',
-            'project.recording.delete',
+            'project.recording.detail',
+            'project.recording.revision-submission',
+            'project.recording.revision-approval',
             'project.perparation.index',
-            'project.perparation.add',
-            'project.perparation.edit',
-            'project.perparation.delete',
             'ph.performance.index',
             'ph.performance.detail',
             'ph.performance.download',
@@ -67,23 +82,70 @@ class RolesAndPermissionsSeeder extends Seeder
             'ph.symptom.add',
             'ph.symptom.edit',
             'ph.symptom.delete',
-            'sales.index',
-            'sales.add',
-            'sales.edit',
-            'sales.delete',
-            'sales.retur',
+            'marketing.list.index',
+            'marketing.list.add',
+            'marketing.list.edit',
+            'marketing.list.detail',
+            'marketing.list.delete',
+            'marketing.list.realization',
+            'marketing.list.approve',
+            'marketing.list.payment.index',
+            'marketing.list.payment.add',
+            'marketing.list.payment.edit',
+            'marketing.list.payment.detail',
+            'marketing.list.payment.delete',
+            'marketing.list.payment.approve',
+            'marketing.return.index',
+            'marketing.return.add',
+            'marketing.return.edit',
+            'marketing.return.detail',
+            'marketing.return.delete',
+            'marketing.return.approve',
+            'marketing.return.payment.index',
+            'marketing.return.payment.add',
+            'marketing.return.payment.edit',
+            'marketing.return.payment.detail',
+            'marketing.return.payment.delete',
+            'marketing.return.payment.approve',
+            'expense.list.index',
+            'expense.list.add',
+            'expense.list.edit',
+            'expense.list.detail',
+            'expense.list.delete',
+            'expense.list.approve.farm',
+            'expense.list.approve.finance',
+            'expense.list.realization',
+            'expense.list.return-payment',
+            'expense.list.disburse.index',
+            'expense.list.disburse.add',
+            'expense.list.disburse.edit',
+            'expense.list.disburse.detail',
+            'expense.list.disburse.delete',
+            'expense.recap.index',
+            'finance.index',
+            'report.mbu.index',
+            'report.mbu.detail',
+            'report.mbu.kandang',
+            'report.man.index',
+            'report.man.detail',
+            'report.man.kandang',
+            'report.lti.index',
+            'report.lti.detail',
+            'report.lti.kandang',
             'purchase.index',
             'purchase.add',
+            'purchase.copy',
             'purchase.edit',
+            'purchase.approve',
+            'purchase.detail',
             'purchase.delete',
             'inventory.product.index',
-            'inventory.product.add',
-            'inventory.product.edit',
-            'inventory.product.delete',
+            'inventory.product.detail',
             'inventory.adjustment.index',
             'inventory.adjustment.add',
-            'inventory.adjustment.edit',
-            'inventory.adjustment.delete',
+            'inventory.movement.index',
+            'inventory.movement.add',
+            'inventory.movement.detail',
             'data-master.product-category.index',
             'data-master.product-category.add',
             'data-master.product-category.edit',
@@ -144,6 +206,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'data-master.fcr.add',
             'data-master.fcr.edit',
             'data-master.fcr.delete',
+            'data-master.nonstock.index',
+            'data-master.nonstock.add',
+            'data-master.nonstock.edit',
+            'data-master.nonstock.delete',
             'user-management.user.index',
             'user-management.user.add',
             'user-management.user.edit',
@@ -159,15 +225,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Assign permissions to roles
-        $superAdmin->givePermissionTo($permissions);
-        $user = User::find(1);
-        $user->assignRole('Super Admin');
-        // $adminFarm->givePermissionTo($permissions);
-        // $managerArea->givePermissionTo(['project.list', 'pembelian.submit']);
-        // $staffAudit->givePermissionTo(['audit.access', 'pembelian.submit']);
+        Role::find(1)->givePermissionTo($permissions);
+        $user1 = User::find(1);
+        $user1->assignRole('Super Admin');
     }
 }

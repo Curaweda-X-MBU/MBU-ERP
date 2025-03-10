@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchases', function (Blueprint $table) {
+        Schema::table('purchases', function(Blueprint $table) {
             $table->date('po_date')->nullable()->after('po_number');
         });
     }

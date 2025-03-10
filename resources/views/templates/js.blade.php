@@ -1,4 +1,4 @@
-    
+
     <!-- BEGIN: Page Vendor JS-->
     <!-- END: Page Vendor JS-->
 
@@ -9,7 +9,6 @@
 
     <!-- BEGIN: Page JS-->
     <!-- END: Page JS-->
-
     <script>
         $(window).on('load', function() {
             if (feather) {
@@ -22,7 +21,7 @@
             $(function () {
                 $('#toggleSidebar').click(function() {
                     setTimeout(function() {
-                        $('table').DataTable().columns.adjust().draw(); 
+                        $('table').DataTable().columns.adjust().draw();
                     }, 300);
                 });
 

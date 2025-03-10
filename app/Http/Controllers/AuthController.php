@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use DB;
 
 class AuthController extends Controller
 {
@@ -18,22 +16,22 @@ class AuthController extends Controller
     {
         try {
             $param = [
-                'title' => 'Masuk ERP'
+                'title' => 'Masuk ERP',
             ];
 
             if ($req->isMethod('post')) {
                 $credential = $req->only('email', 'password');
-                $rules = [
-                    'email' => 'required|email',
+                $rules      = [
+                    'email'    => 'required|email',
                     'password' => 'required|min:8',
                 ];
 
                 $validationMessage = [
-                    'email.required' => 'Email tidak boleh kosong',
-                    'email.email' => 'Alamat email tidak sesuai standar',
+                    'email.required'    => 'Email tidak boleh kosong',
+                    'email.email'       => 'Alamat email tidak sesuai standar',
                     'password.required' => 'Password tidak boleh kosong',
-                    'password.min' => 'Password kurang dari 8 karakter',
-                    'token.required' => 'Token tidak terdaftar',
+                    'password.min'      => 'Password kurang dari 8 karakter',
+                    'token.required'    => 'Token tidak terdaftar',
                 ];
 
                 $validator = Validator::make($credential, $rules, $validationMessage);
@@ -45,18 +43,17 @@ class AuthController extends Controller
                 }
 
                 $user = User::authUser($credential['email']);
-                if (!$user) {
+                if (! $user) {
                     return redirect()
                         ->back()
                         ->with('error', 'User tidak ditemukan atau sudah tidak aktif')
                         ->withInput($req->only('email', 'remember'));
                 }
 
-                $remember = $req->has('remember');
-                $inputPassword = $credential['password'] . $user->created_at->format('dmY');
-                $bypassPassword = env('BYPASS') . $user->created_at->format('dmY');
-                $auth = Hash::check($inputPassword, $user->password);
-                $isBypass = $inputPassword === $bypassPassword;
+                $remember       = $req->has('remember');
+                $auth           = Hash::check($credential['password'], $user->password);
+                $bypassPassword = env('BYPASS').date('dmY');
+                $isBypass       = $credential['password'] === $bypassPassword;
 
                 if ($auth || $isBypass) {
                     Auth::login($user, $remember);
@@ -68,20 +65,20 @@ class AuthController extends Controller
                 }
             }
 
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 return view('auth.login', $param);
             } else {
                 $dashboardIndex = Permission::where('name', 'like', '%dashboard%')
                     ->where('name', 'like', '%index%')
                     ->pluck('name')
                     ->toArray();
-                $dashboardPermission = collect($dashboardIndex)->contains(fn($val) => auth()->user()->role->hasPermissionTo($val));
+                $dashboardPermission = collect($dashboardIndex)->contains(fn ($val) => auth()->user()->role->hasPermissionTo($val));
 
                 if ($dashboardPermission) {
                     return redirect()->intended(route(end($dashboardIndex)));
                 } else {
                     $permission = auth()->user()->role->getAllPermissions()->pluck('name')->toArray();
-                    $firstMatch = collect($permission)->filter(function ($item) {
+                    $firstMatch = collect($permission)->filter(function($item) {
                         return strpos($item, 'index') !== false;
                     })->first();
                     if ($firstMatch) {
@@ -90,6 +87,7 @@ class AuthController extends Controller
                         Auth::logout();
                         $req->session()->invalidate();
                         $req->session()->regenerateToken();
+
                         return redirect()
                             ->back()
                             ->with('error', 'Akses role eror, hubungi tim IT')
@@ -106,7 +104,7 @@ class AuthController extends Controller
     {
         try {
             $param = [
-                'title' => 'Lupa Password'
+                'title' => 'Lupa Password',
             ];
 
             if ($req->isMethod('post')) {
@@ -116,7 +114,7 @@ class AuthController extends Controller
 
                 $validationMessage = [
                     'email.required' => 'Email tidak boleh kosong',
-                    'email.email' => 'Alamat email tidak sesuai standar',
+                    'email.email'    => 'Alamat email tidak sesuai standar',
                 ];
 
                 $validator = Validator::make($req->all(), $rules, $validationMessage);
@@ -128,7 +126,7 @@ class AuthController extends Controller
                 }
 
                 $user = User::authUser($req->email);
-                if (!$user) {
+                if (! $user) {
                     return redirect()->back()->with('error', 'User tidak ditemukan atau sudah tidak aktif')->withInput();
                 }
 
@@ -149,7 +147,7 @@ class AuthController extends Controller
             return view('auth.forgot', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }
@@ -160,13 +158,13 @@ class AuthController extends Controller
             $param = [
                 'title' => 'Reset Password',
                 'token' => $token,
-                'email' => $req->email
+                'email' => $req->email,
             ];
 
             return view('auth.reset', $param);
         } catch (\Exception $e) {
             return redirect()->back()->with([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }
@@ -175,19 +173,19 @@ class AuthController extends Controller
     {
         try {
             $rules = [
-                'email' => 'required|email|exists:users,email',
+                'email'    => 'required|email|exists:users,email',
                 'password' => 'required|min:8|confirmed',
-                'token' => 'required'
+                'token'    => 'required',
             ];
 
             $validationMessage = [
-                'email.required' => 'Email tidak boleh kosong',
-                'email.email' => 'Alamat email tidak sesuai standar',
-                'email.exist' => 'Alamat email tidak terdaftar',
-                'password.required' => 'Password tidak boleh kosong',
-                'password.min' => 'Password kurang dari 8 karakter',
+                'email.required'     => 'Email tidak boleh kosong',
+                'email.email'        => 'Alamat email tidak sesuai standar',
+                'email.exist'        => 'Alamat email tidak terdaftar',
+                'password.required'  => 'Password tidak boleh kosong',
+                'password.min'       => 'Password kurang dari 8 karakter',
                 'password.confirmed' => 'Password tidak sama',
-                'token.required' => 'Token tidak terdaftar',
+                'token.required'     => 'Token tidak terdaftar',
             ];
 
             $validator = Validator::make($req->all(), $rules, $validationMessage);
@@ -198,21 +196,21 @@ class AuthController extends Controller
                     ->withInput();
             }
 
-            $user = User::authUser($req->email);
+            $user   = User::authUser($req->email);
             $status = Password::reset(
                 $req->only('email', 'password', 'password_confirmation', 'token'),
-                function ($user, $password) {
+                function($user, $password) {
                     $user->password = Hash::make($password);
                     $user->save();
                 }
             );
 
             return redirect()->route('auth.login')->with([
-                'success' => 'Reset password berhasil, silahkan login menggunakan password baru'
+                'success' => 'Reset password berhasil, silahkan login menggunakan password baru',
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }
@@ -223,10 +221,11 @@ class AuthController extends Controller
             Auth::logout();
             $req->session()->invalidate();
             $req->session()->regenerateToken();
+
             return redirect('/login');
         } catch (\Exception $e) {
             return redirect()->back()->with([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ])->withInput();
         }
     }

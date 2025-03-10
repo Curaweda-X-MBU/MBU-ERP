@@ -18,14 +18,26 @@
                             <th>Unit Bisnis</th>
                             <th>Area</th>
                             <th>Lokasi</th>
-                            <th>Produk</th>
+                            <th>Kategori Produk</th>
+                            <th>Standar FCR</th>
+                            <th>Standar Mortalitas</th>
+                            @if ($data->project_status === 4)
+                            <th>Tanggal Closing</th>
+                            <th>Closing Oleh</th>
+                            @endif
                         </thead>
                         <tbody>
                             <tr>
                                 <td>{{ $data->kandang->company->name??'' }}</td>
                                 <td>{{ $data->kandang->location->area->name??'' }}</td>
                                 <td>{{ $data->kandang->location->name??'' }}</td>
-                                <td>{{ $data->product->name??'' }}</td>
+                                <td>{{ $data->product_category->name??'' }}</td>
+                                <td><a href="javascript:void(0)" >{{ $data->fcr->name ?? '' }}</a></td>
+                                <td>{{ $data->standard_mortality }}</td>
+                                @if ($data->project_status === 4)
+                                <td>{{ date('d-M-Y H:i', strtotime($data->closing_date)) }}</td>
+                                <td>{{ $data->closingby->name??'' }}</td>
+                                @endif
                             </tr>
                         </tbody>
                     </table>

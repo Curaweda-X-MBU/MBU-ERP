@@ -6,30 +6,54 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">{{ $title }}</h4>
+                                    <div class="pull-right">
+                                        @if (Auth::user()->role->hasPermissionTo('project.chick-in.approve'))
+                                        <a class="btn btn-success" href="javascript:void(0);" data-id="1" data-toggle="modal" data-target="#bulk-approve">
+                                            Approve
+                                        </a>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="card-datatable">
                                         <div class="table-responsive mb-2">
+                                            <form method="post" action="{{ route('project.chick-in.approve', 'test') }}" id="form-approve">
+                                            {{csrf_field()}}
                                             <table id="datatable" class="table table-bordered table-striped w-100">
                                                 <thead>
-                                                        <th>ID</th>
-                                                        <th>Unit Bisnis</th>
-                                                        <th>Produk</th>
-                                                        <th>Area</th>
-                                                        <th>Lokasi</th>
-                                                        <th>Kandang</th>
-                                                        <th>Kapasitas</th>
-                                                        <th>Periode</th>
-                                                        <th>Status Chick-in</th>
-                                                        <th>Status Project</th>
-                                                        <th>Aksi</th>
+                                                    @if (Auth::user()->role->hasPermissionTo('project.chick-in.approve'))
+                                                    <th>
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" id="checkAll">
+                                                            <label class="custom-control-label" for="checkAll"></label>
+                                                        </div>
+                                                    </th>
+                                                    @endif
+                                                    <th>ID</th>
+                                                    <th>Unit Bisnis</th>
+                                                    <th>Kategori Produk</th>
+                                                    <th>Area</th>
+                                                    <th>Lokasi</th>
+                                                    <th>Kandang</th>
+                                                    <th>Kapasitas</th>
+                                                    <th>Periode</th>
+                                                    <th>Status Chick-in</th>
+                                                    <th>Aksi</th>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($data as $item)
                                                         <tr>
+                                                            @if (Auth::user()->role->hasPermissionTo('project.chick-in.approve'))
+                                                            <td>
+                                                                <div class="custom-control custom-checkbox">
+                                                                    <input type="checkbox" class="custom-control-input {{ $item->chickin_status === 2 ? 'select-row':''  }}" name="project_ids[]" id="project-id-{{ $item->project_id }}" value="{{ $item->project_id }}" {{ $item->chickin_status === 2 ? '':'disabled'  }}>
+                                                                    <label class="custom-control-label" for="project-id-{{ $item->project_id }}"></label>
+                                                                </div>
+                                                            </td>
+                                                            @endif
                                                             <td>{{ $item->project_id }}</td>
                                                             <td>{{ $item->kandang->company->name??'' }}</td>
-                                                            <td>{{ $item->product->name??'' }}</td>
+                                                            <td>{{ $item->product_category->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->area->name??'' }}</td>
                                                             <td>{{ $item->kandang->location->name??'' }}</td>
                                                             <td>{{ $item->kandang->name??'' }}</td>
@@ -48,24 +72,6 @@
                                                                         @break
                                                                     @case(3)
                                                                         <div class="badge badge-pill badge-success">{{ $statusChickIn[$item->chickin_status] }}</div>
-                                                                        @break
-                                                                    @default
-                                                                        <div class="badge badge-pill badge-secondary">N/A</div>
-                                                                @endswitch
-                                                            </td>
-                                                            <td>
-                                                                @switch($item->project_status)
-                                                                    @case(1)
-                                                                        <div class="badge badge-pill badge-warning">Pengajuan</div>
-                                                                        @break
-                                                                    @case(2)
-                                                                        <div class="badge badge-pill badge-primary">Aktif</div>
-                                                                        @break
-                                                                    @case(3)
-                                                                        <div class="badge badge-pill badge-info">Persiapan</div>
-                                                                        @break
-                                                                    @case(4)
-                                                                        <div class="badge badge-pill badge-success">Selesai</div>
                                                                         @break
                                                                     @default
                                                                         <div class="badge badge-pill badge-secondary">N/A</div>
@@ -126,23 +132,62 @@
                         </div>
                     </div>
 
+                    <div class="modal fade text-left" id="bulk-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                            <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="myModalLabel1">Konfirmasi Approve Chick In</h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <br><p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger" id="btn-bulk-approve">Ya</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal">Tidak</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js')}}"></script>
                     <script src="{{asset('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js')}}"></script>
 
                     <script>
                         $(function () {
                             $('#datatable').DataTable({
-                                // scrollX: true,
+                                scrollX: true,
                                 drawCallback: function( settings ) {
                                     feather.replace();
                                 },
-                                order: [[0, 'desc']],
+                                order: [[1, 'desc']],
+                                columnDefs: [
+                                    { orderable: false, targets: [0] } 
+                                ]
                             });
                             $('#delete').on('show.bs.modal', function (event) {
                                 var button = $(event.relatedTarget) 
                                 var id = button.data('id')
                                 var modal = $(this)
                                 modal.find('.modal-body #id').val(id)
+                            });
+
+                            $('#bulk-approve').on('show.bs.modal', function (event) {
+                                $('#btn-bulk-approve').click(function (e) { 
+                                    $('#form-approve').submit();
+                                });
+                            });
+
+                            $('#checkAll').change(function (e) { 
+                                e.preventDefault();
+                                if ($(this).is(':checked')) {
+                                    $('.select-row').prop('checked',true);
+                                } else {
+                                    $('.select-row').prop('checked',false);
+                                }
                             });
                         });
                     </script>

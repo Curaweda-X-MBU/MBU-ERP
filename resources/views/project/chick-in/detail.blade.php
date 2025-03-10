@@ -7,6 +7,9 @@
         background: linear-gradient(118deg, #76A8D8, #c9e5ff);
     }
 </style>
+
+<script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
+
 <div class="col-12">
     <div class="row">
         <div class="no-print pb-2">
@@ -28,12 +31,12 @@
                     </a>
                     @endif
                 @else
-                    @if (Auth::user()->role->hasPermissionTo('project.chick-in.edit'))
+                    {{-- @if (Auth::user()->role->hasPermissionTo('project.chick-in.edit'))
                     <a href="{{ route('project.chick-in.edit', $data->project_id) }}" class="btn btn-primary">
                         <i data-feather="edit-2" class="mr-50"></i>
                         Edit
                     </a>
-                    @endif
+                    @endif --}}
                 @endif
                 @if (!$data->chickin_approval_date && count($data->project_chick_in) > 0)
                     @if (Auth::user()->role->hasPermissionTo('project.chick-in.approve'))
@@ -73,9 +76,9 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="id" value="">
+                    <input type="hidden" name="project_ids[]" id="id" value="">
                     <input type="hidden" name="act" id="act" value="">
-                    <p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
+                    <br><p>Apakah kamu yakin ingin menyetujui data chick in ini ?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-danger">Ya</button>
@@ -93,7 +96,7 @@
             var button = $(event.relatedTarget) 
             var id = button.data('id')
             var modal = $(this)
-            modal.find('.modal-body #id').val(id)
+            modal.find('.modal-body #id').val(id);
         });
     });
 </script>

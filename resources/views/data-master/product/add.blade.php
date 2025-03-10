@@ -1,6 +1,35 @@
 @extends('templates.main')
 @section('title', $title)
 @section('content')
+                    <style>
+                        .custom-supplier-repeater-grid {
+                            display: grid;
+                            grid-template-columns: repeat(5, 1fr);
+                            grid-template-areas:
+                                "select select select select delete"
+                                "input input input input delete";
+                            column-gap: 1rem;
+                            align-items: start;
+                            margin-bottom: 0.5rem;
+                            border-bottom: solid 1px lightgray;
+                        }
+                        .custom-supplier-repeater-grid + .custom-supplier-repeater-grid {
+                            margin-left: 25%;
+                        }
+                        .custom-supplier-repeater-grid .supplier-select-group {
+                            grid-area: select;
+                        }
+                        .custom-supplier-repeater-grid .product-price-group {
+                            grid-area: input;
+                        }
+                        .custom-supplier-repeater-grid .delete-button {
+                            grid-area: delete;
+                            justify-self: center;
+                        }
+                        .custom-supplier-repeater-grid .transparent {
+                            visibility: hidden;
+                        }
+                    </style>
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -191,6 +220,36 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-12 mb-1" id="product-supplier-repeater">
+                                                <div class="row" data-repeater-list="product_supplier">
+                                                    <div class="col-sm-3">
+                                                        <button class="btn btn-sm btn-primary float-right" type="button" data-repeater-create title="Tambah Vendor" disabled>
+                                                            Masukan Harga Produk
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-sm-5 custom-supplier-repeater-grid" data-repeater-item>
+                                                        <div class="form-group supplier-select-group">
+                                                            <div><label for="supplier_id">Supplier</label></div>
+                                                            <select name="supplier_id" class="form-control"></select>
+                                                        </div>
+                                                        <div class="form-group product-price-group">
+                                                            <div><label for="product_price">Harga Produk</label></div>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text" id="product_price">Rp.</span>
+                                                                </div>
+                                                                <input type="text" name="product_price" class="form-control numeral-mask">
+                                                            </div>
+                                                        </div>
+                                                        <div class="delete-button">
+                                                            <div><label class="transparent">a</label></div>
+                                                            <button class="btn btn-sm btn-icon btn-danger vertical-align-bottom" data-repeater-delete type="button" title="Hapus Vendor">
+                                                                <i data-feather="x"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="col-12">
                                                 <div class="form-group row">
                                                     <div class="col-sm-3 col-form-label">
@@ -262,14 +321,44 @@
                     <script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
                     {{-- <script src="{{asset("app-assets/js/scripts/forms/form-input-mask.js")}}"></script> --}}
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
+                    <script src="{{asset('app-assets/vendors/js/forms/repeater/jquery.repeater.min.js')}}"></script>
+                    <script src="{{asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
+                            $('input[name="product_price"]').on('change', function() {
+                                if ($(this).val().length > 0) {
+                                    $('[data-repeater-create]').text('Tambah Vendor').attr('disabled', false);
+                                } else {
+                                    $('[data-repeater-create]').text('Masukan Harga Produk').attr('disabled', true);
+                                }
+                            });
+                            const supplierIdRoute = "{{ route('data-master.supplier.search') }}";
+                            $('#product-supplier-repeater').repeater({
+                                initEmpty: true,
+                                show: function() {
+                                    const $row = $(this);
+                                    $row.slideDown();
+
+                                    const defaultProductPrice = $('input[name="product_price"]').val()
+                                    $row.find('input').val(defaultProductPrice);
+
+                                    if (feather) {
+                                        feather.replace({ width: 14, height: 14 });
+                                    }
+                                    initSelect2($row.find('select'), 'Pilih Vendor', supplierIdRoute);
+                                    initNumeralMask('.numeral-mask');
+                                },
+                                hide: function(deleteElement) {
+                                    confirmDelete($(this), deleteElement);
+                                }
+                            });
+
                             var numeralMask = $('.numeral-mask');
                             if (numeralMask.length) {
-                                numeralMask.each(function() { 
+                                numeralMask.each(function() {
                                 new Cleave(this, {
                                     numeral: true,
-                                    numeralThousandsGroupStyle: 'thousand'
+                                    numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                                 });
                                 })
                             }
@@ -277,12 +366,12 @@
                             $('#company_id').select2({
                                 placeholder: "Pilih Unit Bisnis",
                                 ajax: {
-                                    url: '{{ route("data-master.company.search") }}', 
+                                    url: '{{ route("data-master.company.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
@@ -297,12 +386,12 @@
                             $('#product_category_id').select2({
                                 placeholder: "Pilih Kategori Produk",
                                 ajax: {
-                                    url: '{{ route("data-master.product-category.search") }}', 
+                                    url: '{{ route("data-master.product-category.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
@@ -314,22 +403,22 @@
                                 }
                             });
 
-                            $('#product_category_id').change(function (e) { 
+                            $('#product_category_id').change(function (e) {
                                 e.preventDefault();
                                 $('#product_sub_category_id').val(null).trigger('change');
-                                
+
                                 var productCategoryId = $(this).val();
                                 var qryParam = productCategoryId?`?product_category_id=${productCategoryId}`:'';
 
                                 $('#product_sub_category_id').select2({
                                     placeholder: "Pilih Kategori Sub Produk",
                                     ajax: {
-                                        url: `{{ route("data-master.product-sub-category.search") }}${qryParam}`, 
+                                        url: `{{ route("data-master.product-sub-category.search") }}${qryParam}`,
                                         dataType: 'json',
-                                        delay: 250, 
+                                        delay: 250,
                                         data: function(params) {
                                             return {
-                                                q: params.term 
+                                                q: params.term
                                             };
                                         },
                                         processResults: function(data) {
@@ -345,12 +434,12 @@
                             $('#uom_id').select2({
                                 placeholder: "Pilih UOM",
                                 ajax: {
-                                    url: '{{ route("data-master.uom.search") }}', 
+                                    url: '{{ route("data-master.uom.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
@@ -370,7 +459,7 @@
                                     $('#company_id').append(newOption).trigger('change');
                                 }
                             }
-                            
+
                             var oldValueProductCategory = "{{ old('product_category_id') }}";
                             if (oldValueProductCategory) {
                                 var oldNameProductCategory = "{{ old('product_category_name') }}";

@@ -34,12 +34,12 @@
                     Edit
                 </a>
                 @endif
-                @if (Auth::user()->role->hasPermissionTo('purchase.copy'))
+                {{-- @if (Auth::user()->role->hasPermissionTo('purchase.copy'))
                 <a href="{{ route('purchase.copy', $data->purchase_id) }}" class="btn btn-warning">
                     <i data-feather="copy" class="mr-50"></i>
                     Copy
                 </a>
-                @endif
+                @endif --}}
                 @php
                     $modalId = 'approve';
                     if ($data->status == 3) {
@@ -85,6 +85,7 @@
                 <div class=" p-0">
                     <div class="collapse-default">
                         @include('purchase.detail-collapse.informasi-umum')
+                        {{-- @include('purchase.detail-collapse.purchase-alocation') --}}
                         @include('purchase.detail-collapse.purchase-other')
                         @include('purchase.detail-collapse.purchase-reception')
                         @include('purchase.detail-collapse.payment-info')
@@ -176,7 +177,7 @@
                 <div class="modal-footer">
                     @if ($data->status===3||$data->status===6)
                     <button type="submit" class="save_approve btn btn-danger">Simpan & Setujui</button>
-                    <input type="submit" class="btn btn-warning" name="save_only" value="Simpan">
+                    <input type="submit" class="btn btn-warning" name="save_only" value="Simpan Draft">
                     <button type="button" class="btn btn-primary" data-dismiss="modal">Batal</button>
                     @else 
                     <button type="submit" class="btn btn-danger">Ya</button>
@@ -202,11 +203,29 @@
     if (isset($data->purchase_item)) {
         $dataPurchaseItem = $data->purchase_item;
     }
+
+    $dataPurchaseWarehouse = [];
+    if (isset($data->warehouse_ids)) {
+        $dataPurchaseWarehouse = $data->warehouse_ids;
+    }
 @endphp
 <script>
     $(document).ready(function () {
         $('.save_approve').click(function(event) {
             var confirmation = confirm('Apakah kamu yakin ingin menyimpan dan menyetujui ?');
+            console.log('status', @json($data->status));
+            
+            if (@json($data->status) === 3 ) {
+                let remainAlocation = 0;
+                $(".remain-item").each(function () {
+                    remainAlocation += parseFloat($(this).text()) || 0; // Sum all .amount-text values
+                });
+                if (remainAlocation !== 0) {
+                    alert('Sisa alokasi harus 0');
+                    return false;
+                }
+            }
+
             if (!confirmation) {
                 event.preventDefault();
             }
@@ -251,7 +270,7 @@
                         numeralMask.each(function() { 
                             new Cleave(this, {
                                 numeral: true,
-                                numeralThousandsGroupStyle: 'thousand'
+                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                             });
                         })
                     }
@@ -272,6 +291,7 @@
             }
 
             $('.amount').trigger('change');
+            console.log('dataPurchaseItem', @json($dataPurchaseItem));
         });
 
         $('#approve_reception').on('show.bs.modal', function (event) {
@@ -288,27 +308,75 @@
                     if (feather) {
                         feather.replace({ width: 14, height: 14 });
                     }
-                    const dateOpt = { dateFormat: 'd-M-Y' }
-                    const timeOpt = {
+                    $('.flatpickr-inline').flatpickr({
+                        dateFormat: "d-M-Y H:i",
                         enableTime: true,
-                        dateFormat: "H:i",
-                        noCalendar: true,
                         time_24hr: true
-                    }
-                    $('.flatpickr-basic').flatpickr(dateOpt);
-                    $('.flatpickr-time').flatpickr(timeOpt);
-
-                    $('.flatpickr-calendar.hasTime.noCalendar').css({ 'width': '13rem' });
+                    });
+                    $('.flatpickr-calendar').css('margin', 'auto');
                     validationFile();
                     var numeralMask = $('.numeral-mask');
                     if (numeralMask.length) {
                         numeralMask.each(function() { 
                             new Cleave(this, {
                                 numeral: true,
-                                numeralThousandsGroupStyle: 'thousand'
+                                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                             });
                         })
                     }
+
+                    $(this).find('.warehouse_id').select2({
+                        placeholder: "Pilih Gudang",
+                        ajax: {
+                            url: `{{ route("data-master.warehouse.search") }}`, 
+                            dataType: 'json',
+                            delay: 250, 
+                            data: function(params) {
+                                return {
+                                    q: params.term,
+                                    warehouse_ids: @json($dataPurchaseWarehouse)
+                                };
+                            },
+                            processResults: function(data) {
+                                return {
+                                    results: data
+                                };
+                            },
+                            cache: true
+                        }
+                    });
+
+                    $(this).find('.supplier_id').select2({
+                        placeholder: "Pilih Vendor",
+                        ajax: {
+                            url: `{{ route("data-master.supplier.search") }}`, 
+                            dataType: 'json',
+                            delay: 250, 
+                            data: function(params) {
+                                return {
+                                    q: params.term
+                                };
+                            },
+                            processResults: function(data) {
+                                return {
+                                    results: data
+                                };
+                            },
+                            cache: true
+                        }
+                    });
+
+                    const receivedTotal = parseInt($(this).find('.total_received').val().replace(/\./g, '').replace(/,/g, '.')) || 0;
+                    $(this).find('.transport_per_item').keyup(function (e) { 
+                        e.preventDefault();
+                        const perItem = parseInt($(this).val().replace(/\./g, '').replace(/,/g, '.')) || 0;
+                        const transTotal = perItem*receivedTotal;
+                        $transTotalInput = $(this).closest('td').next().find('.transport_total');
+                        new Cleave($transTotalInput, {
+                            numeral: true,
+                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                        }).setRawValue(transTotal);
+                    });
                 },
                 hide: function (deleteElement) {
                     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
@@ -320,42 +388,86 @@
             const dataPurchaseItem = @json($dataPurchaseItem);
             dataPurchaseItem.forEach(val => {
                 const $receptionRepeater = $(`#purchase-reception-repeater-${val.purchase_item_id}`).repeater(optPurchaseReception);
+                const arrItemAlocation = val.purchase_item_alocation;
                 let arrItemReception = val.purchase_item_reception;
-                if (arrItemReception.length > 0) {
-                    let arrFile = [];
-                    arrItemReception.forEach(item => {
-                        const date = new Date(item.received_date);
-                        const options = { day: '2-digit', year: 'numeric', month: 'short' };
-                        item.date = date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
-                        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false }; // 24-hour format
-                        item.time = date.toLocaleTimeString('en-GB', timeOptions);
-                        arrFile.push({ 
-                            purchase_item_reception_id: item.purchase_item_reception_id,
-                            file_name: item.travel_number_document??null
+                
+                let arrSetListReception = [];
+                let customSet = [];
+                arrItemAlocation.forEach(element => {
+                    let receivedDate = '';
+                    let travelNumber = '';
+                    let travelNumberDoc = '';
+                    let vehicleNumber = '';
+                    let totalReceived = '';
+                    let totalRetur = 0;
+                    let supplierId = '';
+                    let supplierName = '';
+                    let transPerItem = 0;
+                    let transTotal = 0;
+                    if (arrItemReception.length > 0) {
+                        arrItemReception.forEach(item => {
+                            if (item.warehouse_id == element.warehouse_id) {
+                                const date = new Date(item.received_date);
+                                const options = { day: '2-digit', year: 'numeric', month: 'short' };
+                                const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false }; // 24-hour format
+                                receivedDate = `${date.toLocaleDateString('en-GB', options).replace(/ /g, '-')} ${date.toLocaleTimeString('en-GB', timeOptions)}`;
+                                travelNumberDoc = item.travel_number_document??'';
+                                delete item.travel_number_document;
+                                travelNumber = item.travel_number;
+                                vehicleNumber = item.vehicle_number;
+                                totalRetur += item.total_retur;
+                                supplierId = item.supplier_id??'';
+                                supplierName = item.supplier?.name??'';
+                                transPerItem = item.transport_per_item;
+                                transTotal = item.transport_total;
+                            } 
                         });
-                        delete item.travel_number_document;
-                    });
-                    
-                    $receptionRepeater.setList(arrItemReception);
-                    for (let i = 0; i < arrItemReception.length; i++) {
-                        if (arrFile[i].file_name !== null) {
-                            const fileName = arrFile[i].file_name;
-                            $(`input[name="purchase_item_reception_${val.purchase_item_id}[${i}][travel_number_document]"]`)
-                                .closest('td').html(`
-                                    <a href="{{ route('file.show', ['filename' => '__FILE_NAME__']) }}" target="_blank">
-                                        <i data-feather='download' class="mr-50"></i>
-                                        <span>Download</span>
-                                    </a>
-                                    <input type="hidden" name="purchase_item_reception_${val.purchase_item_id}[${i}][travel_number_document]" value="${fileName}">
-                                    <div class="float-right">
-                                        <a href="javascript:void(0)" class="delete-file text-danger" title="Hapus File">
-                                            <i data-feather="trash"></i>
-                                        </a>
-                                    </div>
-                                `.replace('__FILE_NAME__', fileName));
-                        }
                     }
-                } 
+                    customSet.push({
+                        warehouse_name: element.warehouse.name??'N/A', 
+                        file_name: travelNumberDoc,
+                        supplier_name: supplierName
+                    });
+                    arrSetListReception.push({ 
+                        date : receivedDate,
+                        warehouse_id : element.warehouse_id,
+                        travel_number : travelNumber,
+                        vehicle_number : vehicleNumber,
+                        total_received : element.alocation_qty,
+                        total_retur : totalRetur,
+                        supplier_id : supplierId,
+                        transport_per_item : transPerItem,
+                        transport_total : transTotal
+                    });
+                });
+
+                console.log('customSet', customSet);
+                console.log('arrSetListReception', arrSetListReception);
+                $receptionRepeater.setList(arrSetListReception);
+
+                for (let i = 0; i < arrSetListReception.length; i++) {
+                    if (customSet[i].file_name.length > 0) {
+                        const fileName = customSet[i].file_name;
+                        $(`input[name="purchase_item_reception_${val.purchase_item_id}[${i}][travel_number_document]"]`)
+                            .closest('td').html(`
+                                <a href="{{ route('file.show', ['filename' => '__FILE_NAME__']) }}" target="_blank">
+                                    <i data-feather='download' class="mr-50"></i>
+                                    <span>Download</span>
+                                </a>
+                                <input type="hidden" name="purchase_item_reception_${val.purchase_item_id}[${i}][travel_number_document]" value="${fileName}">
+                                <div class="float-right">
+                                    <a href="javascript:void(0)" class="delete-file text-danger" title="Hapus File">
+                                        <i data-feather="trash"></i>
+                                    </a>
+                                </div>
+                            `.replace('__FILE_NAME__', fileName));
+                    }
+                    $(`select[name="purchase_item_reception_${val.purchase_item_id}[${i}][warehouse_id]"]`).append(`<option value="${arrSetListReception[i].warehouse_id}" selected>${customSet[i].warehouse_name}</option>`);
+                    $(`select[name="purchase_item_reception_${val.purchase_item_id}[${i}][warehouse_id]"]`).trigger('change');
+                    $(`select[name="purchase_item_reception_${val.purchase_item_id}[${i}][supplier_id]"]`).append(`<option value="${arrSetListReception[i].supplier_id}" selected>${customSet[i].supplier_name}</option>`);
+                    $(`select[name="purchase_item_reception_${val.purchase_item_id}[${i}][supplier_id]"]`).trigger('change');
+                }
+
             });
             if (feather) {
                 feather.replace({ width: 14, height: 14 });
@@ -401,7 +513,7 @@
                 numeralMask.each(function() { 
                     new Cleave(this, {
                         numeral: true,
-                        numeralThousandsGroupStyle: 'thousand'
+                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                     });
                 })
             }

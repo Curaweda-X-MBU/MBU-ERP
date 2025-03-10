@@ -32,11 +32,15 @@
                                                         <table class="table table-bordered w-100" id="purchase-reception-repeater-{{$item->purchase_item_id}}">
                                                             <thead>
                                                                 <th>Tanggal Penerimaan</th>
+                                                                <th>Gudang Tujuan</th>
                                                                 <th>No. Surat Jalan</th>
                                                                 <th>Dokumen Surat Jalan (2 MB)</th>
                                                                 <th>No. Armada Pengangkut</th>
                                                                 <th>Jumlah Diterima</th>
                                                                 <th>Jumlah Retur</th>
+                                                                <th>Ekspedisi</th>
+                                                                <th>Transport<br>/Item</th>
+                                                                <th>Transport Total</th>
                                                                 <th>
                                                                     <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn-reception-{{$item->purchase_item_id}}" data-repeater-create title="Tambah Item">
                                                                         <i data-feather="plus"></i>
@@ -46,14 +50,20 @@
                                                             <tbody data-repeater-list="purchase_item_reception_{{$item->purchase_item_id}}">
                                                                 <tr data-repeater-item>
                                                                     <td>
-                                                                        <input type="text" class="form-control flatpickr-basic" name="date" placeholder="Tanggal" required/>
-                                                                        <input type="text" class="flatpickr-time delivery-time form-control text-left" name="time" placeholder="Jam Penerimaan" required/>
+                                                                        <input type="text" class="form-control flatpickr-inline" name="date" placeholder="Tanggal" required/>
+                                                                    </td>
+                                                                    <td>
+                                                                        <select name="warehouse_id" class="form-control warehouse_id" required></select>
                                                                     </td>
                                                                     <td><input type="text" class="form-control" name="travel_number" placeholder="No. Surat Jalan" required></td>
                                                                     <td><input type="file" class="form-control sj-doc" name="travel_number_document" accept=".pdf, image/jpeg"></td>
                                                                     <td><input type="text" class="form-control" name="vehicle_number" placeholder="Plat Nomor" required></td>
-                                                                    <td><input type="text" name="total_received" class="form-control numeral-mask text-right" placeholder="Total Diterima" required /></td>
+                                                                    <td><input type="text" name="total_received" class="form-control numeral-mask text-right total_received" placeholder="Total Diterima" required /></td>
                                                                     <td><input type="text" name="total_retur" class="form-control numeral-mask text-right" placeholder="Total Retur" required/></td>
+                                                                    <td><select name="supplier_id" class="form-control supplier_id" required></select></td>
+                                                                    <td><input type="text" name="transport_per_item" class="form-control numeral-mask text-right transport_per_item" placeholder="Transport/Item" required/></td>
+                                                                    <td><input type="text" name="transport_total" class="form-control numeral-mask text-right transport_total" placeholder="Total Transport" required/></td>
+                                                                    
                                                                     <td>
                                                                         <button class="btn btn-sm btn-icon btn-danger" data-repeater-delete type="button" title="Hapus Item">
                                                                             <i data-feather="x"></i>

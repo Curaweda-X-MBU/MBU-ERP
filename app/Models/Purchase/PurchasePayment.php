@@ -2,15 +2,18 @@
 
 namespace App\Models\Purchase;
 
+use App\Models\DataMaster\Bank;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\DataMaster\Bank;
 
 class PurchasePayment extends Model
 {
     use HasFactory;
+
     protected $table = 'purchase_payments';
+
     protected $primaryKey = 'purchase_payment_id';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -26,18 +29,21 @@ class PurchasePayment extends Model
         'document',
         'status',
         'approved_by',
-        'reason'
+        'reason',
     ];
 
-    public function purchase() {
+    public function purchase()
+    {
         return $this->belongsTo(Purchase::class, 'purchase_id');
     }
 
-    public function own_bank() {
+    public function own_bank()
+    {
         return $this->belongsTo(Bank::class, 'own_bank_id', 'bank_id');
     }
 
-    public function recipient_bank() {
+    public function recipient_bank()
+    {
         return $this->belongsTo(Bank::class, 'recipient_bank_id', 'bank_id');
     }
 }

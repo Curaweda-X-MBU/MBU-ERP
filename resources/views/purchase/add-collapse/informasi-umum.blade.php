@@ -5,7 +5,24 @@
     $notes = old('notes');
     $grandTotal = old('total_before_tax');
     $dataPurchase = '';
+    $company_id = old('company_id');
+    $company_name = old('company_name');
+    $area_id = old('area_id');
+    $area_name = old('area_name');
+    $location_id = old('location_id');
+    $location_name = old('location_name');
+    $warehouse_ids = old('warehouse_ids');
+    $warehouse_name = old('warehouse_names');
+
     if (isset($data)) {
+        $company_id = $data->warehouse->location->company_id??'';
+        $company_name = $data->warehouse->location->company->name??'';
+        $area_id = $data->warehouse->location->area_id??'';
+        $area_name = $data->warehouse->location->area->name??'';
+        $location_id = $data->warehouse->location_id??'';
+        $location_name = $data->warehouse->location->name??'';
+        $warehouse_ids = $data->warehouse_ids??'';
+        $warehouse_name = $data->warehouse->name??'';
         $supplier_id = $data->supplier->supplier_id??"";
         $supplier_name = $data->supplier->name;
         $require_date = $data->require_date;
@@ -19,6 +36,10 @@
 
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
+
+<style>
+     
+</style>
 
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
 
@@ -53,12 +74,7 @@
                                 <label for="require_date" class="float-right">Tgl. Dibutuhkan</label>
                             </div>
                             <div class="col-sm-9">
-                                <div class="input-group">
-                                    <input type="text" id="require_date" class="{{$errors->has('require_date')?'is-invalid':''}} form-control flatpickr-basic" name="require_date" placeholder="Tanggal Dibutuhkan" value="{{ $require_date?date('d-M-Y', strtotime($require_date)):'' }}" required>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text" id="basic-addon2">%</span>
-                                    </div>
-                                </div>
+                                <input type="text" id="require_date" class="{{$errors->has('require_date')?'is-invalid':''}} form-control flatpickr-basic" name="require_date" placeholder="Tanggal Dibutuhkan" value="{{ $require_date?date('d-M-Y', strtotime($require_date)):'' }}" required>
                                 @if ($errors->has('require_date'))
                                     <span class="text-danger small">{{ $errors->first('require_date') }}</span>
                                 @endif
@@ -68,14 +84,71 @@
                 </div>
             </div>
             <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="company_id" class="float-right">Unit Bisnis</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="company_id" id="company_id" class="form-control" required>
+                                    @if($company_id && $company_name)
+                                        <option value="{{ $company_id }}" selected="selected">{{ $company_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="area_id" class="float-right">Area</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="area_id" id="area_id" class="form-control" required>
+                                    <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
+                                    @if($area_id && $area_name)
+                                        <option value="{{ $area_id }}" selected="selected">{{ $area_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-sm-3 col-form-label">
+                                <label for="location_id" class="float-right">Lokasi</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="location_id[]" id="location_id" class="form-control" multiple="multiple" required>
+                                    {{-- <option disabled selected>Pilih Area terlebih dahulu</option> --}}
+                                    @if($location_id && $location_name)
+                                    <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                @include('purchase.add-collapse.informasi-farm')
+            </div>
+            <div class="col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
+                            <th>Gudang</th>
                             <th>Produk</th>
-                            <th>Jenis Produk</th>
-                            <th>Project Aktif</th>
-                            <th>Gudang/Tempat<br>Pengiriman</th>
-                            <th width="30">Jumlah</th>
+                            <th style="width: 20%;">Jumlah</th>
                             <th>Satuan</th>
                             <th colspan="2">
                                 <button class="btn btn-sm btn-icon btn-primary" type="button" id="add-btn" data-repeater-create title="Tambah Item">
@@ -85,10 +158,8 @@
                         </thead>
                         <tbody data-repeater-list="purchase_item">
                             <tr data-repeater-item>
+                                <td><select name="warehouse_id" class="form-control warehouse_id" required> </select></td>
                                 <td><select name="product_id" class="product_id form-control" required></select></td>
-                                <td><input type="text" name="product_category" class="form-control-plaintext jenis_produk" readonly/></td>
-                                <td><select name="project_id" class="project_id form-control"></select></td>
-                                <td><select name="warehouse_id" class="warehouse_id form-control" required></select></td>
                                 <td><input type="text" name="qty" class="qty form-control numeral-mask" placeholder="Qty" required/></td>
                                 <td><input type="text" name="uom_id" class="form-control-plaintext satuan" readonly/></td>
                                 <td>
@@ -130,14 +201,94 @@
                 cache: true
         }
 
-        const companyId = '{{ auth()->user()->department->company_id }}'
+        $('#location_id').select2({
+            placeholder: "Pilih Area Telebih Dahulu"
+        })
+
+        $('#warehouse_id').select2({
+            placeholder: "Pilih Lokasi Telebih Dahulu"
+        })
+
+        const companyId = $('#company_id').val();
         const qryProduct = companyId?`?company_id=${companyId}`:'';
-        const locationId = '{{auth()->user()->department->location_id}}';
+        const locationId = $('#location_id').val();
         const qryWarehouse = locationId?`?location_id=${locationId}`:'';
         $('#supplier_id').select2({
             placeholder: "Pilih supplier",
             ajax: {
                 url: `{{ route("data-master.supplier.search") }}`, 
+                ...select2Opt
+            }
+        });
+
+        let productOption = [];
+        $('#supplier_id').on('select2:select', function (e) {
+            const vendorProducts = e.params.data.data.products;
+            productOption = [];
+            vendorProducts.forEach(val => {
+                let strDoc = '';
+                if (val.product_category.category_code === 'BRO') {
+                    strDoc = '(DOC)';
+                }
+                productOption.push({
+                    id: val.product_id,
+                    text: `${ val.name } ${strDoc}`,
+                    data: val
+                })
+            }); 
+            $('.product_id').empty().select2({
+                placeholder: 'Pilih Produk',
+                allowClear: true,
+                data: productOption
+            }).val(null).trigger('change');      
+        });
+
+
+        $('#company_id').select2({
+            placeholder: "Pilih Unit Bisnis",
+            ajax: {
+                url: '{{ route("data-master.company.search") }}', 
+                ...select2Opt
+            }
+        });
+
+        $('#company_id').change(function (e) { 
+            e.preventDefault();
+            $('#area_id').val(null).trigger('change');
+            $('#product_category_id').val(null).trigger('change');
+            var companyId = $('#company_id').val();
+
+            $('#area_id').select2({
+                placeholder: "Pilih Area",
+                ajax: {
+                    url: `{{ route("data-master.area.search") }}`, 
+                    ...select2Opt
+                }
+            });
+
+            const qryProduct = companyId?`?company_id=${companyId}`:'';
+
+            $('#area_id').change(function (e) { 
+                e.preventDefault();
+                $('#location_id').val(null).trigger('change');
+                var areaId = $('#area_id').val();
+                var qryLocation = areaId&&companyId?`?company_id=${companyId}&area_id=${areaId}`:'';
+
+                $('#location_id').select2({
+                    placeholder: "Pilih Lokasi",
+                    ajax: {
+                        url: `{{ route("data-master.location.search") }}${qryLocation}`, 
+                        ...select2Opt
+                    }
+                });
+            });
+
+        });
+
+        $('#product_category_id').select2({
+            placeholder: "Pilih Kategori Produk",
+            ajax: {
+                url: `{{ route("data-master.product-category.search") }}`, 
                 ...select2Opt
             }
         });
@@ -160,40 +311,47 @@
                     numeralMask.each(function() { 
                         new Cleave(this, {
                             numeral: true,
-                            numeralThousandsGroupStyle: 'thousand'
+                            numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                         });
                     })
                 }
 
-                $this.find('.product_id').select2({
-                    placeholder: "Pilih Produk",
-                    ajax: {
-                        url: `{{ route("data-master.product.search") }}${qryProduct}`, 
-                        ...select2Opt
-                    }
-                });
-
-                $this.find('.project_id').select2({
-                    placeholder: "Pilih Project",
-                    ajax: {
-                        url: `{{ route("project.list.search") }}?project_status=4`, 
-                        ...select2Opt
-                    }
-                });
-
-                $this.find('.product_id').on('select2:select', function (e) { 
-                    e.preventDefault();
-                    const selectedData = e.params.data.data;
-                    $(this).closest('td').next().find('.jenis_produk').val(selectedData.product_category.name)
-                    $(this).closest('td').next().next().next().next().next().find('.satuan').val(selectedData.uom.name)
-                });
-
                 $this.find('.warehouse_id').select2({
                     placeholder: "Pilih Gudang",
                     ajax: {
-                        url: `{{ route("data-master.warehouse.search") }}${qryWarehouse}`, 
-                        ...select2Opt
+                        url: `{{ route("data-master.warehouse.search") }}`, 
+                        dataType: 'json',
+                        delay: 250, 
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                location_ids: $('#location_id').val()
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
                     }
+                });
+
+                $productId = $this.find('.product_id');
+                if (productOption.length > 0) {
+                    $productId.select2({
+                        placeholder: 'Pilih Produk',
+                        allowClear: true,
+                        data: productOption
+                    }).val(null).trigger('change'); 
+                } else {
+                    $productId.html('<option selected disabled>Pilih Vendor terlebih dahulu</option>')
+                }
+                
+                $productId.on('select2:select', function (e) { 
+                    e.preventDefault();
+                    const selectedData = e.params.data.data;
+                    $(this).closest('td').next().next().find('.satuan').val(selectedData.uom.name)
                 });
 
                 const dateOpt = { dateFormat: 'd-M-Y' }
@@ -219,14 +377,13 @@
         if ('{{ $dataPurchase }}'.length) {
             const dataPurchase = @json($dataPurchase);
             console.log(dataPurchase);
-            
             if (dataPurchase) {
                 $itemRepeater.setList(dataPurchase);
                 for (let i = 0; i < dataPurchase.length; i++) {
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).append(`<option value="${dataPurchase[i].product.product_category_id}" selected>${dataPurchase[i].product.product_category.name}</option>`);
+                    $(`select[name="purchase_item[${i}][product_category_id]"]`).trigger('change');
                     $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataPurchase[i].product_id}" selected>${dataPurchase[i].product.name}</option>`);
                     $(`select[name="purchase_item[${i}][product_id]"]`).trigger('change');
-                    $(`select[name="purchase_item[${i}][warehouse_id]"]`).append(`<option value="${dataPurchase[i].warehouse_id}" selected>${dataPurchase[i].warehouse.name}</option>`);
-                    $(`select[name="purchase_item[${i}][warehouse_id]"]`).trigger('change');
                     $(`input[name="purchase_item[${i}][product_category]"]`).val(dataPurchase[i].product.product_category.name);
                     $(`input[name="purchase_item[${i}][uom_id]"]`).val(dataPurchase[i].product.uom.name);
                 }
@@ -237,14 +394,14 @@
             let price = set.find('.price').val();
             let qty = set.find('.qty').val();
             if (price && qty) {
-                price = parseInt(price.replace(/,/g, ''));
-                qty = parseInt(qty.replace(/,/g, ''));
+                price = parseInt(price.replace(/\./g, '').replace(/,/g, '.'));
+                qty = parseInt(qty.replace(/\./g, '').replace(/,/g, '.'));
                 const total = price*qty;
                 if (total >= 0) {
                     set.find('.total-input').val(total);
                     new Cleave(set.find('.total'), {
                         numeral: true,
-                        numeralThousandsGroupStyle: 'thousand'
+                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
                     }).setRawValue(total);
 
                     calculateTotal();
@@ -268,7 +425,7 @@
 
             new Cleave($('.grand-total'), {
                 numeral: true,
-                numeralThousandsGroupStyle: 'thousand'
+                numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
             }).setRawValue(grandTotal);
             $('.grand-total-input').val(grandTotal);
         }

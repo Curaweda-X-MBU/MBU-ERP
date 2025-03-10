@@ -1,3 +1,23 @@
+<style>
+    .td-top{
+        vertical-align: top;
+    }
+</style>
+
+@php
+    $warehouseNames = [];
+    $locationNames = [];
+    $companyName = '';
+    $areaName = '';
+    foreach ($data->warehouse_details as $key => $value) {
+        $warehouseNames[] = $value['warehouse_name'];
+        $locationNames[] = $value['location_name'];
+        $companyName = $value['company_name'];
+        $areaName = $value['area_name'];
+    }
+    $locationNames = array_unique($locationNames);
+@endphp
+
 <div class="card mb-1">
     <div id="headingCollapse3" class="card-header color-header collapsed" data-toggle="collapse" role="button" data-target="#collapse3" aria-expanded="true" aria-controls="collapse3">
         <span class="lead collapse-title"> Item Pembelian </span>
@@ -5,44 +25,77 @@
     <div id="collapse3" role="tabpanel" aria-labelledby="headingCollapse3" class="collapse show" aria-expanded="true">
         <div class="card-body p-2">
             <div class="col-12">
-                <div class="float-right">
-                    <table class="mb-2">
-                        <tr>
-                            <td><b>Tgl. Dibutuhkan</b></td>
-                            <td>:</td>
-                            <td>{{ date('d-M-Y', strtotime($data->require_date)) }}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Nomor</b></td>
-                            <td>:</td>
-                            <td>{{ $data->pr_number }}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Nomor PO</b></td>
-                            <td>:</td>
-                            <td>
-                                @if ($data->po_number)
-                                    <a class="btn btn-sm btn-primary" target="_blank" href="{{ route('purchase.detail', ['id' => $data->purchase_id, 'po_number' => $data->po_number]) }}">
-                                        {{ $data->po_number }}
-                                    </a>
-                                @else
-                                    <i class="text-muted">Belum dibuat</i>
-                                @endif
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <table class="mb-2">
-                    <tr>
-                        <td><b>Nama Vendor</b></td>
-                        <td>:</td>
-                        <td>{{ $data->supplier->name??'' }}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Alamat</b></td>
-                        <td>:</td>
-                        <td>{{ $data->supplier->address??'' }}</td>
-                    </tr>
+                <table>
+                    <td style="width: 53%; vertical-align: top;">
+                        <table class="mb-2">
+                            <tr>
+                                <td><b>Unit Bisnis</b></td>
+                                <td>:</td>
+                                <td>{{ $companyName }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Area</b></td>
+                                <td>:</td>
+                                <td>{{ $areaName }}</td>
+                            </tr>
+                            <tr>
+                                <td class="td-top"><b>Lokasi</b></td>
+                                <td class="td-top">:</td>
+                                <td class="td-top">
+                                    @foreach ($locationNames as $item)
+                                        <div class="badge badge-light-primary">{{ $item }}</div>
+                                    @endforeach
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-top"><b>Gudang Penyimpanan</b></td>
+                                <td class="td-top">:</td>
+                                {{-- <td class="td-top">{{ implode(', ', $data->warehouse_names)??'' }}</td> --}}
+                                <td class="td-top">
+                                    @foreach ($warehouseNames as $item)
+                                        <div class="badge badge-light-primary">{{ $item }}</div>
+                                    @endforeach
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <table class="mb-2">
+                            <tr>
+                                <td><b>Nama Vendor</b></td>
+                                <td>:</td>
+                                <td>{{ $data->supplier->name??'' }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Alamat Vendor</b></td>
+                                <td>:</td>
+                                <td>{{ $data->supplier->address??'' }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Tgl. Dibutuhkan</b></td>
+                                <td>:</td>
+                                <td>{{ date('d-M-Y', strtotime($data->require_date)) }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Nomor</b></td>
+                                <td>:</td>
+                                <td>{{ $data->pr_number }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Nomor PO</b></td>
+                                <td>:</td>
+                                <td>
+                                    @if ($data->po_number)
+                                        <a class="btn btn-sm btn-primary" target="_blank" href="{{ route('purchase.detail', ['id' => $data->purchase_id, 'po_number' => $data->po_number]) }}">
+                                            {{ $data->po_number }}
+                                        </a>
+                                    @else
+                                        <i class="text-muted">Belum dibuat</i>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
                 </table>
             </div>
             <div class="col-12">
@@ -51,8 +104,8 @@
                         <thead>
                             <th>Produk</th>
                             <th>Jenis Produk</th>
-                            <th>Project Aktif</th>
-                            <th>Gudang/Tempat<br>Pengiriman</th>
+                            {{-- <th>Project Aktif</th> --}}
+                            {{-- <th>Gudang/Tempat<br>Pengiriman</th> --}}
                             <th width="30">Jumlah</th>
                             <th>Satuan</th>
                             <th>Harga Satuan</th>
@@ -63,10 +116,10 @@
                         <tbody>
                             @foreach ($data->purchase_item as $item)
                             <tr>
-                                <td>{{ $item->product->name??'' }}</td>
+                                <td>{{ $item->product->name??'' }} {{ $item->product->product_sub_category->name==="DOC"?" (DOC)":'' }}</td>
                                 <td>{{ $item->product->product_category->name??'' }}</td>
-                                <td>{{ $item->project->kandang->name??'' }}</td>
-                                <td>{{ $item->warehouse->name }}</td>
+                                {{-- <td>{{ $item->project->kandang->name??'' }}</td> --}}
+                                {{-- <td>{{ $item->warehouse->name }}</td> --}}
                                 <td class="text-right">{{ number_format($item->qty, '0', ',', '.') }}</td>
                                 <td>{{ $item->product->uom->name??'' }}</td>
                                 <td class="text-right">{{ number_format($item->price, '0', ',', '.') }}</td>
@@ -78,10 +131,10 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="7" rowspan="4" class="text-left" style="vertical-align: top">
+                                <td colspan="6" rowspan="4" class="text-left" style="vertical-align: top">
                                     Catatan : <br>{{ $data->notes }} <br>
                                 </td>
-                                <td colspan="2" class="text-right">
+                                <td colspan="1" class="text-right">
                                     Total Sebelum Pajak
                                 </td>
                                 <td style="padding: 0 10px 0 10px;" class="text-right">
@@ -89,7 +142,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="text-right">
+                                <td colspan="1" class="text-right">
                                     Pajak
                                 </td>
                                 <td style="padding: 0 10px 0 10px;" class="text-right">
@@ -97,7 +150,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="text-right">
+                                <td colspan="1" class="text-right">
                                     Discount
                                 </td>
                                 <td style="padding: 0 10px 0 10px;" class="text-right">
@@ -105,7 +158,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="text-right">
+                                <td colspan="1" class="text-right">
                                     <b>Total</b>
                                 </td>
                                 <td style="padding: 0 10px 0 10px;" class="text-right">

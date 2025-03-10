@@ -14,10 +14,28 @@
                                             <div class="col-12">
                                                 <div class="form-group row">
                                                     <div class="col-sm-3 col-form-label">
+                                                        <label for="product_category_id" class="float-right">Kategori Produk</label>
+                                                    </div>
+                                                    <div class="col-sm-5">
+                                                        <select name="product_category_id" id="product_category_id" class="form-control">
+                                                            @if(old('product_category_id') && old('product_category_name'))
+                                                                <option value="{{ old('product_category_id') }}" selected="selected">{{ old('product_category_name') }}</option>
+                                                            @endif
+                                                        </select>
+                                                        @if ($errors->has('product_id'))
+                                                            <span class="text-danger small">{{ $errors->first('product_category_id') }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group row">
+                                                    <div class="col-sm-3 col-form-label">
                                                         <label for="product_id" class="float-right">Produk</label>
                                                     </div>
                                                     <div class="col-sm-5">
                                                         <select name="product_id" id="product_id" class="form-control">
+                                                            <option disabled selected>Pilih kategorti produk terlebih dahulu</option>
                                                             @if(old('product_id') && old('product_name'))
                                                                 <option value="{{ old('product_id') }}" selected="selected">{{ old('product_name') }}</option>
                                                             @endif
@@ -99,25 +117,27 @@
                     <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
                     <script>
                         $(document).ready(function() {
-                            var numeralMask = $('.numeral-mask');
-                            if (numeralMask.length) {
-                                numeralMask.each(function() { 
-                                    new Cleave(this, {
-                                        numeral: true,
-                                        numeralThousandsGroupStyle: 'thousand'
-                                    });
-                                })
-                            }
+                            // WARN: Temporary changes for Cleave bug
+                            initNumeralMask('.numeral-mask');
+                            // var numeralMask = $('.numeral-mask');
+                            // if (numeralMask.length) {
+                            //     numeralMask.each(function() {
+                            //         new Cleave(this, {
+                            //             numeral: true,
+                            //             numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                            //         });
+                            //     })
+                            // }
 
-                            $('#product_id').select2({
-                                placeholder: "Pilih Produk",
+                            $('#product_category_id').select2({
+                                placeholder: "Pilih Kategoti Produk",
                                 ajax: {
-                                    url: '{{ route("data-master.product.search") }}', 
+                                    url: '{{ route("data-master.product-category.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
@@ -129,15 +149,42 @@
                                 }
                             });
 
+                            $('#product_category_id').change(function (e) {
+                                e.preventDefault();
+                                const prodCatId = $(this).val();
+                                $('#product_id').val(null).trigger('change');
+
+                                $('#product_id').select2({
+                                    placeholder: "Pilih Produk",
+                                    ajax: {
+                                        url: `{{ route("data-master.product.search") }}?product_category_id=${prodCatId}`,
+                                        dataType: 'json',
+                                        delay: 250,
+                                        data: function(params) {
+                                            return {
+                                                q: params.term
+                                            };
+                                        },
+                                        processResults: function(data) {
+                                            return {
+                                                results: data
+                                            };
+                                        },
+                                        cache: true
+                                    }
+                                });
+                            });
+
+
                             $('#warehouse_id').select2({
                                 placeholder: "Pilih Gudang",
                                 ajax: {
-                                    url: '{{ route("data-master.warehouse.search") }}', 
+                                    url: '{{ route("data-master.warehouse.search") }}',
                                     dataType: 'json',
-                                    delay: 250, 
+                                    delay: 250,
                                     data: function(params) {
                                         return {
-                                            q: params.term 
+                                            q: params.term
                                         };
                                     },
                                     processResults: function(data) {
