@@ -32,6 +32,9 @@ Route::get('/sidebar-toggle', [App\Http\Controllers\DashboardController::class, 
 
 Route::middleware('auth')->group(function() {
     Route::get('/show-file', [App\Helpers\FileHelper::class, 'show'])->name('file.show');
+    Route::group(['prefix' => 'notification'], function() {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('notification');
+    });
     Route::group(['prefix' => 'dashboard'], function() {
         Route::get('/mbu', [App\Http\Controllers\DashboardController::class, 'indexMbu'])->name('dashboard.mbu.index')->middleware('permission:dashboard.mbu.index');
         Route::get('/lti', [App\Http\Controllers\DashboardController::class, 'indexLti'])->name('dashboard.lti.index')->middleware('permission:dashboard.lti.index');
