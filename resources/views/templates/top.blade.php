@@ -1,5 +1,20 @@
 @php
     $auth = Auth::user();
+
+    $notif_query = \App\Models\Notification::where('is_done', 0);
+
+    if ($auth->role->name !== 'Super Admin') {
+        $notif_query
+        ->where('role_id', $auth->role->role_id);
+    }
+    if (! $auth->role->all_location) {
+        $notif_query->where('location_id', $auth->department->location_id);
+    }
+
+    $notifications = (clone $notif_query)->limit(5)->get();
+    $notification_total = $notif_query->count();
+
+    $module_mappings = \App\Constants::NOTIFICATION_MODULE;
 @endphp
 
     <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light navbar-shadow container-xxl">
@@ -25,27 +40,30 @@
                         <div class="dropdown-header d-flex align-items-center justify-content-between py-1">
                           <h6 class="mb-0 mr-4">Notification</h6>
                           <div class="d-flex align-items-center h6 mb-0">
-                            <span class="badge bg-primary">8 New</span>
-                            <a href="javascript:void(0)" class="dropdown-notifications-all pr-0 py-1 btn btn-icon waves-effect waves-light" data-toggle="tooltip" data-placement="top" aria-label="Mark all as read" data-original-title="Mark all as read"><i data-feather="check"></i></a>
+                            <span class="badge bg-primary">{{ $notification_total }} Total</span>
+                            <a href="javascript:void(0)" class="dropdown-notifications-all pr-0 py-1 btn btn-icon waves-effect waves-light"><i data-feather="x"></i></a>
                           </div>
                         </div>
                       </li>
                       <li class="dropdown-notifications-list scrollable-container ps ps--active-y">
                         <ul class="list-group list-group-flush">
                           <!-- Notification Item -->
+                          @foreach($notifications as $item)
                           <li class="list-group-item list-group-item-action dropdown-notifications-item waves-effect">
-                            <div class="d-flex">
+                            <a class="d-flex" href="{{ url($item->url) }}">
                               <div class="flex-grow-1">
-                                <h6 class="small mb-1">Congratulation Lettie 🎉</h6>
-                                <small class="mb-1 d-block text-body">Won the monthly best seller gold badge</small>
-                                <small class="text-body-secondary">1h ago</small>
+                                <h6 class="small mb-1">{{$module_mappings[$item->module]}}</h6>
+                                <small class="mb-1 d-block text-body">
+                                    @foreach(explode('\n', $item->message) as $m)
+                                    {{ $m }}
+                                    <br>
+                                    @endforeach
+                                </small>
+                                <small class="text-body-secondary">{{ $item->created_at->diffForHumans() }}</small>
                               </div>
-                              <div class="flex-shrink-0 dropdown-notifications-actions">
-                                <a href="javascript:void(0)" class="dropdown-notifications-read"><span class="badge badge-dot"></span></a>
-                                <a href="javascript:void(0)" class="dropdown-notifications-archive"><i data-feather="x"></i></a>
-                              </div>
-                            </div>
+                            </a>
                           </li>
+                          @endforeach
                           <!--/ Notification Item -->
                         </ul>
                       <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; right: 0px; height: 385px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 153px;"></div></div></li>

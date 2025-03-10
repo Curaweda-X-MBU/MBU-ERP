@@ -14,6 +14,18 @@ class Constants
         'Approval Marketing'      => 'Manager Marketing',
     ];
 
+    public const NOTIFICATION_MODULE = [
+        'project/list'             => 'Project',
+        'project/chick-in'         => 'Chick-In',
+        'project/recording'        => 'Recording',
+        'marketing/list'           => 'Penjualan',
+        'marketing/list/payment'   => 'Pembayaran Penjualan',
+        'marketing/return'         => 'Pengembalian Penjualan',
+        'marketing/return/payment' => 'Pembayaran Pengembalian Penjualan',
+        'expense/list'             => 'Biaya',
+        'purchase'                 => 'Pembelian',
+    ];
+
     public const SUPPLIER_TYPE = [
         1 => 'Bisnis',
         2 => 'Individual',

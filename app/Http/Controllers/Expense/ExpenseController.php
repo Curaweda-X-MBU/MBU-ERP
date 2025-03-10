@@ -14,10 +14,12 @@ use App\Models\Expense\ExpenseKandang;
 use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Expense\ExpenseRealization;
 use App\Models\Expense\ExpenseReturnPayment;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class ExpenseController extends Controller
 {
@@ -383,6 +385,18 @@ class ExpenseController extends Controller
                         $createdExpense->update([
                             'id_expense' => $idExpense,
                         ]);
+
+                        // NOTIFY APPROVAL MANAGER FARM
+                        Notification::notify(
+                            [
+                                'role'        => Constants::APPROVAL['Approval Farm'],
+                                'module'      => 'expense/list',
+                                'foreign_id'  => $createdExpense->expense_id,
+                                'url'         => URL::signedRoute('expense.list.detail', ['expense' => $createdExpense->expense_id], absolute: false),
+                                'location_id' => $input['location_id'],
+                                'description' => $idExpense,
+                            ],
+                        );
                     }
 
                     // Success message according to project_id
@@ -558,7 +572,7 @@ class ExpenseController extends Controller
                         // }
                     }
 
-                    if (! empty($expense->id_expense)) {
+                    if (empty($expense->id_expense)) {
                         $prefix      = $expense->category == 1 ? 'BOP' : 'NBOP';
                         $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
                         $idExpense   = "{$prefix}.{$incrementId}";
@@ -566,6 +580,20 @@ class ExpenseController extends Controller
                         $expense->update([
                             'id_expense' => $idExpense,
                         ]);
+                    }
+
+                    // NOTIFY APPROVAL MANAGER FARM
+                    if ($expense->expense_status === array_search('Approval Manager', Constants::EXPENSE_STATUS)) {
+                        Notification::notify(
+                            [
+                                'role'        => Constants::APPROVAL['Approval Farm'],
+                                'module'      => 'expense/list',
+                                'foreign_id'  => $expense->expense_id,
+                                'url'         => URL::signedRoute('expense.list.detail', ['expense' => $expense->expense_id], absolute: false),
+                                'location_id' => $input['location_id'],
+                                'description' => $expense->id_expense,
+                            ],
+                        );
                     }
 
                     if (! empty($arrKandang)) {
@@ -875,6 +903,23 @@ class ExpenseController extends Controller
                 if (str_contains($routeName, 'farm')) {
                     // Ganti status jadi menunggu Approval Finance
                     $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+
+                    Notification::dismiss(
+                        auth()->user()->role->role_id,
+                        'expense/list',
+                        $expense->expense_id
+                    );
+
+                    Notification::notify(
+                        [
+                            'role'        => Constants::APPROVAL['Approval Finance'],
+                            'module'      => 'expense/list',
+                            'foreign_id'  => $expense->expense_id,
+                            'url'         => URL::signedRoute('expense.list.detail', ['expense' => $expense->expense_id], absolute: false),
+                            'location_id' => $expense->location_id,
+                            'description' => $expense->id_expense,
+                        ],
+                    );
                 }
 
                 // Approval Manager Finance
@@ -886,6 +931,12 @@ class ExpenseController extends Controller
 
                     // Ganti status jadi menunggu Pencairan
                     $expenseStatus = array_search('Pencairan', Constants::EXPENSE_STATUS);
+
+                    Notification::dismiss(
+                        auth()->user()->role->role_id,
+                        'expense/list',
+                        $expense->expense_id
+                    );
                 }
 
                 $success = ['success' => 'Biaya berhasil disetujui'];
