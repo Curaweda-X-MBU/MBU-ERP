@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $req)
     {
         try {
             $currentUserId = auth()->id();
@@ -35,8 +35,36 @@ class ExpenseController extends Controller
                                     $userQuery->where('user_id', $currentUserId);
                                 });
                         });
-                })
-                ->get();
+                });
+
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['location']['area_id'])) {
+                $arrAppend['location[area_id]'] = $request['location']['area_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value !== '-all' && ! in_array($key, ['rows', 'page'])) {
+                    if (is_array($value)) {
+                        $data->whereHas($key, function($query) use ($value) {
+                            $this->applyNestedWhere($query, $value, $arrAppend);
+                        });
+                    } else {
+                        $data->where($key, $value);
+                        $arrAppend[$key] = $value;
+                    }
+                }
+            }
+
+            $data = $data
+                ->orderBy('expense_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
 
             $param = [
                 'title' => 'Biaya > List',
@@ -49,6 +77,20 @@ class ExpenseController extends Controller
                 ->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    private function applyNestedWhere($query, $values, &$arrAppend)
+    {
+        foreach ($values as $relationKey => $relationValue) {
+            if (is_array($relationValue)) {
+                $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                    $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
+                });
+            } else {
+                $query->where($relationKey, $relationValue);
+                $arrAppend[$relationKey] = $relationValue;
+            }
         }
     }
 

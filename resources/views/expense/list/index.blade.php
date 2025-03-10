@@ -21,39 +21,6 @@
             <div class="card-header">
                 <h4 class="card-title">{{ $title }}</h4>
                 <div class="pull-right">
-                    {{-- TABLE FILTER::START --}}
-                    <div class="dropdown d-inline">
-                        <button class="btn btn-outline-secondary btn-icon waves-effect" type="button" data-toggle="dropdown">
-                            <i data-feather="filter"></i>
-                        </button>
-                        <ul class="dropdown-menu" id="filterDropdown" aria-labelledby="filterDropdown">
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Kategori</a>
-                                <ul class="dropdown-menu" id="filterCategory">
-                                    @foreach (\App\Constants::EXPENSE_CATEGORY as $category)
-                                    <a class="dropdown-item">{{ $category }}</a>
-                                    @endforeach
-                                </ul>
-                            </div>
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status Pencairan</a>
-                                <ul class="dropdown-menu" id="filterPaymentStatus">
-                                    <a class="dropdown-item">Tempo</a>
-                                    <a class="dropdown-item">Dibayar Sebagian</a>
-                                    <a class="dropdown-item">Dibayar Penuh</a>
-                                </ul>
-                            </div>
-                            <div class="dropdown-item dropleft autoclose">
-                                <a class="stretched-link d-flex align-items-center"><i class="mr-2" data-feather="chevron-left"></i> Status</a>
-                                <ul class="dropdown-menu" id="filterExpenseStatus">
-                                    @foreach (\App\Constants::EXPENSE_STATUS as $status)
-                                    <a class="dropdown-item">{{ $status }}</a>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </ul>
-                    </div>
-                    {{-- TABLE FILTER::END --}}
                     @php
                         $role = Auth::user()->role;
                     @endphp
@@ -70,8 +37,125 @@
                     <a href="{{ route('expense.list.add') }}" type="button" class="btn btn-outline-primary waves-effect">Tambah</a>
                 </div>
             </div>
+            @php
+                $arrRows = [10,20,50,100];
+                $categoryExpense = App\Constants::EXPENSE_CATEGORY;
+                $statusPayment = App\Constants::EXPENSE_PAYMENT_STATUS;
+                $statusExpense = App\Constants::EXPENSE_STATUS;
+            @endphp
             <div class="card-body">
                 <div class="card-datatable">
+                    <div class="row mb-1">
+                        <div class="col-12">
+                            <form action="{{ route('expense.list.index') }}">
+                                <div class="row d-flex align-items-end">
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Area</label>
+                                            <select name="location[area_id]" id="area_id" class="form-control">
+                                                @if (request()->has('location') && isset(request()->get('location')['area_id']))
+                                                @php
+                                                    $areaId = request()->get('location')['area_id'];
+                                                @endphp
+                                                <option value="{{ $areaId }}" selected> {{ \App\Models\DataMaster\Area::find($areaId)->name }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Lokasi</label>
+                                            <select name="location_id" id="location_id" class="form-control" >
+                                                @if (request()->has('location_id') && @request()->get('location_id'))
+                                                @php
+                                                    $locationiId = request()->get('location_id');
+                                                @endphp
+                                                <option value="{{ $locationiId }}" selected> {{ \App\Models\DataMaster\Location::find($locationiId)->name }}</option>
+                                                @else
+                                                <option selected disabled>Pilih area terlebih dahulu</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Pengaju</label>
+                                            <select name="created_by" id="created_by" class="form-control">
+                                                @if (request()->has('created_by') && @request()->get('created_by'))
+                                                @php
+                                                    $createdBy = request()->get('created_by')
+                                                @endphp
+                                                <option value="{{ $createdBy }}" selected> {{ \App\Models\UserManagement\User::find($createdBy)->name }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="stock_type">Vendor</label>
+                                            <select name="supplier_id" id="supplier_id" class="form-control">
+                                                @if (request()->has('supplier_id') && @request()->get('supplier_id'))
+                                                @php
+                                                    $supplierId = request()->get('supplier_id')
+                                                @endphp
+                                                <option value="{{ $supplierId }}" selected> {{ \App\Models\DataMaster\Supplier::find($supplierId)->name }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="category">Kategori</label>
+                                            <select name="category" id="category" class="form-control">
+                                                <option value="-all" {{ ! request()->has('category') || request()->get('category') == '-all' ? 'selected' : '' }}>Semua</option>
+                                                @foreach ($categoryExpense as $key => $item)
+                                                    <option value="{{$key}}" {{ request()->has('category') && request()->get('category') == $key ? 'selected' : '' }}>{{ $item }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="payment_status">Status Pembayaran</label>
+                                            <select name="payment_status" id="payment_status" class="form-control">
+                                                <option value="-all" {{ ! request()->has('payment_status') || request()->get('payment_status') == '-all' ? 'selected' : '' }}>Semua</option>
+                                                @foreach ($statusPayment as $key => $item)
+                                                    <option value="{{$key}}" {{ request()->has('payment_status') && request()->get('payment_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-12">
+                                        <div class="form-group">
+                                            <label for="expense_status">Status Biaya</label>
+                                            <select name="expense_status" id="expense_status" class="form-control">
+                                                <option value="-all" {{ ! request()->has('expense_status') || request()->get('expense_status') == '-all' ? 'selected' : '' }}>Semua</option>
+                                                @foreach ($statusExpense as $key => $item)
+                                                    <option value="{{$key}}" {{ request()->has('expense_status') && request()->get('expense_status') == $key ? 'selected' : '' }}>{{ $item }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 col-12">
+                                        <div class="form-group">
+                                            <label for="rows">Baris</label>
+                                            <select name="rows" class="form-control" >
+                                                @for ($i = 0; $i < count($arrRows); $i++)
+                                                <option value="{{ $arrRows[$i] }}" {{ request()->has('rows') && request()->get('rows') == $arrRows[$i] ? 'selected' : '' }}>{{ $arrRows[$i] }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-12">
+                                        <div class="form-group float-right">
+                                            <button type="submit" class="btn btn-primary">Cari</button>
+                                            <a href="{{ route('expense.list.index') }}"  class="btn btn-warning">Reset</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <div class="table-responsive mb-2">
                         <form method="post" action="{{ route('expense.list.approve.bulk') }}" id="form-approve">
                         {{csrf_field()}}
@@ -93,8 +177,6 @@
                                     </div>
                                     @endif
                                 </th>
-                                <th>expense_id</th>
-                                <th>expense_status</th>
                                 <th>ID</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
@@ -107,11 +189,6 @@
                                 <th>Sisa Bayar (Rp)</th>
                                 <th>Status Pencairan</th>
                                 <th>Status Biaya</th>
-                                {{-- FILTER PURPOSES FIELDS::START --}}
-                                <th>location_id</th>
-                                <th>created_by</th>
-                                <th>supplier_id</th>
-                                {{-- FILTER PURPOSES FIELDS::END --}}
                                 <th>Aksi</th>
                             </thead>
                             <tbody>
@@ -133,8 +210,6 @@
                                             </div>
                                             @endif
                                         </td>
-                                        <td>{{ $item->expense_id }}</td>
-                                        <td>{{ $item->expense_status == 0 ? 0 : 1 }}</td>
                                         <td>{{ $item->id_expense }}</td>
                                         <td>{{ $item->location->name }}</td>
                                         <td>
@@ -217,9 +292,6 @@
                                                     <div class="badge badge-pill badge-primary">{{ $statusExpense[$show_status] }}</div>
                                             @endswitch
                                         </td>
-                                        <td>{{ $item->location_id }}</td>
-                                        <td>{{ $item->created_by }}</td>
-                                        <td>{{ $item->supplier_id ?? null }}</td>
                                         <td>
                                             <div class="dropdown dropleft" style="position: static;">
                                                 <button type="button" class="btn btn-sm dropdown-toggle hide-arrow" data-toggle="dropdown">
@@ -263,6 +335,12 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="mt-1">
+                        <span>Total : {{ number_format($data->total(), 0, ',', '.') }} data</span>
+                        <div class="float-right">
+                            {{ $data->links('vendor.pagination.bootstrap-4') }}
+                        </div>
+                    </div>
                     <hr>
                     <div class="row">
                         <div class="col-12 col-md-6 my-1">
@@ -278,7 +356,7 @@
                                             Total Biaya:
                                         </td>
                                         <td class="font-weight-bolder text-primary" style="font-size: 1.2em">
-                                            Rp. <span id="grand_total">0,00</span>
+                                            Rp. <span id="grand_total">{{ \App\Helpers\Parser::toLocale($data->sum('grand_total')) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -286,7 +364,7 @@
                                             Total Sudah Dibayar:
                                         </td>
                                         <td class="font-weight-bolder text-success" style="font-size: 1.2em">
-                                            Rp. <span id="is_paid">0,00</span>
+                                            Rp. <span id="is_paid">{{ \App\Helpers\Parser::toLocale($data->sum('is_paid')) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -294,7 +372,7 @@
                                             Total Belum Dibayar:
                                         </td>
                                         <td class="font-weight-bolder text-danger" style="font-size: 1.2em">
-                                            Rp. <span id="not_paid">0,00</span>
+                                            Rp. <span id="not_paid">{{ \App\Helpers\Parser::toLocale($data->sum('not_paid')) }}</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -396,154 +474,33 @@
 
 <script>
     $(function () {
-        const $table = $('#datatable').DataTable({
-            dom: '<"#filter_wrapper"<"#filter_left"l>f>r<"custom-table-wrapper"t>ip',
-            drawCallback: function(settings) {
-                // NOTE: TABLE SELECT FILTER::START
-                // ?: Location
-                if (!$('#location_slice').length) {
-                    $('#filter_wrapper')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem');
-                    $('#filter_left')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem')
-                        .prepend(
-                            `
-                                <div class="input-group">
-                                    <div>
-                                        <select id="location_slice" class="form-control" style="width: auto;"></select>
-                                    </div>
-                                    <div class="input-group-append">
-                                        <button id="location_slice_clear" class="btn btn-icon btn-outline-secondary">
-                                            <i data-feather="x"></i>
-                                        </buton>
-                                    </div>
-                                </div>
-                            `
-                        );
-                    var locationIdRoute = '{{ route("data-master.location.search") }}';
-                    initSelect2($('#location_slice'), 'Filter Lokasi', locationIdRoute);
+        const areaIdRoute = '{{ route("data-master.area.search") }}';
+        const locationIdRoute = '{{ route("data-master.location.search") }}';
+        const userIdRoute = '{{ route("user-management.user.search") }}';
+        const supplierIdRoute = '{{ route("data-master.supplier.search") }}';
 
-                    $('#location_slice_clear').on('click', function() {
-                        $('#location_slice').val(null).trigger('change');
-                    });
+        initSelect2($('select#created_by'), 'Pilih Pengaju', userIdRoute, '', { allowClear: true });
+        initSelect2($('select#supplier_id'), 'Pilih Vendor', supplierIdRoute, '', { allowClear: true });
 
-                    $('#location_slice').on('select2:select change', function() {
-                        $table.columns(16).search('').draw();
-                        $table.columns(16).search($(this).val() ?? '').draw();
-                    });
-                }
+        initSelect2($('select#payment_status'), 'Pilih Status Pembayaran');
+        initSelect2($('select#expense_status'), 'Pilih Status Biaya');
+        initSelect2($('select#category'), 'Pilih Kategori');
 
-                // ?: Created By
-                if (!$('#created_by_slice').length) {
-                    $('#filter_wrapper')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem');
-                    $('#filter_left')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem')
-                        .append(
-                            `
-                                <div class="input-group">
-                                    <div>
-                                        <select id="created_by_slice" class="form-control" style="width: auto;"></select>
-                                    </div>
-                                    <div class="input-group-append">
-                                        <button id="created_by_slice_clear" class="btn btn-icon btn-outline-secondary">
-                                            <i data-feather="x"></i>
-                                        </buton>
-                                    </div>
-                                </div>
-                            `
-                        );
-                    var createdByIdRoute = '{{ route("user-management.user.search") }}';
-                    initSelect2($('#created_by_slice'), 'Filter Pengaju', createdByIdRoute);
+        initSelect2($('select#area_id'), 'Pilih Area', areaIdRoute, '', { allowClear: true });
 
-                    $('#created_by_slice_clear').on('click', function() {
-                        $('#created_by_slice').val(null).trigger('change');
-                    });
+        $('select#area_id').on('change', function() {
+            if ($('select#location_id').val()) {
+                $('select#location_id').trigger('change');
+            } else {
+                $('#location_id').val(null).trigger('change');
+            }
 
-                    $('#created_by_slice').on('select2:select change', function() {
-                        $table.columns(17).search('').draw();
-                        $table.columns(17).search($(this).val() ?? '').draw();
-                    });
-                }
+            const areaId = $(this).val();
 
-                // ?: Suppier
-                if (!$('#supplier_slice').length) {
-                    $('#filter_wrapper')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem');
-                    $('#filter_left')
-                        .addClass('d-flex flex-wrap justify-content-between align-items-center')
-                        .css('gap', '1rem')
-                        .append(
-                            `
-                                <div class="input-group">
-                                    <div>
-                                        <select id="supplier_slice" class="form-control" style="width: auto;"></select>
-                                    </div>
-                                    <div class="input-group-append">
-                                        <button id="supplier_slice_clear" class="btn btn-icon btn-outline-secondary">
-                                            <i data-feather="x"></i>
-                                        </buton>
-                                    </div>
-                                </div>
-                            `
-                        );
-                    var supplierIdRoute = '{{ route("data-master.supplier.search") }}';
-                    initSelect2($('#supplier_slice'), 'Filter Vendor', supplierIdRoute);
-
-                    $('#supplier_slice_clear').on('click', function() {
-                        $('#supplier_slice').val(null).trigger('change');
-                    });
-
-                    $('#supplier_slice').on('select2:select change', function() {
-                        $table.columns(18).search('').draw();
-                        $table.columns(18).search($(this).val() ?? '').draw();
-                    });
-                }
-
-                // ?: css wrap for length filter
-                $("#filter_left > div").css('flex', '1 0 40%').css('width', '100%');
-                $("#filter_left > div > *:first-child").css('flex', '1 0 40%');
-                // NOTE: TABLE SELECT FILTER::END
-
-                let grandTotalSum = 0;
-                let isPaidSum = 0;
-                let notPaidSum = 0;
-                // $table.rows({ filter: 'applied' }).every(function() {
-                //     const data = this.data();
-                //     const grandTotal = parseLocaleToNum(data[11]);
-                //     const isPaid = parseLocaleToNum(data[12]);
-                //     const notPaid = parseLocaleToNum(data[13]);
-
-                //     grandTotalSum += grandTotal;
-                //     isPaidSum += isPaid;
-                //     notPaidSum += notPaid;
-                // });
-
-                const $grandTotal = $("#grand_total");
-                const $isPaid = $('#is_paid');
-                const $notPaid = $('#not_paid');
-
-                $grandTotal.text(parseNumToLocale(grandTotalSum));
-                $isPaid.text(parseNumToLocale(isPaidSum));
-                $notPaid.text(parseNumToLocale(notPaidSum));
-
-                feather.replace();
-            },
-            order: [[3, 'asc'], [2, 'desc']],
+            initSelect2($('select#location_id'), 'Pilih Lokasi', locationIdRoute + `?area_id=${areaId}`, '', { allowClear: true });
         });
 
-        $table.columns([2, 3, 16, 17, 18]).visible(false);
-        @if (! Auth::user()->role->hasPermissionTo('expense.list.approve.farm'))
-        $table.columns(0).visible(false);
-        @endif
-        @if (! Auth::user()->role->hasPermissionTo('expense.list.approve.finance'))
-        $table.columns(1).visible(false);
-        @endif
+        $('select').trigger('change');
 
         $('.item-delete-button').on('click', function(e) {
             e.preventDefault();
@@ -614,36 +571,6 @@
                 }
             });
         });
-
-        // NOTE: TABLE FILTER::START
-        function setupDropdownFilter(selector, column, $table) {
-            const resetClass = 'reset';
-            const reset = `<a class="dropdown-item ${resetClass} active">Semua</a>`;
-            $(selector).prepend(reset);
-            $(selector).on('click', '.dropdown-item', function(e) {
-                e.stopPropagation();
-                $(this).siblings('.dropdown-item').removeClass('active');
-                $(this).addClass('active')
-                $table.columns(column).search('').draw();
-                if (!$(this).hasClass(resetClass)) {
-                    $table.columns(column).search($(this).text()).draw();
-                }
-            });
-
-            $(selector).siblings('a').on('mouseover', function() {
-                $(this).dropdown('show');
-                $(this).parent('.autoclose').siblings('.autoclose').each(function() {
-                    $(this).find('.dropdown-menu').dropdown('hide');
-                });
-            });
-            $(selector).on('mouseleave', function() {
-                $(this).dropdown('hide');
-            });
-        }
-        setupDropdownFilter('#filterCategory', 6, $table);
-        setupDropdownFilter('#filterPaymentStatus', 14, $table);
-        setupDropdownFilter('#filterExpenseStatus', 15, $table);
-        // NOTE: TABLE FILTER::END
     });
 </script>
 

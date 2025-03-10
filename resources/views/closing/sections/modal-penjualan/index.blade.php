@@ -10,8 +10,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                @include('report.sections.modal-penjualan.produk-penjualan-collapse')
-                @include('report.sections.modal-penjualan.biaya-lainnya-collapse')
+                @include('closing.sections.modal-penjualan.produk-penjualan-collapse')
+                @include('closing.sections.modal-penjualan.biaya-lainnya-collapse')
             </div>
         </div>
     </div>

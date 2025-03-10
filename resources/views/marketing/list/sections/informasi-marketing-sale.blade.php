@@ -38,13 +38,8 @@
             <input id="tax_mask" type="text" class="form-control numeral-mask" placeholder="0">
             <div class="input-group-append"><span class="input-group-text">%</span></div>
         </div>
-        <div class="col-5"> <span>Diskon:</span> </div>
-        <div class="col-5 input-group">
-            <div class="input-group-prepend"><span class="input-group-text">Rp.</span></div>
-            <input name="discount" id="discount" type="text" class="form-control numeral-mask" placeholder="0">
-        </div>
         <div class="offset-5 col-5"> <hr class="border-bottom"> </div>
-        <div class="col-5"> <span>Total Setelah Pajak dan Diskon:</span> </div>
+        <div class="col-5"> <span>Total Setelah Pajak:</span> </div>
         <div class="col-5"> Rp. <span id="total_setelah_pajak" class="font-weight-bolder">0,00</span> </div>
     </div>
     {{-- BEGIN: Tambah biaya lainnya --}}
@@ -125,16 +120,15 @@
 
         // ? START :: CALCULATION ::  BEFORE TAX
         function calculateBeforeTax() {
-            $(document).on('change input', 'input[name="discount"], #tax_mask, #total_sebelum_pajak, input[name*="delivery_fee"]', function () {
+            $(document).on('change input', '#tax_mask, #total_sebelum_pajak, input[name*="delivery_fee"]', function () {
                 const $totalSetelahPajak = $('#total_setelah_pajak');
                 const totalSebelumPajak = parseLocaleToNum($('#total_sebelum_pajak').text());
                 const tax = parseLocaleToNum($('#tax_mask').val());
-                const discount = parseLocaleToNum($('input[name="discount"]').val());
                 let total;
                 if (tax && tax > 0) {
-                    total = totalSebelumPajak + (totalSebelumPajak * (tax / 100)) - discount;
+                    total = totalSebelumPajak + (totalSebelumPajak * (tax / 100));
                 } else {
-                    total = totalSebelumPajak - discount;
+                    total = totalSebelumPajak;
                 }
 
                 $totalSetelahPajak.text(parseNumToLocale(total)).trigger('change');
@@ -190,9 +184,6 @@
             // TAX
             $('#tax').val(marketing.tax ?? 0);
             $('#tax_mask').val(parseNumToLocale(marketing.tax ?? '')).trigger('input');
-
-            // DISCOUNT
-            $('#discount').val(marketing.discount);
 
             if (additPrices.length > 0) {
                 $additRepeater.setList(additPrices);

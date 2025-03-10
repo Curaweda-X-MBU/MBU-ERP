@@ -27,6 +27,9 @@
             <div class="card-header">
                 <h4 class="card-title">{{$title}}</h4>
                 <div class="text-right mt-1">
+                    <a href="{{ route('closing.manbu.detail') }}" class="btn btn-outline-secondary waves-effect mr-1" role="button">
+                        Kembali
+                    </a>
                     <button class="btn btn-outline-secondary dropdown-toggle waves-effect" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Export
                     </button>
@@ -43,17 +46,9 @@
                         <select name="period" id="period" class="form-control"></select>
                     </div>
                 </div>
-                @include('report.sections.informasi-umum-lokasi-detail')
+                @include('closing.sections.informasi-umum-kandang-detail')
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4>Kandang</h4>
-                <div id="kandang-container" class="kandang-container"></div>
-            </div>
-        </div>
-
 
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -68,25 +63,25 @@
         </nav>
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-sapronak" role="tabpanel" aria-labelledby="nav-sapronak-tab">
-                @include('report.sections.sapronak-detail')
+                @include('closing.sections.sapronak-detail')
             </div>
             <div class="tab-pane fade" id="nav-perhitungan-sapronak" role="tabpanel" aria-labelledby="nav-perhitungan-sapronak-tab">
-                @include('report.sections.perhitungan-sapronak-detail')
+                @include('closing.sections.perhitungan-sapronak-detail')
             </div>
             <div class="tab-pane fade" id="nav-penjualan" role="tabpanel" aria-labelledby="nav-penjualan-tab">
-                @include('report.sections.penjualan-detail')
+                @include('closing.sections.penjualan-detail')
             </div>
             <div class="tab-pane fade" id="nav-overhead" role="tabpanel" aria-labelledby="nav-overhead-tab">
-                @include('report.sections.overhead-lokasi-detail')
+                @include('closing.sections.overhead-kandang-detail')
             </div>
             <div class="tab-pane fade" id="nav-hppEkspedisi" role="tabpanel" aria-labelledby="nav-hppEkspedisi-tab">
-                @include('report.sections.hpp-ekspedisi-detail')
+                @include('closing.sections.hpp-ekspedisi-detail')
             </div>
             <div class="tab-pane fade" id="nav-dataProduksi" role="tabpanel" aria-labelledby="nav-dataProduksi-tab">
-                @include('report.sections.data-produksi-detail')
+                @include('closing.sections.data-produksi-detail')
             </div>
             <div class="tab-pane fade" id="nav-keuangan" role="tabpanel" aria-labelledby="nav-keuangan-tab">
-                @include('report.sections.keuangan-detail')
+                @include('closing.sections.keuangan-detail')
             </div>
         </div>
     </div>
@@ -98,35 +93,6 @@
     // select period
     const $periodSelect = $('#period');
     initSelect2($periodSelect, 'Pilih Periode');
-
-    const dataKandang = [
-        { name: "Pandeglang 1", status: "aktif", link: "/report/manbu/detail/kandang" },
-        { name: "Pandeglang 2", status: "tidak aktif", link: "/report/manbu/detail/kandang" },
-        { name: "Pandeglang 3", status: "aktif", link: "/report/manbu/detail/kandang" },
-        { name: "Pandeglang 4", status: "tidak aktif", link: "/report/manbu/detail/kandang" },
-        { name: "Pandeglang 5", status: "aktif", link: "/report/manbu/detail/kandang" }
-    ];
-
-    function generateKandang() {
-        const container = document.getElementById("kandang-container");
-        container.innerHTML = "";
-
-        dataKandang.forEach((kandang) => {
-            const kandangItem = document.createElement("button");
-            kandangItem.className = `btn mr-1 mt-1 rounded-pill btn-outline-${
-                kandang.status === "aktif" ? "primary" : "secondary"
-            }`;
-            kandangItem.textContent = kandang.name;
-
-            kandangItem.onclick = () => {
-                window.location.href = kandang.link;
-            };
-
-            container.appendChild(kandangItem);
-        });
-    }
-
-    generateKandang();
 </script>
 
 @endsection
