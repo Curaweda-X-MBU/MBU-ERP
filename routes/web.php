@@ -195,6 +195,13 @@ Route::middleware('auth')->group(function() {
         });
     });
 
+    Route::group(['prefix' => 'report'], function() {
+        Route::group(['prefix' => 'finance'], function() {
+            Route::get('/customer-payment', [App\Http\Controllers\Report\ReportFinanceController::class, 'customerPayment'])->name('report.finance.customer-payment')->middleware('permission:report.finance.customer-payment');
+            Route::get('/balance-monitoring', [App\Http\Controllers\Report\ReportFinanceController::class, 'balanceMonitoring'])->name('report.finance.balance-monitoring')->middleware('permission:report.finance.balance-monitoring');
+        });
+    });
+
     Route::group(['prefix' => 'purchase'], function() {
         Route::get('/', [App\Http\Controllers\Purchase\ListController::class, 'index'])->name('purchase.index')->middleware('permission:purchase.index');
         Route::any('/add', [App\Http\Controllers\Purchase\ListController::class, 'add'])->name('purchase.add')->middleware('permission:purchase.add');
