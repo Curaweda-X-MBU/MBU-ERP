@@ -15,12 +15,16 @@
     $warehouse_name = old('warehouse_names');
 
     if (isset($data)) {
-        $company_id = $data->warehouse->location->company_id??'';
-        $company_name = $data->warehouse->location->company->name??'';
-        $area_id = $data->warehouse->location->area_id??'';
-        $area_name = $data->warehouse->location->area->name??'';
-        $location_id = $data->warehouse->location_id??'';
-        $location_name = $data->warehouse->location->name??'';
+        $warehouses = \App\Models\DataMaster\Warehouse::with(['location.area','location.company'])->whereIn('warehouse_id', $data->warehouse_ids??[])->get();
+        $uniqueLocations = $warehouses->mapWithKeys(function ($warehouse) {
+            return [$warehouse->location_id => $warehouse->location->name];
+        })->unique()->toArray();
+        $company_id = $warehouses[0]->location->company_id??'';
+        $company_name = $warehouses[0]->location->company->name??'';
+        $area_id = $warehouses[0]->location->area_id??'';
+        $area_name = $warehouses[0]->location->area->name??'';
+        $location_id = $warehouses[0]->location_id??'';
+        $location_name = $warehouses[0]->location->name??'';
         $warehouse_ids = $data->warehouse_ids??'';
         $warehouse_name = $data->warehouse->name??'';
         $supplier_id = $data->supplier->supplier_id??"";
@@ -28,12 +32,13 @@
         $require_date = $data->require_date;
         $notes = $data->notes;
         $grandTotal = $data->total_before_tax;
+        // dd($data->purchase_item->toArray());
         if (isset($data->purchase_item)) {
             $dataPurchase = $data->purchase_item;
         }
     }
 @endphp
-
+{{-- @dd($data->toArray()) --}}
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
@@ -58,9 +63,9 @@
                             </div>
                             <div class="col-sm-9">
                                 <select name="supplier_id" id="supplier_id" class="form-control {{$errors->has('supplier_id')?'is-invalid':''}}" required>
-                                    @if($supplier_id && $supplier_name)
+                                    {{-- @if($supplier_id && $supplier_name)
                                         <option value="{{ $supplier_id }}" selected="selected">{{ $supplier_name }}</option>
-                                    @endif
+                                    @endif --}}
                                 </select>
                                 @if ($errors->has('supplier_id'))
                                     <span class="text-danger small">{{ $errors->first('supplier_id') }}</span>
@@ -126,8 +131,10 @@
                             <div class="col-sm-9">
                                 <select name="location_id[]" id="location_id" class="form-control" multiple="multiple" required>
                                     {{-- <option disabled selected>Pilih Area terlebih dahulu</option> --}}
-                                    @if($location_id && $location_name)
-                                    <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
+                                    @if(isset($uniqueLocations) && count($uniqueLocations) > 0)
+                                        @foreach ($uniqueLocations as $key => $item)
+                                        <option value="{{ $key }}" selected="selected">{{ $item }}</option>
+                                        @endforeach
                                     @endif
                                 </select>
                             </div>
@@ -378,14 +385,41 @@
             const dataPurchase = @json($dataPurchase);
             console.log(dataPurchase);
             if (dataPurchase) {
-                $itemRepeater.setList(dataPurchase);
+
+                var newOption = new Option("{{ $supplier_name }}", "{{ $supplier_id }}", true, true);
+                $('#supplier_id').append(newOption).trigger('change');
+                $('#supplier_id').select2({
+                    placeholder: 'Pilih Produk',
+                    allowClear: true,
+                    data: productOption
+                }).val(null).trigger('change'); 
+                let dataAlocation = [];
                 for (let i = 0; i < dataPurchase.length; i++) {
-                    $(`select[name="purchase_item[${i}][product_category_id]"]`).append(`<option value="${dataPurchase[i].product.product_category_id}" selected>${dataPurchase[i].product.product_category.name}</option>`);
-                    $(`select[name="purchase_item[${i}][product_category_id]"]`).trigger('change');
-                    $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataPurchase[i].product_id}" selected>${dataPurchase[i].product.name}</option>`);
-                    $(`select[name="purchase_item[${i}][product_id]"]`).trigger('change');
-                    $(`input[name="purchase_item[${i}][product_category]"]`).val(dataPurchase[i].product.product_category.name);
-                    $(`input[name="purchase_item[${i}][uom_id]"]`).val(dataPurchase[i].product.uom.name);
+                    const arrItemAlocation = dataPurchase[i].purchase_item_alocation??[];
+                    if (arrItemAlocation) {
+                        for (let j = 0; j < arrItemAlocation.length; j++) {
+                            dataAlocation.push(
+                                { 
+                                    warehouses: {
+                                        warehouse_id: arrItemAlocation[j].warehouse_id,
+                                        name: arrItemAlocation[j].warehouse.name
+                                    },
+                                    products: {
+                                        product_id: dataPurchase[i].product_id,
+                                        name: dataPurchase[i].product.name
+                                    },
+                                    qty: arrItemAlocation[j].alocation_qty, 
+                                    uom_id: dataPurchase[i].product.uom.name 
+                                }
+                            );
+                        }
+                    }
+                }
+
+                $itemRepeater.setList(dataAlocation);
+                for (let i = 0; i < dataAlocation.length; i++) {
+                    $(`select[name="purchase_item[${i}][warehouse_id]"]`).append(`<option value="${dataAlocation[i].warehouses.warehouse_id}" selected>${dataAlocation[i].warehouses.name}</option>`);
+                    $(`select[name="purchase_item[${i}][product_id]"]`).append(`<option value="${dataAlocation[i].products.product_id}" selected>${dataAlocation[i].products.name}</option>`);
                 }
             }
         }

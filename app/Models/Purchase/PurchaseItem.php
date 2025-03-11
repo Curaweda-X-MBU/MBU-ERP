@@ -4,6 +4,7 @@ namespace App\Models\Purchase;
 
 use App\Models\DataMaster\Product;
 use App\Models\DataMaster\Warehouse;
+use App\Models\Inventory\StockAvailability;
 use App\Models\Inventory\StockLog;
 use App\Models\Project\Project;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,6 +64,11 @@ class PurchaseItem extends Model
     public function stock_log()
     {
         return $this->hasMany(StockLog::class, 'purchase_item_id');
+    }
+
+    public function stock_availability()
+    {
+        return $this->hasMany(StockAvailability::class, 'purchase_item_id');
     }
 
     public function purchase_item_alocation()

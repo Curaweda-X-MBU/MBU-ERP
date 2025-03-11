@@ -9,7 +9,7 @@ use App\Models\DataMaster\Warehouse;
 use App\Models\Inventory\ProductWarehouse;
 use App\Models\Project\Project;
 use App\Models\Project\ProjectChickIn;
-use DB;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ChickinController extends Controller
@@ -17,7 +17,59 @@ class ChickinController extends Controller
     public function index(Request $req)
     {
         try {
-            $data  = Project::with(['project_chick_in', 'kandang', 'product_category'])->get();
+            $data = Project::with(['project_chick_in', 'kandang', 'product_category'])
+                ->join('project_chickin', 'projects.project_id', '=', 'project_chickin.project_id');
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['kandang']['company_id'])) {
+                $arrAppend['kandang[company_id]'] = $request['kandang']['company_id'];
+            }
+
+            if (isset($request['kandang']['location']['area_id'])) {
+                $arrAppend['kandang[location][area_id]'] = $request['kandang']['location']['area_id'];
+            }
+
+            if (isset($request['kandang']['location_id'])) {
+                $arrAppend['kandang[location_id]'] = $request['kandang']['location_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value > 0) {
+                    if (! in_array($key, ['rows', 'page'])) {
+                        if (is_array($request[$key])) {
+                            $data = $data->whereHas($key, function($query) use ($value) {
+                                foreach ($value as $relationKey => $relationValue) {
+                                    if (is_array($value[$relationKey])) {
+                                        // Handle nested relationships (e.g., kandang.location.area_id)
+                                        $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                                            foreach ($relationValue as $subKey => $subValue) {
+                                                $subQuery->where($subKey, $subValue);
+                                            }
+                                        });
+                                    } else {
+                                        // Direct relationship column filtering
+                                        $query->where($relationKey, $relationValue);
+                                    }
+                                }
+                            });
+                        } else {
+                            $data            = $data->where($key, $value);
+                            $arrAppend[$key] = $value;
+                        }
+                    }
+                }
+            }
+
+            $data = $data
+                ->orderBy('project_chickin.project_chickin_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
+
             $param = [
                 'title' => 'Project > Chick-In',
                 'data'  => $data,
@@ -138,55 +190,26 @@ class ChickinController extends Controller
     public function edit(Request $req)
     {
         try {
-            $project = Project::with(['kandang', 'product_category'])
-                ->with('project_chick_in', function($query) {
-                    $query->with('supplier');
-                })
-                ->findOrFail($req->id);
-
-            $param = [
-                'title'       => 'Project > chick-in > Edit',
-                'data'        => $project,
-                'chickin_qty' => $project->project_chick_in[0]->total_chickin,
-            ];
-
-            if ($req->isMethod('post')) {
-                $input      = $req->all();
-                $dataInsert = $input['chick_in'] ?? [];
-                if (count($dataInsert) > 0) {
-                    foreach ($dataInsert as $key => $value) {
-                        $dataInsert[$key]['project_id']    = $req->id;
-                        $dataInsert[$key]['total_chickin'] = str_replace('.', '', $value['total_chickin']);
-                        $dataInsert[$key]['chickin_date']  = date('Y-m-d', strtotime($value['chickin_date']));
-                        $document                          = '';
-                        $existingDoc                       = $project->project_chick_in[$key]->travel_letter_document ?? null;
-                        if ($existingDoc && is_string($value['travel_letter_document'] ?? false)) {
-                            $document = $existingDoc;
-                        } elseif (isset($value['travel_letter_document'])) {
-                            $docUrl = FileHelper::upload($value['travel_letter_document'], constants::CHICKIN_DOC_PATH);
-                            if (! $docUrl['status']) {
-                                return redirect()->back()->with('error', $docUrl['message'].' '.$value['travel_letter_document'])->withInput();
-                            }
-                            $document = $docUrl['url'];
-                        }
-                        $dataInsert[$key]['travel_letter_document'] = $document;
-                    }
-
-                    DB::transaction(function() use ($req, $dataInsert) {
-                        ProjectChickIn::where('project_id', $req->id)->delete();
-                        ProjectChickIn::insert($dataInsert);
-                    });
-
-                } else {
-                    return redirect()->back()->with('error', 'Data chick in tidak boleh kosong');
-                }
-
-                $success = ['success' => 'Data berhasil dirubah'];
-
-                return redirect()->route('project.chick-in.detail', $req->id)->with($success);
+            $projectChickIn = ProjectChickin::with('project.recording')->find($req->id);
+            if (! $projectChickIn) {
+                return redirect()->back()->with('error', 'Data tidak ditemukan');
             }
 
-            return view('project.chick-in.edit', $param);
+            $newDate          = Carbon::parse($req->chickin_date);
+            $projectRecording = $projectChickIn->project->recording ?? [];
+            foreach ($projectRecording as $recording) {
+                $newRecordDatetime          = $newDate->copy()->addDays($recording->day);
+                $recording->record_datetime = $newRecordDatetime->toDateTimeString();
+                $recording->save();
+            }
+
+            $projectChickIn->update([
+                'chickin_date' => date('Y-m-d', strtotime($req->chickin_date)),
+            ]);
+
+            $success = ['success' => 'Data berhasil dirubah'];
+
+            return redirect()->route('project.chick-in.index')->with($success);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }

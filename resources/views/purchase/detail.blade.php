@@ -18,6 +18,8 @@
 <script src="{{asset('app-assets/vendors/js/pickers/pickadate/picker.time.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/pickers/pickadate/legacy.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js')}}"></script>
+<script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
+
 
 <div class="col-12">
     <div class="row">
@@ -28,7 +30,7 @@
                     <i data-feather="arrow-left" class="mr-50"></i>
                     Kembali
                 </a>
-                @if (Auth::user()->role->name === 'Super Admin' && $data->status < 3 && !$data->rejected )
+                @if (Auth::user()->role->name === 'Super Admin' && !$data->rejected )
                 <a href="{{ route('purchase.edit', $data->purchase_id) }}" class="btn btn-primary">
                     <i data-feather="edit-2" class="mr-50"></i>
                     Edit
@@ -190,7 +192,6 @@
 </div>
 
 <script src="{{asset('app-assets/js/scripts/components/components-collapse.js')}}"></script>
-<script src="{{asset('app-assets/vendors/js/forms/cleave/cleave.min.js')}}"></script>
 <script src="{{asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
 
 @php
@@ -241,6 +242,10 @@
             var id = button.data('id')
             var modal = $(this)
             modal.find('.modal-body #id').val(id)
+        });
+
+        $('.modal').on('hidden.bs.modal', function (e) {
+            window.location.reload();
         });
 
         $('#approve').on('show.bs.modal', function (event) {
@@ -398,7 +403,7 @@
                     let travelNumber = '';
                     let travelNumberDoc = '';
                     let vehicleNumber = '';
-                    let totalReceived = '';
+                    let totalReceived = 0;
                     let totalRetur = 0;
                     let supplierId = '';
                     let supplierName = '';
@@ -416,6 +421,7 @@
                                 travelNumber = item.travel_number;
                                 vehicleNumber = item.vehicle_number;
                                 totalRetur += item.total_retur;
+                                totalReceived += item.total_received;
                                 supplierId = item.supplier_id??'';
                                 supplierName = item.supplier?.name??'';
                                 transPerItem = item.transport_per_item;
@@ -433,7 +439,7 @@
                         warehouse_id : element.warehouse_id,
                         travel_number : travelNumber,
                         vehicle_number : vehicleNumber,
-                        total_received : element.alocation_qty,
+                        total_received : totalReceived===0?element.alocation_qty:totalReceived,
                         total_retur : totalRetur,
                         supplier_id : supplierId,
                         transport_per_item : transPerItem,

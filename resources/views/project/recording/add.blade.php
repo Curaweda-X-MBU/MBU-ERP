@@ -413,9 +413,9 @@
                                     let lastDate = new Date(latestRecord.record_datetime)
                                     lastDate.setDate(lastDate.getDate() + 1);
                                     $('.flatpickr-basic').flatpickr({
-                                        dateFormat: "Y-m-d",
+                                        dateFormat: "d-M-Y",
                                         altInput: true,
-                                        altFormat: "d-m-Y",
+                                        altFormat: "Y-m-d",
                                         defaultDate: lastDate,
                                         minDate: lastDate
                                     });

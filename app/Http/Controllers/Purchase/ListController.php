@@ -27,6 +27,14 @@ class ListController extends Controller
 
     private const VALIDATION_MESSAGES = [];
 
+    public function parseInt($str)
+    {
+        $str = str_replace('.', '', $str);
+        $str = str_replace(',', '.', $str);
+
+        return (float) $str;
+    }
+
     public function index(Request $req)
     {
         try {
@@ -153,56 +161,132 @@ class ListController extends Controller
     public function edit(Request $req)
     {
         try {
-            $purchase = Purchase::with([
-                'supplier', 'createdBy', 'warehouse', 'purchase_item', 'purchase_other', 'purchase_payment',
-            ])
-                ->with('purchase_item', function($query) {
-                    $query->with('product', function($query) {
-                        $query->with('product_category');
-                        $query->with('uom');
-                    });
-                })->findOrFail($req->id);
-            $param = [
-                'title' => 'Pembelian > Edit',
-                'data'  => $purchase,
-                'type'  => Constants::KANDANG_TYPE,
-            ];
+            $purchaseId = $req->id;
+            $purchase   = Purchase::with([
+                'purchase_item.purchase_item_alocation.warehouse',
+                'purchase_item.purchase_item_reception',
+                'purchase_item.stock_log',
+                'purchase_item.stock_availability.recording_stock.recording',
+            ])->find($purchaseId);
 
-            if ($req->isMethod('post')) {
-                $input        = $req->input();
-                $purchaseItem = $input['purchase_item'] ?? [];
-                if (count($purchaseItem) > 0) {
-                    DB::transaction(function() use ($req, $input, $purchaseItem, $purchase) {
-                        $purchase->update([
-                            'supplier_id'  => $input['supplier_id'],
-                            'warehouse_id' => $input['warehouse_id'],
-                            'require_date' => date('Y-m-d', strtotime($input['require_date'])),
-                            'notes'        => $input['notes'] ?? null,
-                        ]);
-
-                        $purchaseId = $req->id;
-                        if ($req->has('purchase_item')) {
-                            PurchaseItem::where('purchase_id', $purchaseId)->delete();
-                            foreach ($purchaseItem as $key => $value) {
-                                PurchaseItem::create([
-                                    'purchase_id' => $purchaseId,
-                                    'product_id'  => $value['product_id'],
-                                    'qty'         => str_replace('.', '', str_replace(',', '.', $value['qty'])),
-                                ]);
-                            }
-                        }
-                    });
-                } else {
-                    return redirect()->back()->with('error', 'Data Item Pembelian tidak boleh kosong');
-                }
-
-                $success = ['success' => 'Data Berhasil Dirubah'];
-
-                return redirect()->route('purchase.detail', $req->id)->with($success);
+            DB::beginTransaction();
+            $arrPurchaseItem = [];
+            if ($req->has('purchase_item')) {
+                $arrPurchaseItem = $req->input('purchase_item');
             }
 
-            return view('purchase.edit', $param);
+            if ($req->has('purchase_item_reception')) {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                foreach ($purchase->purchase_item as $key => $value) {
+                    $arrPurchaseItem[$value->purchase_item_id] = [
+                        'purchase_item_id' => $value->purchase_item_id,
+                        'qty'              => $value->qty,
+                        'price'            => $value->price,
+                        'tax'              => $value->tax,
+                        'discount'         => $value->discount,
+                    ];
+                    $stockLog = $value->stock_log;
+                    foreach ($stockLog as $k => $v) {
+                        $v->delete();
+                    }
+
+                    $stockAvailability = $value->stock_availability;
+                    foreach ($stockAvailability as $k => $v) {
+                        if ($v->recording_stock) {
+                            $recordingStockId = $v->recording_stock->recording_stock_id;
+                            $v->recording_stock->each(function($item) {
+                                if ($item->recording) {
+                                    $item->recording->delete();
+                                }
+
+                                $item->delete();
+                            });
+                        }
+                        $v->delete();
+                    }
+                }
+
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+                $itemReception = $req->input('purchase_item_reception');
+                $totalQty      = 0;
+                $totalReceived = 0;
+                foreach ($itemReception as $key => $value) {
+                    $qty = $this->parseInt($value['qty']);
+                    $totalQty += $qty;
+                    $received = $this->parseInt($value['total_received']);
+                    $totalReceived += $received;
+                    $receptionId           = $key;
+                    $purchaseItemReception = PurchaseItemReception::find($receptionId);
+                    $transportItem         = $this->parseInt($value['transport_per_item']);
+                    $transportTotal        = $qty * $transportItem;
+                    $purchaseItemReception->update([
+                        'total_received'     => $received,
+                        'transport_per_item' => $transportItem,
+                        'transport_total'    => $transportTotal,
+                    ]);
+
+                    $purchaseItemAlocation = PurchaseItemAlocation::where([
+                        'purchase_item_id' => $purchaseItemReception->purchase_item_id,
+                        'warehouse_id'     => $purchaseItemReception->warehouse_id,
+                    ])->update([
+                        'alocation_qty' => $qty,
+                    ]);
+
+                    ProductWarehouse::where([
+                        'product_id'   => $req->product_id,
+                        'warehouse_id' => $purchaseItemReception->warehouse_id,
+                    ])->update([
+                        'quantity' => DB::raw('quantity - '.$arrPurchaseItem[$purchaseItemReception->purchase_item_id]['qty']),
+                    ]);
+
+                    stockLog::triggerStock([
+                        'product_id'                 => $req->product_id,
+                        'stock_date'                 => date('Y-m-d'),
+                        'warehouse_id'               => $purchaseItemReception->warehouse_id,
+                        'increase'                   => $received,
+                        'stocked_by'                 => 'Edit Pembelian',
+                        'notes'                      => 'Pembelian '.$purchase->po_number,
+                        'purchase_item_id'           => $req->purchase_item_id,
+                        'purchase_item_reception_id' => $receptionId,
+                    ]);
+                }
+
+                $arrPurchaseItem[$req->purchase_item_id]['qty'] = $totalQty;
+            }
+
+            $purchaseItemInsert = $this->purchaseItem($arrPurchaseItem, $purchase);
+            if (! $purchaseItemInsert) {
+                return redirect()->back()->with('error', 'Gagal menyimpan data');
+            }
+
+            $newPurchase = Purchase::with(['purchase_item.purchase_item_reception'])->find($purchaseId);
+            foreach ($newPurchase->purchase_item as $key => $value) {
+                if (isset($value->purchase_item_reception) && $value->purchase_item_reception->count() > 0) {
+                    $receivedItem          = $value->purchase_item_reception->sum('total_received');
+                    $notReceivedItem       = $value->qty - $receivedItem;
+                    $notReceivedItemAmount = $value->price * $notReceivedItem;
+                    $value->update([
+                        'total_not_received'  => $notReceivedItem,
+                        'amount_not_received' => $notReceivedItemAmount,
+                        'total_received'      => $receivedItem,
+                        'amount_received'     => $receivedItem * $value->price,
+                    ]);
+                }
+            }
+
+            $newPurchase->update([
+                'total_amount_received'     => $newPurchase->purchase_item->sum('amount_received'),
+                'total_amount_not_received' => $newPurchase->purchase_item->sum('amount_not_received'),
+            ]);
+
+            DB::commit();
+            $success = ['success' => 'Data Berhasil Dirubah'];
+
+            return redirect()->route('purchase.detail', $purchaseId)->with($success);
         } catch (\Exception $e) {
+            DB::rollback();
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
     }
@@ -321,6 +405,60 @@ class ListController extends Controller
         }
 
         return $nextStatus;
+    }
+
+    public function purchaseItem($input, $purchase)
+    {
+        try {
+            DB::beginTransaction();
+            $arrPurchaseItem                  = $input;
+            $dataApproval['total_before_tax'] = 0;
+            $dataApproval['total_discount']   = 0;
+            $dataApproval['total_tax']        = 0;
+            foreach ($arrPurchaseItem as $key => $value) {
+                $idPurchaseItem = $key;
+                $itemPrice      = str_replace('.', '', $value['price']);
+                $itemQty        = str_replace('.', '', $value['qty']);
+                $value['qty']   = $itemQty;
+                $dataApproval['total_before_tax'] += $itemPrice              * $itemQty;
+                $dataApproval['total_tax']        += ($itemPrice * $itemQty) * $value['tax']      / 100;
+                $dataApproval['total_discount']   += ($itemPrice * $itemQty) * $value['discount'] / 100;
+                $value['price']     = $itemPrice;
+                $updatePurchaseItem = PurchaseItem::with('stock_availability.recording_stock')->find($idPurchaseItem);
+                $updatePurchaseItem->update($value);
+                if (isset($updatePurchaseItem->stock_availability) && $updatePurchaseItem->stock_availability->count() > 0) {
+                    $updatePurchaseItem->stock_availability->each(function($item) {
+                        $item->update([
+                            'product_price' => $item->purchase_item->price + ($item->purchase_item->price * $item->purchase_item->tax / 100),
+                        ]);
+
+                        if (isset($item->recording_stock) && $item->recording_stock->count() > 0) {
+                            $item->recording_stock->each(function($recording) use ($item) {
+                                $recording->update([
+                                    'usage_amount' => $recording->decrease * $item->product_price,
+                                ]);
+                            });
+
+                        }
+                    });
+                }
+            }
+
+            $totalItem                               = $dataApproval['total_before_tax'] + $dataApproval['total_tax'] - $dataApproval['total_discount'];
+            $dataApproval['total_after_tax']         = $totalItem;
+            $dataApproval['grand_total']             = $totalItem;
+            $dataApproval['total_remaining_payment'] = $dataApproval['grand_total'] - $purchase->total_payment;
+            $purchase->update($dataApproval);
+            DB::commit();
+
+            return true;
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Error purchase item: '.$e->getMessage().' file: '.$e->getFile().' line: '.$e->getLine());
+
+            return false;
+        }
+
     }
 
     public function approve(Request $req)
@@ -558,28 +696,10 @@ class ListController extends Controller
             }
 
             if ($req->has('purchase_item')) {
-                $arrPurchaseItem                  = $req->input('purchase_item');
-                $dataApproval['total_before_tax'] = 0;
-                $dataApproval['total_discount']   = 0;
-                $dataApproval['total_tax']        = 0;
-                foreach ($arrPurchaseItem as $key => $value) {
-                    $idPurchaseItem = $key;
-                    $itemPrice      = str_replace('.', '', $value['price']);
-                    $itemQty        = str_replace('.', '', $value['qty']);
-                    $value['qty']   = $itemQty;
-                    $dataApproval['total_before_tax'] += $itemPrice              * $itemQty;
-                    $dataApproval['total_tax']        += ($itemPrice * $itemQty) * $value['tax']      / 100;
-                    $dataApproval['total_discount']   += ($itemPrice * $itemQty) * $value['discount'] / 100;
-                    $value['price']     = $itemPrice;
-                    $updatePurchaseItem = PurchaseItem::find($idPurchaseItem);
-                    $updatePurchaseItem->update($value);
+                $purchaseItemInsert = $this->purchaseItem($req->input('purchase_item'), $purchase);
+                if (! $purchaseItemInsert) {
+                    return redirect()->back()->with('error', 'Gagal menyimpan data item pembelian');
                 }
-
-                $totalItem                               = $dataApproval['total_before_tax'] + $dataApproval['total_tax'] - $dataApproval['total_discount'];
-                $dataApproval['total_after_tax']         = $totalItem;
-                $dataApproval['grand_total']             = $totalItem;
-                $dataApproval['total_remaining_payment'] = $dataApproval['grand_total'] - $purchase->total_payment;
-                $purchase->update($dataApproval);
             }
 
             if ($req->has('purchase_other')) {

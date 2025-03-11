@@ -2,6 +2,10 @@
     .td-top{
         vertical-align: top;
     }
+    .feather-icon-large {
+        width: 20px;
+        height: 20px;
+    }
 </style>
 
 @php
@@ -86,7 +90,7 @@
                                 <td>:</td>
                                 <td>
                                     @if ($data->po_number)
-                                        <a class="btn btn-sm btn-primary" target="_blank" href="{{ route('purchase.detail', ['id' => $data->purchase_id, 'po_number' => $data->po_number]) }}">
+                                        <a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ route('purchase.detail', ['id' => $data->purchase_id, 'po_number' => $data->po_number]) }}">
                                             {{ $data->po_number }}
                                         </a>
                                     @else
@@ -100,33 +104,55 @@
             </div>
             <div class="col-12">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped w-100 no-wrap text-center" id="purchase-repeater">
+                    <form action="{{ route('purchase.edit', $data->purchase_id) }}" id="form-purchase-item">
+                    @csrf
+                    <table class="table table-sm table-bordered table-striped w-100 no-wrap text-center" id="purchase-repeater">
                         <thead>
-                            <th>Produk</th>
-                            <th>Jenis Produk</th>
-                            {{-- <th>Project Aktif</th> --}}
-                            {{-- <th>Gudang/Tempat<br>Pengiriman</th> --}}
-                            <th width="30">Jumlah</th>
-                            <th>Satuan</th>
-                            <th>Harga Satuan</th>
-                            <th>Pajak (%)</th>
-                            <th>Discount (%)</th>
-                            <th>Total (Rp.)</th>
+                            @if (Auth::user()->role->name === 'Super Admin')
+                            <tr>
+                                <th colspan="9">
+                                    <div class="float-right">
+                                        <div id="purchase-item-edit-section">
+                                            <a href="javascript:void(0)" class="btn btn-sm btn-primary purchase-item-edit">
+                                                <i data-feather="edit-2" class="mr-50"></i>
+                                                Edit
+                                            </a>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                            @endif
+                            <tr>
+                                <th class="hidden"></th>
+                                <th>Produk</th>
+                                <th>Jenis Produk</th>
+                                <th width="30">Jumlah</th>
+                                <th>Satuan</th>
+                                <th>Harga Satuan</th>
+                                <th>Pajak (%)</th>
+                                <th>Discount (%)</th>
+                                <th>Total (Rp.)</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach ($data->purchase_item as $item)
-                            <tr>
-                                <td>{{ $item->product->name??'' }} {{ $item->product->product_sub_category->name==="DOC"?" (DOC)":'' }}</td>
-                                <td>{{ $item->product->product_category->name??'' }}</td>
-                                {{-- <td>{{ $item->project->kandang->name??'' }}</td> --}}
-                                {{-- <td>{{ $item->warehouse->name }}</td> --}}
-                                <td class="text-right">{{ number_format($item->qty, '0', ',', '.') }}</td>
-                                <td>{{ $item->product->uom->name??'' }}</td>
-                                <td class="text-right">{{ number_format($item->price, '0', ',', '.') }}</td>
-                                <td class="text-right">{{ $item->tax }}</td>
-                                <td class="text-right">{{ $item->discount }}</td>
-                                <td class="text-right">{{ number_format($item->price*$item->qty, '0', ',', '.') }}</td>
-                            </tr>
+                                <tr>
+                                    <td class="hidden">{{ $item->purchase_item_id }}</td>
+                                    <td>{{ $item->product->name??'' }} {{ $item->product->product_sub_category->name==="DOC"?" (DOC)":'' }}</td>
+                                    <td>{{ $item->product->product_category->name??'' }}</td>
+                                    <td class="text-right">
+                                        @php
+                                            $qty = number_format($item->qty, '0', ',', '.');
+                                        @endphp
+                                        <input type="hidden" name="purchase_item[{{$item->purchase_item_id}}][qty]" value="{{ $qty }}">
+                                        {{ $qty }}
+                                    </td>
+                                    <td>{{ $item->product->uom->name??'' }}</td>
+                                    <td class="text-right">{{ number_format($item->price, '0', ',', '.') }}</td>
+                                    <td class="text-right">{{ $item->tax }}</td>
+                                    <td class="text-right">{{ $item->discount }}</td>
+                                    <td class="text-right">{{ number_format($item->price*$item->qty, '0', ',', '.') }}</td>
+                                </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
@@ -167,8 +193,88 @@
                             </tr>
                         </tfoot>
                     </table>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $(document).on('click', '.purchase-item-edit', function () {
+            
+            $(this).closest('div').html(`<a javascript:void(0) class="btn btn-sm btn-danger purchase-item-submit" title="Submit">
+                <i data-feather="check" class="mr-50"></i>
+                Submit
+            </a>
+            <a javascript:void(0) class="btn btn-sm btn-warning purchase-item-close" title="Close">
+                <i data-feather="x" class="mr-50"></i>
+                Batal
+            </a>
+            `);
+
+            feather.replace();
+            var $table = $('#purchase-repeater');
+            $table.find('tbody tr').each(function () {
+                var $row = $(this);
+                $row.find('td').each(function (index, element) {
+                    var purchaseItemId = $row.find('td').eq(0).text();
+                    if ([5, 6, 7].includes(index)) {
+                        var originalValue = $(element).text();
+                        $(element).data('original-value', originalValue);
+                        let inputName = '';
+                        switch (index) {
+                            case 5:
+                                inputName = 'price';
+                                break;
+                            case 6:
+                                inputName = 'tax';
+                                break;
+                            case 7:
+                                inputName = 'discount';
+                                break;
+                        }
+                        $(element).html('<input type="text" class="form-control numeral-mask" name="purchase_item['+ purchaseItemId +']['+inputName+']" value="' + originalValue + '" required>');
+                    }
+                });
+            });
+
+            var numeralMask = $('.numeral-mask');
+            if (numeralMask.length) {
+                numeralMask.each(function() { 
+                    new Cleave(this, {
+                        numeral: true,
+                        numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
+                    });
+                })
+            }
+        });
+
+        $(document).on('click', '.purchase-item-submit', function () {
+            const serializedData = $('#form-purchase-item').serialize();
+            console.log(serializedData);
+            if (confirm('Apakah anda yakin ingin menyimpan data ini?')) {
+                $('#form-purchase-item').submit();
+            }
+        });        
+
+        $(document).on('click', '.purchase-item-close', function () {
+            $(this).closest('div').html(`<a href="javascript:void(0)" class="btn btn-sm btn-primary purchase-item-edit">
+                <i data-feather="edit-2" class="mr-50"></i>
+                Edit
+            </a>`);
+            feather.replace();
+            var $table = $('#purchase-repeater');
+            $table.find('tbody tr').each(function () {
+                var $row = $(this).closest('tr');
+                $row.find('td').each(function (index, element) {
+                    if ([5,6,7].includes(index)) {
+                        var originalValue = $(element).data('original-value');
+                        $(element).html(originalValue);
+                    }
+                });
+            });
+        });
+    });
+</script>

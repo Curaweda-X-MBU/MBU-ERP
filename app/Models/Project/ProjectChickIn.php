@@ -14,6 +14,8 @@ class ProjectChickIn extends Model
 
     protected $primaryKey = 'project_chickin_id';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'project_chickin_id',
         'project_id',

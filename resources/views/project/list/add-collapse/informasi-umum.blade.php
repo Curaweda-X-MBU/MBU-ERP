@@ -45,7 +45,7 @@
                                 <label for="company_id" class="float-right">Unit Bisnis</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="company_id" id="company_id" class="form-control">
+                                <select name="company_id" id="company_id" class="form-control" required>
                                     @if($company_id && $company_name)
                                         <option value="{{ $company_id }}" selected="selected">{{ $company_name }}</option>
                                     @endif
@@ -62,7 +62,7 @@
                                 <label for="area_id" class="float-right">Area</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="area_id" id="area_id" class="form-control">
+                                <select name="area_id" id="area_id" class="form-control" required>
                                     <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
                                     @if($area_id && $area_name)
                                         <option value="{{ $area_id }}" selected="selected">{{ $area_name }}</option>
@@ -84,7 +84,7 @@
                                 <label for="location_id" class="float-right">Lokasi</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="location_id" id="location_id" class="form-control">
+                                <select name="location_id" id="location_id" class="form-control" required>
                                     <option disabled selected>Pilih Area terlebih dahulu</option>
                                     @if($location_id && $location_name)
                                     <option value="{{ $location_id }}" selected="selected">{{ $location_name }}</option>
@@ -102,7 +102,7 @@
                                 <label for="product_category_id" class="float-right">Kategori Produk</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="product_category_id" id="product_category_id" class="form-control">
+                                <select name="product_category_id" id="product_category_id" class="form-control" required>
                                     <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
                                     @if($product_category_id && $product_category_name)
                                     <option value="{{ $product_category_id }}" selected="selected">{{ $product_category_name }}</option>
@@ -138,8 +138,7 @@
                                 <label for="farm_type" class="float-right">Jenis Farm</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="farm_type" id="farm_type" class="{{$errors->has('farm_type')?'is-invalid':''}} form-control">
-                                    <option disabled {{ !$farm_type?'selected': '' }}>Pilih Tipe</option>
+                                <select name="farm_type" id="farm_type" class="{{$errors->has('farm_type')?'is-invalid':''}} form-control" required>
                                     @foreach ($type as $key => $item)
                                         <option value="{{$key}}" {{$farm_type==$key?'selected':''}}>{{$item}}</option>
                                     @endforeach
@@ -160,7 +159,7 @@
                                 <label for="fcr_id" class="float-right">Standar FCR</label>
                             </div>
                             <div class="col-sm-9">
-                                <select name="fcr_id" id="fcr_id" class="form-control">
+                                <select name="fcr_id" id="fcr_id" class="form-control" required>
                                     <option disabled selected>Pilih Unit Bisnis terlebih dahulu</option>
                                     @if($fcr_id && $fcr_name)
                                     <option value="{{ $fcr_id }}" selected="selected">{{ $fcr_name }}</option>
