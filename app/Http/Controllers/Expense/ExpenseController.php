@@ -784,6 +784,7 @@ class ExpenseController extends Controller
                 throw new \Exception('Biaya tidak ditemukan');
             }
             $expense->delete();
+
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->route('expense.list.index')->with($success);

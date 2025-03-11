@@ -32,7 +32,9 @@
                     >
                         <span class="position-relative">
                             <i data-feather="bell"></i>
-                            <span class="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
+                            @if (count($notifications))
+                            <span class="badge rounded-pill bg-danger badge-dot badge-notifications border p-0 m-0" style="display: inline-block; aspect-ratio: 1; position: absolute; width: 8px; top: 3px; right: 0px;"></span>
+                            @endif
                         </span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end p-0" data-popper="static">
