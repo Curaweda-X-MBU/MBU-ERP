@@ -140,7 +140,7 @@
                 <li class="nav-item has-sub {{ Request::segment(1)=='closing'?'sidebar-group-active':'' }}">
                     <a class="d-flex align-items-center" href="#">
                         <i data-feather="check-circle"></i>
-                        <span class="menu-title text-truncate" data-i18n="Report">Closing</span>
+                        <span class="menu-title text-truncate" data-i18n="Closing">Closing</span>
                     </a>
                     <ul class="menu-content">
                         @if ($roleAccess->hasPermissionTo('closing.mbu.index'))
@@ -170,6 +170,12 @@
                     </ul>
                 </li>
                 @endif
+                <li class=" nav-item has-sub {{ Request::segment(1)=='report'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='book'></i><span class="menu-title text-truncate" data-i18n="Report">Laporan</span></a>
+                    <ul class="menu-content">
+                        <li id="{{ ltrim(parse_url(route('report.finance.customer-payment'), PHP_URL_PATH), '/') }}"><a class="d-flex align-items-center" href="{{ route('report.finance.customer-payment') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Keuangan">Keuangan</span></a>
+                        </li>
+                    </ul>
+                </li>
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
                 <li id="{{ ltrim(parse_url(route('purchase.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('purchase.index') }}"><i data-feather="shopping-cart"></i><span class="menu-title text-truncate" data-i18n="Pembelian">Pembelian</span></a>
                 </li>

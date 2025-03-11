@@ -133,6 +133,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'closing.lti.index',
             'closing.lti.detail',
             'closing.lti.kandang',
+            'report.finance.customer-payment',
+            'report.finance.balance-monitoring',
             'purchase.index',
             'purchase.add',
             'purchase.copy',
