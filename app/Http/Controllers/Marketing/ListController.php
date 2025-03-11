@@ -13,10 +13,12 @@ use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class ListController extends Controller
 {
@@ -209,9 +211,24 @@ class ListController extends Controller
                         'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
 
+                    $idMarketing = "DO.{$company->alias}.{$createdMarketing->marketing_id}";
+
                     $createdMarketing->update([
-                        'id_marketing' => "DO.{$company->alias}.{$createdMarketing->marketing_id}",
+                        'id_marketing' => $idMarketing,
                     ]);
+
+                    // NOTIFY APPROVAL MANAGER MARKETING
+                    Notification::notify(
+                        [
+                            'role'       => Constants::APPROVAL['Approval Marketing'],
+                            'module'     => 'marketing/list',
+                            'foreign_id' => $createdMarketing->marketing_id,
+                            'url'        => URL::signedRoute('marketing.list.detail', ['marketing' => $createdMarketing->marketing_id], absolute: false),
+                            // TODO: Add location input and filter in marketing add page
+                            'location_id' => $createdMarketing->marketing_products->first()->warehouse->location_id,
+                            'description' => $idMarketing,
+                        ],
+                    );
 
                     // Success message according to project_id
                     if (! empty($arrProduct)) {
@@ -663,10 +680,27 @@ class ListController extends Controller
             $approved_at      = null;
             $marketing_status = array_search('Ditolak', Constants::MARKETING_STATUS);
 
+            Notification::dismiss(
+                auth()->user()->role->role_id,
+                'marketing/list',
+                $marketing->marketing_id
+            );
+
             if ($input['is_approved'] == 1) {
                 $success          = ['success' => 'Penjualan berhasil disetujui'];
                 $approved_at      = date('Y-m-d H:i:s');
                 $marketing_status = $input['marketing_status'];
+
+                if ($marketing_status == array_search('Penawaran', Constants::MARKETING_STATUS)) {
+                    Notification::notify([
+                        'role'        => Constants::APPROVAL['Approval Marketing'],
+                        'module'      => 'marketing/list',
+                        'foreign_id'  => $marketing->marketing_id,
+                        'url'         => URL::signedRoute('marketing.list.detail', ['marketing' => $marketing->marketing_id], absolute: false),
+                        'location_id' => $marketing->marketing_products->first()->warehouse->location_id,
+                        'description' => $marketing->id_marketing,
+                    ]);
+                }
             }
 
             $marketing->update([

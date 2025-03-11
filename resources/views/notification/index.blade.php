@@ -17,14 +17,23 @@ $mappedModule = \App\Constants::NOTIFICATION_MODULE;
                     <div class="col-4 d-none d-sm-block">
                         <div class="list-group" id="list-tab" role="tablist">
                             @foreach($data as $module => $value)
-                            <a href="#list/{{ $module }}" class="list-group-item list-group-item-action {{ $loop->first ? 'active' : '' }}" data-toggle="list" role="tab" aria-controls="{{ $module }}">{{ $mappedModule[$module] }}</a>
+                            @php
+                                $parsed = str_replace('/', '-', $module);
+                            @endphp
+                            <a href="#list-{{ $parsed }}" class="list-group-item list-group-item-action {{ $loop->first ? 'active' : '' }}" data-toggle="list" role="tab" aria-controls="{{ $parsed }}">
+                                {{ $mappedModule[$module] }}
+                                <span class="float-right">{{ count($value) }}</span>
+                            </a>
                             @endforeach
                         </div>
                     </div>
                     <div class="col-8">
                         <div class="tab-content">
                             @foreach($data as $module => $value)
-                            <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="list/{{ $module }}" role="tabpanel" aria-labelledby="list/{{ $module }}/list">
+                            @php
+                                $parsed = str_replace('/', '-', $module);
+                            @endphp
+                            <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="list-{{ $parsed }}" role="tabpanel" aria-labelledby="list-{{ $parsed }}-list">
                                 <ul class="list-group list-group-flush">
                                     <!-- Notification Item -->
                                     @foreach($value as $item)

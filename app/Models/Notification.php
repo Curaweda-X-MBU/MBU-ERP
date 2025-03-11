@@ -128,7 +128,7 @@ class Notification extends Model
             $exists = (clone $notification)->exists();
 
             if (! $exists) {
-                return ['success' => false, 'message' => 'Notify Dismiss: Notification not found'];
+                return ['success' => true, 'message' => 'Notify Dismiss: Notification not found'];
             }
 
             $notification->update(['is_done' => 1]);

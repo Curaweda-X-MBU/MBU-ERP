@@ -6,6 +6,7 @@ use App\Constants;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Customer;
+use App\Models\Marketing\MarketingProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -14,11 +15,6 @@ class ReportFinanceController extends Controller
     public function customerPayment(Request $req)
     {
         try {
-            $data = Customer::with(['marketings', 'marketings.sales', 'marketings.marketing_products'])
-                ->whereHas('marketings', function($q) {
-                    $q->where('marketing_status', '>', 2);
-                });
-
             $request   = $req->all();
             $rows      = $req->has('rows') ? $req->get('rows') : 10;
             $arrAppend = [
@@ -26,56 +22,72 @@ class ReportFinanceController extends Controller
                 'page' => 1,
             ];
 
-            foreach ($request as $key => $value) {
-                if ($value !== '-all' && ! in_array($key, ['rows', 'page'])) {
-                    if (is_array($value)) {
-                        $data->whereHas($key, function($query) use ($value) {
-                            $this->applyNestedWhere($query, $value, $arrAppend);
-                        });
-                    } else {
-                        $data->where($key, $value);
-                        $arrAppend[$key] = $value;
-                    }
-                }
+            // STEP 1
+            $customers = Customer::query()->whereHas('marketings');
+            if ($req->has('customer_id') && $req->get('customer_id')) {
+                $customers->where('customer_id', $req->get('customer_id'));
             }
-
-            $data = $data
-                ->orderBy('customer_id', 'DESC')
+            $customers = $customers->orderBy('customer_id', 'DESC')
                 ->paginate($rows);
-            $data->appends($arrAppend);
+            $customers->appends($arrAppend);
 
-            $paginated = $data->mapWithKeys(function($c) {
-                $products = $c->marketings->flatMap(function($m) {
-                    return $m->marketing_products->map(function($mp) use ($m) {
-                        return [
-                            'tanggal'     => Carbon::parse($m->created_at)->format('d-M-Y'),
-                            'referensi'   => $m->id_marketing,
-                            'nopol'       => '',
-                            'qty'         => Parser::trimLocale($mp->qty),
-                            'berat'       => 0,
-                            'avg'         => 0,
-                            'harga'       => Parser::toLocale($mp->price),
-                            'diskon'      => Parser::toLocale($m->discount),
-                            'tabungan'    => 0,
-                            'pajak'       => $m->tax,
-                            'total'       => Parser::toLocale($m->grand_total),
-                            'pembayaran'  => Parser::toLocale($m->is_paid),
-                            'saldo'       => Parser::toLocale($m->not_paid),
-                            'keterangan'  => Constants::MARKETING_PAYMENT_STATUS[$m->payment_status],
-                            'Pengambilan' => $mp->warehouse->name,
-                            'sales'       => optional($m->sales)->name,
-                        ];
-                    });
+            $customerIds = $customers->pluck('customer_id');
+
+            // STEP 2
+            $marketingProducts = MarketingProduct::query()
+                ->whereHas('marketing', function($q) use ($customerIds, $request) {
+                    $q->whereIn('customer_id', $customerIds);
+
+                    foreach ($request as $key => $value) {
+                        if (is_array($value) && $key === 'marketings') {
+                            $this->applyNestedWhere($q, $value, $arrAppend);
+                        }
+                    }
+                })
+                ->with(['marketing.sales', 'warehouse'])
+                ->get()
+                ->groupBy('marketing.customer_id');
+
+            $paginated = $customers->mapWithKeys(function($c) use ($marketingProducts) {
+                $products = $marketingProducts->get($c->customer_id, collect())->map(function($mp) {
+                    $m = $mp->marketing;
+
+                    return (object) [
+                        'tanggal'     => Carbon::parse($m->created_at)->format('d-M-Y'),
+                        'referensi'   => $m->id_marketing,
+                        'nopol'       => '???',
+                        'qty'         => Parser::trimLocale($mp->qty),
+                        'berat'       => Parser::trimLocale($mp->weight_total),
+                        'avg'         => Parser::trimLocale($mp->weight_avg),
+                        'harga'       => Parser::toLocale($mp->price),
+                        'diskon'      => Parser::toLocale($mp->local_discount),
+                        'tabungan'    => '???',
+                        'pajak'       => $m->tax ?? 0,
+                        'total'       => Parser::toLocale($mp->grand_total),
+                        'pembayaran'  => Parser::toLocale($mp->is_paid),
+                        'saldo'       => Parser::toLocale($mp->grand_total - $mp->is_paid),
+                        'keterangan'  => Constants::MARKETING_PAYMENT_STATUS[$m->payment_status],
+                        'pengambilan' => $mp->warehouse->name,
+                        'sales'       => optional($m->sales)->name,
+                    ];
                 });
 
                 return [
-                    $c->name => $products,
+                    $c->name => (object) [
+                        'customer' => (object) [
+                            'name'    => $c->name,
+                            'address' => $c->address,
+                            'nik'     => '???',
+                            'npwp'    => $c->tax_num,
+                        ],
+                        'products' => $products,
+                    ],
                 ];
             });
 
             $param = [
                 'title'     => 'Laporan > Pembayaran Customer',
-                'data'      => $data,
+                'data'      => $customers,
                 'paginated' => $paginated,
             ];
 
@@ -88,20 +100,6 @@ class ReportFinanceController extends Controller
         }
     }
 
-    private function applyNestedWhere($query, $values, &$arrAppend)
-    {
-        foreach ($values as $relationKey => $relationValue) {
-            if (is_array($relationValue)) {
-                $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
-                    $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
-                });
-            } else {
-                $query->where($relationKey, $relationValue);
-                $arrAppend[$relationKey] = $relationValue;
-            }
-        }
-    }
-
     public function balanceMonitoring()
     {
         try {
@@ -111,7 +109,34 @@ class ReportFinanceController extends Controller
 
             return view('report.finance.balance-monitoring', $param);
         } catch (\Exception $e) {
-            // throw $th;
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    private function applyNestedWhere($query, $values, &$arrAppend)
+    {
+        foreach ($values as $relationKey => $relationValue) {
+            if (is_array($relationValue)) {
+                if (isset($relationValue['start']) || isset($relationValue['end'])) {
+                    $start = Carbon::parse($relationValue['start'] ?? '1970-01-01')->startOfDay();
+                    $end   = Carbon::parse($relationValue['end'] ?? now())->endOfDay();
+
+                    $query->whereBetween($relationKey, [$start, $end]);
+                    $arrAppend[$relationKey] = $relationValue;
+                } else {
+                    if ($relationKey !== 'created_at') {
+                        $query->whereHas($relationKey, function($subQuery) use ($relationValue, &$arrAppend) {
+                            $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
+                        });
+                    }
+                }
+            } else {
+                $query->where($relationKey, $relationValue);
+                $arrAppend[$relationKey] = $relationValue;
+            }
         }
     }
 }
