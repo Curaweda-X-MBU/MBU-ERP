@@ -217,5 +217,4 @@ dump($paginated);
     });
 </script>
 
-
 @endsection
