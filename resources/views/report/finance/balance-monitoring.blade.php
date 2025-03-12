@@ -2,6 +2,10 @@
 @section('title', $title)
 @section('content')
 
+@php
+dump($paginated);
+@endphp
+
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/pickers/form-flat-pickr.css')}}">
 
@@ -22,10 +26,10 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group">
                                             <label for="area_id">Area</label>
-                                            <select name="area_id" id="area_id" class="form-control">
-                                                @if (request()->has('area_id') && @request()->get('area_id')))
+                                            <select name="marketings[marketing_products][warehouse][location][area_id]" id="area_id" class="form-control">
+                                                @if (request()->has('marketings') && isset(request()->get('marketings')['marketing_products']['warehouse']['location']['area_id']))
                                                 @php
-                                                    $areaId = request()->get('area_id');
+                                                    $areaId = request()->get('marketings')['marketing_products']['warehouse']['location']['area_id'];
                                                 @endphp
                                                 <option value="{{ $areaId }}" selected> {{ \App\Models\DataMaster\Area::find($areaId)->name }}</option>
                                                 @endif
@@ -48,10 +52,10 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group">
                                             <label for="sales_id">Sales</label>
-                                            <select name="sales_id" id="sales_id" class="form-control">
-                                                @if (request()->has('sales_id') && @request()->get('sales_id'))
+                                            <select name="marketings[sales_id]" id="sales_id" class="form-control">
+                                                @if (request()->has('marketings') && isset(request()->get('marketings')['sales_id']))
                                                 @php
-                                                    $salesId = request()->get('sales_id')
+                                                    $salesId = request()->get('marketings')['sales_id'];
                                                 @endphp
                                                 <option value="{{ $salesId }}" selected> {{ \App\Models\UserManagement\User::find($salesId)->name }}</option>
                                                 @endif
@@ -61,7 +65,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group">
                                             <label for="balance_type">Tampil</label>
-                                            <select name="balance_type" id="balance_type" class="form-control">
+                                            <select id="balance_type" class="form-control">
                                                 <option value="-all" {{ ! request()->has('balance_type') || request()->get('balance_type') == '-all' ? 'selected' : '' }}>Semua</option>
                                                 @php
                                                 $balanceType = ['Penjualan', 'Pembelian', 'Contoh 1', 'Contoh 2'];
@@ -75,13 +79,25 @@
                                     <div class="col-md-2 col-12">
                                         <div class="form-group">
                                             <label for="start_date">Tanggal Awal</label>
-                                            <input id="start_date" name="start_date" type="text" class="form-control flatpickr-basic">
+                                            <input
+                                                name="marketings[created_at][start]"
+                                                id="start_date"
+                                                type="text"
+                                                class="form-control flatpickr-basic"
+                                                value="{{ request()->has('marketings') && isset(request()->get('marketings')['created_at']['start']) ? request()->get('marketings')['created_at']['start'] : '' }}"
+                                            >
                                         </div>
                                     </div>
                                     <div class="col-md-2 col-12">
                                         <div class="form-group">
                                             <label for="end_date">Tanggal Akhir</label>
-                                            <input id="end_date" name="end_date" type="text" class="form-control flatpickr-basic">
+                                            <input
+                                                name="marketings[created_at][end]"
+                                                id="end_date"
+                                                type="text"
+                                                class="form-control flatpickr-basic"
+                                                value="{{ request()->has('marketings') && isset(request()->get('marketings')['created_at']['end']) ? request()->get('marketings')['created_at']['end'] : '' }}"
+                                            >
                                         </div>
                                     </div>
                                     <div class="col-md-1 col-12">
@@ -100,7 +116,7 @@
                                     <div class="col-md-3 col-12">
                                         <div class="form-group float-right">
                                             <button type="submit" class="btn btn-primary">Cari</button>
-                                            <a href="{{ route('expense.list.index') }}"  class="btn btn-warning">Reset</a>
+                                            <a href="{{ route('report.finance.balance-monitoring') }}"  class="btn btn-warning">Reset</a>
                                         </div>
                                     </div>
                                 </div>
@@ -108,6 +124,8 @@
                         </div>
                     </div>
                     <!--/ Filter -->
+                    <hr>
+                    @if (isset($paginated) && count($paginated))
                     <!-- Table -->
                     <div class="table-responsive">
                         <table class="table table-bordered w-100" style="margin: 0 0 !important;">
@@ -131,24 +149,47 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @foreach ($paginated as $index => $item)
                                 <tr>
-                                    <td class="text-right">No</td>
-                                    <td>Customer</td>
-                                    <td class="text-right">Saldo Awal</td>
-                                    <td>Ekor</td>
-                                    <td>Kg</td>
-                                    <td class="text-right">Nominal</td>
-                                    <td class="text-right">Trading</td>
-                                    <td class="text-right">Pembayaran</td>
-                                    <td class="text-right">Hutang</td>
-                                    <td>Aging</td>
-                                    <td>AVG Aging</td>
-                                    <td class="text-right">Saldo Akhir</td>
+                                    <td class="text-right">{{ $index + 1 }}</td>
+                                    <td>{{ $item->customer }}</td>
+                                    <td class="text-right">{{ $item->saldo_awal }}</td>
+                                    <td>{{ $item->ayam_ekor }}</td>
+                                    <td>{{ $item->ayam_kg }}</td>
+                                    <td class="text-right">{{ $item->ayam_nominal }}</td>
+                                    <td class="text-right">{{ $item->trading }}</td>
+                                    <td class="text-right">{{ $item->pembayaran }}</td>
+                                    <td class="text-right{{ $item->raw_hutang > 0 ? ' text-danger' : '' }}">{{ $item->hutang }}</td>
+                                    <td>{{ $item->aging }} Hari</td>
+                                    <td>{{ $item->aging_avg }} Hari</td>
+                                    <td class="text-right{{ $item->raw_saldo_akhir > 0 ? ' text-danger' : '' }}">{{ $item->saldo_akhir }}</td>
                                 </tr>
+                                @endforeach
                             </tbody>
+                            <tfoot>
+                                @php
+                                    $parser = \App\Helpers\Parser::class;
+                                @endphp
+                                <tr class="font-weight-bolder">
+                                    <td colspan="2" class="text-center">Total</td>
+                                    <td class="text-right">{{ $parser::toLocale($paginated->sum('raw_saldo_awal')) }}</td>
+                                    <td>{{ $parser::trimLocale($paginated->sum('raw_ayam_ekor')) }}</td>
+                                    <td>{{ $parser::trimLocale($paginated->sum('raw_ayam_kg')) }}</td>
+                                    <td class="text-right">{{ $parser::toLocale($paginated->sum('raw_ayam_nominal')) }}</td>
+                                    <td class="text-right">{{ $parser::toLocale($paginated->sum('raw_trading')) }}</td>
+                                    <td class="text-right">{{ $parser::toLocale($paginated->sum('raw_pembayaran')) }}</td>
+                                    <td class="text-right text-danger">{{ $parser::toLocale($paginated->sum('raw_hutang')) }}</td>
+                                    <td>{{ $parser::trimLocale($paginated->sum('raw_aging')) }}</td>
+                                    <td>{{ $parser::trimLocale($paginated->sum('raw_aging_avg')) }}</td>
+                                    <td class="text-right text-danger">{{ $parser::toLocale($paginated->sum('raw_saldo_akhir')) }}</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     <!--/ Table -->
+                    @else
+                    <div class="text-center">Tidak ada data.</div>
+                    @endif
                 </div>
             </div>
         </div>

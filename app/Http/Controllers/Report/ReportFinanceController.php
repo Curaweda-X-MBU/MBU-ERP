@@ -6,6 +6,7 @@ use App\Constants;
 use App\Helpers\Parser;
 use App\Http\Controllers\Controller;
 use App\Models\DataMaster\Customer;
+use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -100,11 +101,84 @@ class ReportFinanceController extends Controller
         }
     }
 
-    public function balanceMonitoring()
+    public function balanceMonitoring(Request $req)
     {
         try {
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            $customers = Customer::query()
+                ->whereHas('marketings', fn ($q) => $q->where('payment_status', '<', array_search('Dibayar Penuh', Constants::MARKETING_PAYMENT_STATUS)));
+            if ($req->has('customer_id') && $req->get('customer_id')) {
+                $customers->where('customer_id', $req->get('customer_id'));
+            }
+            $customers = $customers->orderBy('customer_id', 'DESC')
+                ->paginate($rows);
+            $customers->appends($arrAppend);
+
+            $customerIds = $customers->pluck('customer_id');
+
+            // STEP 2
+            $marketings = Marketing::query()
+                ->whereIn('customer_id', $customerIds)
+                ->with(['marketing_products', 'marketing_payments']);
+
+            foreach ($request as $key => $value) {
+                if (is_array($value) && $key === 'marketings') {
+                    $this->applyNestedWhere($marketings, $value, $arrAppend);
+                }
+            }
+
+            $marketings = $marketings
+                ->get()
+                ->groupBy('customer_id');
+
+            $paginated = $customers->transform(function($c) use ($marketings) {
+                $cm = $marketings->get($c->customer_id, collect());
+
+                $aging = $cm->pluck('realized_at')->map(function($r) {
+                    return (int) Carbon::parse($r)->diffInDays(now());
+                });
+                $ayamEkor    = $cm->flatMap->marketing_products->sum('qty');
+                $ayamKg      = $cm->flatMap->marketing_products->sum('weight_total');
+                $ayamNominal = $cm->sum('grand_total');
+                $pembayaran  = $cm->sum('is_paid');
+                $hutang      = $cm->sum('not_paid');
+
+                return (object) [
+                    'customer'     => $c->name,
+                    'saldo_awal'   => '???',
+                    'ayam_ekor'    => Parser::trimLocale($ayamEkor),
+                    'ayam_kg'      => Parser::trimLocale($ayamKg),
+                    'ayam_nominal' => Parser::toLocale($ayamNominal),
+                    'trading'      => '???',
+                    'pembayaran'   => Parser::toLocale($pembayaran),
+                    'hutang'       => Parser::toLocale($hutang),
+                    'aging'        => Parser::trimLocale($aging->sum()),
+                    'aging_avg'    => Parser::trimLocale($aging->avg()),
+                    'saldo_akhir'  => '???',
+                    // Raw values for calculating
+                    'raw_saldo_awal'   => 0,
+                    'raw_ayam_ekor'    => $ayamEkor,
+                    'raw_ayam_kg'      => $ayamKg,
+                    'raw_ayam_nominal' => $ayamNominal,
+                    'raw_trading'      => 0,
+                    'raw_pembayaran'   => $pembayaran,
+                    'raw_hutang'       => $hutang,
+                    'raw_aging'        => $aging->sum(),
+                    'raw_aging_avg'    => $aging->avg(),
+                    'raw_saldo_akhir'  => $hutang,
+                ];
+            });
+
             $param = [
-                'title' => 'Laporan > Monitoring Saldo',
+                'title'     => 'Laporan > Monitoring Saldo',
+                'data'      => $customers,
+                'paginated' => $paginated,
             ];
 
             return view('report.finance.balance-monitoring', $param);
