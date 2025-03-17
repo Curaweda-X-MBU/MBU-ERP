@@ -140,6 +140,11 @@
                                             <td>Rp. {{ \App\Helpers\Parser::toLocale($data->discount) }}</td>
                                         </tr>
                                         <tr>
+                                            <td><b>Catatan Diskon</b></td>
+                                            <td>:</td>
+                                            <td>{{ $data->discount_notes ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
                                             <td><b>Nominal Penjualan</b></td>
                                             <td>:</td>
                                             <td class="text-primary">Rp. {{ \App\Helpers\Parser::toLocale($nominalPenjualan) }}</td>

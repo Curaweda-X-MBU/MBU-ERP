@@ -9,8 +9,8 @@
                     <div class=" collapse-icon">
                         <div class=" p-0">
                             <div class="collapse-default">
-                                @include('report.sections.sapronak-collapse.sapronak-masuk')
-                                @include('report.sections.sapronak-collapse.sapronak-keluar')
+                                @include('closing.sections.sapronak-collapse.sapronak-masuk')
+                                @include('closing.sections.sapronak-collapse.sapronak-keluar')
                             </div>
                         </div>
                     </div>
@@ -25,11 +25,11 @@ $(function() {
     const period = getQueryParam('period');
 
     function fetchLocationSapronakData() {
-        fetchSapronakData("{{ route('report.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
+        fetchSapronakData("{{ route('closing.detail.location.sapronak', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangSapronakData() {
-        fetchSapronakData("{{ route('report.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
+        fetchSapronakData("{{ route('closing.detail.kandang.sapronak', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchSapronakData(route) {

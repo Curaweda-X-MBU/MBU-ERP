@@ -96,7 +96,7 @@
         'use strict';
         var numeralMask = $('.numeral-mask');
         if (numeralMask.length) {
-            numeralMask.each(function() { 
+            numeralMask.each(function() {
                 new Cleave(this, {
                     numeral: true,
                     numeralThousandsGroupStyle: 'thousand', numeralDecimalMark: ',', delimiter: '.'
@@ -107,7 +107,7 @@
         const dateOpt = { dateFormat: 'd-M-Y' }
         $('.flatpickr-basic').flatpickr(dateOpt);
 
-        $('#remove-file').click(function (e) { 
+        $('#remove-file').click(function (e) {
             e.preventDefault();
             $('#file-div').html('<input type="file" class="form-control" name="travel_letter_document" placeholder="Dokumen Surat Jalan" />');
         });
@@ -116,12 +116,12 @@
         $('.supplier_id').select2({
             placeholder: "Pilih Supplier",
             ajax: {
-                url: '{{ route("data-master.supplier.search") }}', 
+                url: '{{ route("data-master.supplier.search") }}',
                 dataType: 'json',
-                delay: 250, 
+                delay: 250,
                 data: function(params) {
                     return {
-                        q: params.term 
+                        q: params.term
                     };
                 },
                 processResults: function(data) {
@@ -135,7 +135,7 @@
 
         var $hatcherySelector = $('.hatchery');
         $hatcherySelector.html(`<option disabled selected>Pilih Supplier terlebih dahulu</option>`);
-        $('.supplier_id').change(function (e) { 
+        $('.supplier_id').change(function (e) {
             e.preventDefault();
             var supplierId = $(this).val();
             var qryHatchery = supplierId?`?supplier_id=${supplierId}`:'';
@@ -146,10 +146,10 @@
                     ajax: {
                         url: '{{ url("data-master/supplier/hatchery/search/") }}'+qryHatchery,
                         dataType: 'json',
-                        delay: 250, 
+                        delay: 250,
                         data: function(params) {
                             return {
-                                q: params.term 
+                                q: params.term
                             };
                         },
                         processResults: function(data) {
@@ -164,9 +164,9 @@
                 $hatcherySelector.html(`<option disabled selected>Pilih Supplier terlebih dahulu</option>`);
             }
         });
-        
+
         $('.supplier_id').trigger('change');
-        
+
         const optChick = {
             initEmpty: false,
             show: function (e) {
@@ -175,7 +175,7 @@
                 if (feather) {
                     feather.replace({ width: 14, height: 14 });
                 }
-                
+
             },
             hide: function (deleteElement) {
                 if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
@@ -188,15 +188,15 @@
         const oldChickIn = @json(old("chick_in"));
         if (oldChickIn) {
             console.log(oldChickIn);
-            
+
             $repeaterChickIn.setList(oldChickIn);
             for (let i = 0; i < oldChickIn.length; i++) {
                 $(`select[name="chick_in[${i}][supplier_id]"]`).append(`<option value="${oldChickIn[i].supplier_id}" selected>${oldChickIn[i].supplier_name}</option>`);
                 $(`select[name="chick_in[${i}][supplier_id]"]`).trigger('change');
                 $(`select[name="chick_in[${i}][hatchery]"]`).append(`<option value="${oldChickIn[i].hatchery}" selected>${oldChickIn[i].hatchery}</option>`);
             }
-        } 
-        
+        }
+
         if ('{{ $dataChick }}'.length) {
             let dataChickIn = @json($dataChick);
             let arrFile = [];
@@ -204,12 +204,12 @@
                 const date = new Date(item.chickin_date);
                 const options = { day: '2-digit', year: 'numeric', month: 'short' };
                 item.chickin_date = date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
-                arrFile.push({ 
+                arrFile.push({
                     file_name: item.travel_letter_document??null
                 });
                 delete item.travel_letter_document;
             });
-            
+
             if (dataChickIn.length > 0) {
                 $repeaterChickIn.setList(dataChickIn);
                 for (let i = 0; i < dataChickIn.length; i++) {
@@ -235,9 +235,9 @@
                     }
                 }
             }
-        } 
+        }
 
-        $('.delete-file').on('click', function () { 
+        $('.delete-file').on('click', function () {
             const inputName = $(this).closest('.file-div').find('input[type="hidden"]').attr('name');
             $(this).closest('.file-div').html(`<input type="file" class="form-control" name="${inputName}" accept=".pdf, image/jpeg">`)
             validationFile();
@@ -257,7 +257,7 @@
                     } else if (fileSize > maxSize) {
                         alert('Ukuran file harus kurang dari 2 MB');
                         $(this).val('');
-                    } 
+                    }
                 }
             });
         }

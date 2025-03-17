@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Report;
+namespace App\Http\Controllers\Closing;
 
 use App\Constants;
 use App\Helpers\Parser;
@@ -25,28 +25,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ReportLocationController extends Controller
+class ClosingLocationController extends Controller
 {
     private function checkAccess($company, $param, $view, $permission = null)
     {
         try {
             if (empty($permission)) {
-                $permission = 'report.'.strtolower($company->alias).'.'.$view;
+                $permission = 'closing.'.strtolower($company->alias).'.'.$view;
             }
 
             $roleAccess = Auth::user()->role;
             switch ($company->alias) {
                 case 'MBU':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.mbu.{$view}", $param);
+                        return view("closing.mbu.{$view}", $param);
                     }
                 case 'LTI':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.lti.{$view}", $param);
+                        return view("closing.lti.{$view}", $param);
                     }
                 case 'MAN':
                     if ($roleAccess->hasPermissionTo($permission)) {
-                        return view("report.man.{$view}", $param);
+                        return view("closing.man.{$view}", $param);
                     }
                 default:
                     throw new \Exception('Invalid company');
@@ -98,7 +98,7 @@ class ReportLocationController extends Controller
                 });
 
             $param = [
-                'title' => "Laporan > {$company->name}",
+                'title' => "Closing > {$company->name}",
                 'data'  => $data,
             ];
 
@@ -175,7 +175,7 @@ class ReportLocationController extends Controller
             ];
 
             $param = [
-                'title'  => 'Laporan > Detail',
+                'title'  => 'Closing > Detail',
                 'detail' => $detail,
             ];
 
@@ -443,7 +443,7 @@ class ReportLocationController extends Controller
                 },
             ])
                 ->where('location_id', $location->location_id)
-                ->where('expense_status', 2)
+                ->where('expense_status', '>=', array_search('Pencairan', Constants::EXPENSE_STATUS))
                 ->whereIn('category', [1, 2])
                 ->where(function($q) use ($period) {
                     $q->where('category', 2)
@@ -513,7 +513,7 @@ class ReportLocationController extends Controller
                 throw new \Exception('Periode tidak ditemukan');
             }
 
-            $deliveryVehicles = $this->getHppExpedisi($period, $location->location_id);
+            $deliveryVehicles = $this->getHppEkspedisi($period, $location->location_id);
 
             return response()->json($deliveryVehicles);
         } catch (\Exception $e) {
@@ -1157,7 +1157,7 @@ class ReportLocationController extends Controller
 
         $bobot_sum = $this->getBobotSum($period, $location_id);
 
-        $hpp_ekspedisi = $this->getHppExpedisi($period, $location_id)->sum('total_delivery_fee');
+        $hpp_ekspedisi = $this->getHppEkspedisi($period, $location_id)->sum('total_delivery_fee');
 
         return [
             $this->getHppOverhead($period, $location_id),
@@ -1201,20 +1201,23 @@ class ReportLocationController extends Controller
         ];
     }
 
-    private function getHppExpedisi(int $period, int $location_id)
+    private function getHppEkspedisi(int $period, int $location_id)
     {
-        return PurchaseItemReception::selectRaw('
+        return Expense::selectRaw('
                 suppliers.name AS supplier_name,
-                COALESCE(SUM(purchase_item_receptions.transport_total), 0) AS total_delivery_fee
+                COALESCE(SUM(expense_main_prices.price), 0) AS total_delivery_fee
             ')
-            ->join('suppliers', 'suppliers.supplier_id', '=', 'purchase_item_receptions.supplier_id')
-            ->join('warehouses', 'purchase_item_receptions.warehouse_id', '=', 'warehouses.warehouse_id')
-            ->join('kandang', 'warehouses.kandang_id', '=', 'kandang.kandang_id')
-            ->join('projects', 'kandang.kandang_id', '=', 'projects.kandang_id')
+            ->join('suppliers', 'suppliers.supplier_id', '=', 'expenses.supplier_id')
+            ->join('expense_main_prices', 'expense_main_prices.expense_id', '=', 'expenses.expense_id')
+            ->join('nonstocks', 'nonstocks.nonstock_id', '=', 'expense_main_prices.nonstock_id')
+            ->join('expense_kandang', 'expense_kandang.expense_id', '=', 'expenses.expense_id')
+            ->join('kandang', 'expense_kandang.kandang_id', '=', 'kandang.kandang_id')
+            ->join('projects', 'expense_kandang.project_id', '=', 'projects.project_id')
             ->where([
                 ['kandang.location_id', $location_id],
                 ['projects.period', $period],
             ])
+            ->whereRaw('LOWER(nonstocks.name) LIKE ?', ['%ekspedisi%'])
             ->groupBy('suppliers.name')
             ->get();
     }

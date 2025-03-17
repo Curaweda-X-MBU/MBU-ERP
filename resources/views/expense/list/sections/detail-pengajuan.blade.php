@@ -19,7 +19,7 @@
                 <i data-feather="arrow-left" class="mr-50"></i>
                 Kembali
             </a>
-            @if ($data->expense_status < 4 && $data->expense_status !== 2)
+            @if ($data->expense_status < 4 && $data->expense_status !== 2 || $can_approve_by_finance)
             <a href="{{ route('expense.list.edit', $data->expense_id) }}" class="btn btn-primary">
                 <i data-feather="edit-2" class="mr-50"></i>
                 Edit

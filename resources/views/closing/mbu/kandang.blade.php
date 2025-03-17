@@ -43,7 +43,7 @@
                 <div class="row align-items-center my-1">
                     <h4 class="col-md-10">Informasi Umum</h4>
                 </div>
-                @include('report.sections.informasi-umum-kandang-detail')
+                @include('closing.sections.informasi-umum-kandang-detail')
             </div>
         </div>
 
@@ -60,25 +60,25 @@
         </nav>
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-sapronak" role="tabpanel" aria-labelledby="nav-sapronak-tab">
-                @include('report.sections.sapronak-detail')
+                @include('closing.sections.sapronak-detail')
             </div>
             <div class="tab-pane fade" id="nav-perhitungan-sapronak" role="tabpanel" aria-labelledby="nav-perhitungan-sapronak-tab">
-                @include('report.sections.perhitungan-sapronak-detail')
+                @include('closing.sections.perhitungan-sapronak-detail')
             </div>
             <div class="tab-pane fade" id="nav-penjualan" role="tabpanel" aria-labelledby="nav-penjualan-tab">
-                @include('report.sections.penjualan-detail')
+                @include('closing.sections.penjualan-detail')
             </div>
             <div class="tab-pane fade" id="nav-overhead" role="tabpanel" aria-labelledby="nav-overhead-tab">
-                @include('report.sections.overhead-kandang-detail')
+                @include('closing.sections.overhead-kandang-detail')
             </div>
             <div class="tab-pane fade" id="nav-hppEkspedisi" role="tabpanel" aria-labelledby="nav-hppEkspedisi-tab">
-                @include('report.sections.hpp-ekspedisi-detail')
+                @include('closing.sections.hpp-ekspedisi-detail')
             </div>
             <div class="tab-pane fade" id="nav-dataProduksi" role="tabpanel" aria-labelledby="nav-dataProduksi-tab">
-                @include('report.sections.data-produksi-detail')
+                @include('closing.sections.data-produksi-detail')
             </div>
             <div class="tab-pane fade" id="nav-keuangan" role="tabpanel" aria-labelledby="nav-keuangan-tab">
-                @include('report.sections.keuangan-detail')
+                @include('closing.sections.keuangan-detail')
             </div>
         </div>
     </div>

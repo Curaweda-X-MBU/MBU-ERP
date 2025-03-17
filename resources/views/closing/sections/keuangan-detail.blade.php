@@ -9,15 +9,15 @@
     <input type="hidden" class="location_keuangan_loaded" value="0">
     <input type="hidden" class="kandang_keuangan_loaded" value="0">
     <div class="card-body">
-        @include('report.sections.keuangan-collapse.data-keuangan')
+        @include('closing.sections.keuangan-collapse.data-keuangan')
         <section id="collapsible">
             <div class="row">
                 <div class="col-sm-12">
                     <div class=" collapse-icon">
                         <div class=" p-0">
                             <div class="collapse-default">
-                                @include('report.sections.keuangan-collapse.hpp-pembelian')
-                                @include('report.sections.keuangan-collapse.laba-rugi')
+                                @include('closing.sections.keuangan-collapse.hpp-pembelian')
+                                @include('closing.sections.keuangan-collapse.laba-rugi')
                             </div>
                         </div>
                     </div>
@@ -43,11 +43,11 @@ $(function() {
     }
 
     function fetchLocationKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
+        fetchKeuanganData("{{ route('closing.detail.location.keuangan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangKeuanganData() {
-        fetchKeuanganData("{{ route('report.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
+        fetchKeuanganData("{{ route('closing.detail.kandang.keuangan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchKeuanganData(route) {

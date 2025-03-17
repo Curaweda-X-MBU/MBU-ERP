@@ -2,6 +2,7 @@
 
 namespace App\Models\DataMaster;
 
+use App\Models\Marketing\Marketing;
 use App\Models\UserManagement\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,5 +32,10 @@ class Customer extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'assign_to', 'user_id');
+    }
+
+    public function marketings()
+    {
+        return $this->hasMany(Marketing::class, 'customer_id', 'customer_id');
     }
 }
