@@ -4,6 +4,28 @@ namespace App;
 
 class Constants
 {
+    public const APPROVAL = [
+        'Approval Manager'        => 'Manager Area',
+        'Approval Poultry Health' => 'Manager Poultry Health',
+        'Approval Purchasing'     => 'Manager Purchasing',
+        'Approval Finance'        => 'Manager Finance',
+        'Approval Dir. Finance'   => 'Direktur Finance',
+        'Approval Farm'           => 'Manager Farm',
+        'Approval Marketing'      => 'Manager Marketing',
+    ];
+
+    public const NOTIFICATION_MODULE = [
+        'project/list'             => 'Project',
+        'project/chick-in'         => 'Chick-In',
+        'project/recording'        => 'Recording',
+        'marketing/list'           => 'Penjualan',
+        'marketing/list/payment'   => 'Pembayaran Penjualan',
+        'marketing/return'         => 'Pengembalian Penjualan',
+        'marketing/return/payment' => 'Pembayaran Pengembalian Penjualan',
+        'expense/list'             => 'Biaya',
+        'purchase'                 => 'Pembelian',
+    ];
+
     public const SUPPLIER_TYPE = [
         1 => 'Bisnis',
         2 => 'Individual',

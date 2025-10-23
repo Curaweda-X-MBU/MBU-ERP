@@ -33,6 +33,7 @@ class Marketing extends Model
         'sales_id',
         'tax',
         'discount',
+        'discount_notes',
         'sub_total',
         'grand_total',
         'payment_status',

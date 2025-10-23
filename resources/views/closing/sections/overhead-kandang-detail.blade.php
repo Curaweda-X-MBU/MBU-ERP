@@ -80,7 +80,7 @@ $(function() {
     const period = getQueryParam('period');
 
     function fetchKandangOverheadData() {
-        $.get("{{ route('report.detail.kandang.overhead', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period)
+        $.get("{{ route('closing.detail.kandang.overhead', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period)
             .then(function(result) {
                 if (!result.error) {
                     const perhitungan = result.perhitungan;

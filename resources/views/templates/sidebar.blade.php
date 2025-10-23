@@ -136,32 +136,32 @@
                 <li id="{{ ltrim(parse_url(route('finance.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('finance.index') }}"><i data-feather="credit-card"></i><span class="menu-title text-truncate" data-i18n="Keuangan">Keuangan</span></a>
                 </li>
                 @endif
-                @if (hasAccess($collection, 'report', $roleAccess))
-                <li class="nav-item has-sub {{ Request::segment(1)=='report'?'sidebar-group-active':'' }}">
+                @if (hasAccess($collection, 'closing', $roleAccess))
+                <li class="nav-item has-sub {{ Request::segment(1)=='closing'?'sidebar-group-active':'' }}">
                     <a class="d-flex align-items-center" href="#">
-                        <i data-feather="book"></i>
-                        <span class="menu-title text-truncate" data-i18n="Report">Laporan</span>
+                        <i data-feather="check-circle"></i>
+                        <span class="menu-title text-truncate" data-i18n="Closing">Closing</span>
                     </a>
                     <ul class="menu-content">
-                        @if ($roleAccess->hasPermissionTo('report.mbu.index'))
-                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=mbu', ENT_QUOTES, 'UTF-8') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=mbu' }}">
+                        @if ($roleAccess->hasPermissionTo('closing.mbu.index'))
+                            <li id="{{ ltrim(parse_url(route('closing.index'), PHP_URL_PATH), '/').htmlspecialchars('company=mbu', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('closing.index').'?company=mbu' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="MBU">MBU</span>
                                 </a>
                             </li>
                         @endif
-                        @if ($roleAccess->hasPermissionTo('report.man.index'))
-                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=man', ENT_QUOTES, 'UTF-8') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=man' }}">
+                        @if ($roleAccess->hasPermissionTo('closing.man.index'))
+                            <li id="{{ ltrim(parse_url(route('closing.index'), PHP_URL_PATH), '/').htmlspecialchars('company=man', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('closing.index').'?company=man' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="MAN">Manbu</span>
                                 </a>
                             </li>
                         @endif
-                        @if ($roleAccess->hasPermissionTo('report.lti.index'))
-                            <li id="{{ ltrim(parse_url(route('report.index'), PHP_URL_PATH), '/').htmlspecialchars('company=lti', ENT_QUOTES, 'UTF-8') }}">
-                                <a class="d-flex align-items-center" href="{{ route('report.index').'?company=lti' }}">
+                        @if ($roleAccess->hasPermissionTo('closing.lti.index'))
+                            <li id="{{ ltrim(parse_url(route('closing.index'), PHP_URL_PATH), '/').htmlspecialchars('company=lti', ENT_QUOTES, 'UTF-8') }}">
+                                <a class="d-flex align-items-center" href="{{ route('closing.index').'?company=lti' }}">
                                     <i data-feather="circle"></i>
                                     <span class="menu-item text-truncate" data-i18n="LTI">LTI</span>
                                 </a>
@@ -170,6 +170,12 @@
                     </ul>
                 </li>
                 @endif
+                <li class=" nav-item has-sub {{ Request::segment(1)=='report'?'sidebar-group-active':'' }}"><a class="d-flex align-items-center" href="#"><i data-feather='book'></i><span class="menu-title text-truncate" data-i18n="Report">Laporan</span></a>
+                    <ul class="menu-content">
+                        <li id="{{ ltrim(parse_url(route('report.finance.customer-payment'), PHP_URL_PATH), '/') }}"><a class="d-flex align-items-center" href="{{ route('report.finance.customer-payment') }}"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Keuangan">Keuangan</span></a>
+                        </li>
+                    </ul>
+                </li>
                 @if (hasAccess($collection, 'purchase.index', $roleAccess))
                 <li id="{{ ltrim(parse_url(route('purchase.index'), PHP_URL_PATH), '/') }}" class=" nav-item"><a class="d-flex align-items-center" href="{{ route('purchase.index') }}"><i data-feather="shopping-cart"></i><span class="menu-title text-truncate" data-i18n="Pembelian">Pembelian</span></a>
                 </li>
