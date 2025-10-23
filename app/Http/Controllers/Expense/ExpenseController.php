@@ -14,14 +14,16 @@ use App\Models\Expense\ExpenseKandang;
 use App\Models\Expense\ExpenseMainPrice;
 use App\Models\Expense\ExpenseRealization;
 use App\Models\Expense\ExpenseReturnPayment;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $req)
     {
         try {
             $currentUserId = auth()->id();
@@ -35,8 +37,36 @@ class ExpenseController extends Controller
                                     $userQuery->where('user_id', $currentUserId);
                                 });
                         });
-                })
-                ->get();
+                });
+
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['location']['area_id'])) {
+                $arrAppend['location[area_id]'] = $request['location']['area_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value !== '-all' && ! in_array($key, ['rows', 'page'])) {
+                    if (is_array($value)) {
+                        $data->whereHas($key, function($query) use ($value) {
+                            $this->applyNestedWhere($query, $value, $arrAppend);
+                        });
+                    } else {
+                        $data->where($key, $value);
+                        $arrAppend[$key] = $value;
+                    }
+                }
+            }
+
+            $data = $data
+                ->orderBy('expense_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
 
             $param = [
                 'title' => 'Biaya > List',
@@ -49,6 +79,20 @@ class ExpenseController extends Controller
                 ->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    private function applyNestedWhere($query, $values, &$arrAppend)
+    {
+        foreach ($values as $relationKey => $relationValue) {
+            if (is_array($relationValue)) {
+                $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                    $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
+                });
+            } else {
+                $query->where($relationKey, $relationValue);
+                $arrAppend[$relationKey] = $relationValue;
+            }
         }
     }
 
@@ -341,6 +385,18 @@ class ExpenseController extends Controller
                         $createdExpense->update([
                             'id_expense' => $idExpense,
                         ]);
+
+                        // NOTIFY APPROVAL MANAGER FARM
+                        Notification::notify(
+                            [
+                                'role'        => Constants::APPROVAL['Approval Farm'],
+                                'module'      => 'expense/list',
+                                'foreign_id'  => $createdExpense->expense_id,
+                                'url'         => URL::signedRoute('expense.list.detail', ['expense' => $createdExpense->expense_id], absolute: false),
+                                'location_id' => $input['location_id'],
+                                'description' => $idExpense,
+                            ],
+                        );
                     }
 
                     // Success message according to project_id
@@ -516,7 +572,7 @@ class ExpenseController extends Controller
                         // }
                     }
 
-                    if (! empty($expense->id_expense)) {
+                    if (empty($expense->id_expense)) {
                         $prefix      = $expense->category == 1 ? 'BOP' : 'NBOP';
                         $incrementId = Expense::where('id_expense', 'LIKE', "{$prefix}.%")->withTrashed()->count() + 1;
                         $idExpense   = "{$prefix}.{$incrementId}";
@@ -524,6 +580,20 @@ class ExpenseController extends Controller
                         $expense->update([
                             'id_expense' => $idExpense,
                         ]);
+                    }
+
+                    // NOTIFY APPROVAL MANAGER FARM
+                    if ($expense->expense_status === array_search('Approval Manager', Constants::EXPENSE_STATUS)) {
+                        Notification::notify(
+                            [
+                                'role'        => Constants::APPROVAL['Approval Farm'],
+                                'module'      => 'expense/list',
+                                'foreign_id'  => $expense->expense_id,
+                                'url'         => URL::signedRoute('expense.list.detail', ['expense' => $expense->expense_id], absolute: false),
+                                'location_id' => $input['location_id'],
+                                'description' => $expense->id_expense,
+                            ],
+                        );
                     }
 
                     if (! empty($arrKandang)) {
@@ -714,6 +784,7 @@ class ExpenseController extends Controller
                 throw new \Exception('Biaya tidak ditemukan');
             }
             $expense->delete();
+
             $success = ['success' => 'Data Berhasil dihapus'];
 
             return redirect()->route('expense.list.index')->with($success);
@@ -833,6 +904,23 @@ class ExpenseController extends Controller
                 if (str_contains($routeName, 'farm')) {
                     // Ganti status jadi menunggu Approval Finance
                     $expenseStatus = array_search('Approval Finance', Constants::EXPENSE_STATUS);
+
+                    Notification::dismiss(
+                        auth()->user()->role->role_id,
+                        'expense/list',
+                        $expense->expense_id
+                    );
+
+                    Notification::notify(
+                        [
+                            'role'        => Constants::APPROVAL['Approval Finance'],
+                            'module'      => 'expense/list',
+                            'foreign_id'  => $expense->expense_id,
+                            'url'         => URL::signedRoute('expense.list.detail', ['expense' => $expense->expense_id], absolute: false),
+                            'location_id' => $expense->location_id,
+                            'description' => $expense->id_expense,
+                        ],
+                    );
                 }
 
                 // Approval Manager Finance
@@ -844,6 +932,12 @@ class ExpenseController extends Controller
 
                     // Ganti status jadi menunggu Pencairan
                     $expenseStatus = array_search('Pencairan', Constants::EXPENSE_STATUS);
+
+                    Notification::dismiss(
+                        auth()->user()->role->role_id,
+                        'expense/list',
+                        $expense->expense_id
+                    );
                 }
 
                 $success = ['success' => 'Biaya berhasil disetujui'];

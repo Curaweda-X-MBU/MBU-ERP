@@ -13,22 +13,59 @@ use App\Models\Marketing\Marketing;
 use App\Models\Marketing\MarketingAdditPrice;
 use App\Models\Marketing\MarketingDeliveryVehicle;
 use App\Models\Marketing\MarketingProduct;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class ListController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $req)
     {
         try {
-            $data = Marketing::with(['customer', 'company', 'marketing_payments'])
-                ->whereNull('marketing_return_id')
-                ->get();
+            $data = Marketing::with([
+                'customer',
+                'company',
+                'marketing_payments',
+                'marketing_products.warehouse.location.area',
+            ])->whereNull('marketing_return_id');
+            $request   = $req->all();
+            $rows      = $req->has('rows') ? $req->get('rows') : 10;
+            $arrAppend = [
+                'rows' => $rows,
+                'page' => 1,
+            ];
+
+            if (isset($request['marketing_products']['warehouse']['location_id'])) {
+                $arrAppend['marketing_products[warehouse][location_id]'] = $request['marketing_products']['warehouse']['location_id'];
+            }
+
+            if (isset($request['marketing_products']['warehouse']['location']['area_id'])) {
+                $arrAppend['marketing_products[warehouse][location][area_id]'] = $request['marketing_products']['warehouse']['location']['area_id'];
+            }
+
+            foreach ($request as $key => $value) {
+                if ($value !== '-all' && ! in_array($key, ['rows', 'page'])) {
+                    if (is_array($value)) {
+                        $data->whereHas($key, function($query) use ($value) {
+                            $this->applyNestedWhere($query, $value, $arrAppend);
+                        });
+                    } else {
+                        $data->where($key, $value);
+                        $arrAppend[$key] = $value;
+                    }
+                }
+            }
+
+            $data = $data
+                ->orderBy('marketing_id', 'DESC')
+                ->paginate($rows);
+            $data->appends($arrAppend);
 
             $param = [
                 'title' => 'Penjualan > List',
@@ -41,6 +78,20 @@ class ListController extends Controller
                 ->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    private function applyNestedWhere($query, $values, &$arrAppend)
+    {
+        foreach ($values as $relationKey => $relationValue) {
+            if (is_array($relationValue)) {
+                $query->whereHas($relationKey, function($subQuery) use ($relationValue) {
+                    $this->applyNestedWhere($subQuery, $relationValue, $arrAppend);
+                });
+            } else {
+                $query->where($relationKey, $relationValue);
+                $arrAppend[$relationKey] = $relationValue;
+            }
         }
     }
 
@@ -84,7 +135,6 @@ class ListController extends Controller
                         'notes'          => $input['notes'],
                         'sales_id'       => $input['sales_id'] ?? null,
                         'tax'            => $input['tax'],
-                        'discount'       => Parser::parseLocale($input['discount']),
                         'payment_status' => array_search(
                             'Tempo',
                             Constants::MARKETING_PAYMENT_STATUS
@@ -154,16 +204,31 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100));
 
                     $createdMarketing->update([
                         'sub_total'   => $subTotal,
                         'grand_total' => $subTotalAfterTax + $additPrice,
                     ]);
 
+                    $idMarketing = "DO.{$company->alias}.{$createdMarketing->marketing_id}";
+
                     $createdMarketing->update([
-                        'id_marketing' => "DO.{$company->alias}.{$createdMarketing->marketing_id}",
+                        'id_marketing' => $idMarketing,
                     ]);
+
+                    // NOTIFY APPROVAL MANAGER MARKETING
+                    Notification::notify(
+                        [
+                            'role'       => Constants::APPROVAL['Approval Marketing'],
+                            'module'     => 'marketing/list',
+                            'foreign_id' => $createdMarketing->marketing_id,
+                            'url'        => URL::signedRoute('marketing.list.detail', ['marketing' => $createdMarketing->marketing_id], absolute: false),
+                            // TODO: Add location input and filter in marketing add page
+                            'location_id' => $createdMarketing->marketing_products->first()->warehouse->location_id,
+                            'description' => $idMarketing,
+                        ],
+                    );
 
                     // Success message according to project_id
                     if (! empty($arrProduct)) {
@@ -233,6 +298,23 @@ class ListController extends Controller
                 'data'  => $data,
             ];
 
+            if ($req->has('discount')) {
+                $input    = $req->all();
+                $discount = $input['discount'];
+
+                $success = DB::transaction(function() use ($input, $marketing, $discount) {
+                    $marketing->update([
+                        'discount'       => Parser::parseLocale($input['discount']),
+                        'discount_notes' => $input['discount_notes'],
+                        'grand_total'    => $marketing->grand_total + ($marketing->discount ?? 0) - Parser::parseLocale($input['discount']),
+                    ]);
+
+                    return ['success' => "Diskon berhasil diubah menjadi $discount"];
+                });
+
+                return redirect()->route('marketing.list.index')->with($success);
+            }
+
             if ($req->isMethod('post')) {
                 $input = $req->all();
 
@@ -267,7 +349,6 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     $arrProduct = [];
@@ -330,7 +411,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * ($input['tax'] / 100));
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
@@ -439,7 +520,6 @@ class ListController extends Controller
                         'notes'         => $input['notes'],
                         'sales_id'      => $input['sales_id'] ?? null,
                         'tax'           => $input['tax'],
-                        'discount'      => Parser::parseLocale($input['discount']),
                     ]);
 
                     if ($input['realized_at']) {
@@ -542,7 +622,7 @@ class ListController extends Controller
                     }
 
                     $subTotal         = $productPrice;
-                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100)) - Parser::parseLocale($input['discount']);
+                    $subTotalAfterTax = $productPrice + ($productPrice * (($input['tax'] ?? 0) / 100));
 
                     $marketing->update([
                         'sub_total'   => $subTotal,
@@ -600,10 +680,27 @@ class ListController extends Controller
             $approved_at      = null;
             $marketing_status = array_search('Ditolak', Constants::MARKETING_STATUS);
 
+            Notification::dismiss(
+                auth()->user()->role->role_id,
+                'marketing/list',
+                $marketing->marketing_id
+            );
+
             if ($input['is_approved'] == 1) {
                 $success          = ['success' => 'Penjualan berhasil disetujui'];
                 $approved_at      = date('Y-m-d H:i:s');
                 $marketing_status = $input['marketing_status'];
+
+                if ($marketing_status == array_search('Penawaran', Constants::MARKETING_STATUS)) {
+                    Notification::notify([
+                        'role'        => Constants::APPROVAL['Approval Marketing'],
+                        'module'      => 'marketing/list',
+                        'foreign_id'  => $marketing->marketing_id,
+                        'url'         => URL::signedRoute('marketing.list.detail', ['marketing' => $marketing->marketing_id], absolute: false),
+                        'location_id' => $marketing->marketing_products->first()->warehouse->location_id,
+                        'description' => $marketing->id_marketing,
+                    ]);
+                }
             }
 
             $marketing->update([

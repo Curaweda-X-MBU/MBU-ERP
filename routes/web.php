@@ -32,6 +32,9 @@ Route::get('/sidebar-toggle', [App\Http\Controllers\DashboardController::class, 
 
 Route::middleware('auth')->group(function() {
     Route::get('/show-file', [App\Helpers\FileHelper::class, 'show'])->name('file.show');
+    Route::group(['prefix' => 'notification'], function() {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('notification');
+    });
     Route::group(['prefix' => 'dashboard'], function() {
         Route::get('/mbu', [App\Http\Controllers\DashboardController::class, 'indexMbu'])->name('dashboard.mbu.index')->middleware('permission:dashboard.mbu.index');
         Route::get('/lti', [App\Http\Controllers\DashboardController::class, 'indexLti'])->name('dashboard.lti.index')->middleware('permission:dashboard.lti.index');
@@ -168,27 +171,34 @@ Route::middleware('auth')->group(function() {
         Route::get('/', [App\Http\Controllers\Finance\FinanceController::class, 'index'])->name('finance.index')->middleware('permission:finance.index');
     });
 
-    Route::group(['prefix' => 'report'], function() {
-        Route::get('/', [App\Http\Controllers\Report\ReportLocationController::class, 'index'])->name('report.index');
-        Route::get('/{location}', [App\Http\Controllers\Report\ReportLocationController::class, 'detail'])->name('report.detail.location');
-        Route::get('/{location}/{project}', [App\Http\Controllers\Report\ReportKandangController::class, 'detail'])->name('report.detail.kandang');
+    Route::group(['prefix' => 'closing'], function() {
+        Route::get('/', [App\Http\Controllers\Closing\ClosingLocationController::class, 'index'])->name('closing.index');
+        Route::get('/{location}', [App\Http\Controllers\Closing\ClosingLocationController::class, 'detail'])->name('closing.detail.location');
+        Route::get('/{location}/{project}', [App\Http\Controllers\Closing\ClosingKandangController::class, 'detail'])->name('closing.detail.kandang');
         Route::group(['prefix' => 'detail/{location}'], function() {
-            Route::get('/sapronak', [App\Http\Controllers\Report\ReportLocationController::class, 'sapronak'])->name('report.detail.location.sapronak');
-            Route::get('/perhitungan', [App\Http\Controllers\Report\ReportLocationController::class, 'perhitunganSapronak'])->name('report.detail.location.perhitungan');
-            Route::get('/penjualan', [App\Http\Controllers\Report\ReportLocationController::class, 'penjualan'])->name('report.detail.location.penjualan');
-            Route::get('/overhead', [App\Http\Controllers\Report\ReportLocationController::class, 'overhead'])->name('report.detail.location.overhead');
-            Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportLocationController::class, 'hppEkspedisi'])->name('report.detail.location.ekspedisi');
-            Route::get('/produksi', [App\Http\Controllers\Report\ReportLocationController::class, 'dataProduksi'])->name('report.detail.location.produksi');
-            Route::get('/keuangan', [App\Http\Controllers\Report\ReportLocationController::class, 'keuangan'])->name('report.detail.location.keuangan');
+            Route::get('/sapronak', [App\Http\Controllers\Closing\ClosingLocationController::class, 'sapronak'])->name('closing.detail.location.sapronak');
+            Route::get('/perhitungan', [App\Http\Controllers\Closing\ClosingLocationController::class, 'perhitunganSapronak'])->name('closing.detail.location.perhitungan');
+            Route::get('/penjualan', [App\Http\Controllers\Closing\ClosingLocationController::class, 'penjualan'])->name('closing.detail.location.penjualan');
+            Route::get('/overhead', [App\Http\Controllers\Closing\ClosingLocationController::class, 'overhead'])->name('closing.detail.location.overhead');
+            Route::get('/ekspedisi', [App\Http\Controllers\Closing\ClosingLocationController::class, 'hppEkspedisi'])->name('closing.detail.location.ekspedisi');
+            Route::get('/produksi', [App\Http\Controllers\Closing\ClosingLocationController::class, 'dataProduksi'])->name('closing.detail.location.produksi');
+            Route::get('/keuangan', [App\Http\Controllers\Closing\ClosingLocationController::class, 'keuangan'])->name('closing.detail.location.keuangan');
             Route::group(['prefix' => '{project}'], function() {
-                Route::get('/sapronak', [App\Http\Controllers\Report\ReportKandangController::class, 'sapronak'])->name('report.detail.kandang.sapronak');
-                Route::get('/perhitungan', [App\Http\Controllers\Report\ReportKandangController::class, 'perhitunganSapronak'])->name('report.detail.kandang.perhitungan');
-                Route::get('/penjualan', [App\Http\Controllers\Report\ReportKandangController::class, 'penjualan'])->name('report.detail.kandang.penjualan');
-                Route::get('/overhead', [App\Http\Controllers\Report\ReportKandangController::class, 'overhead'])->name('report.detail.kandang.overhead');
-                Route::get('/ekspedisi', [App\Http\Controllers\Report\ReportKandangController::class, 'hppEkspedisi'])->name('report.detail.kandang.ekspedisi');
-                Route::get('/produksi', [App\Http\Controllers\Report\ReportKandangController::class, 'dataProduksi'])->name('report.detail.kandang.produksi');
-                Route::get('/keuangan', [App\Http\Controllers\Report\ReportKandangController::class, 'keuangan'])->name('report.detail.kandang.keuangan');
+                Route::get('/sapronak', [App\Http\Controllers\Closing\ClosingKandangController::class, 'sapronak'])->name('closing.detail.kandang.sapronak');
+                Route::get('/perhitungan', [App\Http\Controllers\Closing\ClosingKandangController::class, 'perhitunganSapronak'])->name('closing.detail.kandang.perhitungan');
+                Route::get('/penjualan', [App\Http\Controllers\Closing\ClosingKandangController::class, 'penjualan'])->name('closing.detail.kandang.penjualan');
+                Route::get('/overhead', [App\Http\Controllers\Closing\ClosingKandangController::class, 'overhead'])->name('closing.detail.kandang.overhead');
+                Route::get('/ekspedisi', [App\Http\Controllers\Closing\ClosingKandangController::class, 'hppEkspedisi'])->name('closing.detail.kandang.ekspedisi');
+                Route::get('/produksi', [App\Http\Controllers\Closing\ClosingKandangController::class, 'dataProduksi'])->name('closing.detail.kandang.produksi');
+                Route::get('/keuangan', [App\Http\Controllers\Closing\ClosingKandangController::class, 'keuangan'])->name('closing.detail.kandang.keuangan');
             });
+        });
+    });
+
+    Route::group(['prefix' => 'report'], function() {
+        Route::group(['prefix' => 'finance'], function() {
+            Route::get('/customer-payment', [App\Http\Controllers\Report\ReportFinanceController::class, 'customerPayment'])->name('report.finance.customer-payment')->middleware('permission:report.finance.customer-payment');
+            Route::get('/balance-monitoring', [App\Http\Controllers\Report\ReportFinanceController::class, 'balanceMonitoring'])->name('report.finance.balance-monitoring')->middleware('permission:report.finance.balance-monitoring');
         });
     });
 

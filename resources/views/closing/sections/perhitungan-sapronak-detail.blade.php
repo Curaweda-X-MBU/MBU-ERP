@@ -9,9 +9,9 @@
                     <div class=" collapse-icon">
                         <div class=" p-0">
                             <div class="collapse-default">
-                                @include('report.sections.perhitungan-sapronak-collapse.doc-broiler')
-                                @include('report.sections.perhitungan-sapronak-collapse.ovk')
-                                @include('report.sections.perhitungan-sapronak-collapse.pakan')
+                                @include('closing.sections.perhitungan-sapronak-collapse.doc-broiler')
+                                @include('closing.sections.perhitungan-sapronak-collapse.ovk')
+                                @include('closing.sections.perhitungan-sapronak-collapse.pakan')
                             </div>
                         </div>
                     </div>
@@ -91,11 +91,11 @@ $(function() {
     }
 
     function fetchLocationPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
+        fetchPerhitunganSapronakData("{{ route('closing.detail.location.perhitungan', [ 'location' => $detail->location_id ]) . '?period=' }}" + period);
     }
 
     function fetchKandangPerhitunganSapronakData() {
-        fetchPerhitunganSapronakData("{{ route('report.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
+        fetchPerhitunganSapronakData("{{ route('closing.detail.kandang.perhitungan', [ 'location' => $detail->location_id, 'project' => $detail->project_id ]) . '?period=' }}" + period);
     }
 
     function fetchPerhitunganSapronakData(route) {

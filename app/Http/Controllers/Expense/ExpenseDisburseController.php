@@ -240,8 +240,8 @@ class ExpenseDisburseController extends Controller
                     }
 
                     $docPath = '';
-                    if (isset($value['document_path'])) {
-                        $docUrl = FileHelper::upload($value['document_path'], Constants::EXPENSE_DISBURSE_DOC_PATH);
+                    if (isset($value['disburse_docs'])) {
+                        $docUrl = FileHelper::upload($value['disburse_docs'], Constants::EXPENSE_DISBURSE_DOC_PATH);
                         if (! $docUrl['status']) {
                             return redirect()->back()->with('error', $docUrl['message'].' '.$value['document_path'])->withInput();
                         }
@@ -257,7 +257,6 @@ class ExpenseDisburseController extends Controller
                         'bank_id'            => $value['bank_id'] ?? null,
                         'payment_at'         => date('Y-m-d', strtotime($value['payment_at'])),
                         'payment_nominal'    => $paymentNominal,
-                        'approved_at'        => now()->format('Y-m-d'),
                     ];
 
                     $expense       = Expense::find($value['expense_id']);

@@ -33,7 +33,22 @@ class MarketingProduct extends Model
         'return_qty',
     ];
 
-    protected $appends = ['grand_total', 'payment_status'];
+    protected $appends = ['local_discount', 'grand_total', 'payment_status'];
+
+    public function getLocalDiscount()
+    {
+        $marketing = $this->marketing;
+        if (! $marketing) {
+            throw new \Exception("Marketing not found for product ID {$this->marketing_product_id}");
+        }
+
+        $discount      = $marketing->discount;
+        $productCount  = $marketing->marketing_products()->count();
+        $localDiscount = $discount / $productCount;
+
+        return $localDiscount;
+
+    }
 
     public function getGrandTotalAttribute()
     {
@@ -42,10 +57,9 @@ class MarketingProduct extends Model
             throw new \Exception("Marketing not found for product ID {$this->marketing_product_id}");
         }
 
-        $discount             = $marketing->discount;
         $additionalPrices     = $marketing->marketing_addit_prices->sum('price');
         $productCount         = $marketing->marketing_products()->count();
-        $localDiscount        = $discount         / $productCount;
+        $localDiscount        = $this->local_discount;
         $localAdditionalPrice = $additionalPrices / $productCount;
         $tax                  = $marketing->tax;
 
